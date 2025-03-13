@@ -1,5 +1,82 @@
 [
   {
+    "url": "https://api.github.com/repos/usebruno/bruno/issues/4235",
+    "repository_url": "https://api.github.com/repos/usebruno/bruno",
+    "labels_url": "https://api.github.com/repos/usebruno/bruno/issues/4235/labels{/name}",
+    "comments_url": "https://api.github.com/repos/usebruno/bruno/issues/4235/comments",
+    "events_url": "https://api.github.com/repos/usebruno/bruno/issues/4235/events",
+    "html_url": "https://github.com/usebruno/bruno/issues/4235",
+    "id": 2918449838,
+    "node_id": "I_kwDOIFKaXM6t9AKu",
+    "number": 4235,
+    "title": "Collection Post Response doesnt run if there is an error when the request Post Response runs",
+    "user": {
+      "login": "hadarnexus",
+      "id": 4219501,
+      "node_id": "MDQ6VXNlcjQyMTk1MDE=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4219501?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/hadarnexus",
+      "html_url": "https://github.com/hadarnexus",
+      "followers_url": "https://api.github.com/users/hadarnexus/followers",
+      "following_url": "https://api.github.com/users/hadarnexus/following{/other_user}",
+      "gists_url": "https://api.github.com/users/hadarnexus/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/hadarnexus/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/hadarnexus/subscriptions",
+      "organizations_url": "https://api.github.com/users/hadarnexus/orgs",
+      "repos_url": "https://api.github.com/users/hadarnexus/repos",
+      "events_url": "https://api.github.com/users/hadarnexus/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/hadarnexus/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "labels": [
+      {
+        "id": 4584658689,
+        "node_id": "LA_kwDOIFKaXM8AAAABEURXAQ",
+        "url": "https://api.github.com/repos/usebruno/bruno/labels/bug",
+        "name": "bug",
+        "color": "d73a4a",
+        "default": true,
+        "description": "Something isn't working"
+      }
+    ],
+    "state": "open",
+    "locked": false,
+    "assignee": null,
+    "assignees": [],
+    "milestone": null,
+    "comments": 0,
+    "created_at": "2025-03-13T21:42:42Z",
+    "updated_at": "2025-03-13T21:42:42Z",
+    "closed_at": null,
+    "author_association": "NONE",
+    "sub_issues_summary": {
+      "total": 0,
+      "completed": 0,
+      "percent_completed": 0
+    },
+    "active_lock_reason": null,
+    "body": "### I have checked the following:\n\n- [x] I have searched existing issues and found nothing related to my issue.\n\n### This bug is:\n\n- [ ] making Bruno unusable for me\n- [x] slowing me down but I'm able to continue working\n- [x] annoying\n\n### Bruno version\n\n1.39.1\n\n### Operating System\n\nWindows\n\n### Describe the bug\n\nI thought I had seen a similar issue to this somewhere, but can't find it, so logging this...\n\n\nI have implemented some logging in the Post Response script of a collection\n\n**Example - Collection Post Response**\n```javascript\nconsole.info(req.getUrl())\nconsole.debug(\"Response status: \")\nconsole.debug(res.status)\n``` \n\nIn the request, by Post response script was checking some data, but the request had failed on auth, so there was no response body\n\n**Example - Request Post Response**\n```javascript\nconst jsonData = res.getBody();\nlet obj = jsonData.data.paymentMethods.find(a => a.method === bru.getGlobalEnvVar('paymentMethod'));\n``` \n\nThis fails with this error, as my auth wasnt correct \n_Error invoking remote method 'send-http-request': TypeError: Cannot read properties of undefined (reading 'paymentMethods')_\n\nMy Collection Post Response script hadnt run, so there was no logging to help me debug the issue\n\n### .bru file to reproduce the bug\n\n_No response_\n\n### Screenshots/Live demo link\n\nN/A",
+    "closed_by": null,
+    "reactions": {
+      "url": "https://api.github.com/repos/usebruno/bruno/issues/4235/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/usebruno/bruno/issues/4235/timeline",
+    "performed_via_github_app": null,
+    "state_reason": null
+  },
+  {
     "url": "https://api.github.com/repos/usebruno/bruno/issues/4234",
     "repository_url": "https://api.github.com/repos/usebruno/bruno",
     "labels_url": "https://api.github.com/repos/usebruno/bruno/issues/4234/labels{/name}",
@@ -414,15 +491,15 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": null,
     "assignees": [],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2025-03-13T12:52:28Z",
-    "updated_at": "2025-03-13T12:52:33Z",
-    "closed_at": null,
+    "updated_at": "2025-03-13T21:18:42Z",
+    "closed_at": "2025-03-13T21:18:22Z",
     "author_association": "MEMBER",
     "sub_issues_summary": {
       "total": 0,
@@ -436,10 +513,30 @@
       "html_url": "https://github.com/usebruno/bruno/pull/4230",
       "diff_url": "https://github.com/usebruno/bruno/pull/4230.diff",
       "patch_url": "https://github.com/usebruno/bruno/pull/4230.patch",
-      "merged_at": null
+      "merged_at": "2025-03-13T21:18:22Z"
     },
     "body": "# Description\r\n\r\nWhen exporting a Postman collection, if any request contains an empty URL field, it causes the entire Bruno application to crash and throws an error.\r\n\r\n### Contribution Checklist:\r\n\r\n- [x] **The pull request only addresses one issue or adds one feature.**\r\n- [x] **The pull request does not introduce any breaking changes**\r\n- [ ] **I have added screenshots or gifs to help explain the change if applicable.**\r\n- [x] **I have read the [contribution guidelines](https://github.com/usebruno/bruno/blob/main/contributing.md).**\r\n- [ ] **Create an issue and link to the pull request.**\r\n\r\nNote: Keeping the PR small and focused helps make it easier to review and merge. If you have multiple changes you want to make, please consider submitting them as separate pull requests.\r\n\r\n### Publishing to New Package Managers\r\n\r\nPlease see [here](../publishing.md) for more information.\r\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/4230/reactions",
       "total_count": 0,
@@ -7715,15 +7812,15 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": null,
     "assignees": [],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2025-03-04T14:45:14Z",
-    "updated_at": "2025-03-04T14:48:01Z",
-    "closed_at": null,
+    "updated_at": "2025-03-13T21:45:33Z",
+    "closed_at": "2025-03-13T21:44:52Z",
     "author_association": "CONTRIBUTOR",
     "sub_issues_summary": {
       "total": 0,
@@ -7737,10 +7834,30 @@
       "html_url": "https://github.com/usebruno/bruno/pull/4156",
       "diff_url": "https://github.com/usebruno/bruno/pull/4156.diff",
       "patch_url": "https://github.com/usebruno/bruno/pull/4156.patch",
-      "merged_at": null
+      "merged_at": "2025-03-13T21:44:52Z"
     },
     "body": "# Description\r\nfixes: #4010 \r\n\r\nadd --delay _delayInMs_ option for bruno cli \r\n\r\n\r\nhttps://github.com/user-attachments/assets/dc9130bb-46f2-41b6-af3c-2433a86351dc\r\n\r\n\r\n### Contribution Checklist:\r\n- [x] **The pull request only addresses one issue or adds one feature.**\r\n- [x] **The pull request does not introduce any breaking changes**\r\n- [x] **I have added screenshots or gifs to help explain the change if applicable.**\r\n- [x] **I have read the [contribution guidelines](https://github.com/usebruno/bruno/blob/main/contributing.md).**\r\n- [x] **Create an issue and link to the pull request.**",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/4156/reactions",
       "total_count": 0,
@@ -21843,15 +21960,15 @@
         "description": "New feature or request"
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": null,
     "assignees": [],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2025-02-13T09:01:09Z",
-    "updated_at": "2025-02-13T09:01:09Z",
-    "closed_at": null,
+    "updated_at": "2025-03-13T21:46:04Z",
+    "closed_at": "2025-03-13T21:44:53Z",
     "author_association": "NONE",
     "sub_issues_summary": {
       "total": 0,
@@ -21860,7 +21977,27 @@
     },
     "active_lock_reason": null,
     "body": "### I have checked the following:\n\n- [x] I've searched existing issues and found nothing related to my issue.\n\n### Describe the feature you want to add\n\nRunning tests from Bruno IDE has possibility to add a delay time between every request. Wish bru cli has the  possibility to add a delay in ms when running tests.\n\n### Mockups or Images of the feature\n\nbru run folder --output results.json --delay 1000",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/4010/reactions",
       "total_count": 0,
@@ -21875,7 +22012,7 @@
     },
     "timeline_url": "https://api.github.com/repos/usebruno/bruno/issues/4010/timeline",
     "performed_via_github_app": null,
-    "state_reason": null
+    "state_reason": "completed"
   },
   {
     "url": "https://api.github.com/repos/usebruno/bruno/issues/4009",
@@ -26193,15 +26330,15 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": null,
     "assignees": [],
     "milestone": null,
-    "comments": 2,
+    "comments": 3,
     "created_at": "2025-02-07T07:09:56Z",
-    "updated_at": "2025-02-12T05:48:19Z",
-    "closed_at": null,
+    "updated_at": "2025-03-13T21:40:14Z",
+    "closed_at": "2025-03-13T21:40:13Z",
     "author_association": "COLLABORATOR",
     "sub_issues_summary": {
       "total": 0,
@@ -26218,7 +26355,27 @@
       "merged_at": null
     },
     "body": "# Description\r\n\r\nThis PR fixes an issue where the search dialog was overlapping the first few lines of the code editor, affecting readability. The dialog is now positioned correctly without obstructing the code content.\r\n\r\n### Changes Introduced:\r\n- Added `.dialog-opened` class to provide padding when the dialog is active.\r\n- Repositioned the search dialog to be fixed at the top with proper spacing.\r\n- Enhanced search dialog styling with improved borders, shadows, and background colors.\r\n\r\n### Contribution Checklist:\r\n\r\n- [x] **The pull request only addresses one issue or adds one feature.**\r\n- [x] **The pull request does not introduce any breaking changes**\r\n- [x] **I have added screenshots or gifs to help explain the change if applicable.**\r\n- [x] **I have read the [contribution guidelines](https://github.com/usebruno/bruno/blob/main/contributing.md).**\r\n- [x] **Create an issue and link to the pull request.**\r\n\r\n<img width=\"526\" alt=\"image\" src=\"https://github.com/user-attachments/assets/df892fe3-8d1f-49f8-8925-5910b335cb96\" />\r\n\r\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/3965/reactions",
       "total_count": 0,
@@ -51109,7 +51266,7 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": {
       "login": "helloanoop",
@@ -51156,11 +51313,11 @@
       }
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2025-01-05T11:54:42Z",
-    "updated_at": "2025-03-06T15:06:44Z",
-    "closed_at": null,
-    "author_association": "FIRST_TIME_CONTRIBUTOR",
+    "updated_at": "2025-03-13T21:38:01Z",
+    "closed_at": "2025-03-13T21:37:51Z",
+    "author_association": "CONTRIBUTOR",
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
@@ -51173,10 +51330,30 @@
       "html_url": "https://github.com/usebruno/bruno/pull/3731",
       "diff_url": "https://github.com/usebruno/bruno/pull/3731.diff",
       "patch_url": "https://github.com/usebruno/bruno/pull/3731.patch",
-      "merged_at": null
+      "merged_at": "2025-03-13T21:37:51Z"
     },
     "body": "### Description\r\n\r\nThis PR amends the search bar placeholder to be more descriptive on what can be searched. Thank you!\r\n\r\n### Screenshots\r\n\r\n| Before | After |\r\n|--------|--------|\r\n| ![Screenshot 2025-01-05 at 12 49 32](https://github.com/user-attachments/assets/bc6333f7-67fd-445c-8348-21e5802693c8) | ![Screenshot 2025-01-05 at 12 49 49](https://github.com/user-attachments/assets/bc00cfb8-8485-4ae8-bb03-739ad15e497e) | \r\n\r\nFixes https://github.com/usebruno/bruno/issues/3730",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/3731/reactions",
       "total_count": 0,
@@ -51236,16 +51413,16 @@
         "description": "New feature or request"
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": null,
     "assignees": [],
     "milestone": null,
     "comments": 0,
     "created_at": "2025-01-05T11:54:13Z",
-    "updated_at": "2025-01-05T11:54:28Z",
-    "closed_at": null,
-    "author_association": "NONE",
+    "updated_at": "2025-03-13T21:37:52Z",
+    "closed_at": "2025-03-13T21:37:52Z",
+    "author_association": "CONTRIBUTOR",
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
@@ -51253,7 +51430,27 @@
     },
     "active_lock_reason": null,
     "body": "### Description\r\n\r\nThe search bar should be changed to reflect that it can search requests. This will help newbies to onboard faster and make the best out of `Bruno`.\r\n\r\n### Mockups or Images of the feature\r\n\r\n| Before | After |\r\n|--------|--------|\r\n| ![Screenshot 2025-01-05 at 12 49 32](https://github.com/user-attachments/assets/bc6333f7-67fd-445c-8348-21e5802693c8) | ![Screenshot 2025-01-05 at 12 49 49](https://github.com/user-attachments/assets/bc00cfb8-8485-4ae8-bb03-739ad15e497e) | ",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/3730/reactions",
       "total_count": 0,
@@ -51268,7 +51465,7 @@
     },
     "timeline_url": "https://api.github.com/repos/usebruno/bruno/issues/3730/timeline",
     "performed_via_github_app": null,
-    "state_reason": null
+    "state_reason": "completed"
   },
   {
     "url": "https://api.github.com/repos/usebruno/bruno/issues/3729",
@@ -54483,7 +54680,7 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": {
       "login": "helloanoop",
@@ -54551,10 +54748,10 @@
       }
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2024-12-26T19:38:04Z",
-    "updated_at": "2025-01-13T07:09:22Z",
-    "closed_at": null,
+    "updated_at": "2025-03-13T21:41:27Z",
+    "closed_at": "2025-03-13T21:41:27Z",
     "author_association": "CONTRIBUTOR",
     "sub_issues_summary": {
       "total": 0,
@@ -54571,7 +54768,27 @@
       "merged_at": null
     },
     "body": "# Description\r\n\r\nEnsured data is returned as a JSON string, retaining quotes, even when the input is not valid JSON. This improves the display consistency for string and empty string values. Added JSON.stringify to handle non-JSON data types and ensure proper string representation.\r\n\r\nAddressing issues: #3676 and #3594 \r\n\r\n### Contribution Checklist:\r\n\r\n- [x] **The pull request only addresses one issue or adds one feature.**\r\n- [x] **The pull request does not introduce any breaking changes**\r\n- [ ] **I have added screenshots or gifs to help explain the change if applicable.**\r\n- [x] **I have read the [contribution guidelines](https://github.com/usebruno/bruno/blob/main/contributing.md).**\r\n- [x] **Create an issue and link to the pull request.**\r\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/3700/reactions",
       "total_count": 0,
@@ -54631,7 +54848,7 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": {
       "login": "Pragadesh44-Bruno",
@@ -54678,10 +54895,10 @@
       }
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2024-12-26T19:31:46Z",
-    "updated_at": "2025-01-13T09:55:31Z",
-    "closed_at": null,
+    "updated_at": "2025-03-13T21:39:05Z",
+    "closed_at": "2025-03-13T21:39:05Z",
     "author_association": "CONTRIBUTOR",
     "sub_issues_summary": {
       "total": 0,
@@ -54698,7 +54915,27 @@
       "merged_at": null
     },
     "body": "# Description\r\n\r\nAdded request url in collection search\r\nAddressing issue: #3692 \r\n\r\n### Contribution Checklist:\r\n\r\n- [x] **The pull request only addresses one issue or adds one feature.**\r\n- [x] **The pull request does not introduce any breaking changes**\r\n- [ ] **I have added screenshots or gifs to help explain the change if applicable.**\r\n- [x] **I have read the [contribution guidelines](https://github.com/usebruno/bruno/blob/main/contributing.md).**\r\n- [x] **Create an issue and link to the pull request.**\r\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/3699/reactions",
       "total_count": 0,
@@ -79344,7 +79581,7 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignee": {
       "login": "pooja-bruno",
@@ -79391,11 +79628,11 @@
       }
     ],
     "milestone": null,
-    "comments": 2,
+    "comments": 3,
     "created_at": "2024-11-15T04:28:32Z",
-    "updated_at": "2025-01-13T08:56:22Z",
-    "closed_at": null,
-    "author_association": "FIRST_TIME_CONTRIBUTOR",
+    "updated_at": "2025-03-13T22:02:13Z",
+    "closed_at": "2025-03-13T22:01:59Z",
+    "author_association": "CONTRIBUTOR",
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
@@ -79408,10 +79645,30 @@
       "html_url": "https://github.com/usebruno/bruno/pull/3487",
       "diff_url": "https://github.com/usebruno/bruno/pull/3487.diff",
       "patch_url": "https://github.com/usebruno/bruno/pull/3487.patch",
-      "merged_at": null
+      "merged_at": "2025-03-13T22:01:58Z"
     },
     "body": "# Description\r\n\r\nAdresses: https://github.com/usebruno/bruno/issues/1974\r\n\r\nSorts collections by name in alphabetical order\r\nCollections with numbers in the names are sorted in numerical order.\r\n\r\nResults in `['Test 10', 'Test 2', 'Test 1']`\r\nbeing sorted to: `['Test 1', 'Test 2', 'Test 10']` instead of: `['Test 1', 'Test 10', 'Test 2']`\r\n\r\nAccurately sorts numbers with decimals as well.\r\n\r\n![Screenshot 2024-11-14 at 8 27 34 PM](https://github.com/user-attachments/assets/104abfab-1e46-4be6-a6f3-597a3342d59b)\r\n![Screenshot 2024-11-14 at 8 27 44 PM](https://github.com/user-attachments/assets/c1d54722-cfe2-4579-b372-babcdb569579)\r\n![Screenshot 2024-11-14 at 8 27 56 PM](https://github.com/user-attachments/assets/e5050db3-ee16-4a78-83a3-8c325ffd883f)\r\n\r\n\r\n### Contribution Checklist:\r\n\r\n- [x] **The pull request only addresses one issue or adds one feature.**\r\n- [x] **The pull request does not introduce any breaking changes**\r\n- [x] **I have added screenshots or gifs to help explain the change if applicable.**\r\n- [x] **I have read the [contribution guidelines](https://github.com/usebruno/bruno/blob/main/contributing.md).**\r\n- [x] **Create an issue and link to the pull request.**\r\n\r\nNote: Keeping the PR small and focused helps make it easier to review and merge. If you have multiple changes you want to make, please consider submitting them as separate pull requests.\r\n\r\n### Publishing to New Package Managers\r\n\r\nPlease see [here](../publishing.md) for more information.\r\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "helloanoop",
+      "id": 9350733,
+      "node_id": "MDQ6VXNlcjkzNTA3MzM=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9350733?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/helloanoop",
+      "html_url": "https://github.com/helloanoop",
+      "followers_url": "https://api.github.com/users/helloanoop/followers",
+      "following_url": "https://api.github.com/users/helloanoop/following{/other_user}",
+      "gists_url": "https://api.github.com/users/helloanoop/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/helloanoop/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/helloanoop/subscriptions",
+      "organizations_url": "https://api.github.com/users/helloanoop/orgs",
+      "repos_url": "https://api.github.com/users/helloanoop/repos",
+      "events_url": "https://api.github.com/users/helloanoop/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/helloanoop/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/3487/reactions",
       "total_count": 0,
@@ -228186,13 +228443,13 @@
     },
     "reactions": {
       "url": "https://api.github.com/repos/usebruno/bruno/issues/1974/reactions",
-      "total_count": 3,
+      "total_count": 4,
       "+1": 0,
       "-1": 0,
       "laugh": 0,
       "hooray": 0,
       "confused": 0,
-      "heart": 3,
+      "heart": 4,
       "rocket": 0,
       "eyes": 0
     },

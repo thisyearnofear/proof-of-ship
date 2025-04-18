@@ -1,25 +1,44 @@
 import { createContext, useContext, useState } from 'react';
-import issues from '../../../data/github-data/issues.json';
-import prs from '../../../data/github-data/prs.json';
-import releases from '../../../data/github-data/releases.json';
-import meta from '../../../data/github-data/meta.json';
+import repos from '../../../repos.json';
+
+// Initialize map of slug → data from JSON files
+const initialData = repos.reduce((acc, { slug }) => {
+  acc[slug] = {
+    issues: require(`../../../data/github-data/${slug}-issues.json`),
+    prs: require(`../../../data/github-data/${slug}-prs.json`),
+    releases: require(`../../../data/github-data/${slug}-releases.json`),
+    meta: require(`../../../data/github-data/${slug}-meta.json`),
+    commits: require(`../../../data/github-data/${slug}-commits.json`)
+  };
+  return acc;
+}, {});
 
 const GithubContext = createContext({});
 
 export function GithubProvider({ children }) {
-  const [githubIssues, setGithubIssues] = useState(issues);
-  const [githubPrs, setGithubPrs] = useState(prs);
-  const [githubReleases, setGithubReleases] = useState(releases);
-  const [githubMeta, setGithubMeta] = useState(meta);
+  // dataMap: slug → { issues, prs, releases, meta }
+  const [dataMap, setDataMap] = useState(initialData);
+  // Currently selected project slug
+  const [selectedSlug, setSelectedSlug] = useState(repos[0]?.slug);
+
+  const current = dataMap[selectedSlug] || { issues: [], prs: [], releases: [], meta: {}, commits: [] };
+  const issues = current.issues.filter(issue => !issue.pull_request);
+  const prs = current.prs;
+  const releases = current.releases;
+  const meta = current.meta;
+  const commits = current.commits;
+
   const value = {
-    issues: githubIssues.filter((issue) => !issue.pull_request),
-    setIssues: setGithubIssues,
-    prs: githubPrs,
-    setPrs: setGithubPrs,
-    releases: githubReleases,
-    setReleases: setGithubReleases,
-    meta: githubMeta,
-    setMeta: setGithubMeta,
+    repos,
+    selectedSlug,
+    setSelectedSlug,
+    issues,
+    prs,
+    releases,
+    meta,
+    commits,
+    dataMap,
+    setDataMap
   };
 
   return (

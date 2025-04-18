@@ -1,0 +1,12 @@
+[
+  { "slug": "3wb",    "owner": "3-Wheeler-Bike-Club",    "repo": "3-wheeler-bike-club-members-app-pwa",      "season": 1 },
+  { "slug": "akili",  "owner": "Olisehgenesis",          "repo": "AkiliAI",                  "season": 1 },
+  { "slug": "optifai","owner": "Muhindo-Galien",          "repo": "celo-eliza",               "season": 1 },
+  { "slug": "nyfa",   "owner": "nyfaapp",                "repo": "celo-nyfa-app",            "season": 1 },
+  { "slug": "jazmeen","owner": "gabrieltemtsen",         "repo": "jazmeen",                  "season": 1 },
+  { "slug": "sovseas","owner": "Olisehgenesis",          "repo": "sovereign-seas",           "season": 2 },
+  { "slug": "darvs",  "owner": "SergioFinix",            "repo": "DARVS_CELO",               "season": 2 },
+  { "slug": "mind",   "owner": "0xOucan",                "repo": "celo-mind-dn",             "season": 2 },
+  { "slug": "canvass","owner": "andrewkimjoseph",        "repo": "canvassing-participant",   "season": 2 },
+  { "slug": "subpay", "owner": "Kanasjnr",              "repo": "Subpay",                   "season": 2 }
+]

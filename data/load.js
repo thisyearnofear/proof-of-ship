@@ -6,13 +6,13 @@ const chalk = require('chalk');
 dotenv.config();
 
 const GITHUB_API_URL = 'https://api.github.com';
-const REPO_OWNER = 'usebruno';
-const REPO_NAME = 'bruno';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 console.log(GITHUB_TOKEN);
 
-async function getGithubData(endpoint) {
-  const response = await axios.get(`${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/${endpoint}`, {
+const repos = require(path.join(__dirname, '../repos.json'));
+
+async function getGithubData(endpoint, owner, repoName) {
+  const response = await axios.get(`${GITHUB_API_URL}/repos/${owner}/${repoName}/${endpoint}`, {
     headers: {
       'Authorization': `token ${GITHUB_TOKEN}`,
       'Accept': 'application/vnd.github.v3+json'
@@ -21,16 +21,16 @@ async function getGithubData(endpoint) {
   return response.data;
 }
 
-async function getGithubDataWithPagination(endpoint) {
+async function getGithubDataWithPagination(owner, repoName, endpoint) {
   let page = 1;
   let allData = [];
   
-  console.log(chalk.blue(`🔄 Starting pagination for ${chalk.bold(endpoint)}`));
+  console.log(chalk.blue(`🔄 Starting pagination for ${chalk.bold(owner+'/'+repoName+'/'+endpoint)}`));
   
   while (true) {
     try {
       const response = await axios.get(
-        `${GITHUB_API_URL}/repos/${REPO_OWNER}/${REPO_NAME}/${endpoint}${endpoint.includes('?') ? '&' : '?'}page=${page}&per_page=100`,
+        `${GITHUB_API_URL}/repos/${owner}/${repoName}/${endpoint}${endpoint.includes('?') ? '&' : '?'}page=${page}&per_page=100`,
         {
           headers: {
             'Authorization': `token ${GITHUB_TOKEN}`,
@@ -40,7 +40,7 @@ async function getGithubDataWithPagination(endpoint) {
       );
       
       if (response.data.length === 0) {
-        console.log(chalk.green(`✅ Completed fetching all pages for ${chalk.bold(endpoint)}`));
+        console.log(chalk.green(`✅ Completed fetching all pages for ${chalk.bold(owner+'/'+repoName+'/'+endpoint)}`));
         break;
       }
       
@@ -67,31 +67,52 @@ async function saveJsonToFile(data, filename) {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
+// Fetch weekly commit activity for last year
+async function getCommitActivity(owner, repoName) {
+  console.log(chalk.blue(`🚂 Fetching commit activity for ${chalk.bold(owner+'/'+repoName)}`));
+  const response = await axios.get(
+    `${GITHUB_API_URL}/repos/${owner}/${repoName}/stats/commit_activity`,
+    { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
+  );
+  return response.data;
+}
+
 async function loadAllGithubData() {
   try {
     console.log(chalk.yellow('\n📊 Starting GitHub Data Collection'));
     
-    console.log(chalk.magenta('\n📌 Fetching all issues...'));
-    const issues = await getGithubDataWithPagination('issues?state=all');
-    await saveJsonToFile(issues, 'issues.json');
-    console.log(chalk.green(`✅ Successfully saved ${chalk.bold(issues.length)} issues to data/issues.json`));
+    for (const { slug, owner, repo: repoName } of repos) {
+      console.log(chalk.yellow(`\n📊 Processing ${owner}/${repoName} (${slug})`));
 
-    console.log(chalk.magenta('\n🔄 Fetching pull requests...'));
-    const closedPrs = await getGithubDataWithPagination('pulls?state=all');
-    await saveJsonToFile(closedPrs, 'prs.json');
-    console.log(chalk.green('✅ Successfully saved PRs to data/prs.json'));
+      console.log(chalk.magenta('\n📌 Fetching issues...'));
+      const issues = await getGithubDataWithPagination(owner, repoName, 'issues?state=all');
+      await saveJsonToFile(issues, `${slug}-issues.json`);
+      console.log(chalk.green(`✅ Saved ${issues.length} issues to data/github-data/${slug}-issues.json`));
 
-    console.log(chalk.magenta('\n🏷️  Fetching releases...'));
-    const releases = await getGithubDataWithPagination('releases');
-    await saveJsonToFile(releases, 'releases.json');
-    console.log(chalk.green('✅ Successfully saved releases to data/releases.json'));
+      console.log(chalk.magenta('\n🔄 Fetching pull requests...'));
+      const prs = await getGithubDataWithPagination(owner, repoName, 'pulls?state=all');
+      await saveJsonToFile(prs, `${slug}-prs.json`);
+      console.log(chalk.green(`✅ Saved ${prs.length} PRs to data/github-data/${slug}-prs.json`));
 
-    // Add meta information
-    const meta = {
-      updatedAt: new Date().toISOString()
-    };
-    await saveJsonToFile(meta, 'meta.json');
-    console.log(chalk.green('✅ Successfully saved metadata to data/meta.json'));
+      console.log(chalk.magenta('\n🏷️  Fetching releases...'));
+      const releases = await getGithubDataWithPagination(owner, repoName, 'releases');
+      await saveJsonToFile(releases, `${slug}-releases.json`);
+      console.log(chalk.green(`✅ Saved ${releases.length} releases to data/github-data/${slug}-releases.json`));
+
+      // Commit activity
+      try {
+        console.log(chalk.magenta('\n🚂 Fetching commit activity...'));
+        const commits = await getCommitActivity(owner, repoName);
+        await saveJsonToFile(commits, `${slug}-commits.json`);
+        console.log(chalk.green(`✅ Saved commit activity to data/github-data/${slug}-commits.json`));
+      } catch (err) {
+        console.error(chalk.red(`❌ Error fetching commit activity for ${slug}: ${err.message}`));
+      }
+
+      const meta = { updatedAt: new Date().toISOString() };
+      await saveJsonToFile(meta, `${slug}-meta.json`);
+      console.log(chalk.green(`✅ Saved metadata to data/github-data/${slug}-meta.json`));
+    }
 
     console.log(chalk.green.bold('\n✨ All GitHub data loaded and saved successfully! ✨'));
   } catch (error) {

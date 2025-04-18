@@ -8,7 +8,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
-  const { issues, prs, releases } = useGithub();
+  const { issues, prs, releases, repos, selectedSlug } = useGithub();
+  const currentRepo = repos.find(r => r.slug === selectedSlug) || {};
+  const repoName = currentRepo.repo || selectedSlug;
   
   // Calculate statistics
   const totalDownloads = releases?.reduce((total, release) => {
@@ -27,6 +29,7 @@ export default function Dashboard() {
   
   return (
     <div className="p-4">
+      <h1 className="text-2xl font-semibold mb-6">Dashboard: {repoName}</h1>
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard

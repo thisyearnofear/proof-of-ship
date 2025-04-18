@@ -12,8 +12,9 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
+    "axios": "^1.8.4",
     "chalk": "^3.0.0",
-    "chart.js": "^4.4.8",
+    "chart.js": "^4.4.9",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "next": "15.0.3",

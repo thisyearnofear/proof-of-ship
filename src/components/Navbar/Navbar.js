@@ -2,8 +2,10 @@ import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Bruno from '@/components/Icons/Bruno';
 import { usePathname } from 'next/navigation';
+import { useGithub } from '@/providers/Github/Github';
 
 const navigation = [
+  { name: 'Overview', href: '/overview' },
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Issues', href: '/issues' },
   { name: 'Pulls', href: '/pulls' },
@@ -16,6 +18,7 @@ function classNames(...classes) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { repos, selectedSlug, setSelectedSlug } = useGithub();
 
   const GithubIcon = () => {
     return (
@@ -63,6 +66,24 @@ export default function Navbar() {
                       {item.name}
                     </a>
                   ))}
+                </div>
+                <div className="hidden sm:ml-6 sm:flex sm:items-center">
+                  <select
+                    value={selectedSlug}
+                    onChange={(e) => setSelectedSlug(e.target.value)}
+                    className="bg-white border border-gray-300 text-gray-700 px-2 py-1 rounded-md text-sm"
+                  >
+                    <optgroup label="Season 1">
+                      {repos.filter(r => r.season === 1).map(r => (
+                        <option key={r.slug} value={r.slug}>{r.slug}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Season 2">
+                      {repos.filter(r => r.season === 2).map(r => (
+                        <option key={r.slug} value={r.slug}>{r.slug}</option>
+                      ))}
+                    </optgroup>
+                  </select>
                 </div>
               </div>
               

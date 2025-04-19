@@ -4,6 +4,41 @@ A dashboard application built with Next.js to visualize and analyze GitHub repos
 
 ## Getting Started
 
+---
+
+## 🚀 Production Deployment (Vercel)
+
+This project is designed for easy deployment to [Vercel](https://vercel.com/):
+
+1. **Deploy to Vercel:**
+   - Connect your GitHub repo to Vercel and deploy as a Next.js app.
+   - All static data is served from `/public/data/github-data/`.
+
+2. **Manual Data Updates:**
+   - To update dashboard data, run:
+     ```bash
+     npm run load
+     ```
+   - This executes `node data/load.js`, fetching fresh data from GitHub and writing new JSON files to `/public/data/github-data/`.
+   - Commit and push the updated JSON files to your repository, then redeploy to Vercel.
+
+3. **Data Freshness:**
+   - The dashboard shows the last updated timestamp at the bottom of the chart page.
+   - Data is not live; it updates whenever you run the loader script and redeploy.
+
+---
+
+## 🔄 Planned: Automated Data Updates with GitHub Actions
+
+In the future, you can automate data refreshes by setting up a GitHub Actions workflow to:
+- Run `npm run load` on a schedule (e.g., daily).
+- Commit and push the updated data files.
+- Trigger a Vercel redeploy (using a deploy hook or by pushing to main).
+
+For now, all updates are manual to ensure you stay within GitHub API rate limits and have full control over data refreshes.
+
+---
+
 ### Prerequisites
 
 - Node.js 22.x or higher
@@ -101,7 +136,7 @@ The dashboard uses GitHub API data stored in JSON format in the `data/github-dat
    - Rewards (points, badges) for correct predictions
 
 5. **UI Layout & Tabs**  
-   1. Overview (hero) page: key metrics chart + filters  
+   1. shippers (hero) page: key metrics chart + filters  
    2. Dashboard: per‑repo stats  
    3. Insights: deep‑dive issues/pulls/releases  
    4. Predictions: market interface
@@ -112,7 +147,7 @@ The dashboard uses GitHub API data stored in JSON format in the `data/github-dat
    - Save new files `{slug}-repo.json`, `{slug}-commits.json`, `{slug}-contributors.json`
 
 7. **Next Steps**  
-   - Scaffold Overview page  
+   - Scaffold shippers page  
    - Update Navbar tabs  
    - Build StatsCards, Insights, Predictions UI
 

@@ -1,15 +1,15 @@
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import Bruno from '@/components/Icons/Bruno';
 import { usePathname } from 'next/navigation';
 import { useGithub } from '@/providers/Github/Github';
 
 const navigation = [
-  { name: 'Overview', href: '/overview' },
+  { name: 'Shippers', href: '/shippers' },
   { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Issues', href: '/issues' },
-  { name: 'Pulls', href: '/pulls' },
-  { name: 'Releases', href: '/releases' },
+  { name: 'About', href: '/about' },
+  { name: 'Issues', href: '/issues', hidden: true },
+  { name: 'Pulls', href: '/pulls', hidden: true },
+  { name: 'Releases', href: '/releases', hidden: true },
 ]
 
 function classNames(...classes) {
@@ -48,10 +48,10 @@ export default function Navbar() {
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex shrink-0 items-center">
-                  <Bruno width={40} />
+                  <img src="/POS.png" alt="Proof Of Ship Logo" width={40} height={40} className="rounded" />
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  {navigation.map((item) => (
+                  {navigation.filter(item => !item.hidden).map((item) => (
                     <a
                       key={item.name}
                       href={item.href}
@@ -67,29 +67,12 @@ export default function Navbar() {
                     </a>
                   ))}
                 </div>
-                <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                  <select
-                    value={selectedSlug}
-                    onChange={(e) => setSelectedSlug(e.target.value)}
-                    className="bg-white border border-gray-300 text-gray-700 px-2 py-1 rounded-md text-sm"
-                  >
-                    <optgroup label="Season 1">
-                      {repos.filter(r => r.season === 1).map(r => (
-                        <option key={r.slug} value={r.slug}>{r.slug}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="Season 2">
-                      {repos.filter(r => r.season === 2).map(r => (
-                        <option key={r.slug} value={r.slug}>{r.slug}</option>
-                      ))}
-                    </optgroup>
-                  </select>
-                </div>
+
               </div>
               
               <div className="hidden sm:ml-6 sm:flex sm:items-center">
                 <a
-                  href="https://github.com/usebruno/github-dashboard"
+                  href="https://github.com/thisyearnofear/POS-dashboard"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"

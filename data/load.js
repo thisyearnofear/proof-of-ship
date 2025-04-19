@@ -57,7 +57,7 @@ async function getGithubDataWithPagination(owner, repoName, endpoint) {
 }
 
 async function saveJsonToFile(data, filename) {
-    const dirPath = path.join(__dirname, 'github-data');
+    const dirPath = path.join(__dirname, '../public/data/github-data');
     const filePath = path.join(dirPath, filename);
   
     // Create the directory if it doesn't exist
@@ -103,7 +103,7 @@ async function loadAllGithubData() {
       try {
         console.log(chalk.magenta('\n🚂 Fetching commit activity...'));
         const commits = await getCommitActivity(owner, repoName);
-        await saveJsonToFile(commits, `${slug}-commits.json`);
+        await saveJsonToFile(Array.isArray(commits) ? commits : [], `${slug}-commits.json`);
         console.log(chalk.green(`✅ Saved commit activity to data/github-data/${slug}-commits.json`));
       } catch (err) {
         console.error(chalk.red(`❌ Error fetching commit activity for ${slug}: ${err.message}`));

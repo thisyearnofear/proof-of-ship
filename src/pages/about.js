@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+// About page updated to include Stable Station and a call to action for Celo shippers
 export default function About() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow mt-8">
@@ -35,6 +36,7 @@ export default function About() {
           <li><a href="https://github.com/0xOucan/celo-mind-dn" target="_blank" rel="noopener noreferrer">CeloMΔIND</a></li>
           <li><a href="https://github.com/andrewkimjoseph/canvassing-participant" target="_blank" rel="noopener noreferrer">Canvassing</a></li>
           <li><a href="https://github.com/Kanasjnr/Subpay" target="_blank" rel="noopener noreferrer">Subpay</a></li>
+          <li><a href="https://github.com/thisyearnofear/hello-world-computer" target="_blank" rel="noopener noreferrer">Stable Station</a></li>
         </ul>
       </div>
       <h2 className="text-xl font-semibold mb-2 mt-6">Connect</h2>
@@ -42,6 +44,12 @@ export default function About() {
         <li><a href="https://github.com/thisyearnofear/POS-dashboard" target="_blank" rel="noopener noreferrer">Dashboard Source Code</a></li>
         {/* Add more links as needed */}
       </ul>
+      <div className="mt-8 p-4 bg-amber-50 border border-amber-300 rounded text-center">
+        <span className="font-semibold">Are you shipping on Celo?</span><br />
+        Contact Papa to get your project added:<br />
+        <a href="https://hey.xyz/u/papajams" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">hey.xyz/u/papajams</a> |
+        <a href="https://warpcast.com/papa" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline ml-1">warpcast.com/papa</a>
+      </div>
     </div>
   );
 }

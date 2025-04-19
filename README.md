@@ -1,6 +1,6 @@
-# Bruno GitHub Dashboard
+# POS Dashboard
 
-A dashboard application built with Next.js to visualize and analyze GitHub repository data for [Bruno](https://github.com/usebruno/bruno).
+A dashboard application built with Next.js to visualize and analyze GitHub repository data for Proof Of Ship builders on Celo, the Ethereum L2.
 
 ## Getting Started
 
@@ -52,8 +52,8 @@ For now, all updates are manual to ensure you stay within GitHub API rate limits
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/bruno-github-dashboard.git
-cd bruno-github-dashboard
+git clone https://github.com/thisyearnofear/POS-dashboard.git
+cd POS-dashboard
 ```
 
 2. Install dependencies:

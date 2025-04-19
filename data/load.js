@@ -70,11 +70,39 @@ async function saveJsonToFile(data, filename) {
 // Fetch weekly commit activity for last year
 async function getCommitActivity(owner, repoName) {
   console.log(chalk.blue(`🚂 Fetching commit activity for ${chalk.bold(owner+'/'+repoName)}`));
-  const response = await axios.get(
-    `${GITHUB_API_URL}/repos/${owner}/${repoName}/stats/commit_activity`,
-    { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
-  );
-  return response.data;
+  // Poll for stats (up to 12 attempts, 5s delay)
+  for (let attempt = 1; attempt <= 12; attempt++) {
+    const response = await axios.get(
+      `${GITHUB_API_URL}/repos/${owner}/${repoName}/stats/commit_activity`,
+      { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
+    );
+    if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0) {
+      return response.data;
+    }
+    console.log(chalk.yellow(`Stats not ready for ${owner}/${repoName} (attempt ${attempt}), retrying in 5s...`));
+    await new Promise(res => setTimeout(res, 5000));
+  }
+  console.log(chalk.yellow(`Polling exhausted for ${owner}/${repoName}, attempting contributors fallback...`));
+  // Contributors-stats fallback
+  try {
+    const contribResp = await axios.get(
+      `${GITHUB_API_URL}/repos/${owner}/${repoName}/stats/contributors`,
+      { headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }
+    );
+    if (contribResp.status === 200 && Array.isArray(contribResp.data) && contribResp.data.length > 0) {
+      const weeksData = contribResp.data[0].weeks;
+      const aggregated = weeksData.map((wk, idx) => {
+        const total = contribResp.data.reduce((sum, c) => sum + (c.weeks[idx]?.c || 0), 0);
+        return { week: wk.w, total };
+      });
+      console.log(chalk.green(`Using contributors fallback for ${owner}/${repoName}`));
+      return aggregated;
+    }
+  } catch (err) {
+    console.log(chalk.red(`Contributors fallback error for ${owner}/${repoName}: ${err.message}`));
+  }
+  console.log(chalk.red(`Failed all fallbacks for ${owner}/${repoName}, returning empty array.`));
+  return [];
 }
 
 async function loadAllGithubData() {

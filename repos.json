@@ -8,5 +8,6 @@
   { "slug": "darvs",  "owner": "SergioFinix",            "repo": "DARVS_CELO",               "season": 2 },
   { "slug": "mind",   "owner": "0xOucan",                "repo": "celo-mind-dn",             "season": 2 },
   { "slug": "canvass","owner": "andrewkimjoseph",        "repo": "canvassing-participant",   "season": 2 },
-  { "slug": "subpay", "owner": "Kanasjnr",              "repo": "Subpay",                   "season": 2 }
+  { "slug": "subpay", "owner": "Kanasjnr",              "repo": "Subpay",                   "season": 2 },
+  { "slug": "stablestation", "owner": "thisyearnofear", "repo": "hello-world-computer", "season": 2 }
 ]

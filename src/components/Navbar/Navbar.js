@@ -1,19 +1,20 @@
-import { Disclosure } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { usePathname } from 'next/navigation';
-import { useGithub } from '@/providers/Github/Github';
+import { Disclosure } from "@headlessui/react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { usePathname } from "next/navigation";
+import { useGithub } from "@/providers/Github/Github";
 
 const navigation = [
-  { name: 'Shippers', href: '/shippers' },
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'About', href: '/about' },
-  { name: 'Issues', href: '/issues', hidden: true },
-  { name: 'Pulls', href: '/pulls', hidden: true },
-  { name: 'Releases', href: '/releases', hidden: true },
-]
+  { name: "Shippers", href: "/shippers" },
+  { name: "Dashboard", href: "/dashboard" },
+  { name: "About", href: "/about" },
+  { name: "Papa", href: "/papa" },
+  { name: "Issues", href: "/issues", hidden: true },
+  { name: "Pulls", href: "/pulls", hidden: true },
+  { name: "Releases", href: "/releases", hidden: true },
+];
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(" ");
 }
 
 export default function Navbar() {
@@ -22,24 +23,24 @@ export default function Navbar() {
 
   const GithubIcon = () => {
     return (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="#888" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#888"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className="icon icon-tabler icons-tabler-outline icon-tabler-brand-github"
       >
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
         <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
       </svg>
     );
   };
-  
+
   return (
     <Disclosure as="nav" className="bg-white shadow">
       {({ open }) => (
@@ -48,28 +49,37 @@ export default function Navbar() {
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex shrink-0 items-center">
-                  <img src="/POS.png" alt="Proof Of Ship Logo" width={40} height={40} className="rounded" />
+                  <img
+                    src="/POS.png"
+                    alt="Proof Of Ship Logo"
+                    width={40}
+                    height={40}
+                    className="rounded"
+                  />
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  {navigation.filter(item => !item.hidden).map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className={classNames(
-                        pathname === item.href
-                          ? 'text-amber-600'
-                          : 'text-gray-500 hover:text-amber-600',
-                        'inline-flex cursor-pointer items-center px-1 pt-1 text-sm font-medium'
-                      )}
-                      aria-current={pathname === item.href ? 'page' : undefined}
-                    >
-                      {item.name}
-                    </a>
-                  ))}
+                  {navigation
+                    .filter((item) => !item.hidden)
+                    .map((item) => (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className={classNames(
+                          pathname === item.href
+                            ? "text-amber-600"
+                            : "text-gray-500 hover:text-amber-600",
+                          "inline-flex cursor-pointer items-center px-1 pt-1 text-sm font-medium"
+                        )}
+                        aria-current={
+                          pathname === item.href ? "page" : undefined
+                        }
+                      >
+                        {item.name}
+                      </a>
+                    ))}
                 </div>
-
               </div>
-              
+
               <div className="hidden sm:ml-6 sm:flex sm:items-center">
                 <a
                   href="https://github.com/thisyearnofear/POS-dashboard"
@@ -104,11 +114,11 @@ export default function Navbar() {
                   href={item.href}
                   className={classNames(
                     pathname === item.href
-                      ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                      : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700',
-                    'block pl-3 pr-4 py-2 border-l-4 text-base font-medium'
+                      ? "bg-indigo-50 border-indigo-500 text-indigo-700"
+                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700",
+                    "block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
                   )}
-                  aria-current={pathname === item.href ? 'page' : undefined}
+                  aria-current={pathname === item.href ? "page" : undefined}
                 >
                   {item.name}
                 </Disclosure.Button>

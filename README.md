@@ -1,6 +1,116 @@
 # POS Dashboard
 
-A dashboard application built with Next.js to visualize and analyze GitHub repository data for Proof Of Ship builders on Celo, the Ethereum L2.
+A dashboard for tracking Proof of Ship projects across different seasons and chains.
+
+## Features
+
+### Celo Proof of Ship Projects
+
+- Track progress of Celo-based projects across multiple seasons
+- View commit activity, issues, and pull requests
+- Filter projects by season (1, 2, and 3)
+- Compare metrics across different projects
+- Visualize data with interactive charts
+
+### Papa Dashboard
+
+- Track progress toward personal goal of 100 quality commits per day
+- Monitor 5 personal multi-chain projects
+- View daily commit statistics
+- Filter by time range
+- Compare projects by chain
+
+## Data Loading
+
+The dashboard supports two types of data loading:
+
+### General Data Load
+
+To load data for all repositories:
+
+```bash
+npm run load
+```
+
+### Targeted Data Load
+
+To load data for a specific repository:
+
+```bash
+node data/load.js <repository-slug>
+```
+
+For example, to load data for the esusu repository:
+
+```bash
+node data/load.js esusu
+```
+
+## Projects
+
+### Season 1 Projects
+
+- 3WB (3-Wheeler Bike Club)
+- AkiliAI
+- NYFA
+- Jazmeen
+
+### Season 2 Projects
+
+- Sovereign Seas
+- Mind
+- Canvass
+- Subpay
+
+### Season 3 Projects
+
+- StableStation
+- Esusu
+
+### Papa Projects
+
+- Famile (Lens)
+- Amacast (Optimism)
+- Imperfect (Polygon)
+- MegaVibe (Mantle)
+- CouponDJ (Base)
+
+## Development
+
+### Prerequisites
+
+- Node.js
+- npm
+- GitHub Personal Access Token (PAT)
+
+### Setup
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env` file with your GitHub PAT:
+   ```
+   GITHUB_TOKEN=your_pat_here
+   ```
+4. Run the development server: `npm run dev`
+
+## Roadmap
+
+### Multi-Repo Dashboard
+
+- [x] Support for multiple repositories
+- [x] Season-based filtering
+- [x] Chain-based filtering for Papa projects
+- [ ] Advanced filtering options
+- [ ] Custom date ranges
+- [ ] Export functionality
+
+### Redesign v2 Feature Roadmap
+
+- [ ] Enhanced visualization options
+- [ ] Project health metrics
+- [ ] Contributor activity tracking
+- [ ] Automated daily updates
+- [ ] Custom alerts and notifications
 
 ## Getting Started
 
@@ -11,10 +121,12 @@ A dashboard application built with Next.js to visualize and analyze GitHub repos
 This project is designed for easy deployment to [Vercel](https://vercel.com/):
 
 1. **Deploy to Vercel:**
+
    - Connect your GitHub repo to Vercel and deploy as a Next.js app.
    - All static data is served from `/public/data/github-data/`.
 
 2. **Manual Data Updates:**
+
    - To update dashboard data, run:
      ```bash
      npm run load
@@ -31,6 +143,7 @@ This project is designed for easy deployment to [Vercel](https://vercel.com/):
 ## 🔄 Planned: Automated Data Updates with GitHub Actions
 
 In the future, you can automate data refreshes by setting up a GitHub Actions workflow to:
+
 - Run `npm run load` on a schedule (e.g., daily).
 - Commit and push the updated data files.
 - Trigger a Vercel redeploy (using a deploy hook or by pushing to main).
@@ -51,17 +164,20 @@ For now, all updates are manual to ensure you stay within GitHub API rate limits
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/thisyearnofear/POS-dashboard.git
 cd POS-dashboard
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install --legacy-peer-deps
 ```
 
 3. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -78,10 +194,12 @@ npm run dev
 ## Data Source
 
 The dashboard uses GitHub API data stored in JSON format in the `data/github-data` directory:
+
 - `issues.json`: Repository issues data
 - `prs.json`: Pull request data
 - `releases.json`: Release information
 - `meta.json`: Repository metadata
+- `commits.json`: Weekly commit data
 
 ## Project Structure
 
@@ -90,66 +208,33 @@ The dashboard uses GitHub API data stored in JSON format in the `data/github-dat
 - `src/providers`: Context providers for data management
 - `src/styles`: Global styles and Tailwind configuration
 
+## Features
+
+### Shippers Dashboard
+
+- View project metrics for Celo Proof Of Ship projects
+- Compare commit activity across projects
+- Filter by metrics (commits, issues, PRs)
+- View weekly activity trends
+
+### Papa Dashboard
+
+- Track progress toward personal goal of 100 quality commits per day
+- Monitor commit activity across 5 personal multi-chain projects:
+  - Famile.xyz (Lens)
+  - Amacast (Optimism)
+  - Imperfect Form (Polygon)
+  - Megavibe (Mantle)
+  - CouponDJ (Base)
+- View daily commit statistics with progress bar
+- Filter by time range (7 days, 30 days, all time)
+- Compare projects by chain
+
 ## Roadmap for Multi-Repo Dashboard
 
-1. **Define your repos**  
+1. **Define your repos**
    - Create `repos.json` in the project root listing each project with `slug`, `owner`, `repo`, and `season`.
-2. **Fetch all data**  
+2. **Fetch all data**
    - Update `data/load.js` to read `repos.json`, loop over each entry, fetch GitHub issues, PRs, releases (with pagination), and save to `data/github-data/{slug}-issues.json`, `*-prs.json`, `*-releases.json`.
-3. **Context provider**  
-   - Modify `src/providers/Github/Github.js` to import every `{slug}-*.json`, build a map `{ [slug]: { issues, prs, releases, meta } }`, and expose it via context.
-4. **UI & Routing**  
-   - Add a project selector (dropdown or tabs) to switch active `slug`.  
-   - Refactor `src/pages/dashboard.js` into `src/pages/dashboard/[slug].js` using Next.js dynamic routing (`getStaticPaths`/`getStaticProps`).  
-   - Group repos by `season` in the Navbar for Season 1 vs Season 2.
-5. **Comparison mode (optional)**  
-   - Enable multi-select of `slug` to display side‑by‑side metrics across projects.
-6. **Run & Verify**  
-   ```bash
-   # ensure repos.json exists and .env has GITHUB_TOKEN
-   node data/load.js
-   npm run dev
-   ```
-7. **Next steps**  
-   - Refine styles and maintain the Tailwind + Heroicons design ethos, add cross‑repo comparisons, and polish UX.
-
-## Redesign v2: Feature Roadmap
-
-1. **Expanded Metrics Panel**  
-   - Stars, forks, watchers  
-   - Weekly commits (commit_activity API)  
-   - PR merge vs open ratio  
-   - Average issue resolution time
-
-2. **Activity Timeline**  
-   - Multi‑series line chart (stars, forks, commits over time)  
-   - Zoom & brush for date ranges
-
-3. **Contributor Insights**  
-   - Leaderboard of top committers/reviewers/closers  
-   - Pie/bar chart of contributions per user  
-   - Daily activity heatmap calendar
-
-4. **Prediction Market (future)**  
-   - Define milestones (e.g. 100 stars, 50 contributors)  
-   - Betting UI with odds & implied probabilities  
-   - Rewards (points, badges) for correct predictions
-
-5. **UI Layout & Tabs**  
-   1. shippers (hero) page: key metrics chart + filters  
-   2. Dashboard: per‑repo stats  
-   3. Insights: deep‑dive issues/pulls/releases  
-   4. Predictions: market interface
-
-6. **Data Loader Enhancements**  
-   - Fetch `/repos/:owner/:repo` (stars, forks, watchers)  
-   - Fetch `/stats/commit_activity` & `/stats/contributors`  
-   - Save new files `{slug}-repo.json`, `{slug}-commits.json`, `{slug}-contributors.json`
-
-7. **Next Steps**  
-   - Scaffold shippers page  
-   - Update Navbar tabs  
-   - Build StatsCards, Insights, Predictions UI
-
-## License
-MIT
+3. **Context provider**
+   - Modify `src/providers/Github/Github.js` to import every `

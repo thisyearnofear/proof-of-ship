@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -22,7 +22,7 @@ ChartJS.register(
   Tooltip
 );
 
-export default function Papa() {
+export default function papa() {
   const { repos, dataMap, loading } = useGithub();
   if (loading) {
     return (
@@ -30,75 +30,13 @@ export default function Papa() {
     );
   }
 
-  // Filter only Papa's personal projects
+  // Filter only Papa projects
   const papaProjects = repos.filter((r) => r.season === "papa");
 
-  const metricsOptions = [
-    "Total Commits",
-    "Daily Commits",
-    "Open Issues",
-    "Open PRs",
-  ];
-  const [selectedMetrics, setSelectedMetrics] = useState(["Daily Commits"]);
-  const [chartType, setChartType] = useState("line"); // 'bar' or 'line' (default is line)
-  const [timeRange, setTimeRange] = useState("7d"); // '7d', '30d', 'all'
+  const metricsOptions = ["Total Commits", "Open Issues", "Open PRs"];
+  const [selectedMetrics, setSelectedMetrics] = useState(["Total Commits"]);
+  const [chartType, setChartType] = useState("line");
 
-  // Daily commit data for progress tracking
-  const getDailyCommits = (repoSlug, daysAgo = 7) => {
-    const commitsArr = Array.isArray(dataMap[repoSlug]?.commits)
-      ? dataMap[repoSlug].commits
-      : [];
-    // Return last X days of commit data
-    return commitsArr
-      .slice(-daysAgo)
-      .map((week) => week.days)
-      .flat();
-  };
-
-  // Calculate total commits across all projects per day
-  const getDailyCombinedCommits = (daysAgo = 7) => {
-    const dailyTotals = Array(daysAgo).fill(0);
-
-    papaProjects.forEach((project) => {
-      const dailyCommits = getDailyCommits(project.slug, daysAgo);
-      // Add each project's daily commits to the total
-      dailyCommits.forEach((count, i) => {
-        if (i < dailyTotals.length) {
-          dailyTotals[i] += count;
-        }
-      });
-    });
-
-    return dailyTotals;
-  };
-
-  // Calculate progress toward 100 commits per day
-  const dailyCommits = getDailyCombinedCommits(
-    timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
-  );
-  const totalDailyTargetMet = dailyCommits.filter(
-    (count) => count >= 100
-  ).length;
-  const progressPercentage = (totalDailyTargetMet / dailyCommits.length) * 100;
-
-  // Generate date labels for the chart
-  const getDateLabels = (daysAgo) => {
-    const labels = [];
-    for (let i = daysAgo - 1; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      labels.push(
-        d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      );
-    }
-    return labels;
-  };
-
-  const dateLabels = getDateLabels(
-    timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
-  );
-
-  // Data for project comparison
   const labels = papaProjects.map((r) => r.slug);
   const datasets = selectedMetrics.map((metric) => {
     let data = [];
@@ -133,61 +71,42 @@ export default function Papa() {
           (dataMap[r.slug]?.prs || []).filter((p) => p.state === "open").length
       );
       backgroundColor = "rgba(54, 162, 235, 0.5)";
-    } else if (metric === "Daily Commits") {
-      // Not used for bar chart, only for lineChart
-      data = [];
-      backgroundColor = "rgba(153, 102, 255, 0.5)";
     }
 
     return { label, data, backgroundColor };
   });
 
-  // Daily commits line chart data
-  const lineDatasets = useMemo(() => {
-    // Dataset for 100 commit goal line
-    const datasets = [
-      {
-        label: "100 Commit Goal",
-        data: Array(dateLabels.length).fill(100),
-        borderColor: "rgba(255, 99, 132, 1)",
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
-        borderDash: [5, 5],
-        pointRadius: 0,
-        fill: false,
-      },
-      {
-        label: "Total Daily Commits",
-        data: dailyCommits,
-        borderColor: "rgba(54, 162, 235, 1)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
-        tension: 0.3,
-        fill: true,
-      },
-    ];
-
-    // Add individual project datasets if selected
-    if (selectedMetrics.includes("Daily Commits")) {
-      papaProjects.forEach((project) => {
-        const projectDailyCommits = getDailyCommits(
-          project.slug,
-          timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90
-        );
-        const hue = Math.floor(Math.random() * 360);
-
-        datasets.push({
-          label: `${project.slug} (${project.chain})`,
-          data: projectDailyCommits,
-          borderColor: `hsl(${hue}, 70%, 60%)`,
-          backgroundColor: `hsl(${hue}, 70%, 80%, 0.1)`,
-          tension: 0.3,
-          pointRadius: 2,
-          fill: false,
-        });
-      });
+  // Prepare line chart data for weekly commit activity
+  let sampleCommits = [];
+  for (const r of papaProjects) {
+    const arr = Array.isArray(dataMap[r.slug]?.commits)
+      ? dataMap[r.slug].commits
+      : [];
+    if (arr.length >= 12) {
+      sampleCommits = arr;
+      break;
     }
-
-    return datasets;
-  }, [selectedMetrics, papaProjects, dailyCommits, timeRange, dateLabels]);
+  }
+  const last12Weeks = sampleCommits.slice(-12);
+  const lineLabels = last12Weeks.map((weekObj) => {
+    const d = new Date(weekObj.week * 1000);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  });
+  const lineDatasets = papaProjects.map((r) => {
+    const commitsArr = Array.isArray(dataMap[r.slug]?.commits)
+      ? dataMap[r.slug].commits
+      : [];
+    const last12 = commitsArr.slice(-12);
+    return {
+      label: r.slug,
+      data: last12.map((week) => week.total),
+      fill: false,
+      borderColor: `hsl(${Math.floor(Math.random() * 360)},70%,60%)`,
+      backgroundColor: `hsl(${Math.floor(Math.random() * 360)},70%,80%)`,
+      tension: 0.3,
+      pointRadius: 2,
+    };
+  });
 
   const toggleMetric = (metric) => {
     setSelectedMetrics((curr) =>
@@ -197,31 +116,18 @@ export default function Papa() {
     );
   };
 
+  // Project URLs
+  const projectUrls = {
+    famile: "https://famile.xyz/",
+    imperfect: "https://imperfectform.fun/",
+    amacast: "https://amacast.netlify.app/",
+    megavibe: "http://megavibe.vercel.app/",
+    coupondj: "http://coupondj.vercel.app/",
+  };
+
   return (
     <div className="p-6 min-h-screen flex flex-col">
-      <h1 className="text-3xl font-bold mb-2">Papa's 100 Commit Challenge</h1>
-
-      {/* Goal Progress */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold">
-            Progress toward 100 daily commits
-          </h2>
-          <div className="text-lg font-bold text-amber-600">
-            {totalDailyTargetMet} / {dailyCommits.length} days
-          </div>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-4">
-          <div
-            className="bg-amber-600 h-4 rounded-full"
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
-        </div>
-        <div className="mt-2 text-gray-600 text-sm">
-          {progressPercentage.toFixed(1)}% of days met the 100 commit target
-        </div>
-      </div>
-
+      <h1 className="text-3xl font-bold mb-6">Papa Dashboard</h1>
       <div className="mb-4 flex flex-wrap items-center gap-6">
         <div>
           {metricsOptions.map((metric) => (
@@ -236,41 +142,6 @@ export default function Papa() {
             </label>
           ))}
         </div>
-
-        {/* Time Range Selector */}
-        <div className="flex border rounded overflow-hidden">
-          <button
-            className={`px-3 py-1 ${
-              timeRange === "7d"
-                ? "bg-amber-600 text-white"
-                : "bg-white text-gray-700"
-            }`}
-            onClick={() => setTimeRange("7d")}
-          >
-            7 Days
-          </button>
-          <button
-            className={`px-3 py-1 border-l ${
-              timeRange === "30d"
-                ? "bg-amber-600 text-white"
-                : "bg-white text-gray-700"
-            }`}
-            onClick={() => setTimeRange("30d")}
-          >
-            30 Days
-          </button>
-          <button
-            className={`px-3 py-1 border-l ${
-              timeRange === "all"
-                ? "bg-amber-600 text-white"
-                : "bg-white text-gray-700"
-            }`}
-            onClick={() => setTimeRange("all")}
-          >
-            All Time
-          </button>
-        </div>
-
         <div className="ml-auto">
           <button
             className={`px-3 py-1 rounded-l border ${
@@ -294,7 +165,6 @@ export default function Papa() {
           </button>
         </div>
       </div>
-
       <div className="bg-white shadow rounded-lg p-4 mb-10">
         {chartType === "bar" ? (
           <Bar
@@ -303,68 +173,43 @@ export default function Papa() {
               responsive: true,
               plugins: {
                 legend: { position: "bottom" },
-                tooltip: {
-                  callbacks: {
-                    footer: (tooltipItems) => {
-                      const idx = tooltipItems[0].dataIndex;
-                      return `Chain: ${papaProjects[idx].chain}`;
-                    },
-                  },
-                },
               },
             }}
           />
         ) : (
           <Line
-            data={{ labels: dateLabels, datasets: lineDatasets }}
+            data={{ labels: lineLabels, datasets: lineDatasets }}
             options={{
               responsive: true,
               plugins: {
                 legend: { position: "bottom" },
-                tooltip: {
-                  callbacks: {
-                    footer: (tooltipItems) => {
-                      const value = tooltipItems[0].raw;
-                      if (tooltipItems[0].datasetIndex === 1) {
-                        // Total commits
-                        return value >= 100
-                          ? "✅ Daily goal met!"
-                          : "❌ Below daily goal";
-                      }
-                      return "";
-                    },
-                  },
-                },
               },
               scales: {
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: "Commits",
-                  },
-                },
+                y: { beginAtZero: true },
               },
             }}
           />
         )}
       </div>
 
-      {/* Project Chain Info */}
+      {/* Project Links */}
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <h2 className="text-xl font-semibold mb-3">Projects by Chain</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {papaProjects.map((project) => (
-            <div
+            <a
               key={project.slug}
-              className="border rounded-lg p-3 flex items-center"
+              href={projectUrls[project.slug]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border rounded-lg p-3 flex items-center hover:bg-gray-50 transition-colors"
             >
               <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
               <div>
                 <div className="font-medium">{project.slug}</div>
-                <div className="text-xs text-gray-500">{project.chain}</div>
+                <div className="text-sm text-gray-500">{project.chain}</div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>

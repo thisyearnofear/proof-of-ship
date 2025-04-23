@@ -2,49 +2,51 @@
 
 A dashboard for tracking Proof of Ship projects across different seasons and chains.
 
-## Features
+## About
 
-### Celo Proof of Ship Projects
+The dashboard consists of two main sections:
 
-- Track progress of Celo-based projects across multiple seasons
-- View commit activity, issues, and pull requests
-- Filter projects by season (1, 2, and 3)
-- Compare metrics across different projects
-- Visualize data with interactive charts
+1. **Celo Proof of Ship Projects**: Tracks projects built during Celo's Proof of Ship program across three seasons. The dashboard visualizes commit activity, issues, and pull requests for each project, with filtering options by season.
 
-### Papa Dashboard
-
-- Track progress toward personal goal of 100 quality commits per day
-- Monitor 5 personal multi-chain projects
-- View daily commit statistics
-- Filter by time range
-- Compare projects by chain
+2. **Papa Dashboard**: Tracks daily goals and progress across different blockchain projects, including Lens, Optimism, Polygon, Mantle, and Base chains.
 
 ## Data Loading
 
-The dashboard supports two types of data loading:
+You can load GitHub data in two ways:
 
-### General Data Load
-
-To load data for all repositories:
+1. **General Data Load**: Load data for all repositories
 
 ```bash
 npm run load
 ```
 
-### Targeted Data Load
-
-To load data for a specific repository:
+2. **Targeted Data Load**: Load data for a specific repository
 
 ```bash
 node data/load.js <repository-slug>
 ```
 
-For example, to load data for the esusu repository:
+Example: `node data/load.js esusu`
 
-```bash
-node data/load.js esusu
+## Development
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env` file with your GitHub Personal Access Token:
+
 ```
+GITHUB_TOKEN=your_token_here
+```
+
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000)
+
+## Roadmap
+
+- [ ] Add more visualization options
+- [ ] Implement project search and filtering
+- [ ] Add more detailed project analytics
+- [ ] Improve mobile responsiveness
 
 ## Projects
 
@@ -74,115 +76,6 @@ node data/load.js esusu
 - Imperfect (Polygon)
 - MegaVibe (Mantle)
 - CouponDJ (Base)
-
-## Development
-
-### Prerequisites
-
-- Node.js
-- npm
-- GitHub Personal Access Token (PAT)
-
-### Setup
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Create a `.env` file with your GitHub PAT:
-   ```
-   GITHUB_TOKEN=your_pat_here
-   ```
-4. Run the development server: `npm run dev`
-
-## Roadmap
-
-### Multi-Repo Dashboard
-
-- [x] Support for multiple repositories
-- [x] Season-based filtering
-- [x] Chain-based filtering for Papa projects
-- [ ] Advanced filtering options
-- [ ] Custom date ranges
-- [ ] Export functionality
-
-### Redesign v2 Feature Roadmap
-
-- [ ] Enhanced visualization options
-- [ ] Project health metrics
-- [ ] Contributor activity tracking
-- [ ] Automated daily updates
-- [ ] Custom alerts and notifications
-
-## Getting Started
-
----
-
-## 🚀 Production Deployment (Vercel)
-
-This project is designed for easy deployment to [Vercel](https://vercel.com/):
-
-1. **Deploy to Vercel:**
-
-   - Connect your GitHub repo to Vercel and deploy as a Next.js app.
-   - All static data is served from `/public/data/github-data/`.
-
-2. **Manual Data Updates:**
-
-   - To update dashboard data, run:
-     ```bash
-     npm run load
-     ```
-   - This executes `node data/load.js`, fetching fresh data from GitHub and writing new JSON files to `/public/data/github-data/`.
-   - Commit and push the updated JSON files to your repository, then redeploy to Vercel.
-
-3. **Data Freshness:**
-   - The dashboard shows the last updated timestamp at the bottom of the chart page.
-   - Data is not live; it updates whenever you run the loader script and redeploy.
-
----
-
-## 🔄 Planned: Automated Data Updates with GitHub Actions
-
-In the future, you can automate data refreshes by setting up a GitHub Actions workflow to:
-
-- Run `npm run load` on a schedule (e.g., daily).
-- Commit and push the updated data files.
-- Trigger a Vercel redeploy (using a deploy hook or by pushing to main).
-
-For now, all updates are manual to ensure you stay within GitHub API rate limits and have full control over data refreshes.
-
----
-
-### Prerequisites
-
-- Node.js 22.x or higher
-- npm
-- GitHub Personal Access Token (PAT) with repo access; create a `.env` file in project root containing:
-  ```bash
-  GITHUB_TOKEN=your_token_here
-  ```
-
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/thisyearnofear/POS-dashboard.git
-cd POS-dashboard
-```
-
-2. Install dependencies:
-
-```bash
-npm install --legacy-peer-deps
-```
-
-3. Run the development server:
-
-```bash
-npm run dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the dashboard.
 
 ## Technology Stack
 

@@ -6,12 +6,6 @@
     "season": 1
   },
   {
-    "slug": "akili",
-    "owner": "Olisehgenesis",
-    "repo": "AkiliAI",
-    "season": 1
-  },
-  {
     "slug": "nyfa",
     "owner": "nyfaapp",
     "repo": "celo-nyfa-app",
@@ -69,6 +63,12 @@
     "slug": "stablesl",
     "owner": "pasosdeJesus",
     "repo": "stable-sl",
+    "season": 3
+  },
+  {
+    "slug": "mobarter",
+    "owner": "philix27",
+    "repo": "mobarter-2025",
     "season": 3
   },
   {

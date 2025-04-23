@@ -60,6 +60,18 @@
     "season": 3
   },
   {
+    "slug": "moviemeter",
+    "owner": "GideonNut",
+    "repo": "Moviemeter",
+    "season": 3
+  },
+  {
+    "slug": "stablesl",
+    "owner": "pasosdeJesus",
+    "repo": "stable-sl",
+    "season": 3
+  },
+  {
     "slug": "famile",
     "owner": "thisyearnofear",
     "repo": "family",

@@ -42,11 +42,6 @@
     "updated_at": "2025-04-20T21:55:37Z",
     "closed_at": "2025-04-20T21:55:37Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -137,11 +132,6 @@
     "updated_at": "2025-04-20T21:52:37Z",
     "closed_at": "2025-04-20T21:50:46Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -232,11 +222,6 @@
     "updated_at": "2025-04-20T21:40:18Z",
     "closed_at": "2025-04-20T21:40:18Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -327,11 +312,6 @@
     "updated_at": "2025-04-20T20:31:29Z",
     "closed_at": "2025-04-20T20:31:29Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -422,11 +402,6 @@
     "updated_at": "2025-04-20T19:15:23Z",
     "closed_at": "2025-04-20T19:15:23Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -517,11 +492,6 @@
     "updated_at": "2025-04-20T18:25:32Z",
     "closed_at": "2025-04-20T18:25:32Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -612,11 +582,6 @@
     "updated_at": "2025-04-20T18:15:17Z",
     "closed_at": "2025-04-20T18:15:17Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -707,11 +672,6 @@
     "updated_at": "2025-04-04T11:07:14Z",
     "closed_at": "2025-04-04T11:07:14Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -802,11 +762,6 @@
     "updated_at": "2025-04-03T21:52:22Z",
     "closed_at": "2025-04-03T21:52:22Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -897,11 +852,6 @@
     "updated_at": "2025-03-24T05:36:13Z",
     "closed_at": "2025-03-24T05:36:13Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -992,11 +942,6 @@
     "updated_at": "2025-03-24T00:38:23Z",
     "closed_at": "2025-03-24T00:38:23Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1087,11 +1032,6 @@
     "updated_at": "2025-03-23T23:01:51Z",
     "closed_at": "2025-03-23T23:01:51Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1182,11 +1122,6 @@
     "updated_at": "2025-03-23T22:15:03Z",
     "closed_at": "2025-03-23T22:15:03Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1277,11 +1212,6 @@
     "updated_at": "2025-03-23T22:03:37Z",
     "closed_at": "2025-03-23T22:03:37Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1372,11 +1302,6 @@
     "updated_at": "2025-03-23T21:51:51Z",
     "closed_at": "2025-03-23T21:51:51Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1467,11 +1392,6 @@
     "updated_at": "2025-03-23T16:38:44Z",
     "closed_at": "2025-03-23T16:38:44Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1562,11 +1482,6 @@
     "updated_at": "2025-03-23T15:09:47Z",
     "closed_at": "2025-03-23T15:09:47Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1657,11 +1572,6 @@
     "updated_at": "2025-03-23T14:43:21Z",
     "closed_at": "2025-03-23T14:43:21Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1752,11 +1662,6 @@
     "updated_at": "2025-03-23T13:48:17Z",
     "closed_at": "2025-03-23T13:48:16Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1847,11 +1752,6 @@
     "updated_at": "2025-03-23T13:16:23Z",
     "closed_at": "2025-03-23T13:16:22Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1942,11 +1842,6 @@
     "updated_at": "2025-03-23T11:53:27Z",
     "closed_at": "2025-03-23T11:53:26Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2037,11 +1932,6 @@
     "updated_at": "2025-03-23T11:49:17Z",
     "closed_at": "2025-03-23T11:49:17Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2132,11 +2022,6 @@
     "updated_at": "2025-03-23T11:34:02Z",
     "closed_at": "2025-03-23T11:34:02Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2227,11 +2112,6 @@
     "updated_at": "2025-03-21T11:39:11Z",
     "closed_at": "2025-03-21T11:39:11Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2322,11 +2202,6 @@
     "updated_at": "2025-03-20T11:08:01Z",
     "closed_at": "2025-03-20T11:08:00Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2417,11 +2292,6 @@
     "updated_at": "2025-03-19T23:00:46Z",
     "closed_at": "2025-03-19T23:00:46Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2512,11 +2382,6 @@
     "updated_at": "2025-03-15T16:42:51Z",
     "closed_at": "2025-03-15T16:42:50Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2607,11 +2472,6 @@
     "updated_at": "2025-03-15T11:30:38Z",
     "closed_at": "2025-03-15T11:30:38Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2702,11 +2562,6 @@
     "updated_at": "2025-03-14T21:54:09Z",
     "closed_at": "2025-03-14T21:54:09Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {

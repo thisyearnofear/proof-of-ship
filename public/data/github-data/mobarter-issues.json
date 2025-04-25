@@ -42,11 +42,6 @@
     "updated_at": "2025-04-17T20:09:27Z",
     "closed_at": "2025-04-17T20:09:27Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -156,11 +151,6 @@
     "updated_at": "2025-04-17T20:27:37Z",
     "closed_at": null,
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -231,11 +221,6 @@
     "updated_at": "2025-04-16T14:11:23Z",
     "closed_at": "2025-04-16T14:11:23Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -345,11 +330,6 @@
     "updated_at": "2025-04-16T14:12:37Z",
     "closed_at": "2025-04-16T14:12:36Z",
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -459,11 +439,6 @@
     "updated_at": "2025-04-16T14:12:35Z",
     "closed_at": "2025-04-16T14:12:33Z",
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -554,11 +529,6 @@
     "updated_at": "2025-04-12T20:58:35Z",
     "closed_at": "2025-04-12T20:58:35Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -649,11 +619,6 @@
     "updated_at": "2025-04-08T12:59:04Z",
     "closed_at": "2025-04-08T12:59:03Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -744,11 +709,6 @@
     "updated_at": "2025-04-08T06:59:10Z",
     "closed_at": "2025-04-08T06:59:10Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -839,11 +799,6 @@
     "updated_at": "2025-04-07T20:22:15Z",
     "closed_at": "2025-04-07T20:22:15Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -934,11 +889,6 @@
     "updated_at": "2025-04-07T19:51:54Z",
     "closed_at": "2025-04-07T19:51:54Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1029,12 +979,12 @@
     "updated_at": "2025-04-05T17:02:39Z",
     "closed_at": null,
     "author_association": "OWNER",
+    "active_lock_reason": null,
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
       "percent_completed": 0
     },
-    "active_lock_reason": null,
     "body": "### Backend\n \n- [ ] Implement Smile Identity API\n- [ ] Setup Resolvers\n- [ ] Setup KYC service\n\n\n### Minipay\n\n- [ ] Develop frontend UI\n- [ ] Integrate API\n- [ ] Verify Phone\n- [ ] Verify NIN\n- [ ] Verify BVN\n- [ ] Verify ID\n",
     "closed_by": null,
     "reactions": {
@@ -1096,12 +1046,12 @@
     "updated_at": "2025-04-05T16:57:41Z",
     "closed_at": null,
     "author_association": "OWNER",
+    "active_lock_reason": null,
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
       "percent_completed": 0
     },
-    "active_lock_reason": null,
     "body": "- [ ] Implement on Minipay\n- [ ] Implement on Mobile app\n- [ ] Implement on backend\n- [ ] ",
     "closed_by": null,
     "reactions": {
@@ -1182,11 +1132,6 @@
     "updated_at": "2025-04-12T21:07:14Z",
     "closed_at": null,
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1257,11 +1202,6 @@
     "updated_at": "2025-04-05T15:38:05Z",
     "closed_at": "2025-04-05T15:38:04Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1352,11 +1292,6 @@
     "updated_at": "2025-04-05T15:35:10Z",
     "closed_at": "2025-04-05T15:35:10Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1447,11 +1382,6 @@
     "updated_at": "2025-04-03T11:29:00Z",
     "closed_at": "2025-04-03T11:29:00Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1561,11 +1491,6 @@
     "updated_at": "2025-04-17T20:20:34Z",
     "closed_at": null,
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1636,12 +1561,12 @@
     "updated_at": "2025-03-24T07:40:09Z",
     "closed_at": null,
     "author_association": "OWNER",
+    "active_lock_reason": null,
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
       "percent_completed": 0
     },
-    "active_lock_reason": null,
     "body": "To contain:\n\n1. Orders\n2. Transactions\n3. Wallets\n4. Display Evm and BTC Wallet address\n5. Terms of Service\n6. Any disclaimer",
     "closed_by": null,
     "reactions": {
@@ -1703,12 +1628,12 @@
     "updated_at": "2025-03-24T06:01:29Z",
     "closed_at": null,
     "author_association": "OWNER",
+    "active_lock_reason": null,
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
       "percent_completed": 0
     },
-    "active_lock_reason": null,
     "body": null,
     "closed_by": null,
     "reactions": {
@@ -1770,11 +1695,6 @@
     "updated_at": "2025-03-24T03:32:35Z",
     "closed_at": "2025-03-24T03:32:34Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1865,11 +1785,6 @@
     "updated_at": "2025-03-23T13:56:51Z",
     "closed_at": "2025-03-23T13:56:51Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -1960,11 +1875,6 @@
     "updated_at": "2025-03-22T14:46:13Z",
     "closed_at": "2025-03-22T14:46:13Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2055,11 +1965,6 @@
     "updated_at": "2025-03-20T19:14:25Z",
     "closed_at": "2025-03-20T19:14:25Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2169,11 +2074,6 @@
     "updated_at": "2025-04-12T20:58:39Z",
     "closed_at": null,
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2263,11 +2163,6 @@
     "updated_at": "2025-04-12T20:58:39Z",
     "closed_at": null,
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2357,11 +2252,6 @@
     "updated_at": "2025-04-12T20:58:39Z",
     "closed_at": null,
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2432,11 +2322,6 @@
     "updated_at": "2025-03-13T04:51:20Z",
     "closed_at": "2025-03-13T04:51:20Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2527,11 +2412,6 @@
     "updated_at": "2025-03-11T07:29:27Z",
     "closed_at": "2025-03-11T07:29:27Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2622,11 +2502,6 @@
     "updated_at": "2025-03-08T18:05:27Z",
     "closed_at": "2025-03-08T18:05:27Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2727,11 +2602,6 @@
     "updated_at": "2025-03-13T04:52:55Z",
     "closed_at": "2025-03-13T04:52:54Z",
     "author_association": "NONE",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -2822,11 +2692,6 @@
     "updated_at": "2025-03-07T20:44:30Z",
     "closed_at": "2025-03-07T20:44:30Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {

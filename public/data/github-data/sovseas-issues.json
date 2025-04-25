@@ -42,11 +42,6 @@
     "updated_at": "2025-04-22T06:09:46Z",
     "closed_at": "2025-04-22T06:09:46Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -137,11 +132,6 @@
     "updated_at": "2025-04-22T06:08:08Z",
     "closed_at": "2025-04-22T06:08:08Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -232,11 +222,6 @@
     "updated_at": "2025-04-01T09:45:59Z",
     "closed_at": "2025-04-01T09:45:59Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -327,11 +312,6 @@
     "updated_at": "2025-03-26T05:49:08Z",
     "closed_at": "2025-03-26T05:49:08Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -422,11 +402,6 @@
     "updated_at": "2025-03-26T05:38:54Z",
     "closed_at": "2025-03-26T05:38:54Z",
     "author_association": "CONTRIBUTOR",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -517,12 +492,12 @@
     "updated_at": "2025-03-26T06:11:22Z",
     "closed_at": "2025-03-26T05:38:55Z",
     "author_association": "CONTRIBUTOR",
+    "active_lock_reason": null,
     "sub_issues_summary": {
       "total": 0,
       "completed": 0,
       "percent_completed": 0
     },
-    "active_lock_reason": null,
     "body": "## Add Support for Additional Wallet Providers\n\n### Description\nCurrently, this dApp only supports a limited number of wallet providers. To improve user experience and broaden access to our platform, we need to integrate additional popular wallet providers.\n\n### Requirements\n- Add support for Rainbow Wallet\n- Add support for MetaMask Wallet \n- Add support for Valora Wallet\n- Ensure consistent connection experience across all wallets\n- Implement proper transaction signing functionality with new wallets\n- Test wallet connection and disconnection flows\n\n### Technical Details\n- Integrate wallet connectors through our existing wallet connection framework\n- Update the wallet selection UI to include new options\n- Ensure proper error handling for connection failures\n- Verify compatibility with our existing smart contracts\n\n### Acceptance Criteria\n- [x] Users can connect using Rainbow Wallet\n- [x] Users can connect using MetaMask Wallet\n- [ ] Users can connect using Valora Wallet\n\n### Priority\nMedium",
     "closed_by": {
       "login": "Olisehgenesis",
@@ -604,11 +579,6 @@
     "updated_at": "2025-03-26T02:16:24Z",
     "closed_at": "2025-03-26T02:16:23Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -699,11 +669,6 @@
     "updated_at": "2025-03-26T01:02:21Z",
     "closed_at": "2025-03-26T01:02:21Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -794,11 +759,6 @@
     "updated_at": "2025-03-25T23:59:17Z",
     "closed_at": "2025-03-25T23:59:17Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {

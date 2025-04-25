@@ -1,5 +1,185 @@
 [
   {
+    "url": "https://api.github.com/repos/emiridbest/esusu/issues/11",
+    "repository_url": "https://api.github.com/repos/emiridbest/esusu",
+    "labels_url": "https://api.github.com/repos/emiridbest/esusu/issues/11/labels{/name}",
+    "comments_url": "https://api.github.com/repos/emiridbest/esusu/issues/11/comments",
+    "events_url": "https://api.github.com/repos/emiridbest/esusu/issues/11/events",
+    "html_url": "https://github.com/emiridbest/esusu/pull/11",
+    "id": 3019290654,
+    "node_id": "PR_kwDOLw982c6T36RV",
+    "number": 11,
+    "title": "fix: changes to exchange rate api",
+    "user": {
+      "login": "emiridbest",
+      "id": 6362475,
+      "node_id": "MDQ6VXNlcjYzNjI0NzU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6362475?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/emiridbest",
+      "html_url": "https://github.com/emiridbest",
+      "followers_url": "https://api.github.com/users/emiridbest/followers",
+      "following_url": "https://api.github.com/users/emiridbest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/emiridbest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/emiridbest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/emiridbest/subscriptions",
+      "organizations_url": "https://api.github.com/users/emiridbest/orgs",
+      "repos_url": "https://api.github.com/users/emiridbest/repos",
+      "events_url": "https://api.github.com/users/emiridbest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/emiridbest/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "labels": [],
+    "state": "closed",
+    "locked": false,
+    "assignee": null,
+    "assignees": [],
+    "milestone": null,
+    "comments": 1,
+    "created_at": "2025-04-25T07:56:23Z",
+    "updated_at": "2025-04-25T07:57:06Z",
+    "closed_at": "2025-04-25T07:56:46Z",
+    "author_association": "OWNER",
+    "active_lock_reason": null,
+    "draft": false,
+    "pull_request": {
+      "url": "https://api.github.com/repos/emiridbest/esusu/pulls/11",
+      "html_url": "https://github.com/emiridbest/esusu/pull/11",
+      "diff_url": "https://github.com/emiridbest/esusu/pull/11.diff",
+      "patch_url": "https://github.com/emiridbest/esusu/pull/11.patch",
+      "merged_at": "2025-04-25T07:56:46Z"
+    },
+    "body": "This pull request introduces several updates to the `api` project, including improvements to the exchange rate functionality, cleanup of unused configurations, and updates to logging and application startup behavior. The most important changes are grouped below by theme.\r\n\r\n### Exchange rate functionality improvements:\r\n* Updated the route for the `exchange_rate_endpoint` to support `OPTIONS` requests and modified default symbols for both `POST` and `GET` methods to use `GHC` instead of `NGN` or `NVDA`.\r\n* Enhanced the `fetch_exchange_rate` function in `api/app/utils/rate.py` to include fallback options, reduced the timeframe for data fetching, and simplified the return format to include only the rate and timestamp. Removed retry logic and replaced it with a more streamlined implementation.\r\n* Updated the `exchange_rate_endpoint` function to use the improved `fetch_exchange_rate` function, added logging for fetched rate data, and included a warning in the response if present.\r\n\r\n### Configuration and startup updates:\r\n* Removed the `Config` class and its environment-based configurations from `api/config.py`, simplifying the codebase.\r\n* Updated the application startup logging to reflect the new application name (`Esusu Exchange Rate API`) and removed redundant debug mode settings in `api/main.py`.\r\n\r\n### Code cleanup:\r\n* Removed duplicate `import traceback` in `api/app/routes/api.py`.\r\n* Disabled debug mode in `api/app/main.py` by setting `debug=False` in the `app.run()` call.",
+    "closed_by": {
+      "login": "emiridbest",
+      "id": 6362475,
+      "node_id": "MDQ6VXNlcjYzNjI0NzU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6362475?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/emiridbest",
+      "html_url": "https://github.com/emiridbest",
+      "followers_url": "https://api.github.com/users/emiridbest/followers",
+      "following_url": "https://api.github.com/users/emiridbest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/emiridbest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/emiridbest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/emiridbest/subscriptions",
+      "organizations_url": "https://api.github.com/users/emiridbest/orgs",
+      "repos_url": "https://api.github.com/users/emiridbest/repos",
+      "events_url": "https://api.github.com/users/emiridbest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/emiridbest/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/emiridbest/esusu/issues/11/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/emiridbest/esusu/issues/11/timeline",
+    "performed_via_github_app": null,
+    "state_reason": null
+  },
+  {
+    "url": "https://api.github.com/repos/emiridbest/esusu/issues/10",
+    "repository_url": "https://api.github.com/repos/emiridbest/esusu",
+    "labels_url": "https://api.github.com/repos/emiridbest/esusu/issues/10/labels{/name}",
+    "comments_url": "https://api.github.com/repos/emiridbest/esusu/issues/10/comments",
+    "events_url": "https://api.github.com/repos/emiridbest/esusu/issues/10/events",
+    "html_url": "https://github.com/emiridbest/esusu/pull/10",
+    "id": 3017715713,
+    "node_id": "PR_kwDOLw982c6TynvF",
+    "number": 10,
+    "title": "Thrift Utility bills and API setup",
+    "user": {
+      "login": "emiridbest",
+      "id": 6362475,
+      "node_id": "MDQ6VXNlcjYzNjI0NzU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6362475?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/emiridbest",
+      "html_url": "https://github.com/emiridbest",
+      "followers_url": "https://api.github.com/users/emiridbest/followers",
+      "following_url": "https://api.github.com/users/emiridbest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/emiridbest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/emiridbest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/emiridbest/subscriptions",
+      "organizations_url": "https://api.github.com/users/emiridbest/orgs",
+      "repos_url": "https://api.github.com/users/emiridbest/repos",
+      "events_url": "https://api.github.com/users/emiridbest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/emiridbest/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "labels": [],
+    "state": "closed",
+    "locked": false,
+    "assignee": null,
+    "assignees": [],
+    "milestone": null,
+    "comments": 1,
+    "created_at": "2025-04-24T15:48:48Z",
+    "updated_at": "2025-04-24T20:17:09Z",
+    "closed_at": "2025-04-24T19:17:26Z",
+    "author_association": "OWNER",
+    "active_lock_reason": null,
+    "draft": false,
+    "pull_request": {
+      "url": "https://api.github.com/repos/emiridbest/esusu/pulls/10",
+      "html_url": "https://github.com/emiridbest/esusu/pull/10",
+      "diff_url": "https://github.com/emiridbest/esusu/pull/10.diff",
+      "patch_url": "https://github.com/emiridbest/esusu/pull/10.patch",
+      "merged_at": "2025-04-24T19:17:26Z"
+    },
+    "body": "# Esusu Application Major Update\r\n\r\n## ✅ Key Implementations\r\n- ✅ Created utility bill payment infrastructure\r\n- ✅ Added real-time chat functionality with floating component\r\n- ✅ Built backend API routes and utilities\r\n\r\n## ✅ Infrastructure Improvements\r\n- ✅ Configured folder structure for maintainability\r\n- ✅ Added test mocks for frontend components\r\n- ✅ Integrated rate calculation utilities\r\n\r\n## ✅ Quality Assurance\r\n- ✅ Tested critical flows (thrift operations, MiniSafe transactions)\r\n- ✅ Ensured responsive design across screen sizes\r\n- ✅ Optimized API response handling with JSON utilities\r\n\r\n",
+    "closed_by": {
+      "login": "emiridbest",
+      "id": 6362475,
+      "node_id": "MDQ6VXNlcjYzNjI0NzU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6362475?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/emiridbest",
+      "html_url": "https://github.com/emiridbest",
+      "followers_url": "https://api.github.com/users/emiridbest/followers",
+      "following_url": "https://api.github.com/users/emiridbest/following{/other_user}",
+      "gists_url": "https://api.github.com/users/emiridbest/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/emiridbest/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/emiridbest/subscriptions",
+      "organizations_url": "https://api.github.com/users/emiridbest/orgs",
+      "repos_url": "https://api.github.com/users/emiridbest/repos",
+      "events_url": "https://api.github.com/users/emiridbest/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/emiridbest/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/emiridbest/esusu/issues/10/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/emiridbest/esusu/issues/10/timeline",
+    "performed_via_github_app": null,
+    "state_reason": null
+  },
+  {
     "url": "https://api.github.com/repos/emiridbest/esusu/issues/9",
     "repository_url": "https://api.github.com/repos/emiridbest/esusu",
     "labels_url": "https://api.github.com/repos/emiridbest/esusu/issues/9/labels{/name}",
@@ -42,11 +222,6 @@
     "updated_at": "2025-04-20T13:52:02Z",
     "closed_at": "2025-04-20T13:51:44Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -137,11 +312,6 @@
     "updated_at": "2025-04-20T23:42:06Z",
     "closed_at": "2025-04-01T18:23:18Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -232,11 +402,6 @@
     "updated_at": "2025-04-01T18:20:37Z",
     "closed_at": "2025-04-01T18:20:36Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -327,11 +492,6 @@
     "updated_at": "2025-03-23T23:18:18Z",
     "closed_at": "2025-03-23T23:18:18Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -422,11 +582,6 @@
     "updated_at": "2025-03-22T22:01:11Z",
     "closed_at": "2025-03-22T22:01:11Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -517,11 +672,6 @@
     "updated_at": "2025-03-20T22:37:23Z",
     "closed_at": "2025-03-20T22:35:25Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -612,11 +762,6 @@
     "updated_at": "2025-03-18T21:47:32Z",
     "closed_at": "2025-03-18T21:47:32Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -707,11 +852,6 @@
     "updated_at": "2025-03-18T21:31:43Z",
     "closed_at": "2025-03-18T21:31:43Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {
@@ -802,11 +942,6 @@
     "updated_at": "2025-04-20T23:42:52Z",
     "closed_at": "2025-02-23T21:07:24Z",
     "author_association": "OWNER",
-    "sub_issues_summary": {
-      "total": 0,
-      "completed": 0,
-      "percent_completed": 0
-    },
     "active_lock_reason": null,
     "draft": false,
     "pull_request": {

@@ -4,10 +4,13 @@ import {
   TagIcon,
   ExclamationCircleIcon,
   ArrowTrendingUpIcon,
-  CloudArrowDownIcon
+  CloudArrowDownIcon,
+  UserIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline';
-
 import { useRouter } from 'next/router';
+import { celoProjects } from '@/constants/celoProjects';
+import ProjectCard from '@/components/ProjectCard';
 
 export default function Dashboard() {
   const { issues, prs, releases, repos, selectedSlug, setSelectedSlug } = useGithub();
@@ -15,7 +18,73 @@ export default function Dashboard() {
   const currentRepo = repos.find(r => r.slug === selectedSlug) || {};
   const repoName = currentRepo.repo || selectedSlug;
 
-  // Project selector (highly prominent)
+  // Get project data and provide empty fallback in edge case
+  const currentProject = celoProjects.find(p => p.slug === selectedSlug) || {};
+
+  // Compile "info cards" for top row with placeholders as needed
+  const infoCards = [];
+
+  // 1. Founder Card(s) or placeholder
+  if (currentProject.founders && currentProject.founders.length > 0) {
+    currentProject.founders.forEach(founder => {
+      infoCards.push({
+        title: "Founder",
+        value: founder.name || founder.url,
+        icon: <UserIcon />,
+        link: founder.url,
+      });
+    });
+  } else {
+    infoCards.push({
+      title: "Founder",
+      value: "No founder info yet",
+      icon: <UserIcon />,
+      placeholder: true
+    });
+  }
+
+  // 2. Project Card (Social) or placeholder
+  if (
+    currentProject.socials &&
+    (currentProject.socials.twitter || currentProject.socials.website)
+  ) {
+    infoCards.push({
+      title: "Project",
+      value: currentProject.name,
+      icon: <LinkIcon />,
+      link: currentProject.socials.website || currentProject.socials.twitter,
+    });
+  } else {
+    infoCards.push({
+      title: "Project",
+      value: "No socials yet",
+      icon: <LinkIcon />,
+      placeholder: true
+    });
+  }
+
+  // 3. Contract Card(s) or placeholder
+  if (currentProject.contracts && currentProject.contracts.length > 0) {
+    currentProject.contracts.forEach(contractObj => {
+      infoCards.push({
+        title: contractObj.label || "Contract",
+        value: contractObj.address,
+        icon: <CodeBracketIcon />,
+        link: contractObj.explorer
+          ? contractObj.explorer
+          : `https://celoscan.io/address/${contractObj.address}`,
+      });
+    });
+  } else {
+    infoCards.push({
+      title: "Contract",
+      value: "No contract yet",
+      icon: <CodeBracketIcon />,
+      placeholder: true
+    });
+  }
+
+  // Project selector UI
   const ProjectSelector = () => (
     <div className="w-full flex flex-col items-center mb-8">
       <div className="flex items-center w-full max-w-xl bg-amber-50 border-2 border-amber-400 rounded-xl px-6 py-4 shadow">
@@ -29,16 +98,14 @@ export default function Dashboard() {
           className="flex-1 bg-white border border-amber-400 text-gray-900 px-4 py-2 rounded-md text-lg focus:ring-amber-400 focus:border-amber-500"
         >
           <option value="" disabled>Select a project…</option>
-          <optgroup label="Season 1">
-            {repos.filter(r => r.season === 1).map(r => (
-              <option key={r.slug} value={r.slug}>{r.slug}</option>
-            ))}
-          </optgroup>
-          <optgroup label="Season 2">
-            {repos.filter(r => r.season === 2).map(r => (
-              <option key={r.slug} value={r.slug}>{r.slug}</option>
-            ))}
-          </optgroup>
+          {/* Group by season */}
+          {[1,2,3].map(season => (
+            <optgroup key={season} label={`Season ${season}`}>
+              {repos.filter(r => r.season === season).map(r => (
+                <option key={r.slug} value={r.slug}>{r.slug}</option>
+              ))}
+            </optgroup>
+          ))}
         </select>
       </div>
       <hr className="w-full max-w-xl border-t-2 border-amber-200 mt-4" />
@@ -67,32 +134,22 @@ export default function Dashboard() {
         <div className="text-center text-gray-500 mt-12">Please select a project to view its dashboard.</div>
       ) : (
         <>
-          <h1 className="text-2xl font-semibold mb-6">Dashboard: {repoName}</h1>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard
-              title="All Time Downloads"
-              value={totalDownloads.toLocaleString()}
-              icon={<CloudArrowDownIcon />}
-            />
-            <StatCard
-              title="Open Issues"
-              value={openIssuesCount}
-              icon={<ExclamationCircleIcon />}
-            />
-            <StatCard
-              title="Open PRs"
-              value={openPRsCount}
-              icon={<CodeBracketIcon />}
-            />
-            <StatCard
-              title="Latest Version"
-              value={latestVersion}
-              icon={<TagIcon />}
-            />
+          {/* --- TOP: INFO CARDS ROW (Founder, Project, Contracts) --- */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {infoCards.map((card, idx) => (
+              <StatCard
+                key={idx}
+                title={card.title}
+                value={card.value}
+                icon={card.icon}
+                link={card.link}
+              />
+            ))}
           </div>
 
-          {/* Main Content Grid */}
+          <h1 className="text-2xl font-semibold mb-6">Dashboard: {repoName}</h1>
+
+          {/* --- MAIN CONTENT: PRs & Releases --- */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Recent PRs */}
             <div className="bg-white rounded-lg shadow p-6">
@@ -148,31 +205,71 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
+          {/* --- BOTTOM: METRICS CARDS ROW --- */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+            <StatCard
+              title="All Time Downloads"
+              value={totalDownloads.toLocaleString()}
+              icon={<CloudArrowDownIcon />}
+            />
+            <StatCard
+              title="Open Issues"
+              value={openIssuesCount}
+              icon={<ExclamationCircleIcon />}
+            />
+            <StatCard
+              title="Open PRs"
+              value={openPRsCount}
+              icon={<CodeBracketIcon />}
+            />
+            <StatCard
+              title="Latest Version"
+              value={latestVersion}
+              icon={<TagIcon />}
+            />
+          </div>
         </>
       )}
     </div>
   );
 }
 
-// Stat Card Component
-function StatCard({ title, value, icon, trend }) {
+// StatCard: visually distinguish placeholder cards
+function StatCard({ title, value, icon, link, placeholder, trend }) {
+  const Wrapper = link
+    ? ({ children }) => (
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block hover:bg-blue-50 rounded transition"
+        >
+          {children}
+        </a>
+      )
+    : ({ children }) => <>{children}</>;
+
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <div className="w-6 h-6 text-blue-600">
-            {icon}
+    <Wrapper>
+      <div className={
+        `bg-white rounded-lg shadow p-6 h-full flex flex-col justify-between
+        ${placeholder ? "opacity-70 italic text-gray-400 border border-dashed border-gray-300" : ""}`
+      }>
+        <div className="flex items-center justify-between mb-2">
+          <div className={`p-2 ${placeholder ? "bg-gray-100" : "bg-blue-50"} rounded-lg`}>
+            <div className={`w-6 h-6 ${placeholder ? "text-gray-300" : "text-blue-600"}`}>{icon}</div>
           </div>
+          {trend && !placeholder && (
+            <div className="flex items-center space-x-1 text-green-600">
+              <ArrowTrendingUpIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">{trend}</span>
+            </div>
+          )}
         </div>
-        {trend && (
-          <div className="flex items-center space-x-1 text-green-600">
-            <ArrowTrendingUpIcon className="w-4 h-4" />
-            <span className="text-sm font-medium">{trend}</span>
-          </div>
-        )}
+        <h3 className={`text-sm mb-1 ${placeholder ? "text-gray-400" : "text-gray-500"}`}>{title}</h3>
+        <div className={`text-md font-semibold break-all ${placeholder ? "text-gray-400" : "text-gray-900"}`}>{value}</div>
       </div>
-      <h3 className="text-gray-500 text-sm">{title}</h3>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-    </div>
+    </Wrapper>
   );
 }

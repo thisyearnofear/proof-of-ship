@@ -1,32 +1,33 @@
-import { useGithub } from '@/providers/Github/Github';
-import { 
+import { useGithub } from "@/providers/Github/Github";
+import {
   CodeBracketIcon,
   TagIcon,
   ExclamationCircleIcon,
   ArrowTrendingUpIcon,
   CloudArrowDownIcon,
   UserIcon,
-  LinkIcon
-} from '@heroicons/react/24/outline';
-import { useRouter } from 'next/router';
-import { celoProjects } from '@/constants/celoProjects';
-import ProjectCard from '@/components/ProjectCard';
+  LinkIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
+import { celoProjects } from "@/constants/celoProjects";
+import OnChainStats from "@/components/OnChainStats";
 
 export default function Dashboard() {
-  const { issues, prs, releases, repos, selectedSlug, setSelectedSlug } = useGithub();
-  const router = useRouter();
-  const currentRepo = repos.find(r => r.slug === selectedSlug) || {};
+  const { issues, prs, releases, repos, selectedSlug, setSelectedSlug } =
+    useGithub();
+  const currentRepo = repos.find((r) => r.slug === selectedSlug) || {};
   const repoName = currentRepo.repo || selectedSlug;
 
   // Get project data and provide empty fallback in edge case
-  const currentProject = celoProjects.find(p => p.slug === selectedSlug) || {};
+  const currentProject =
+    celoProjects.find((p) => p.slug === selectedSlug) || {};
 
   // Compile "info cards" for top row with placeholders as needed
   const infoCards = [];
 
   // 1. Founder Card(s) or placeholder
   if (currentProject.founders && currentProject.founders.length > 0) {
-    currentProject.founders.forEach(founder => {
+    currentProject.founders.forEach((founder) => {
       infoCards.push({
         title: "Founder",
         value: founder.name || founder.url,
@@ -39,7 +40,7 @@ export default function Dashboard() {
       title: "Founder",
       value: "No founder info yet",
       icon: <UserIcon />,
-      placeholder: true
+      placeholder: true,
     });
   }
 
@@ -59,20 +60,20 @@ export default function Dashboard() {
       title: "Project",
       value: "No socials yet",
       icon: <LinkIcon />,
-      placeholder: true
+      placeholder: true,
     });
   }
 
   // 3. Contract Card(s) or placeholder
   if (currentProject.contracts && currentProject.contracts.length > 0) {
-    currentProject.contracts.forEach(contractObj => {
+    currentProject.contracts.forEach((contractObj) => {
       infoCards.push({
         title: contractObj.label || "Contract",
         value: contractObj.address,
         icon: <CodeBracketIcon />,
-        link: contractObj.explorer
-          ? contractObj.explorer
-          : `https://celoscan.io/address/${contractObj.address}`,
+        link:
+          contractObj.explorer ||
+          `https://celoscan.io/address/${contractObj.address}`,
       });
     });
   } else {
@@ -80,7 +81,7 @@ export default function Dashboard() {
       title: "Contract",
       value: "No contract yet",
       icon: <CodeBracketIcon />,
-      placeholder: true
+      placeholder: true,
     });
   }
 
@@ -91,19 +92,27 @@ export default function Dashboard() {
         <span className="mr-4 text-amber-600">
           <ArrowTrendingUpIcon className="w-8 h-8" />
         </span>
-        <label className="block text-lg font-semibold text-gray-800 mr-4 whitespace-nowrap">Select Project</label>
+        <label className="block text-lg font-semibold text-gray-800 mr-4 whitespace-nowrap">
+          Select Project
+        </label>
         <select
-          value={selectedSlug || ''}
-          onChange={e => setSelectedSlug(e.target.value)}
+          value={selectedSlug || ""}
+          onChange={(e) => setSelectedSlug(e.target.value)}
           className="flex-1 bg-white border border-amber-400 text-gray-900 px-4 py-2 rounded-md text-lg focus:ring-amber-400 focus:border-amber-500"
         >
-          <option value="" disabled>Select a project…</option>
+          <option value="" disabled>
+            Select a project…
+          </option>
           {/* Group by season */}
-          {[1,2,3].map(season => (
+          {[1, 2, 3].map((season) => (
             <optgroup key={season} label={`Season ${season}`}>
-              {repos.filter(r => r.season === season).map(r => (
-                <option key={r.slug} value={r.slug}>{r.slug}</option>
-              ))}
+              {repos
+                .filter((r) => r.season === season)
+                .map((r) => (
+                  <option key={r.slug} value={r.slug}>
+                    {r.slug}
+                  </option>
+                ))}
             </optgroup>
           ))}
         </select>
@@ -113,25 +122,32 @@ export default function Dashboard() {
   );
 
   // Calculate statistics
-  const totalDownloads = releases?.reduce((total, release) => {
-    const releaseDownloads = release.assets.reduce((sum, asset) => sum + asset.download_count, 0);
-    return total + releaseDownloads;
-  }, 0) || 0;
-  const openIssuesCount = issues?.filter((issue) => {
-    return issue.state === 'open';
-  })?.length || 0;
-  const openPRsCount = prs?.filter(pr => pr?.state === 'open')?.length || 0;
-  const latestVersion = releases?.[0]?.tag_name || 'v0.0.0';
+  const totalDownloads =
+    releases?.reduce((total, release) => {
+      const releaseDownloads = release.assets.reduce(
+        (sum, asset) => sum + asset.download_count,
+        0
+      );
+      return total + releaseDownloads;
+    }, 0) || 0;
+  const openIssuesCount =
+    issues?.filter((issue) => {
+      return issue.state === "open";
+    })?.length || 0;
+  const openPRsCount = prs?.filter((pr) => pr?.state === "open")?.length || 0;
+  const latestVersion = releases?.[0]?.tag_name || "v0.0.0";
   const latestRelease = releases?.[0];
 
   // Get PR statistics
   const recentPRs = prs?.slice(0, 5) || [];
-  
+
   return (
     <div className="p-4">
       <ProjectSelector />
       {!selectedSlug ? (
-        <div className="text-center text-gray-500 mt-12">Please select a project to view its dashboard.</div>
+        <div className="text-center text-gray-500 mt-12">
+          Please select a project to view its dashboard.
+        </div>
       ) : (
         <>
           {/* --- TOP: INFO CARDS ROW (Founder, Project, Contracts) --- */}
@@ -149,57 +165,113 @@ export default function Dashboard() {
 
           <h1 className="text-2xl font-semibold mb-6">Dashboard: {repoName}</h1>
 
-          {/* --- MAIN CONTENT: PRs & Releases --- */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* --- MAIN CONTENT: PRs, Releases, & On-Chain Data --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Recent PRs */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Recent Pull Requests</h2>
+              <h2 className="text-xl font-semibold mb-4">
+                Recent Pull Requests
+              </h2>
               <div className="space-y-4">
-                {recentPRs.map(pr => (
-                  <div key={pr.id} className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-lg">
-                    <img 
-                      src={pr.user.avatar_url} 
-                      alt={pr.user.login}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <a 
-                        href={pr.html_url}
-                        target="_blank"
-                        rel="noopener noreferrer" 
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        {pr.title}
-                      </a>
-                      <div className="text-sm text-gray-500">
-                        #{pr.number} opened by {pr.user.login}
+                {recentPRs.length > 0 ? (
+                  recentPRs.map((pr) => (
+                    <div
+                      key={pr.id}
+                      className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-lg"
+                    >
+                      <img
+                        src={pr.user.avatar_url}
+                        alt={pr.user.login}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <a
+                          href={pr.html_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {pr.title}
+                        </a>
+                        <div className="text-sm text-gray-500">
+                          #{pr.number} opened by {pr.user.login}
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    No pull requests found
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
             {/* Latest Release */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Latest Release Details</h2>
-              {latestRelease && (
+              <h2 className="text-xl font-semibold mb-4">
+                Latest Release Details
+              </h2>
+              {latestRelease ? (
                 <div>
                   <div className="mb-4">
-                    <h3 className="text-lg font-medium">{latestRelease.name}</h3>
+                    <h3 className="text-lg font-medium">
+                      {latestRelease.name}
+                    </h3>
                     <p className="text-sm text-gray-500">
-                      Released on {new Date(latestRelease.published_at).toLocaleDateString()}
+                      Released on{" "}
+                      {new Date(
+                        latestRelease.published_at
+                      ).toLocaleDateString()}
                     </p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <h4 className="font-medium">Downloads by Platform</h4>
-                    {latestRelease.assets.map(asset => (
-                      <div key={asset.id} className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">{asset.name}</span>
-                        <span className="text-sm font-medium">{asset.download_count.toLocaleString()}</span>
+                    {latestRelease.assets.length > 0 ? (
+                      latestRelease.assets.map((asset) => (
+                        <div
+                          key={asset.id}
+                          className="flex justify-between items-center"
+                        >
+                          <span className="text-sm text-gray-600">
+                            {asset.name}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {asset.download_count.toLocaleString()}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-500 py-2">
+                        No assets found
                       </div>
-                    ))}
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-4">
+                  No releases found
+                </div>
+              )}
+            </div>
+
+            {/* On-Chain Stats */}
+            <div>
+              {currentProject.contracts &&
+              currentProject.contracts.length > 0 ? (
+                <OnChainStats contract={currentProject.contracts[0]} />
+              ) : (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold mb-2">On-Chain Stats</h2>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <ChartBarIcon className="w-12 h-12 text-gray-300 mb-3" />
+                    <p className="text-gray-500">
+                      No contract address available
+                    </p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Add a contract address to view on-chain statistics
+                    </p>
                   </div>
                 </div>
               )}
@@ -252,13 +324,27 @@ function StatCard({ title, value, icon, link, placeholder, trend }) {
 
   return (
     <Wrapper>
-      <div className={
-        `bg-white rounded-lg shadow p-6 h-full flex flex-col justify-between
-        ${placeholder ? "opacity-70 italic text-gray-400 border border-dashed border-gray-300" : ""}`
-      }>
+      <div
+        className={`bg-white rounded-lg shadow p-6 h-full flex flex-col justify-between
+        ${
+          placeholder
+            ? "opacity-70 italic text-gray-400 border border-dashed border-gray-300"
+            : ""
+        }`}
+      >
         <div className="flex items-center justify-between mb-2">
-          <div className={`p-2 ${placeholder ? "bg-gray-100" : "bg-blue-50"} rounded-lg`}>
-            <div className={`w-6 h-6 ${placeholder ? "text-gray-300" : "text-blue-600"}`}>{icon}</div>
+          <div
+            className={`p-2 ${
+              placeholder ? "bg-gray-100" : "bg-blue-50"
+            } rounded-lg`}
+          >
+            <div
+              className={`w-6 h-6 ${
+                placeholder ? "text-gray-300" : "text-blue-600"
+              }`}
+            >
+              {icon}
+            </div>
           </div>
           {trend && !placeholder && (
             <div className="flex items-center space-x-1 text-green-600">
@@ -267,8 +353,20 @@ function StatCard({ title, value, icon, link, placeholder, trend }) {
             </div>
           )}
         </div>
-        <h3 className={`text-sm mb-1 ${placeholder ? "text-gray-400" : "text-gray-500"}`}>{title}</h3>
-        <div className={`text-md font-semibold break-all ${placeholder ? "text-gray-400" : "text-gray-900"}`}>{value}</div>
+        <h3
+          className={`text-sm mb-1 ${
+            placeholder ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          {title}
+        </h3>
+        <div
+          className={`text-md font-semibold break-all ${
+            placeholder ? "text-gray-400" : "text-gray-900"
+          }`}
+        >
+          {value}
+        </div>
       </div>
     </Wrapper>
   );

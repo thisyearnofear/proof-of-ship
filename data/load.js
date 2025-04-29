@@ -3,11 +3,13 @@ const fs = require("fs").promises;
 const path = require("path");
 const dotenv = require("dotenv");
 const chalk = require("chalk");
-dotenv.config();
+
+// Load environment variables from .env.local
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 const GITHUB_API_URL = "https://api.github.com";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-console.log(GITHUB_TOKEN);
+console.log("GitHub Token:", GITHUB_TOKEN ? "Token found" : "Token not found");
 
 const repos = require(path.join(__dirname, "../repos.json"));
 

@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
-import { GithubProvider } from '@/providers/Github/Github';
+import { GithubProvider } from "@/providers/Github/Github";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar/Navbar";
 import Footer from "@/components/Footer/Footer";
 import "@/styles/globals.css";
@@ -23,15 +24,19 @@ export default function App({ Component, pageProps }) {
 
   return (
     <NoSSR>
-      <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-w-[768px] font-[family-name:var(--font-geist-sans)] flex flex-col`}>
-        <GithubProvider>
-          <Navbar />
-          <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
-            <Component {...pageProps} />
-          </main>
-          <Footer />
-        </GithubProvider>
-      </div>
+      <AuthProvider>
+        <div
+          className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-w-[768px] font-[family-name:var(--font-geist-sans)] flex flex-col`}
+        >
+          <GithubProvider>
+            <Navbar />
+            <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
+              <Component {...pageProps} />
+            </main>
+            <Footer />
+          </GithubProvider>
+        </div>
+      </AuthProvider>
     </NoSSR>
   );
 }

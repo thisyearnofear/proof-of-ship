@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "load": "node data/load.js"
+    "load": "node data/load.js",
+    "export": "next build && next export",
+    "deploy": "next build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -17,10 +19,16 @@
     "chart.js": "^4.4.9",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
-    "next": "15.0.3",
+    "ethers": "^5.7.2",
+    "firebase": "^11.6.1",
+    "firebase-admin": "^13.3.0",
+    "next": "^15.3.1",
+    "node-fetch": "^2.7.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.3.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-firebase-hooks": "^5.1.1",
+    "swr": "^2.3.3"
   },
   "devDependencies": {
     "postcss": "^8",

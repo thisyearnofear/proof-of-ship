@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow anyone to read public project data
+    match /projects/{projectId} {
+      allow read: if true;
+
+      // Allow project owners to update their projects
+      allow update: if isProjectOwner(projectId);
+
+      // Allow authenticated users to create projects (for development)
+      allow create, delete: if request.auth != null;
+    }
+
+    // User profiles are readable by the user themselves
+    match /users/{userId} {
+      // Allow users to read and update their own profiles
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Pending permissions collection
+    match /pendingPermissions/{permissionId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Helper function to check if user is a project owner
+    function isProjectOwner(projectId) {
+      let userId = request.auth.uid;
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/projects/$(projectId)) &&
+             userId in get(/databases/$(database)/documents/projects/$(projectId)).data.owners;
+    }
+  }
+}

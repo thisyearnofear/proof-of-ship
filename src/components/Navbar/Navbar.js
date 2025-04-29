@@ -1,7 +1,13 @@
-import { Disclosure } from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Disclosure, Menu, Transition } from "@headlessui/react";
+import {
+  Bars3Icon,
+  XMarkIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
 import { useGithub } from "@/providers/Github/Github";
+import { useAuth } from "@/contexts/AuthContext";
+import { Fragment } from "react";
 
 const navigation = [
   { name: "Shippers", href: "/shippers" },
@@ -20,6 +26,7 @@ function classNames(...classes) {
 export default function Navbar() {
   const pathname = usePathname();
   const { repos, selectedSlug, setSelectedSlug } = useGithub();
+  const { currentUser, logout } = useAuth();
 
   const GithubIcon = () => {
     return (
@@ -80,7 +87,7 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <div className="hidden sm:ml-6 sm:flex sm:items-center">
+              <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
                 <a
                   href="https://github.com/thisyearnofear/POS-dashboard"
                   target="_blank"
@@ -90,6 +97,75 @@ export default function Navbar() {
                   <span className="sr-only">View GitHub repository</span>
                   <GithubIcon />
                 </a>
+
+                {/* Profile dropdown */}
+                {currentUser ? (
+                  <Menu as="div" className="relative ml-3">
+                    <div>
+                      <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                        <span className="sr-only">Open user menu</span>
+                        {currentUser.photoURL ? (
+                          <img
+                            className="h-8 w-8 rounded-full"
+                            src={currentUser.photoURL}
+                            alt={currentUser.displayName || "User"}
+                          />
+                        ) : (
+                          <UserCircleIcon className="h-8 w-8 text-gray-400" />
+                        )}
+                      </Menu.Button>
+                    </div>
+                    <Transition
+                      as={Fragment}
+                      enter="transition ease-out duration-200"
+                      enterFrom="transform opacity-0 scale-95"
+                      enterTo="transform opacity-100 scale-100"
+                      leave="transition ease-in duration-75"
+                      leaveFrom="transform opacity-100 scale-100"
+                      leaveTo="transform opacity-0 scale-95"
+                    >
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Item>
+                          {({ active }) => (
+                            <a
+                              href="/profile"
+                              className={classNames(
+                                active ? "bg-gray-100" : "",
+                                "block px-4 py-2 text-sm text-gray-700"
+                              )}
+                            >
+                              Your Profile
+                            </a>
+                          )}
+                        </Menu.Item>
+                        <Menu.Item>
+                          {({ active }) => (
+                            <a
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                logout();
+                              }}
+                              className={classNames(
+                                active ? "bg-gray-100" : "",
+                                "block px-4 py-2 text-sm text-gray-700"
+                              )}
+                            >
+                              Sign out
+                            </a>
+                          )}
+                        </Menu.Item>
+                      </Menu.Items>
+                    </Transition>
+                  </Menu>
+                ) : (
+                  <a
+                    href="/login"
+                    className="text-gray-500 hover:text-amber-600 inline-flex items-center px-3 py-1 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Sign in
+                  </a>
+                )}
               </div>
 
               <div className="-mr-2 flex items-center sm:hidden">

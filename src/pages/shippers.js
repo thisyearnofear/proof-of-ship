@@ -59,7 +59,7 @@ export default function shippers() {
   const metricsOptions = ["Total Commits", "Open Issues", "Open PRs"];
   const [selectedMetrics, setSelectedMetrics] = useState(["Total Commits"]);
   const [chartType, setChartType] = useState("line");
-  const [selectedSeasons, setSelectedSeasons] = useState([1, 2, 3]);
+  const [selectedSeasons, setSelectedSeasons] = useState([3, 2, 1]);
 
   // Filter projects by selected seasons
   const filteredProjects = celoProjects.filter((p) =>
@@ -181,7 +181,7 @@ export default function shippers() {
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Filter by Season</h2>
         <div className="flex gap-4">
-          {[1, 2, 3].map((season) => (
+          {[3, 2, 1].map((season) => (
             <label key={season} className="inline-flex items-center">
               <input
                 type="checkbox"

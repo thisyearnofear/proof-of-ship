@@ -151,7 +151,15 @@ export const celoProjects = [
     slug: "stablestation",
     name: "Stable Station",
     season: 3,
-    contracts: [],
+    contracts: [
+      {
+        label: "CUSD Swap Contract",
+        address: "0xa27D6E9091778896FBf34bC36A3A2ef22d06F804",
+        explorer:
+          "https://celoscan.io/address/0xa27D6E9091778896FBf34bC36A3A2ef22d06F804",
+        network: "mainnet",
+      },
+    ],
     socials: {
       twitter: "https://x.com/stable_station",
       discord: "",

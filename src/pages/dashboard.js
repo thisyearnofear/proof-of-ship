@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { celoProjects } from "@/constants/celoProjects";
 import OnChainStats from "@/components/OnChainStats";
+import EnhancedContractData from "@/components/EnhancedContractData";
 
 export default function Dashboard() {
   const { issues, prs, releases, repos, selectedSlug, setSelectedSlug } =
@@ -103,8 +104,8 @@ export default function Dashboard() {
           <option value="" disabled>
             Select a project…
           </option>
-          {/* Group by season */}
-          {[1, 2, 3].map((season) => (
+          {/* Group by season - reversed order */}
+          {[3, 2, 1].map((season) => (
             <optgroup key={season} label={`Season ${season}`}>
               {repos
                 .filter((r) => r.season === season)
@@ -165,118 +166,130 @@ export default function Dashboard() {
 
           <h1 className="text-2xl font-semibold mb-6">Dashboard: {repoName}</h1>
 
-          {/* --- MAIN CONTENT: PRs, Releases, & On-Chain Data --- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Recent PRs */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                Recent Pull Requests
-              </h2>
-              <div className="space-y-4">
-                {recentPRs.length > 0 ? (
-                  recentPRs.map((pr) => (
-                    <div
-                      key={pr.id}
-                      className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-lg"
-                    >
-                      <img
-                        src={pr.user.avatar_url}
-                        alt={pr.user.login}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div>
-                        <a
-                          href={pr.html_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          {pr.title}
-                        </a>
-                        <div className="text-sm text-gray-500">
-                          #{pr.number} opened by {pr.user.login}
+          {/* --- MAIN CONTENT: Contract-focused or GitHub-focused layout --- */}
+          {currentProject.contracts && currentProject.contracts.length > 0 ? (
+            /* Contract-focused layout */
+            <div className="grid grid-cols-1 gap-8">
+              {/* Enhanced Contract Data */}
+              {selectedSlug === "stablestation" ? (
+                <EnhancedContractData
+                  contract={currentProject.contracts[0]}
+                  prs={prs}
+                  releases={releases}
+                />
+              ) : (
+                <OnChainStats
+                  contract={currentProject.contracts[0]}
+                  prs={prs}
+                  releases={releases}
+                />
+              )}
+            </div>
+          ) : (
+            /* GitHub-focused layout (fallback when no contract) */
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Recent PRs */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  Recent Pull Requests
+                </h2>
+                <div className="space-y-4">
+                  {recentPRs.length > 0 ? (
+                    recentPRs.map((pr) => (
+                      <div
+                        key={pr.id}
+                        className="flex items-start space-x-4 p-4 hover:bg-gray-50 rounded-lg"
+                      >
+                        <img
+                          src={pr.user.avatar_url}
+                          alt={pr.user.login}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                          <a
+                            href={pr.html_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            {pr.title}
+                          </a>
+                          <div className="text-sm text-gray-500">
+                            #{pr.number} opened by {pr.user.login}
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">
+                      No pull requests found
                     </div>
-                  ))
+                  )}
+                </div>
+              </div>
+
+              {/* Latest Release */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  Latest Release Details
+                </h2>
+                {latestRelease ? (
+                  <div>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-medium">
+                        {latestRelease.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Released on{" "}
+                        {new Date(
+                          latestRelease.published_at
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Downloads by Platform</h4>
+                      {latestRelease.assets.length > 0 ? (
+                        latestRelease.assets.map((asset) => (
+                          <div
+                            key={asset.id}
+                            className="flex justify-between items-center"
+                          >
+                            <span className="text-sm text-gray-600">
+                              {asset.name}
+                            </span>
+                            <span className="text-sm font-medium">
+                              {asset.download_count.toLocaleString()}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-gray-500 py-2">
+                          No assets found
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center text-gray-500 py-4">
-                    No pull requests found
+                    No releases found
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* Latest Release */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                Latest Release Details
-              </h2>
-              {latestRelease ? (
-                <div>
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium">
-                      {latestRelease.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Released on{" "}
-                      {new Date(
-                        latestRelease.published_at
-                      ).toLocaleDateString()}
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Downloads by Platform</h4>
-                    {latestRelease.assets.length > 0 ? (
-                      latestRelease.assets.map((asset) => (
-                        <div
-                          key={asset.id}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="text-sm text-gray-600">
-                            {asset.name}
-                          </span>
-                          <span className="text-sm font-medium">
-                            {asset.download_count.toLocaleString()}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center text-gray-500 py-2">
-                        No assets found
-                      </div>
-                    )}
-                  </div>
+              {/* Empty Contract Stats Placeholder */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold mb-2">On-Chain Stats</h2>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <ChartBarIcon className="w-12 h-12 text-gray-300 mb-3" />
+                  <p className="text-gray-500">No contract address available</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Add a contract address to view on-chain statistics
+                  </p>
                 </div>
-              ) : (
-                <div className="text-center text-gray-500 py-4">
-                  No releases found
-                </div>
-              )}
+              </div>
             </div>
-
-            {/* On-Chain Stats */}
-            <div>
-              {currentProject.contracts &&
-              currentProject.contracts.length > 0 ? (
-                <OnChainStats contract={currentProject.contracts[0]} />
-              ) : (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold mb-2">On-Chain Stats</h2>
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <ChartBarIcon className="w-12 h-12 text-gray-300 mb-3" />
-                    <p className="text-gray-500">
-                      No contract address available
-                    </p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Add a contract address to view on-chain statistics
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* --- BOTTOM: METRICS CARDS ROW --- */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-10">

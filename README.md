@@ -103,6 +103,79 @@ GITHUB_TOKEN=your_github_token
 - [ ] Improve mobile responsiveness
 - [x] Add authentication for project owners
 - [x] Implement project editing for owners
+- [ ] Enhance contract data visualization and analytics
+
+## Contract Data Enhancement Plan
+
+We're planning to improve the UI/UX for contract data visualization in the dashboard, particularly for projects that have few GitHub activities but significant on-chain presence. This will provide a more comprehensive view of project activity and impact.
+
+### Integration Options
+
+We've researched two powerful tools for enhancing our contract data visualization:
+
+#### 1. Thirdweb Nebula
+
+[Thirdweb Nebula](https://portal.thirdweb.com/nebula/api-reference) provides a conversational interface to interact with blockchain data and services. Key features we can leverage:
+
+- **Token Price Data**: Fetch current and historical price data for tokens
+- **Transaction History**: Get detailed transaction history for contracts
+- **NFT Data**: Retrieve NFT ownership and collection information
+- **Multi-chain Support**: Query data across multiple blockchain networks
+
+Implementation approach:
+
+- Create a Nebula API client in our application
+- Develop UI components to display token price charts, transaction volume, and other metrics
+- Implement caching to minimize API calls
+
+#### 2. Alchemy MCP Server
+
+[Alchemy MCP Server](https://github.com/alchemyplatform/alchemy-mcp-server) is a Model Context Protocol server that enables AI agents to interact with Alchemy's blockchain APIs. Key features:
+
+- **Token Price Methods**: Get current and historical price data
+- **Multichain Token Methods**: Query token balances across networks
+- **Transaction History**: Retrieve detailed transaction data
+- **NFT Methods**: Get NFT ownership and contract data
+
+Implementation approach:
+
+- Set up the MCP server as a backend service
+- Create API endpoints to proxy requests to the Alchemy MCP server
+- Develop UI components to visualize the data
+
+### Implementation Plan
+
+1. **Phase 1: Enhanced Basic Contract Data**
+
+   - Expand current contract data display to include:
+     - Transaction volume over time
+     - Token transfers (for ERC20 tokens)
+     - Contract interaction metrics
+   - Improve the UI to make contract data more prominent when GitHub activity is low
+
+2. **Phase 2: Advanced Analytics Integration**
+
+   - Integrate with either Thirdweb Nebula or Alchemy MCP Server
+   - Add historical price charts for tokens
+   - Display transaction heat maps and activity patterns
+   - Show token holder distribution and changes
+
+3. **Phase 3: Interactive Dashboards**
+   - Create dedicated contract analytics pages
+   - Implement interactive filters and time-range selectors
+   - Add comparison views between different contracts
+   - Develop custom visualizations for different contract types (ERC20, ERC721, etc.)
+
+### Example: StableStation Contract Enhancement
+
+For the StableStation project (contract: 0xa27D6E9091778896FBf34bC36A3A2ef22d06F804), we'll showcase:
+
+- CUSD swap volume and transaction count
+- User growth metrics
+- Token price impact and liquidity data
+- Interactive transaction history
+
+This will provide a much richer view of the project's impact and usage, complementing the GitHub activity data.
 
 ## For Project Owners
 

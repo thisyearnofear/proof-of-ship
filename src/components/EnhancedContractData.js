@@ -26,6 +26,13 @@ export default function EnhancedContractData({ contract, prs, releases }) {
     contract?.network || "mainnet"
   );
 
+  // Determine if we should use mock data
+  // Always use mock data in production to avoid API overuse
+  const isProduction =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "proofofship.web.app" ||
+      window.location.hostname === "proof-of-ship.vercel.app");
+
   // Fetch Nebula data for analytics and transactions
   const {
     data: nebulaData,
@@ -36,8 +43,11 @@ export default function EnhancedContractData({ contract, prs, releases }) {
     contract?.address,
     contract?.network || "celo",
     ["analytics", "transactions", "price", "holders"],
-    false, // Use real data instead of mock data
-    { refreshInterval: 300000 } // Refresh every 5 minutes
+    isProduction, // Use mock data in production
+    {
+      refreshInterval: isProduction ? 0 : 300000, // Only refresh in development
+      refreshOnMount: !isProduction, // Only refresh on mount in development
+    }
   );
 
   if (!contract?.address) {

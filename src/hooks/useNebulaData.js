@@ -95,6 +95,15 @@ export function useNebulaData(
   useMockData = false, // Set to true to use mock data
   options = {}
 ) {
+  // Check if we're in a production environment
+  const isProduction =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "proofofship.web.app" ||
+      window.location.hostname === "proof-of-ship.vercel.app");
+
+  // Always use mock data in production, regardless of the useMockData parameter
+  const effectiveUseMockData = useMockData || isProduction;
+
   const { refreshOnMount = true, refreshInterval = 0 } = options;
 
   const [data, setData] = useState({
@@ -126,7 +135,7 @@ export function useNebulaData(
     if (!contractAddress) return;
 
     // If using mock data, set it and return
-    if (useMockData) {
+    if (effectiveUseMockData) {
       const mockData = {};
       dataTypes.forEach((type) => {
         if (mockNebulaData[type]) {
@@ -232,7 +241,7 @@ export function useNebulaData(
     contractAddress,
     network,
     dataTypes,
-    useMockData,
+    effectiveUseMockData,
     refreshOnMount,
     refreshInterval,
   ]);

@@ -45,15 +45,13 @@ export default function OnChainStats({ contract, prs, releases }) {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="card">
       {/* Header with tabs */}
       <div className="border-b">
-        <div className="flex">
+        <div className="tabs">
           <button
-            className={`px-4 py-3 text-sm font-medium ${
-              activeTab === "overview"
-                ? "border-b-2 border-amber-500 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
+            className={`tab ${
+              activeTab === "overview" ? "tab-active" : "tab-inactive"
             }`}
             onClick={() => setActiveTab("overview")}
           >
@@ -61,10 +59,8 @@ export default function OnChainStats({ contract, prs, releases }) {
           </button>
           {prs && releases && (
             <button
-              className={`px-4 py-3 text-sm font-medium ${
-                activeTab === "github"
-                  ? "border-b-2 border-amber-500 text-amber-600"
-                  : "text-gray-500 hover:text-gray-700"
+              className={`tab ${
+                activeTab === "github" ? "tab-active" : "tab-inactive"
               }`}
               onClick={() => setActiveTab("github")}
             >
@@ -88,7 +84,7 @@ export default function OnChainStats({ contract, prs, releases }) {
                 rel="noopener noreferrer"
                 className="text-amber-600 hover:text-amber-700 text-sm flex items-center"
               >
-                <LinkIcon className="w-4 h-4 mr-1" />
+                <LinkIcon className="icon-xs mr-1" />
                 View on Explorer
               </a>
             </div>

@@ -1,18 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "export",
-  images: {
-    unoptimized: true,
-  },
-  // Disable server-side features for static export
-  trailingSlash: false,
-  // Skip API routes during static export
-  skipTrailingSlashRedirect: true,
-  // Exclude API routes from static export
-  experimental: {
-    excludeDefaultMomentLocales: true,
-  },
+  // For Firebase deployment (static export)
+  ...(process.env.EXPORT_MODE === "true"
+    ? {
+        output: "export",
+        images: {
+          unoptimized: true,
+        },
+        trailingSlash: false,
+        skipTrailingSlashRedirect: true,
+      }
+    : {
+        // For Vercel deployment (server-side features)
+        images: {
+          domains: ["avatars.githubusercontent.com", "github.com"],
+        },
+      }),
 };
 
 module.exports = nextConfig;

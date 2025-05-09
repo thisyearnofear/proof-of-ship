@@ -92,42 +92,34 @@ export default function EnhancedContractData({ contract, prs, releases }) {
     <div className="bg-white rounded-lg shadow overflow-hidden">
       {/* Header with tabs */}
       <div className="border-b">
-        <div className="flex">
+        <div className="tabs">
           <button
-            className={`px-4 py-3 text-sm font-medium ${
-              activeTab === "overview"
-                ? "border-b-2 border-amber-500 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
+            className={`tab ${
+              activeTab === "overview" ? "tab-active" : "tab-inactive"
             }`}
             onClick={() => setActiveTab("overview")}
           >
             Contract
           </button>
           <button
-            className={`px-4 py-3 text-sm font-medium ${
-              activeTab === "activity"
-                ? "border-b-2 border-amber-500 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
+            className={`tab ${
+              activeTab === "activity" ? "tab-active" : "tab-inactive"
             }`}
             onClick={() => setActiveTab("activity")}
           >
             Activity
           </button>
           <button
-            className={`px-4 py-3 text-sm font-medium ${
-              activeTab === "analytics"
-                ? "border-b-2 border-amber-500 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
+            className={`tab ${
+              activeTab === "analytics" ? "tab-active" : "tab-inactive"
             }`}
             onClick={() => setActiveTab("analytics")}
           >
             Analytics
           </button>
           <button
-            className={`px-4 py-3 text-sm font-medium ${
-              activeTab === "github"
-                ? "border-b-2 border-amber-500 text-amber-600"
-                : "text-gray-500 hover:text-gray-700"
+            className={`tab ${
+              activeTab === "github" ? "tab-active" : "tab-inactive"
             }`}
             onClick={() => setActiveTab("github")}
           >
@@ -151,7 +143,7 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                 rel="noopener noreferrer"
                 className="text-amber-600 hover:text-amber-700 text-sm flex items-center"
               >
-                <LinkIcon className="w-4 h-4 mr-1" />
+                <LinkIcon className="icon-xs mr-1" />
                 View on Explorer
               </a>
             </div>
@@ -670,20 +662,20 @@ export default function EnhancedContractData({ contract, prs, releases }) {
 // Helper component for metrics
 function MetricCard({ title, value, icon, trend }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-3 border">
+    <div className="metric-card">
       <div className="flex justify-between items-start mb-2">
-        <div className="p-1.5 bg-amber-50 rounded-md">
-          <div className="text-amber-600">{icon}</div>
+        <div className="metric-icon">
+          <div className="icon-sm">{icon}</div>
         </div>
         {trend && (
           <div className="flex items-center text-green-600 text-xs">
-            <ArrowTrendingUpIcon className="w-3 h-3 mr-0.5" />
+            <ArrowTrendingUpIcon className="icon-xs mr-0.5" />
             <span>{trend}</span>
           </div>
         )}
       </div>
-      <p className="text-xs text-gray-500 mb-1">{title}</p>
-      <p className="text-sm font-semibold">{value}</p>
+      <p className="metric-title">{title}</p>
+      <p className="metric-value">{value}</p>
     </div>
   );
 }

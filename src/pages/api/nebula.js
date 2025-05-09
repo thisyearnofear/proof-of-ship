@@ -9,6 +9,45 @@
 // Base URL for Nebula API
 const NEBULA_API_BASE_URL = "https://nebula-api.thirdweb.com";
 
+// Simple in-memory rate limiting
+const RATE_LIMIT = {
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 5, // 5 requests per minute
+  clients: new Map(),
+};
+
+// Rate limiting middleware
+function rateLimit(req) {
+  // Get client IP or a unique identifier
+  const clientId =
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+
+  // Get current timestamp
+  const now = Date.now();
+
+  // Get client's request history or initialize it
+  if (!RATE_LIMIT.clients.has(clientId)) {
+    RATE_LIMIT.clients.set(clientId, {
+      count: 0,
+      resetAt: now + RATE_LIMIT.windowMs,
+    });
+  }
+
+  const client = RATE_LIMIT.clients.get(clientId);
+
+  // Reset count if the window has passed
+  if (now > client.resetAt) {
+    client.count = 0;
+    client.resetAt = now + RATE_LIMIT.windowMs;
+  }
+
+  // Increment request count
+  client.count++;
+
+  // Check if rate limit is exceeded
+  return client.count > RATE_LIMIT.maxRequests;
+}
+
 export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== "POST") {
@@ -16,6 +55,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Check rate limit
+    if (rateLimit(req)) {
+      return res.status(429).json({
+        error: "Too Many Requests",
+        message: "Rate limit exceeded. Please try again later.",
+      });
+    }
+
     // Get the API key from environment variables
     const apiKey = process.env.THIRDWEB_CLIENT_SECRET;
 
@@ -31,6 +78,23 @@ export default async function handler(req, res) {
       return res.status(400).json({
         error: "Bad request",
         message: "Message is required",
+      });
+    }
+
+    // Check if we're in a production environment
+    const isProduction =
+      req.headers.host &&
+      (req.headers.host.includes("proofofship.web.app") ||
+        req.headers.host.includes("proof-of-ship.vercel.app"));
+
+    // In production, return mock data to avoid API overuse
+    if (isProduction) {
+      console.log("Production environment detected. Returning mock data.");
+      return res.status(200).json({
+        message:
+          "This is mock data from the API proxy. To use the real Nebula API, please run the application locally.",
+        session_id: sessionId || "mock-session",
+        request_id: "mock-request-id",
       });
     }
 

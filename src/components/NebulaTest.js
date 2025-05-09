@@ -1,15 +1,21 @@
-import React, { useState } from 'react';
-import { useNebulaData } from '@/hooks/useNebulaData';
+import React, { useState } from "react";
+import { useNebulaData } from "@/hooks/useNebulaData";
 
 /**
  * Test component for Nebula API integration
  * This component allows testing the Nebula API with different contract addresses
  */
 export default function NebulaTest() {
-  const [contractAddress, setContractAddress] = useState('');
-  const [network, setNetwork] = useState('celo');
-  const [dataTypes, setDataTypes] = useState(['analytics', 'transactions']);
-  const [useMockData, setUseMockData] = useState(false);
+  const [contractAddress, setContractAddress] = useState("");
+  const [network, setNetwork] = useState("celo");
+  const [dataTypes, setDataTypes] = useState(["analytics", "transactions"]);
+  // Always use mock data in production to avoid API overuse
+  const isProduction =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "proofofship.web.app" ||
+      window.location.hostname === "proof-of-ship.vercel.app");
+
+  const [useMockData, setUseMockData] = useState(isProduction);
   const [isTestRunning, setIsTestRunning] = useState(false);
 
   // Nebula data hook
@@ -19,7 +25,7 @@ export default function NebulaTest() {
     error: nebulaError,
     refresh: refreshNebulaData,
     isLoading,
-    hasError
+    hasError,
   } = useNebulaData(
     isTestRunning ? contractAddress : null,
     network,
@@ -38,7 +44,7 @@ export default function NebulaTest() {
   // Handle data type selection
   const handleDataTypeChange = (type) => {
     if (dataTypes.includes(type)) {
-      setDataTypes(dataTypes.filter(t => t !== type));
+      setDataTypes(dataTypes.filter((t) => t !== type));
     } else {
       setDataTypes([...dataTypes, type]);
     }
@@ -47,7 +53,17 @@ export default function NebulaTest() {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">Nebula API Test</h2>
-      
+
+      {isProduction && (
+        <div className="mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg text-amber-800">
+          <p className="font-medium">⚠️ Production Environment Detected</p>
+          <p className="text-sm mt-1">
+            To prevent API overuse, this test is running in mock data mode. For
+            real API testing, please run the application locally.
+          </p>
+        </div>
+      )}
+
       {/* Test Form */}
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -64,7 +80,7 @@ export default function NebulaTest() {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Network
@@ -84,13 +100,19 @@ export default function NebulaTest() {
             </select>
           </div>
         </div>
-        
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Data Types
           </label>
           <div className="flex flex-wrap gap-3">
-            {['analytics', 'transactions', 'price', 'priceHistory', 'holders'].map(type => (
+            {[
+              "analytics",
+              "transactions",
+              "price",
+              "priceHistory",
+              "holders",
+            ].map((type) => (
               <label key={type} className="inline-flex items-center">
                 <input
                   type="checkbox"
@@ -103,7 +125,7 @@ export default function NebulaTest() {
             ))}
           </div>
         </div>
-        
+
         <div className="mb-4">
           <label className="inline-flex items-center">
             <input
@@ -115,21 +137,21 @@ export default function NebulaTest() {
             <span className="text-sm text-gray-700">Use Mock Data</span>
           </label>
         </div>
-        
+
         <button
           type="submit"
           className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
           disabled={isLoading}
         >
-          {isLoading ? 'Loading...' : 'Run Test'}
+          {isLoading ? "Loading..." : "Run Test"}
         </button>
       </form>
-      
+
       {/* Results */}
       {isTestRunning && (
         <div className="mt-6">
           <h3 className="text-lg font-medium mb-2">Results</h3>
-          
+
           {isLoading && (
             <div className="animate-pulse space-y-2">
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -137,16 +159,16 @@ export default function NebulaTest() {
               <div className="h-20 bg-gray-200 rounded"></div>
             </div>
           )}
-          
+
           {hasError && (
             <div className="text-red-500 mb-4">
               Error fetching data. Please check the console for details.
             </div>
           )}
-          
+
           {!isLoading && !hasError && (
             <div className="space-y-4">
-              {dataTypes.map(type => (
+              {dataTypes.map((type) => (
                 <div key={type} className="border rounded-lg p-4">
                   <h4 className="font-medium mb-2 capitalize">{type}</h4>
                   {nebulaData[type] ? (

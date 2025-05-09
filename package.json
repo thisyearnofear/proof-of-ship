@@ -9,7 +9,8 @@
     "lint": "next lint",
     "load": "node data/load.js",
     "build:firebase": "EXPORT_MODE=true next build",
-    "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting"
+    "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting",
+    "deploy": "npm run deploy:firebase"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",

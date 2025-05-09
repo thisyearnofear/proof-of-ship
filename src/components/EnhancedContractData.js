@@ -27,16 +27,17 @@ export default function EnhancedContractData({ contract, prs, releases }) {
   );
 
   // Fetch Nebula data for analytics and transactions
-  // Using mock data for now until we have the API properly set up
   const {
     data: nebulaData,
     loading: nebulaLoading,
     error: nebulaError,
+    refresh: refreshNebulaData,
   } = useNebulaData(
     contract?.address,
     contract?.network || "celo",
-    ["analytics", "transactions"],
-    true // Use mock data
+    ["analytics", "transactions", "price", "holders"],
+    false, // Use real data instead of mock data
+    { refreshInterval: 300000 } // Refresh every 5 minutes
   );
 
   if (!contract?.address) {
@@ -227,30 +228,43 @@ export default function EnhancedContractData({ contract, prs, releases }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <MetricCard
                 title="Transactions"
-                value={contractData.txCount?.toLocaleString() || "0"}
+                value={
+                  nebulaData?.analytics?.analytics?.totalTransactions ||
+                  contractData.txCount?.toLocaleString() ||
+                  "0"
+                }
                 icon={<ArrowPathIcon className="w-5 h-5" />}
-                trend="+12%"
+                loading={nebulaLoading?.analytics}
               />
 
               <MetricCard
                 title="Volume"
-                value={mockData.transactionVolume}
+                value={
+                  nebulaData?.analytics?.analytics?.transactionVolume ||
+                  mockData.transactionVolume
+                }
                 icon={<CurrencyDollarIcon className="w-5 h-5" />}
-                trend="+5%"
+                loading={nebulaLoading?.analytics}
               />
 
               <MetricCard
                 title="Users"
-                value={mockData.uniqueUsers}
+                value={
+                  nebulaData?.analytics?.analytics?.uniqueUsers ||
+                  mockData.uniqueUsers
+                }
                 icon={<UserGroupIcon className="w-5 h-5" />}
-                trend="+8%"
+                loading={nebulaLoading?.analytics}
               />
 
               <MetricCard
                 title="Daily Txs"
-                value={mockData.dailyTransactions}
+                value={
+                  nebulaData?.analytics?.analytics?.avgDailyTransactions ||
+                  mockData.dailyTransactions
+                }
                 icon={<ChartBarIcon className="w-5 h-5" />}
-                trend="+3%"
+                loading={nebulaLoading?.analytics}
               />
             </div>
           </div>
@@ -296,7 +310,7 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {/* Parse and display Nebula transaction data */}
-                      {Array.isArray(nebulaData.transactions.transactions)
+                      {Array.isArray(nebulaData.transactions?.transactions)
                         ? nebulaData.transactions.transactions
                             .slice(0, 10)
                             .map((tx, index) => (
@@ -312,16 +326,22 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                                   </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {new Date(
-                                    tx.timestamp * 1000
-                                  ).toLocaleString()}
+                                  {tx.timestamp
+                                    ? new Date(
+                                        typeof tx.timestamp === "number"
+                                          ? tx.timestamp * 1000
+                                          : Date.parse(tx.timestamp)
+                                      ).toLocaleString()
+                                    : "N/A"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   {tx.method || "Transfer"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   {tx.value
-                                    ? `${parseFloat(tx.value).toFixed(4)} CELO`
+                                    ? `${parseFloat(tx.value).toFixed(4)} ${
+                                        tx.currency || "CELO"
+                                      }`
                                     : "-"}
                                 </td>
                               </tr>
@@ -442,7 +462,7 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                           Total Transactions
                         </p>
                         <p className="font-medium">
-                          {nebulaData.analytics.totalTransactions ||
+                          {nebulaData.analytics?.analytics?.totalTransactions ||
                             contractData.txCount?.toLocaleString() ||
                             "0"}
                         </p>
@@ -450,24 +470,35 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                       <div className="border rounded-lg p-3">
                         <p className="text-xs text-gray-500">Unique Users</p>
                         <p className="font-medium">
-                          {nebulaData.analytics.uniqueUsers ||
+                          {nebulaData.analytics?.analytics?.uniqueUsers ||
                             mockData.uniqueUsers}
                         </p>
                       </div>
                       <div className="border rounded-lg p-3">
                         <p className="text-xs text-gray-500">Avg. Daily Txs</p>
                         <p className="font-medium">
-                          {nebulaData.analytics.avgDailyTransactions ||
+                          {nebulaData.analytics?.analytics
+                            ?.avgDailyTransactions ||
                             mockData.dailyTransactions}
                         </p>
                       </div>
                       <div className="border rounded-lg p-3">
                         <p className="text-xs text-gray-500">Contract Age</p>
                         <p className="font-medium">
-                          {nebulaData.analytics.contractAge || "3 months"}
+                          {nebulaData.analytics?.analytics?.contractAge ||
+                            "3 months"}
                         </p>
                       </div>
                     </div>
+
+                    {/* Display Nebula's analysis message */}
+                    {nebulaData.analytics?.message && (
+                      <div className="border rounded-lg p-3 mb-4 bg-gray-50">
+                        <p className="text-sm text-gray-700">
+                          {nebulaData.analytics.message}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Transaction volume chart placeholder */}
                     <div className="h-40 bg-gray-100 flex items-center justify-center">
@@ -660,12 +691,12 @@ export default function EnhancedContractData({ contract, prs, releases }) {
 }
 
 // Helper component for metrics
-function MetricCard({ title, value, icon, trend }) {
+function MetricCard({ title, value, icon, trend, loading }) {
   return (
-    <div className="metric-card">
+    <div className="metric-card border rounded-lg p-3">
       <div className="flex justify-between items-start mb-2">
         <div className="metric-icon">
-          <div className="icon-sm">{icon}</div>
+          <div className="icon-sm text-amber-600">{icon}</div>
         </div>
         {trend && (
           <div className="flex items-center text-green-600 text-xs">
@@ -674,8 +705,12 @@ function MetricCard({ title, value, icon, trend }) {
           </div>
         )}
       </div>
-      <p className="metric-title">{title}</p>
-      <p className="metric-value">{value}</p>
+      <p className="text-sm text-gray-500">{title}</p>
+      {loading ? (
+        <div className="animate-pulse h-6 bg-gray-200 rounded w-3/4 mt-1"></div>
+      ) : (
+        <p className="text-lg font-medium">{value}</p>
+      )}
     </div>
   );
 }

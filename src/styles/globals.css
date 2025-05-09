@@ -9,8 +9,31 @@
   --foreground: #171717;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Ensure consistent styling across environments */
+* {
+  box-sizing: border-box;
+}
+
+/* Fix for inconsistent button styling */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 1.15;
+  margin: 0;
 }

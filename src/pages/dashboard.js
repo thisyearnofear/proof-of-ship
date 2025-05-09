@@ -170,20 +170,12 @@ export default function Dashboard() {
           {currentProject.contracts && currentProject.contracts.length > 0 ? (
             /* Contract-focused layout */
             <div className="grid grid-cols-1 gap-8">
-              {/* Enhanced Contract Data */}
-              {selectedSlug === "stablestation" ? (
-                <EnhancedContractData
-                  contract={currentProject.contracts[0]}
-                  prs={prs}
-                  releases={releases}
-                />
-              ) : (
-                <OnChainStats
-                  contract={currentProject.contracts[0]}
-                  prs={prs}
-                  releases={releases}
-                />
-              )}
+              {/* Enhanced Contract Data for all projects with contracts */}
+              <EnhancedContractData
+                contract={currentProject.contracts[0]}
+                prs={prs}
+                releases={releases}
+              />
             </div>
           ) : (
             /* GitHub-focused layout (fallback when no contract) */

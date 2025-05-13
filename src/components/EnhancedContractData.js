@@ -3,7 +3,7 @@ import { useContractData } from "@/hooks/useContractData";
 import { useNebulaData } from "@/hooks/useNebulaData";
 import { formatAddress, getExplorerUrl } from "@/utils/web3";
 import CompactGithubActivity from "./CompactGithubActivity";
-import {
+import { 
   ArrowTrendingUpIcon,
   CurrencyDollarIcon,
   UserGroupIcon,
@@ -12,7 +12,10 @@ import {
   ClockIcon,
   DocumentChartBarIcon,
   LinkIcon,
-} from "@heroicons/react/24/outline";
+  ExclamationCircleIcon,
+  TagIcon
+ } from "@heroicons/react/24/outline";
+import StatCard from "@/components/StatCard";
 
 /**
  * Enhanced Contract Data Component
@@ -21,6 +24,7 @@ import {
  */
 export default function EnhancedContractData({ contract, prs, releases }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [nebulaEnabled, setNebulaEnabled] = useState(false);
   const { contractData, isLoading, isError } = useContractData(
     contract?.address,
     contract?.network || "mainnet"
@@ -40,13 +44,13 @@ export default function EnhancedContractData({ contract, prs, releases }) {
     error: nebulaError,
     refresh: refreshNebulaData,
   } = useNebulaData(
-    contract?.address,
+    nebulaEnabled ? contract?.address : null,
     contract?.network || "celo",
     ["analytics", "transactions", "price", "holders"],
     isProduction, // Use mock data in production
     {
-      refreshInterval: isProduction ? 0 : 300000, // Only refresh in development
-      refreshOnMount: !isProduction, // Only refresh on mount in development
+      refreshInterval: 0, // Only fetch on demand
+      refreshOnMount: false, // Never fetch on mount
     }
   );
 
@@ -101,8 +105,25 @@ export default function EnhancedContractData({ contract, prs, releases }) {
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      {/* Header with tabs */}
-      <div className="border-b">
+      {/* Nebula manual trigger */}
+      {!nebulaEnabled && (
+        <div className="p-6">
+          <button
+            className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+            onClick={() => {
+              setNebulaEnabled(true);
+              setTimeout(() => refreshNebulaData(), 0);
+            }}
+          >
+            Fetch Nebula Analytics
+          </button>
+        </div>
+      )}
+      {/* Only show analytics UI if nebulaEnabled */}
+      {nebulaEnabled && (
+      <>
+        {/* Header with tabs */}
+        <div className="border-b">
         <div className="tabs">
           <button
             className={`tab ${
@@ -140,11 +161,11 @@ export default function EnhancedContractData({ contract, prs, releases }) {
       </div>
 
       {/* Content area */}
-      <div className="p-4">
+      <div className="p-6 md:p-8">
         {activeTab === "overview" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Contract Overview</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Contract Overview</h2>
               <a
                 href={getExplorerUrl(
                   contract.address,
@@ -184,7 +205,7 @@ export default function EnhancedContractData({ contract, prs, releases }) {
             {/* Token-specific information */}
             {contractData.type === "ERC20" && contractData.details && (
               <div className="border rounded-lg p-4 mb-4">
-                <h3 className="text-md font-medium mb-3">Token Information</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Token Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Token Name</p>
@@ -217,9 +238,7 @@ export default function EnhancedContractData({ contract, prs, releases }) {
             {/* NFT-specific information */}
             {contractData.type === "ERC721" && contractData.details && (
               <div className="border rounded-lg p-4 mb-4">
-                <h3 className="text-md font-medium mb-3">
-                  NFT Collection Information
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">NFT Collection Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Collection Name</p>
@@ -236,53 +255,30 @@ export default function EnhancedContractData({ contract, prs, releases }) {
 
             {/* Key metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <MetricCard
-                title="Transactions"
-                value={
+              <StatCard title="Transactions" value={
                   nebulaData?.analytics?.analytics?.totalTransactions ||
                   contractData.txCount?.toLocaleString() ||
                   "0"
-                }
-                icon={<ArrowPathIcon className="w-5 h-5" />}
-                loading={nebulaLoading?.analytics}
-              />
-
-              <MetricCard
-                title="Volume"
-                value={
+                } icon={<ArrowPathIcon className="w-5 h-5" />} loading={nebulaLoading?.analytics} />
+<StatCard title="Volume" value={
                   nebulaData?.analytics?.analytics?.transactionVolume ||
                   mockData.transactionVolume
-                }
-                icon={<CurrencyDollarIcon className="w-5 h-5" />}
-                loading={nebulaLoading?.analytics}
-              />
-
-              <MetricCard
-                title="Users"
-                value={
+                } icon={<CurrencyDollarIcon className="w-5 h-5" />} loading={nebulaLoading?.analytics} />
+<StatCard title="Users" value={
                   nebulaData?.analytics?.analytics?.uniqueUsers ||
                   mockData.uniqueUsers
-                }
-                icon={<UserGroupIcon className="w-5 h-5" />}
-                loading={nebulaLoading?.analytics}
-              />
-
-              <MetricCard
-                title="Daily Txs"
-                value={
+                } icon={<UserGroupIcon className="w-5 h-5" />} loading={nebulaLoading?.analytics} />
+<StatCard title="Daily Txs" value={
                   nebulaData?.analytics?.analytics?.avgDailyTransactions ||
                   mockData.dailyTransactions
-                }
-                icon={<ChartBarIcon className="w-5 h-5" />}
-                loading={nebulaLoading?.analytics}
-              />
-            </div>
+                } icon={<ChartBarIcon className="w-5 h-5" />} loading={nebulaLoading?.analytics} />
+</div>
           </div>
         )}
 
         {activeTab === "activity" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+            <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">Recent Activity</h2>
 
             {nebulaLoading.transactions ? (
               <div className="animate-pulse">
@@ -432,7 +428,7 @@ export default function EnhancedContractData({ contract, prs, releases }) {
 
         {activeTab === "analytics" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">Analytics</h2>
+            <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">Analytics</h2>
 
             {nebulaLoading.analytics ? (
               <div className="animate-pulse space-y-4">
@@ -467,38 +463,10 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                   <div className="space-y-4">
                     {/* Parse and display key metrics from Nebula analytics */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                      <div className="border rounded-lg p-3">
-                        <p className="text-xs text-gray-500">
-                          Total Transactions
-                        </p>
-                        <p className="font-medium">
-                          {nebulaData.analytics?.analytics?.totalTransactions ||
-                            contractData.txCount?.toLocaleString() ||
-                            "0"}
-                        </p>
-                      </div>
-                      <div className="border rounded-lg p-3">
-                        <p className="text-xs text-gray-500">Unique Users</p>
-                        <p className="font-medium">
-                          {nebulaData.analytics?.analytics?.uniqueUsers ||
-                            mockData.uniqueUsers}
-                        </p>
-                      </div>
-                      <div className="border rounded-lg p-3">
-                        <p className="text-xs text-gray-500">Avg. Daily Txs</p>
-                        <p className="font-medium">
-                          {nebulaData.analytics?.analytics
-                            ?.avgDailyTransactions ||
-                            mockData.dailyTransactions}
-                        </p>
-                      </div>
-                      <div className="border rounded-lg p-3">
-                        <p className="text-xs text-gray-500">Contract Age</p>
-                        <p className="font-medium">
-                          {nebulaData.analytics?.analytics?.contractAge ||
-                            "3 months"}
-                        </p>
-                      </div>
+                      <StatCard title="Total Transactions" value={nebulaData.analytics?.analytics?.totalTransactions || contractData.txCount?.toLocaleString() || "0"} icon={<ArrowPathIcon className="w-5 h-5" />} />
+<StatCard title="Unique Users" value={nebulaData.analytics?.analytics?.uniqueUsers || mockData.uniqueUsers} icon={<UserGroupIcon className="w-5 h-5" />} />
+<StatCard title="Avg. Daily Txs" value={nebulaData.analytics?.analytics?.avgDailyTransactions || mockData.dailyTransactions} icon={<ChartBarIcon className="w-5 h-5" />} />
+<StatCard title="Contract Age" value={nebulaData.analytics?.analytics?.contractAge || "3 months"} icon={<ClockIcon className="w-5 h-5" />} />
                     </div>
 
                     {/* Display Nebula's analysis message */}
@@ -530,13 +498,42 @@ export default function EnhancedContractData({ contract, prs, releases }) {
                     </div>
                   </div>
                   <div className="border rounded-lg p-4">
-                    <p className="text-gray-700 font-medium mb-2">
-                      Token Distribution
-                    </p>
-                    <div className="h-32 bg-gray-100 flex items-center justify-center">
-                      <p className="text-gray-400">Token distribution chart</p>
-                    </div>
-                  </div>
+  <p className="text-gray-700 font-medium mb-2">
+    Token Holders
+  </p>
+  {contractData.type === "ERC20" ? (
+    nebulaLoading.holders ? (
+      <div className="h-32 flex items-center justify-center text-gray-400">Loading holders…</div>
+    ) : nebulaError.holders ? (
+      <div className="h-32 flex items-center justify-center text-red-500">Error loading holders data.</div>
+    ) : Array.isArray(nebulaData.holders?.holders) && nebulaData.holders.holders.length > 0 ? (
+      <div className="h-32 overflow-auto">
+        <table className="min-w-full text-xs">
+          <thead>
+            <tr>
+              <th className="px-2 py-1 text-left">Address</th>
+              <th className="px-2 py-1 text-left">Balance</th>
+              <th className="px-2 py-1 text-left">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nebulaData.holders.holders.map((holder, idx) => (
+              <tr key={idx}>
+                <td className="px-2 py-1 font-mono">{holder.address}</td>
+                <td className="px-2 py-1">{holder.balance}</td>
+                <td className="px-2 py-1">{holder.percentage}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div className="h-32 flex items-center justify-center text-gray-400">No holders data available.</div>
+    )
+  ) : (
+    <div className="h-32 flex items-center justify-center text-gray-400">This contract type does not have holders data.</div>
+  )}
+</div>
                 </div>
               </>
             ) : (
@@ -572,32 +569,14 @@ export default function EnhancedContractData({ contract, prs, releases }) {
 
         {activeTab === "github" && (
           <div>
-            <h2 className="text-lg font-semibold mb-4">GitHub Activity</h2>
+            <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">GitHub Activity</h2>
 
             {/* GitHub Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">All Time Downloads</p>
-                <p className="font-medium">0</p>
-              </div>
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Open Issues</p>
-                <p className="font-medium">
-                  {prs?.filter((pr) => !pr.pull_request)?.length || 0}
-                </p>
-              </div>
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Open PRs</p>
-                <p className="font-medium">
-                  {prs?.filter((pr) => pr.state === "open")?.length || 0}
-                </p>
-              </div>
-              <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Latest Version</p>
-                <p className="font-medium">
-                  {releases?.[0]?.tag_name || "v0.0.0"}
-                </p>
-              </div>
+              <StatCard title="All Time Downloads" value={0} icon={<DocumentChartBarIcon className="w-5 h-5" />} />
+<StatCard title="Open Issues" value={prs?.filter((pr) => !pr.pull_request)?.length || 0} icon={<ExclamationCircleIcon className="w-5 h-5" />} />
+<StatCard title="Open PRs" value={prs?.filter((pr) => pr.state === "open")?.length || 0} icon={<ArrowPathIcon className="w-5 h-5" />} />
+<StatCard title="Latest Version" value={releases?.[0]?.tag_name || "v0.0.0"} icon={<TagIcon className="w-5 h-5" />} />
             </div>
 
             {/* Recent PRs */}
@@ -696,31 +675,10 @@ export default function EnhancedContractData({ contract, prs, releases }) {
           </div>
         )}
       </div>
-    </div>
+    </>
+    )}
+  </div>
   );
 }
 
 // Helper component for metrics
-function MetricCard({ title, value, icon, trend, loading }) {
-  return (
-    <div className="metric-card border rounded-lg p-3">
-      <div className="flex justify-between items-start mb-2">
-        <div className="metric-icon">
-          <div className="icon-sm text-amber-600">{icon}</div>
-        </div>
-        {trend && (
-          <div className="flex items-center text-green-600 text-xs">
-            <ArrowTrendingUpIcon className="icon-xs mr-0.5" />
-            <span>{trend}</span>
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-gray-500">{title}</p>
-      {loading ? (
-        <div className="animate-pulse h-6 bg-gray-200 rounded w-3/4 mt-1"></div>
-      ) : (
-        <p className="text-lg font-medium">{value}</p>
-      )}
-    </div>
-  );
-}

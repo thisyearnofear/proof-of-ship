@@ -1,5 +1,5 @@
 import { useGithub } from "@/providers/Github/Github";
-import {
+import { 
   CodeBracketIcon,
   TagIcon,
   ExclamationCircleIcon,
@@ -8,10 +8,12 @@ import {
   UserIcon,
   LinkIcon,
   ChartBarIcon,
-} from "@heroicons/react/24/outline";
+ } from "@heroicons/react/24/outline";
+import StatCard from "@/components/StatCard";
 import { celoProjects } from "@/constants/celoProjects";
 import OnChainStats from "@/components/OnChainStats";
 import EnhancedContractData from "@/components/EnhancedContractData";
+import ContractUsageSection from "@/components/ContractUsageSection";
 
 export default function Dashboard() {
   const { issues, prs, releases, repos, selectedSlug, setSelectedSlug } =
@@ -152,7 +154,7 @@ export default function Dashboard() {
       ) : (
         <>
           {/* --- TOP: INFO CARDS ROW (Founder, Project, Contracts) --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {infoCards.map((card, idx) => (
               <StatCard
                 key={idx}
@@ -164,18 +166,21 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <h1 className="text-2xl font-semibold mb-6">Dashboard: {repoName}</h1>
+          <h1 className="text-3xl font-bold mb-8 tracking-tight text-gray-900 border-b pb-2">Dashboard: {repoName}</h1>
 
           {/* --- MAIN CONTENT: Contract-focused or GitHub-focused layout --- */}
           {currentProject.contracts && currentProject.contracts.length > 0 ? (
             /* Contract-focused layout */
-            <div className="grid grid-cols-1 gap-8">
+            <div className="grid grid-cols-1 gap-12">
               {/* Enhanced Contract Data for all projects with contracts */}
               <EnhancedContractData
                 contract={currentProject.contracts[0]}
                 prs={prs}
                 releases={releases}
               />
+
+              {/* --- CONTRACT USAGE SECTION --- */}
+              <ContractUsageSection contract={currentProject.contracts[0]} />
             </div>
           ) : (
             /* GitHub-focused layout (fallback when no contract) */
@@ -284,7 +289,7 @@ export default function Dashboard() {
           )}
 
           {/* --- BOTTOM: METRICS CARDS ROW --- */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
             <StatCard
               title="All Time Downloads"
               value={totalDownloads.toLocaleString()}
@@ -313,66 +318,3 @@ export default function Dashboard() {
 }
 
 // StatCard: visually distinguish placeholder cards
-function StatCard({ title, value, icon, link, placeholder, trend }) {
-  const Wrapper = link
-    ? ({ children }) => (
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block hover:bg-blue-50 rounded transition"
-        >
-          {children}
-        </a>
-      )
-    : ({ children }) => <>{children}</>;
-
-  return (
-    <Wrapper>
-      <div
-        className={`bg-white rounded-lg shadow p-6 h-full flex flex-col justify-between
-        ${
-          placeholder
-            ? "opacity-70 italic text-gray-400 border border-dashed border-gray-300"
-            : ""
-        }`}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div
-            className={`p-2 ${
-              placeholder ? "bg-gray-100" : "bg-blue-50"
-            } rounded-lg`}
-          >
-            <div
-              className={`w-6 h-6 ${
-                placeholder ? "text-gray-300" : "text-blue-600"
-              }`}
-            >
-              {icon}
-            </div>
-          </div>
-          {trend && !placeholder && (
-            <div className="flex items-center space-x-1 text-green-600">
-              <ArrowTrendingUpIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">{trend}</span>
-            </div>
-          )}
-        </div>
-        <h3
-          className={`text-sm mb-1 ${
-            placeholder ? "text-gray-400" : "text-gray-500"
-          }`}
-        >
-          {title}
-        </h3>
-        <div
-          className={`text-md font-semibold break-all ${
-            placeholder ? "text-gray-400" : "text-gray-900"
-          }`}
-        >
-          {value}
-        </div>
-      </div>
-    </Wrapper>
-  );
-}

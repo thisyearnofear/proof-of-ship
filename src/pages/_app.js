@@ -1,8 +1,7 @@
 import localFont from "next/font/local";
 import { GithubProvider } from "@/providers/Github/Github";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Navbar from "@/components/Navbar/Navbar";
-import Footer from "@/components/Footer/Footer";
+import { Navbar, Footer } from "@/components/common/layout";
 import "@/styles/globals.css";
 
 import NoSSR from "@/providers/NoSSR/NoSSR";

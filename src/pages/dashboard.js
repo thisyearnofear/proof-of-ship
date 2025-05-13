@@ -1,5 +1,5 @@
 import { useGithub } from "@/providers/Github/Github";
-import { 
+import {
   CodeBracketIcon,
   TagIcon,
   ExclamationCircleIcon,
@@ -8,12 +8,14 @@ import {
   UserIcon,
   LinkIcon,
   ChartBarIcon,
- } from "@heroicons/react/24/outline";
-import StatCard from "@/components/StatCard";
+} from "@heroicons/react/24/outline";
+import { StatCard } from "@/components/common/cards";
 import { celoProjects } from "@/constants/celoProjects";
-import OnChainStats from "@/components/OnChainStats";
-import EnhancedContractData from "@/components/EnhancedContractData";
-import ContractUsageSection from "@/components/ContractUsageSection";
+import {
+  OnChainStats,
+  EnhancedContractData,
+  ContractUsageSection,
+} from "@/components/contracts";
 
 export default function Dashboard() {
   const { issues, prs, releases, repos, selectedSlug, setSelectedSlug } =
@@ -166,7 +168,9 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <h1 className="text-3xl font-bold mb-8 tracking-tight text-gray-900 border-b pb-2">Dashboard: {repoName}</h1>
+          <h1 className="text-3xl font-bold mb-8 tracking-tight text-gray-900 border-b pb-2">
+            Dashboard: {repoName}
+          </h1>
 
           {/* --- MAIN CONTENT: Contract-focused or GitHub-focused layout --- */}
           {currentProject.contracts && currentProject.contracts.length > 0 ? (

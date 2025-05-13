@@ -1,7 +1,7 @@
 import { useGithub } from '@/providers/Github/Github';
-import Mac from '@/components/Icons/Mac';
-import Windows from '@/components/Icons/Windows';
-import Linux from '@/components/Icons/Linux';
+import Mac from '@/components/common/Icons/Mac';
+import Windows from '@/components/common/Icons/Windows';
+import Linux from '@/components/common/Icons/Linux';
 import { format, parseISO, startOfMonth } from 'date-fns';
 
 export default function Releases() {

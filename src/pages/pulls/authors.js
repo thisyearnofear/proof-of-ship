@@ -1,6 +1,6 @@
 import { useGithub } from '@/providers/Github/Github';
 import { useState } from 'react';
-import PRList from '@/components/PRList/PRList';
+import PRList from '@/components/github/PRList';
 
 export default function Authors() {
   const { prs } = useGithub();

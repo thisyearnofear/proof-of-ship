@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
-import Login from '@/components/Auth/Login';
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "@/contexts/AuthContext";
+import { Login } from "@/components/auth";
 
 export default function LoginPage() {
   const { currentUser } = useAuth();
@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (currentUser) {
-      router.push(redirect || '/dashboard');
+      router.push(redirect || "/dashboard");
     }
   }, [currentUser, redirect, router]);
 

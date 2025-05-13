@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-import ProjectEditor from '@/components/ProjectEditor';
+import ProjectEditor from '@/components/projects';
 
 export default function EditProjectPage() {
   const { currentUser, loading, hasProjectPermission } = useAuth();

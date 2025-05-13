@@ -4,7 +4,7 @@ import { useSocialData } from "@/hooks/useSocialData";
 import { formatAddress } from "@/utils/web3";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
-import StatCard from "@/components/StatCard";
+import StatCard from "@/components/common/cards";
 
 export default function ProjectCard({ project, onchainStats }) {
   // Get auth context to check if user can edit this project

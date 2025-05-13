@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { useContractData } from "@/hooks/useContractData";
 import { formatAddress, getExplorerUrl } from "@/utils/web3";
-import CompactGithubActivity from "./CompactGithubActivity";
-import { LinkIcon, ChartBarIcon, ArrowPathIcon, CurrencyDollarIcon } from "@heroicons/react/24/outline";
-import StatCard from "@/components/StatCard";
+import { CompactGithubActivity } from "@/components/github";
+import {
+  LinkIcon,
+  ChartBarIcon,
+  ArrowPathIcon,
+  CurrencyDollarIcon,
+} from "@heroicons/react/24/outline";
+import { StatCard } from "@/components/common/cards";
 
 export default function OnChainStats({ contract, prs, releases }) {
   const { contractData, isLoading, isError } = useContractData(
@@ -14,7 +19,9 @@ export default function OnChainStats({ contract, prs, releases }) {
   if (!contract?.address) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">Contract Analytics</h2>
+        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">
+          Contract Analytics
+        </h2>
         <p className="text-gray-500 text-sm">No contract address provided</p>
       </div>
     );
@@ -23,7 +30,9 @@ export default function OnChainStats({ contract, prs, releases }) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">Contract Analytics</h2>
+        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">
+          Contract Analytics
+        </h2>
         <div className="animate-pulse flex flex-col space-y-2">
           <div className="h-4 bg-gray-200 rounded w-3/4"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -37,7 +46,9 @@ export default function OnChainStats({ contract, prs, releases }) {
   if (isError || !contractData) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">Contract Analytics</h2>
+        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">
+          Contract Analytics
+        </h2>
         <p className="text-red-500 text-sm">Error loading contract data</p>
       </div>
     );
@@ -75,7 +86,9 @@ export default function OnChainStats({ contract, prs, releases }) {
         {activeTab === "overview" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Contract Overview</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Contract Overview
+              </h2>
               <a
                 href={getExplorerUrl(
                   contract.address,
@@ -115,7 +128,9 @@ export default function OnChainStats({ contract, prs, releases }) {
             {/* Token-specific information */}
             {contractData.type === "ERC20" && contractData.details && (
               <div className="border rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Token Information</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  Token Information
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Token Name</p>
@@ -143,7 +158,9 @@ export default function OnChainStats({ contract, prs, releases }) {
             {/* NFT-specific information */}
             {contractData.type === "ERC721" && contractData.details && (
               <div className="border rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">NFT Collection Information</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                  NFT Collection Information
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Collection Name</p>
@@ -160,9 +177,17 @@ export default function OnChainStats({ contract, prs, releases }) {
 
             {/* Key metrics */}
             <div className="grid grid-cols-2 gap-3">
-  <StatCard title="Transaction Count" value={contractData.txCount?.toLocaleString() || "0"} icon={<ArrowPathIcon className="w-5 h-5" />} />
-  <StatCard title="Balance" value={`${parseFloat(contractData.balance).toFixed(4)} CELO`} icon={<CurrencyDollarIcon className="w-5 h-5" />} />
-</div>
+              <StatCard
+                title="Transaction Count"
+                value={contractData.txCount?.toLocaleString() || "0"}
+                icon={<ArrowPathIcon className="w-5 h-5" />}
+              />
+              <StatCard
+                title="Balance"
+                value={`${parseFloat(contractData.balance).toFixed(4)} CELO`}
+                icon={<CurrencyDollarIcon className="w-5 h-5" />}
+              />
+            </div>
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { useSocialData } from "@/hooks/useSocialData";
 import { formatAddress } from "@/utils/web3";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+import StatCard from "@/components/StatCard";
 
 export default function ProjectCard({ project, onchainStats }) {
   // Get auth context to check if user can edit this project
@@ -99,23 +100,12 @@ export default function ProjectCard({ project, onchainStats }) {
           </div>
         ) : contractData ? (
           <div className="grid grid-cols-2 gap-1 my-2 text-xs">
-            <div>
-              <span className="font-semibold">Type:</span>{" "}
-              {contractData.type || "Contract"}
-            </div>
-            <div>
-              <span className="font-semibold">Txns:</span>{" "}
-              {contractData.txCount?.toLocaleString() || "0"}
-            </div>
-            {contractData.type === "ERC20" && contractData.details && (
-              <>
-                <div className="col-span-2">
-                  <span className="font-semibold">Token:</span>{" "}
-                  {contractData.details.symbol} ({contractData.details.name})
-                </div>
-              </>
-            )}
-          </div>
+  <StatCard title="Type" value={contractData.type || "Contract"} icon={null} />
+  <StatCard title="Txns" value={contractData.txCount?.toLocaleString() || "0"} icon={null} />
+  {contractData.type === "ERC20" && contractData.details && (
+    <StatCard title="Token" value={`${contractData.details.symbol} (${contractData.details.name})`} icon={null} className="col-span-2" />
+  )}
+</div>
         ) : onchainStats ? (
           <div className="grid grid-cols-2 gap-1 my-2 text-xs">
             <div>

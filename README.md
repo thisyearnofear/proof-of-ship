@@ -307,6 +307,63 @@ The dashboard uses GitHub API data stored in JSON format in the `data/github-dat
 
 ## Features
 
+## Prediction Market Tab (Planned)
+
+A new "Prediction Market" tab will allow users to make predictions (bets) on project outcomes, using real GitHub and contract analytics data. This feature is designed to be time-bound (e.g., for a hackathon or campaign) and outcome-based, resolved by on-chain or GitHub stats.
+
+### Key Features
+- **Time-bound:** Each market is open until a campaign/hackathon end date.
+- **Outcome-based:** Resolved by real on-chain data, GitHub stats, or a trusted oracle.
+- **User Activity:** Users can place predictions, see odds, and view market stats.
+- **Transparency:** Real-time stats (commits, contract activity, etc.) are shown to inform predictions.
+
+### UI/UX Structure
+- New tab: **Prediction Market** (beside Overview, Analytics, etc.)
+- Inside the tab:
+  - **Market List:** All open/closed prediction markets for the project.
+  - **Market Card:** For each market, show:
+    - Question (e.g., “Will this project reach 100 commits by July 1?”)
+    - Current stats (commits, users, txs, etc.)
+    - Time left (countdown)
+    - Odds/pool size
+    - User’s prediction (if any)
+    - “Place Prediction” button/modal
+  - **Resolution:** After the deadline, show outcome and winners.
+
+### Data/Logic
+- **Markets Config:** Markets are defined in code or fetched from backend (question, metric, target, deadline, etc.).
+- **Live Stats:** Pull real-time data from GitHub and contract analytics.
+- **User Bets:** Store user predictions (local or backend).
+- **Resolution:** At deadline, compare actual stats to target, resolve market, and display results.
+
+### Example Market Object
+```js
+{
+  id: "mainnet-shipping",
+  question: "Will this project deploy a mainnet contract by July 1?",
+  metric: "contractDeployed",
+  target: true,
+  deadline: "2024-07-01T23:59:59Z",
+  status: "open" | "closed" | "resolved",
+  outcome: null | true | false,
+  userPrediction: null | true | false,
+  pool: 100, // total staked (if using tokens)
+  odds: { yes: 1.8, no: 2.1 }
+}
+```
+
+### UI Components
+- `PredictionMarketTab.js` (main tab)
+- `MarketCard.js` (for each prediction)
+- `PlacePredictionModal.js` (for user input)
+- `MarketResolution.js` (show outcome/winners)
+
+### MVP (No Real Money)
+- Start with “play money” or points for demo/testing.
+- Add real tokens or on-chain logic later if desired.
+
+---
+
 ### Shippers Dashboard
 
 - View project metrics for Celo Proof Of Ship projects

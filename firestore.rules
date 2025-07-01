@@ -1,15 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow anyone to read public project data
+    // Projects - public read, controlled write
     match /projects/{projectId} {
-      allow read: if true;
-
-      // Allow project owners to update their projects
-      allow update: if isProjectOwner(projectId);
-
-      // Allow authenticated users to create projects (for development)
-      allow create, delete: if request.auth != null;
+      // Public read access for project listings and details
+      allow read: if isProjectPublic(projectId) || isProjectOwner(projectId) || isAdminUser();
+      
+      // Only project owners can update their projects
+      allow update: if isProjectOwner(projectId) || isAdminUser();
+      
+      // Only admins can create/delete projects
+      allow create, delete: if isAdminUser();
     }
 
     // User profiles are readable by the user themselves
@@ -20,15 +21,31 @@ service cloud.firestore {
 
     // Pending permissions collection
     match /pendingPermissions/{permissionId} {
-      allow read, write: if request.auth != null;
+      // Only admins can write, authenticated users can read
+      allow read: if isAuthenticated();
+      allow write: if isAdminUser();
     }
 
-    // Helper function to check if user is a project owner
+    // Helper functions for access control
     function isProjectOwner(projectId) {
       let userId = request.auth.uid;
       return request.auth != null &&
              exists(/databases/$(database)/documents/projects/$(projectId)) &&
              userId in get(/databases/$(database)/documents/projects/$(projectId)).data.owners;
+    }
+    
+    function isProjectPublic(projectId) {
+      return exists(/databases/$(database)/documents/projects/$(projectId)) &&
+             get(/databases/$(database)/documents/projects/$(projectId)).data.get('isPublic', true) == true;
+    }
+    
+    function isAdminUser() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    function isAuthenticated() {
+      return request.auth != null;
     }
   }
 }

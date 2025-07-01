@@ -1,6 +1,6 @@
 import { useGithub } from '@/providers/Github/Github';
 import { useState } from 'react';
-import IssueList from '@/components/github/IssueList';
+import { IssueList } from '@/components/github';
 
 export default function Reporters() {
   const { issues } = useGithub();

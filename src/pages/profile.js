@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-import UserProfile from '@/components/auth';
+import UserProfile from '@/components/Auth/UserProfile';
 
 export default function ProfilePage() {
   const { currentUser, loading } = useAuth();

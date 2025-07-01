@@ -81,29 +81,22 @@ export default async function handler(req, res) {
       });
     }
 
-    // Check if we're in a production environment
-    const isProduction =
-      req.headers.host &&
-      (req.headers.host.includes("proofofship.web.app") ||
-        req.headers.host.includes("proof-of-ship.vercel.app"));
-
-    // In production, return mock data to avoid API overuse
-    if (isProduction) {
-      console.log("Production environment detected. Returning mock data.");
-      return res.status(200).json({
-        message:
-          "This is mock data from the API proxy. To use the real Nebula API, please run the application locally.",
-        session_id: sessionId || "mock-session",
-        request_id: "mock-request-id",
+    // Check API key availability
+    if (!process.env.THIRDWEB_API_KEY) {
+      return res.status(503).json({
+        error: "API service temporarily unavailable",
+        message: "Please try again later"
       });
     }
 
-    // Log the request (for debugging)
-    console.log(
-      `Nebula API request: ${message.substring(0, 100)}${
-        message.length > 100 ? "..." : ""
-      }`
-    );
+    // Log the request in development only
+    if (process.env.NODE_ENV === 'development') {
+      console.log(
+        `Nebula API request: ${message.substring(0, 100)}${
+          message.length > 100 ? "..." : ""
+        }`
+      );
+    }
 
     // Make the request to the Nebula API
     const response = await fetch(`${NEBULA_API_BASE_URL}/chat`, {

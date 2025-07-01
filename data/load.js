@@ -9,7 +9,14 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 const GITHUB_API_URL = "https://api.github.com";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-console.log("GitHub Token:", GITHUB_TOKEN ? "Token found" : "Token not found");
+
+// Ensure single source of truth for data
+const DATA_DIR = path.join(__dirname, 'github-data');
+
+// Only log in development
+if (process.env.NODE_ENV !== 'production') {
+  console.log("GitHub Token:", GITHUB_TOKEN ? "Token found" : "Token not found");
+}
 
 const repos = require(path.join(__dirname, "../repos.json"));
 

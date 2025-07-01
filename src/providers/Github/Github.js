@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import { useDataService } from "@/services/DataService";
 import repos from "../../../repos.json";
 
 // Load all repo JSON data from /data/github-data at runtime
@@ -13,48 +14,47 @@ const GithubContext = createContext({});
 export function GithubProvider({ children }) {
   const [dataMap, setDataMap] = useState(initialData);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
   // Set "stablestation" as the default selected project
   const [selectedSlug, setSelectedSlug] = useState("stablestation");
+  
+  const dataService = useDataService();
+  const mountedRef = useRef(true);
 
-  // Fetch all JSON files from public/data/github-data
-  React.useEffect(() => {
-    let cancelled = false;
+  // Fetch all JSON files using the data service
+  useEffect(() => {
     async function fetchAll() {
-      const all = {};
-      for (const { slug } of repos) {
-        try {
-          const [issues, prs, releases, meta, commits] = await Promise.all([
-            fetch(`/data/github-data/${slug}-issues.json`)
-              .then((r) => r.json())
-              .catch(() => []),
-            fetch(`/data/github-data/${slug}-prs.json`)
-              .then((r) => r.json())
-              .catch(() => []),
-            fetch(`/data/github-data/${slug}-releases.json`)
-              .then((r) => r.json())
-              .catch(() => []),
-            fetch(`/data/github-data/${slug}-meta.json`)
-              .then((r) => r.json())
-              .catch(() => ({})),
-            fetch(`/data/github-data/${slug}-commits.json`)
-              .then((r) => r.json())
-              .catch(() => []),
-          ]);
-          all[slug] = { issues, prs, releases, meta, commits };
-        } catch {
-          all[slug] = emptyData;
+      try {
+        setLoading(true);
+        const results = await dataService.loadAllGitHubData(repos);
+        
+        if (mountedRef.current) {
+          setDataMap(results);
+          setErrors(
+            Object.fromEntries(
+              Object.entries(results)
+                .filter(([_, data]) => data.hasErrors)
+                .map(([slug, data]) => [slug, data.errors || data.error])
+            )
+          );
+          setLoading(false);
+        }
+      } catch (error) {
+        if (mountedRef.current) {
+          console.error('Failed to load GitHub data:', error);
+          setErrors({ global: error.message });
+          setLoading(false);
         }
       }
-      if (!cancelled) {
-        setDataMap(all);
-        setLoading(false);
-      }
     }
+
     fetchAll();
+
     return () => {
-      cancelled = true;
+      mountedRef.current = false;
+      dataService.cancelAllRequests();
     };
-  }, []);
+  }, [dataService]);
 
   const current = dataMap[selectedSlug] || emptyData;
   const issues = current.issues.filter((issue) => !issue.pull_request);
@@ -75,6 +75,13 @@ export function GithubProvider({ children }) {
     dataMap,
     setDataMap,
     loading,
+    errors,
+    // Utility functions
+    refreshData: () => {
+      dataService.clearCache('github-');
+      // Trigger re-fetch by clearing cache
+    },
+    hasErrors: Object.keys(errors).length > 0,
   };
 
   return (

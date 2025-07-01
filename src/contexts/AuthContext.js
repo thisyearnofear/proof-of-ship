@@ -179,19 +179,22 @@ export const AuthProvider = ({ children }) => {
       const credential = GithubAuthProvider.credentialFromResult(result);
       const token = credential.accessToken;
 
-      // Store the token for later use (e.g., to verify repo ownership)
+      // Store the encrypted token for later use (e.g., to verify repo ownership)
       if (result.user) {
+        const { encryptData } = await import('@/utils/encryption');
+        const encryptedToken = token ? encryptData(token) : null;
+        
         const userDocRef = doc(db, "users", result.user.uid);
         await setDoc(
           userDocRef,
           {
-            githubToken: token,
+            githubToken: encryptedToken,
             githubUsername: result.user.providerData[0]?.uid || "",
-            providerData: result.user.providerData,
             email: result.user.email,
             displayName: result.user.displayName,
             photoURL: result.user.photoURL,
             lastLogin: new Date().toISOString(),
+            // Don't store full providerData as it may contain sensitive info
           },
           { merge: true }
         );

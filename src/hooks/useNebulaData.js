@@ -161,10 +161,7 @@ export function useNebulaData(
         console.error(`Error fetching ${type} data:`, err);
         setError((prev) => ({ ...prev, [type]: err.message }));
 
-        // Fallback to mock data on error
-        if (mockNebulaData[type]) {
-          setData((prev) => ({ ...prev, [type]: mockNebulaData[type] }));
-        }
+        // Don't fallback to mock data in production - let UI handle loading states
       } finally {
         setLoading((prev) => ({ ...prev, [type]: false }));
       }

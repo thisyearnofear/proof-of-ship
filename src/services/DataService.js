@@ -3,19 +3,19 @@
  * Handles caching, error recovery, and request management
  */
 
-import { validateGitHubData, validateProject } from '@/schemas/project';
+import { validateGitHubData, validateProject } from "@/schemas/project";
 
 class DataService {
   constructor() {
     this.cache = new Map();
     this.abortControllers = new Map();
     this.requestQueue = new Map();
-    
+
     // Cache TTL settings
     this.cacheTTL = {
       github: 5 * 60 * 1000, // 5 minutes
-      contracts: 60 * 1000,  // 1 minute
-      projects: 10 * 60 * 1000 // 10 minutes
+      contracts: 60 * 1000, // 1 minute
+      projects: 10 * 60 * 1000, // 10 minutes
     };
   }
 
@@ -28,7 +28,7 @@ class DataService {
       validate = null,
       transform = null,
       retries = 3,
-      timeout = 30000
+      timeout = 30000,
     } = options;
 
     // Check cache first
@@ -45,15 +45,20 @@ class DataService {
     }
 
     // Create new request promise
-    const requestPromise = this._executeRequest(key, fetcher, { validate, transform, retries, timeout });
+    const requestPromise = this._executeRequest(key, fetcher, {
+      validate,
+      transform,
+      retries,
+      timeout,
+    });
     this.requestQueue.set(key, requestPromise);
 
     try {
       const data = await requestPromise;
-      
+
       // Cache successful result
       this.cache.set(key, { data, timestamp: Date.now() });
-      
+
       return data;
     } finally {
       // Clean up request queue
@@ -61,7 +66,11 @@ class DataService {
     }
   }
 
-  async _executeRequest(key, fetcher, { validate, transform, retries, timeout }) {
+  async _executeRequest(
+    key,
+    fetcher,
+    { validate, transform, retries, timeout }
+  ) {
     let lastError;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -85,28 +94,33 @@ class DataService {
           if (validate) {
             const validation = validate(data);
             if (!validation.isValid) {
-              throw new Error(`Data validation failed: ${validation.errors.join(', ')}`);
+              throw new Error(
+                `Data validation failed: ${validation.errors.join(", ")}`
+              );
             }
           }
 
           clearTimeout(timeoutId);
           this.abortControllers.delete(`${key}-${attempt}`);
-          
+
           return data;
         } catch (error) {
           clearTimeout(timeoutId);
           this.abortControllers.delete(`${key}-${attempt}`);
-          
-          if (error.name === 'AbortError') {
+
+          if (error.name === "AbortError") {
             throw new Error(`Request timeout after ${timeout}ms`);
           }
           throw error;
         }
       } catch (error) {
         lastError = error;
-        
+
         // Don't retry on validation errors or timeouts
-        if (error.message.includes('validation failed') || error.message.includes('timeout')) {
+        if (
+          error.message.includes("validation failed") ||
+          error.message.includes("timeout")
+        ) {
           break;
         }
 
@@ -123,7 +137,10 @@ class DataService {
   /**
    * Load GitHub data for a project
    */
-  async loadGitHubData(projectSlug, dataTypes = ['issues', 'prs', 'commits', 'meta']) {
+  async loadGitHubData(
+    projectSlug,
+    dataTypes = ["issues", "prs", "commits", "meta"]
+  ) {
     const results = {};
     const errors = {};
 
@@ -133,19 +150,16 @@ class DataService {
           const data = await this.fetchWithCache(
             `github-${projectSlug}-${type}`,
             async () => {
-              const response = await fetch(`/data/github-data/${projectSlug}-${type}.json`);
-              if (!response.ok) {
-                throw new Error(`Failed to load ${type} data: ${response.status}`);
-              }
-              return response.json();
+              const response = await this.fetchFromGitHub(projectSlug, type);
+              return response;
             },
             {
               ttl: this.cacheTTL.github,
               validate: (data) => validateGitHubData(data, type),
-              transform: (data) => this._transformGitHubData(data, type)
+              transform: (data) => this._transformGitHubData(data, type),
             }
           );
-          
+
           results[type] = data;
         } catch (error) {
           errors[type] = error.message;
@@ -162,22 +176,22 @@ class DataService {
    */
   async loadAllGitHubData(projects) {
     const results = {};
-    
+
     await Promise.allSettled(
       projects.map(async (project) => {
         try {
           const { data, errors } = await this.loadGitHubData(project.slug);
-          results[project.slug] = { 
-            ...data, 
+          results[project.slug] = {
+            ...data,
             project,
             hasErrors: Object.keys(errors).length > 0,
-            errors 
+            errors,
           };
         } catch (error) {
-          results[project.slug] = { 
-            project, 
+          results[project.slug] = {
+            project,
             error: error.message,
-            hasErrors: true 
+            hasErrors: true,
           };
         }
       })
@@ -191,25 +205,29 @@ class DataService {
    */
   _transformGitHubData(data, type) {
     switch (type) {
-      case 'issues':
-      case 'prs':
-        return Array.isArray(data) ? data.map(item => ({
-          ...item,
-          created_at: new Date(item.created_at),
-          updated_at: new Date(item.updated_at),
-          closed_at: item.closed_at ? new Date(item.closed_at) : null
-        })) : [];
+      case "issues":
+      case "prs":
+        return Array.isArray(data)
+          ? data.map((item) => ({
+              ...item,
+              created_at: new Date(item.created_at),
+              updated_at: new Date(item.updated_at),
+              closed_at: item.closed_at ? new Date(item.closed_at) : null,
+            }))
+          : [];
 
-      case 'commits':
-        return Array.isArray(data) ? data.map(item => ({
-          ...item,
-          week: new Date(item.week * 1000) // Convert Unix timestamp
-        })) : [];
+      case "commits":
+        return Array.isArray(data)
+          ? data.map((item) => ({
+              ...item,
+              week: new Date(item.week * 1000), // Convert Unix timestamp
+            }))
+          : [];
 
-      case 'meta':
+      case "meta":
         return {
           ...data,
-          updatedAt: new Date(data.updatedAt)
+          updatedAt: new Date(data.updatedAt),
         };
 
       default:
@@ -217,11 +235,56 @@ class DataService {
     }
   }
 
+  async fetchFromGitHub(projectSlug, type) {
+    const { owner, repo } = this._getRepoDetails(projectSlug);
+    const endpoint = this._getGitHubEndpoint(owner, repo, type);
+    const headers = {
+      Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(endpoint, { headers });
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  _getRepoDetails(projectSlug) {
+    // This is a placeholder. In a real application, you would have a more robust
+    // way of mapping project slugs to repository details.
+    const repos = {
+      "my-awesome-project": { owner: "user", repo: "my-awesome-project" },
+      "another-cool-thing": { owner: "user", repo: "another-cool-thing" },
+    };
+    return (
+      repos[projectSlug] || { owner: "thisyearnofear", repo: "POS-dashboard" }
+    );
+  }
+
+  _getGitHubEndpoint(owner, repo, type) {
+    const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
+    switch (type) {
+      case "issues":
+        return `${baseUrl}/issues`;
+      case "prs":
+        return `${baseUrl}/pulls`;
+      case "commits":
+        return `${baseUrl}/stats/commit_activity`;
+      case "meta":
+        return baseUrl;
+      default:
+        throw new Error(`Invalid GitHub data type: ${type}`);
+    }
+  }
+
   /**
    * Cancel all pending requests
    */
   cancelAllRequests() {
-    this.abortControllers.forEach(controller => {
+    this.abortControllers.forEach((controller) => {
       try {
         controller.abort();
       } catch (error) {
@@ -256,12 +319,12 @@ class DataService {
       size: this.cache.size,
       keys: Array.from(this.cache.keys()),
       pendingRequests: this.requestQueue.size,
-      activeControllers: this.abortControllers.size
+      activeControllers: this.abortControllers.size,
     };
   }
 
   _wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -277,7 +340,7 @@ class DataService {
 export const dataService = new DataService();
 
 // React hook for using the data service
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export const useDataService = () => {
   useEffect(() => {

@@ -1,398 +1,73 @@
-# Roadmap
+# Project Roadmap: The Builder-Centric Credit Protocol
 
-- Builder Credit System
+This document outlines the strategic evolution of the Proof of Ship platform from a project tracking dashboard into a decentralized, builder-centric credit and funding protocol.
 
-## 🎯 Project Overview
+## 1. Core Vision
 
-**Builder Credit System**: An AI-powered platform that provides instant liquidity to hackathon developers based on their creditworthiness, determined by GitHub activity, on-chain behavior, and social reputation across Farcaster and Lens protocols.
+The goal is to create a system where developers can leverage their multi-faceted reputation (code, social presence, on-chain history) to access instant, non-dilutive capital for building. The key principles are:
 
-### Core Concept
+- **Builder-Centric**: Empower individual developers and small teams to register their own projects.
+- **Multi-Chain Native**: Operate seamlessly across multiple blockchain ecosystems.
+- **Holistic Reputation**: Utilize a sophisticated credit score based on GitHub, social protocols (Farcaster, Lens), and on-chain activity.
+- **Innovative Repayment**: Pioneer a model where loans are backed by hackathon partners and success, not just personal liability.
 
-- **Developers** showcase progress on our dashboard
-- **AI agents** track and score their creditworthiness
-- **Smart contracts** provide conditional funding
-- **Hackathon sponsors** back successful loans for builders who meet milestones
-- **Social protocols** bootstrap initial reputation scores
+## 2. Architectural Evolution & Key Concepts
 
-## 🏆 Metamask Hackathon Track Alignment
+To achieve this vision, we will evolve the existing architecture. Here’s how the concepts you raised map to our technical strategy:
 
-### **Primary Track: Smart Agents & Liquidity Automation ($6k)**
+### a. Multi-Chain Architecture
 
-- AI agents for automated creditworthiness assessment
-- Real-time liquidity management for builder funding pools
-- Smart contract automation for conditional payments
-- Cross-chain portfolio rebalancing for funding distribution
+- **Current State**: The plan for multi-chain support and LI.FI integration is documented in `HACKATHON.md`.
+- **Path Forward**:
+  1.  **Smart Contracts**: The `BuilderCredit` contract (outlined in `TECHNICAL.md`) must be designed for deterministic, multi-chain deployment (e.g., using `CREATE2`).
+  2.  **Credit Scoring**: The on-chain analysis component of the credit score must aggregate data from multiple chains for a single developer identity. This requires robust RPC connections and data indexing.
+  3.  **Frontend**: The UI will need a seamless network switcher and must clearly display multi-chain assets and activities associated with a user's profile.
+  4.  **Cross-Chain Distribution**: Prioritize the LI.FI SDK integration (planned in Phase 4) to enable funding distribution on any supported chain, regardless of where the credit was scored.
 
-### **Secondary Track: Identity & OnChain Reputation ($6k)**
+### b. On-Chain Project Registration (Moving from Hardcoded to Dynamic)
 
-- Multi-protocol reputation scoring (GitHub + Farcaster + Lens + On-chain)
-- Behavioral credit assessment based on development patterns
-- Tiered access system based on reputation levels
-- Privacy-preserving reputation aggregation
+- **Current State**: Projects are currently hardcoded or added manually by an admin.
+- **Path Forward**:
+  1.  **Smart Contract Function**: Introduce a `registerProject()` function to the `BuilderCredit` contract. This function will require builders to stake a nominal amount of a stablecoin (e.g., USDC) to register a project. This stake acts as a sybil-resistance mechanism.
+  2.  **Stake & Slashing**: The stake can be returned upon meeting a minimum progress threshold (e.g., 10 commits and a deployed contract) or slashed if the project is abandoned. This logic will be encoded in the smart contract.
+  3.  **UI/UX Flow**: Create a new section in the dashboard for project registration. This will be a simple form where builders connect their wallet, provide a project name and GitHub repository link, and submit the staking transaction.
 
-### **Bonus Opportunities ($6k total)**
-
-- **MetaMask SDK integration** ($2k) - Wallet connection and card integration
-- **Circle Wallets** ($2k) - USDC treasury management for funding pools
-- **LI.FI SDK** ($2k) - Cross-chain funding distribution
-
-**Total Potential Prize**: $18,000
-
-## 🏗️ Technical Architecture
-
-### **1. Multi-Protocol Reputation Engine**
+### c. Refining the Credit Eligibility Engine
 
-```mermaid
-graph TB
-    A[Developer Profile] --> B[GitHub Analysis]
-    A --> C[Farcaster Profile]
-    A --> D[Lens Profile]
-    A --> E[On-Chain Activity]
-
-    B --> F[Credit Scoring Engine]
-    C --> F
-    D --> F
-    E --> F
-
-    F --> G[Loan Eligibility]
-    G --> H[Smart Contract Funding]
-    H --> I[Milestone Tracking]
-    I --> J[Automated Repayment]
-```
-
-### **2. Credit Scoring Components**
-
-#### **GitHub Metrics (40% weight)**
-
-- Commit consistency and frequency
-- Code quality (PR reviews, issue resolution)
-- Open source contribution history
-- Repository maintenance and activity
-
-#### **Social Protocol Reputation (30% weight)**
-
-- **Farcaster**: Developer community engagement, technical discussions
-- **Lens**: Professional network, project showcases, peer endorsements
-- Cross-protocol identity verification and consistency
-
-#### **On-Chain Activity (20% weight)**
-
-- Smart contract deployment history
-- Transaction patterns and behavior
-- DeFi protocol interactions
-- Multi-chain activity diversity
-
-#### **Project Milestones (10% weight)**
-
-- Hackathon progress tracking
-- Feature completion rates
-- Documentation quality
-- Community engagement
-
-### **3. Smart Contract System**
+- **Current State**: A solid foundation exists with the multi-protocol scoring model (GitHub 40% + Social 30% + On-chain 20% + Identity 10%).
+- **Path Forward**:
+  1.  **Deepen On-Chain Analysis**: Go beyond transaction history. Analyze the _quality_ of on-chain interactions: gas spent, interaction with developer-focused protocols (e.g., The Graph, Chainlink), smart contract complexity, and mainnet vs. testnet deployments.
+  2.  **Strengthen Identity Verification**: Implement a robust cross-protocol identity verification system. This could involve requiring a user to sign a message with their wallet that includes their GitHub handle, Farcaster FID, and Lens handle, creating a verifiable link between their identities.
+  3.  **Dynamic Weighting**: In the long term, the credit score model could dynamically adjust weights based on the type of project or the developer's area of expertise.
 
-```solidity
-// Core funding contract with social reputation integration
-contract BuilderCredit {
-    struct Developer {
-        address wallet;
-        uint256 githubScore;
-        uint256 farcasterScore;
-        uint256 lensScore;
-        uint256 onchainScore;
-        uint256 totalCreditScore;
-        uint256 eligibleAmount;
-    }
-
-    struct Loan {
-        address developer;
-        uint256 amount;
-        uint256 issueDate;
-        uint256 dueDate;
-        bool milestonesMet;
-        bool repaidByHackathon;
-        bytes32[] requiredMilestones;
-        mapping(bytes32 => bool) completedMilestones;
-    }
-
-    function requestFunding(
-        bytes32 githubCommitHash,
-        string memory farcasterHandle,
-        string memory lensProfile,
-        address[] memory deployedContracts
-    ) external;
-
-    function updateReputation(
-        address developer,
-        uint256 newGithubScore,
-        uint256 newSocialScore,
-        uint256 newOnchainScore
-    ) external onlyOracle;
-
-    function verifyMilestone(
-        address developer,
-        bytes32 milestoneId,
-        bytes memory proof
-    ) external onlyOracle;
-}
-```
-
-## 🚀 Implementation Roadmap
-
-### **✅ Phase 1: Social Protocol Integration (COMPLETED)**
-
-- ✅ Farcaster API integration for developer profiles
-- ✅ Lens Protocol GraphQL integration
-- ✅ Social reputation scoring algorithms
-- ✅ Cross-platform identity verification
-- ✅ Multi-protocol reputation aggregation
-- ✅ Advanced GitHub analysis with sophisticated algorithms
-- ✅ Real-time credit score updates
-- ✅ Loan eligibility calculations
-- ✅ Professional credit dashboard UI
-
-**Key Deliverables:**
-
-- [`src/services/SocialProtocolService.js`](./src/services/SocialProtocolService.js) - Complete Farcaster & Lens integration
-- [`src/services/CreditScoringService.js`](./src/services/CreditScoringService.js) - AI-powered credit scoring engine
-- [`src/components/credit/CreditDashboard.js`](./src/components/credit/CreditDashboard.js) - Production-ready UI
-- [`src/pages/credit.js`](./src/pages/credit.js) - Credit dashboard page
-- **Build Status**: ✅ Successful with new `/credit` route
-
-### **🔄 Phase 2: MetaMask Card Integration (IN PROGRESS)**
-
-- [ ] MetaMask SDK implementation for wallet connectivity
-- [ ] USDC payment rails via Circle Wallets
-- [ ] Card-based funding interface
-- [ ] User wallet management and verification
-
-### **📋 Phase 3: Smart Contract Development (PENDING)**
-
-- [ ] Conditional funding smart contracts
-- [ ] Milestone tracking system
-- [ ] Automated repayment logic
-- [ ] Multi-chain deployment (Ethereum, Linea)
-
-### **🌐 Phase 4: Cross-Chain Integration (PENDING)**
-
-- [ ] LI.FI SDK for cross-chain distribution
-- [ ] Multi-chain USDC support
-- [ ] Cross-chain reputation tracking
-- [ ] Chain-agnostic funding pools
-
-### **🎬 Phase 5: Demo & Deployment (PENDING)**
-
-- [ ] Demo video production
-- [ ] Live deployment to hackathon environment
-- [ ] Documentation and submission materials
-- [ ] Performance optimization for demo
-
-## 💡 Unique Value Propositions
-
-1. **First Multi-Protocol Credit Scoring**: Combines GitHub, Farcaster, Lens, and on-chain data
-2. **Instant Developer Funding**: Real-time liquidity based on reputation
-3. **Hackathon-Backed Loans**: Revolutionary sponsorship model
-4. **Social Proof Integration**: Leverages existing developer social presence
-5. **Cross-Chain Native**: Built for multi-chain developer ecosystem
-
-## 🎯 Demo User Journey
-
-### **1. Developer Onboarding**
-
-```
-┌─ Connect MetaMask Wallet
-├─ Link GitHub Profile
-├─ Verify Farcaster Handle
-├─ Connect Lens Profile
-└─ Deploy Demo Contract
-```
-
-### **2. AI Credit Assessment**
-
-```
-┌─ Analyze GitHub History (commits, PRs, repos)
-├─ Scan Farcaster Activity (dev discussions, reputation)
-├─ Check Lens Network (professional connections)
-├─ Evaluate On-Chain Activity (contracts, transactions)
-└─ Calculate Credit Score (0-100)
-```
-
-### **3. Instant Funding**
-
-```
-Credit Score 85/100 → $4,250 USDC Eligible
-┌─ Review Loan Terms
-├─ Accept Milestone Requirements
-├─ Smart Contract Deployment
-└─ USDC Transfer via MetaMask Card
-```
-
-### **4. Progress Tracking**
-
-```
-┌─ Daily Commit Monitoring
-├─ Milestone Completion Tracking
-├─ Social Engagement Scoring
-├─ On-Chain Activity Analysis
-└─ Real-Time Credit Updates
-```
-
-### **5. Loan Resolution**
-
-```
-If Milestones Met:
-├─ Hackathon Pays Loan
-├─ Credit Score Boost
-└─ Access to Higher Funding
-
-If Milestones Missed:
-├─ Traditional Repayment
-├─ Credit Score Impact
-└─ Reduced Future Eligibility
-```
-
-## 🔧 Technical Integration Points
-
-### **Farcaster Integration**
-
-```javascript
-// Farcaster reputation analysis
-const farcasterScore = await analyzeFarcasterProfile({
-  handle: developer.farcasterHandle,
-  metrics: [
-    "cast_engagement",
-    "follower_quality",
-    "dev_channel_activity",
-    "technical_discussions",
-    "peer_endorsements",
-  ],
-});
-```
-
-### **Lens Protocol Integration**
-
-```javascript
-// Lens professional network analysis
-const lensScore = await analyzeLensProfile({
-  profile: developer.lensProfile,
-  metrics: [
-    "professional_connections",
-    "project_showcases",
-    "skill_endorsements",
-    "community_contributions",
-    "content_quality",
-  ],
-});
-```
-
-### **Cross-Protocol Verification**
-
-```javascript
-// Verify identity consistency across platforms
-const identityVerification = await verifyIdentity({
-  wallet: developer.address,
-  github: developer.githubUsername,
-  farcaster: developer.farcasterHandle,
-  lens: developer.lensProfile,
-});
-```
-
-## 📊 Success Metrics & Current Status
-
-### **Phase 1 Achievements ✅**
-
-- **Social Protocol Integration**: 100% complete with Farcaster & Lens APIs
-- **Credit Scoring Engine**: Multi-protocol analysis with 40% GitHub + 30% Social + 20% On-chain + 10% Identity
-- **UI Components**: Professional dashboard with real-time scoring and loan eligibility
-- **Credit Tiers**: PREMIUM ($5K), EXCELLENT ($3.5K), GOOD ($2K), FAIR ($1K), LIMITED ($500)
-- **Build Success**: All components integrate successfully, new `/credit` route deployed
-
-### **Target Metrics for Developers**
-
-- Average funding amount: $500-$5,000 USDC (✅ Algorithm implemented)
-- Loan approval rate: >80% for qualified developers (✅ Tier system ready)
-- Milestone completion rate: >70% (📋 Smart contract tracking pending)
-- Credit score improvement over time (✅ Recommendations system built)
-
-### **Target Metrics for Hackathon**
-
-- Developer retention and engagement (🔄 MetaMask integration needed)
-- Quality of submitted projects (📋 Milestone tracking contracts pending)
-- Open source contribution increase (✅ GitHub analysis rewards this)
-- Cross-chain adoption metrics (🌐 LI.FI integration pending)
-
-### **Target Metrics for Ecosystem**
-
-- Total funding distributed (📋 Smart contracts needed)
-- Successful loan repayments by hackathon (📋 Conditional logic pending)
-- Multi-protocol reputation adoption (✅ Foundation complete)
-- MetaMask Card integration usage (🔄 SDK integration in progress)
-
-## 🎥 Demo Video Script
-
-**[0:00-0:30] Problem Statement**
-"Talented developers struggle to get funding during hackathons, while sponsors want to support builders who will deliver quality, open-source projects."
-
-**[0:30-1:00] Solution Overview**
-"Our AI agents analyze developer reputation across GitHub, Farcaster, and Lens to provide instant USDC funding via MetaMask Card."
-
-**[1:00-2:00] Live Demo**
-
-- Connect wallet and social profiles
-- Real-time credit scoring
-- Instant funding approval
-- Milestone tracking dashboard
-
-**[2:00-2:30] Innovation Highlights**
-"First system to combine social proof with on-chain behavior for developer creditworthiness, backed by hackathon sponsors."
-
-**[2:30-3:00] Call to Action**
-"Join the future of developer funding - where your reputation unlocks instant liquidity for building the decentralized web."
-
----
-
-## 🔗 Required Integrations
-
-### **Hackathon Requirements**
-
-- ✅ MetaMask Card integration for rewards and payments
-- ✅ USDC for all stablecoin transactions
-- ✅ LI.FI SDK for cross-chain functionality
-- ✅ Real-world use cases (developer funding, credit scoring)
-- ✅ Live hosted demo with working prototype
-
-### **Bonus Integrations**
-
-- ✅ MetaMask SDK for wallet connectivity
-- ✅ Circle Wallets for treasury management
-- ✅ LI.FI SDK for multi-chain distribution
-
-## 🔥 Current Demo Capabilities
-
-### **Live Features (Ready for Demo)**
-
-1. **Multi-Protocol Credit Scoring**: Visit `/credit` to see real-time analysis combining GitHub, Farcaster, and Lens data
-2. **AI-Powered Loan Eligibility**: Dynamic funding amounts from $500-$5,000 USDC based on developer reputation
-3. **Social Reputation Tracking**: Live scoring across Farcaster and Lens protocols with detailed breakdowns
-4. **Identity Verification**: Cross-platform consistency checking with risk assessment
-5. **Improvement Recommendations**: Personalized suggestions for boosting credit scores
-6. **Professional Dashboard**: Production-ready UI with loading states, error handling, and responsive design
-
-### **Demo Flow (Available Now)**
-
-1. **Navigate to `/credit`** → See the developer credit dashboard
-2. **View Credit Score** → Real-time calculation from GitHub + social + on-chain activity
-3. **Check Loan Eligibility** → See funding amount, interest rate, and conditions
-4. **Explore Score Breakdown** → Understand how each platform contributes to credit
-5. **Review Recommendations** → Get actionable steps to improve creditworthiness
-
-### **Technical Achievements**
-
-- **Build Status**: ✅ Successful production build
-- **Performance**: Optimized with caching, error boundaries, and lazy loading
-- **Security**: Proper error handling, data validation, and API protection
-- **Scalability**: Modular architecture ready for MetaMask SDK and smart contract integration
-
----
-
-This project represents a paradigm shift in developer funding, combining the best of social reputation, on-chain behavior, and AI-driven assessment to create a sustainable ecosystem for hackathon builders. **Phase 1 is complete and demo-ready!**
+### d. Implementing the Innovative Repayment Model
+
+- **Current State**: The concept is documented, and the `BuilderCredit` contract has placeholders like `repaidByHackathon` and a `verifyMilestone` function stub.
+- **Path Forward**:
+  1.  **Partner Funding Pool**: Create a mechanism for hackathon partners to deposit capital into a central funding pool within the `BuilderCredit` smart contract. This pool will underwrite the loans.
+  2.  **Milestone Oracle**: Define the "oracle" for milestone verification. This could start as a multi-sig of trusted parties (hackathon judges, project admins) who can call the `verifyMilestone` function. In the future, this could be automated by an on-chain service that programmatically checks for GitHub commits or contract deployments.
+  3.  **Loan Rollover Logic**: The `Loan` struct in the smart contract will be updated to include a `hackathonId` and a `status` field (e.g., `Active`, `Repaid`, `RolledOver`). This allows a loan's lifecycle to extend beyond a single event.
+
+## 3. Revised Development Phases
+
+Based on this, we can revise the project's roadmap:
+
+- **Phase 3 (Revised): Smart Contracts & On-Chain Registration**
+
+  - [ ] Implement `registerProject()` with staking/slashing logic in the `BuilderCredit` contract.
+  - [ ] Build the UI/UX for builder-driven project registration.
+  - [ ] Refine the `verifyMilestone` function and establish the initial oracle mechanism (e.g., admin-based).
+  - [ ] Deploy initial version of the contract to a testnet.
+
+- **Phase 4 (Revised): Partner Integration & Repayment Logic**
+
+  - [ ] Implement the partner funding pool functionality in the smart contract.
+  - [ ] Build a simple interface for partners to deposit and manage funds.
+  - [ ] Implement the full loan lifecycle logic, including repayment by the hackathon pool and the rollover mechanism.
+  - [ ] Deepen the on-chain components of the credit scoring engine.
+
+- **Phase 5 (Revised): Full Multi-Chain Deployment & Ecosystem Growth**
+  - [ ] Integrate the LI.FI SDK for seamless cross-chain funding distribution.
+  - [ ] Deploy the finalized smart contracts to multiple mainnets (e.g., Ethereum, Linea, Base, Polygon).
+  - [ ] Onboard the first cohort of hackathon partners and builders.
+  - [ ] Develop comprehensive documentation for builders and partners.

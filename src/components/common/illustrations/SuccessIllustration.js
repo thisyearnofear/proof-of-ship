@@ -1,6 +1,6 @@
-import React from 'react';
-import Lottie from 'react-lottie';
-import successAnimation from './lottie/success-animation.json'; // TODO: Replace with an actual Lottie JSON file for success animation
+import React from "react";
+import Lottie from "react-lottie";
+import successAnimation from "./lottie/success.json";
 
 export const SuccessIllustration = ({ message = "Operation successful!" }) => {
   const defaultOptions = {
@@ -8,8 +8,8 @@ export const SuccessIllustration = ({ message = "Operation successful!" }) => {
     autoplay: true,
     animationData: successAnimation,
     rendererSettings: {
-      preserveAspectRatio: 'xMidYMid slice'
-    }
+      preserveAspectRatio: "xMidYMid slice",
+    },
   };
 
   return (

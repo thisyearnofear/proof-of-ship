@@ -6,7 +6,50 @@ import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import StatCard from "@/components/common/cards";
 
-export default function ProjectCard({ project, onchainStats }) {
+const MilestoneTracker = ({ milestones }) => {
+  if (!milestones || milestones.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-3">
+      <h4 className="text-xs font-bold text-gray-600">Milestones</h4>
+      <ul className="space-y-1 mt-1">
+        {milestones.map((milestone, index) => (
+          <li key={index} className="flex items-center text-xs">
+            <svg
+              className={`h-4 w-4 mr-2 ${
+                milestone.completed ? "text-green-500" : "text-gray-400"
+              }`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d={
+                  milestone.completed
+                    ? "M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    : "M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z"
+                }
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className={milestone.completed ? "line-through" : ""}>
+              {milestone.name}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default function ProjectCard({
+  project,
+  onchainStats,
+  loanStatus,
+  milestones,
+}) {
   // Get auth context to check if user can edit this project
   const { currentUser, hasProjectPermission } = useAuth();
   const canEdit = currentUser && hasProjectPermission(project.slug);
@@ -41,6 +84,20 @@ export default function ProjectCard({ project, onchainStats }) {
         {project.season && (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mt-1">
             Season {project.season}
+          </span>
+        )}
+
+        {loanStatus && (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
+              loanStatus === "Active"
+                ? "bg-blue-100 text-blue-800"
+                : loanStatus === "Repaid"
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            Loan: {loanStatus}
           </span>
         )}
 
@@ -100,12 +157,25 @@ export default function ProjectCard({ project, onchainStats }) {
           </div>
         ) : contractData ? (
           <div className="grid grid-cols-2 gap-1 my-2 text-xs">
-  <StatCard title="Type" value={contractData.type || "Contract"} icon={null} />
-  <StatCard title="Txns" value={contractData.txCount?.toLocaleString() || "0"} icon={null} />
-  {contractData.type === "ERC20" && contractData.details && (
-    <StatCard title="Token" value={`${contractData.details.symbol} (${contractData.details.name})`} icon={null} className="col-span-2" />
-  )}
-</div>
+            <StatCard
+              title="Type"
+              value={contractData.type || "Contract"}
+              icon={null}
+            />
+            <StatCard
+              title="Txns"
+              value={contractData.txCount?.toLocaleString() || "0"}
+              icon={null}
+            />
+            {contractData.type === "ERC20" && contractData.details && (
+              <StatCard
+                title="Token"
+                value={`${contractData.details.symbol} (${contractData.details.name})`}
+                icon={null}
+                className="col-span-2"
+              />
+            )}
+          </div>
         ) : onchainStats ? (
           <div className="grid grid-cols-2 gap-1 my-2 text-xs">
             <div>
@@ -125,6 +195,8 @@ export default function ProjectCard({ project, onchainStats }) {
           )
         )}
       </div>
+
+      <MilestoneTracker milestones={milestones} />
 
       {/* Social links */}
       <div className="flex flex-wrap gap-2 mt-auto pt-3 border-t border-gray-100">
@@ -170,6 +242,68 @@ export default function ProjectCard({ project, onchainStats }) {
             </svg>
             {socialData?.discord?.members && (
               <span>{socialData.discord.members.toLocaleString()}</span>
+            )}
+          </a>
+        )}
+
+        {/* Farcaster */}
+        {project.socials?.farcaster && socialData?.farcaster?.profile && (
+          <a
+            href={`https://warpcast.com/${socialData.farcaster.profile.username}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-gray-600 hover:text-purple-600 transition"
+            aria-label="Farcaster"
+          >
+            {/* Farcaster Icon */}
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.248 4.932L8.493 15.41l-2.41-4.927L13.248 4.932z"
+                fill="#8A63D2"
+              />
+              <path
+                d="M15.659 10.483l-2.411-4.928-4.755 10.478 2.41 4.928 4.756-10.478z"
+                fill="#8A63D2"
+              />
+            </svg>
+            {socialData.farcaster.followers && (
+              <span>{socialData.farcaster.followers.toLocaleString()}</span>
+            )}
+          </a>
+        )}
+
+        {/* Lens */}
+        {project.socials?.lens && socialData?.lens?.profile && (
+          <a
+            href={`https://hey.xyz/u/${socialData.lens.profile.handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-xs text-gray-600 hover:text-green-600 transition"
+            aria-label="Lens"
+          >
+            {/* Lens Icon */}
+            <svg
+              className="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                fill="#A0D84E"
+              />
+              <path
+                d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"
+                fill="#A0D84E"
+              />
+            </svg>
+            {socialData.lens.followers && (
+              <span>{socialData.lens.followers.toLocaleString()}</span>
             )}
           </a>
         )}

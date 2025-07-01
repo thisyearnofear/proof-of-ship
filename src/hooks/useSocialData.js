@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import useSWR from 'swr';
+import { useState, useEffect } from "react";
+import useSWR from "swr";
 
 /**
  * Custom hook to fetch social media data
@@ -10,7 +10,7 @@ export function useSocialData(socialLinks) {
   const { data, error, isLoading } = useSWR(
     socialLinks ? `social-${JSON.stringify(socialLinks)}` : null,
     () => fetchSocialData(socialLinks),
-    { 
+    {
       revalidateOnFocus: false,
       refreshInterval: 3600000, // Refresh every hour
     }
@@ -19,7 +19,7 @@ export function useSocialData(socialLinks) {
   return {
     socialData: data,
     isLoading,
-    isError: !!error
+    isError: !!error,
   };
 }
 
@@ -28,47 +28,57 @@ export function useSocialData(socialLinks) {
  * @param {Object} socialLinks - Object containing social media links
  * @returns {Promise<Object>} Social media data
  */
+import { socialProtocolService } from "../services/SocialProtocolService";
+
 async function fetchSocialData(socialLinks) {
   if (!socialLinks) return {};
-  
+
   const result = {
     twitter: { followers: null, verified: false },
     discord: { members: null },
-    farcaster: { followers: null },
-    lens: { followers: null },
+    farcaster: { followers: null, profile: null },
+    lens: { followers: null, profile: null },
   };
-  
-  // In a real implementation, we would use APIs to fetch actual data
-  // For now, we'll return placeholder data
-  
+
+  if (socialLinks.farcaster) {
+    const farcasterProfile = await socialProtocolService.getFarcasterProfile(
+      socialLinks.farcaster
+    );
+    if (farcasterProfile) {
+      result.farcaster = {
+        followers: farcasterProfile.followerCount,
+        profile: farcasterProfile,
+      };
+    }
+  }
+
+  if (socialLinks.lens) {
+    const lensProfile = await socialProtocolService.getLensProfile(
+      socialLinks.lens
+    );
+    if (lensProfile) {
+      result.lens = {
+        followers: lensProfile.stats.followers,
+        profile: lensProfile,
+      };
+    }
+  }
+
+  // Twitter and Discord would be implemented here with their respective services
+  // For now, they will remain as placeholders
+
   if (socialLinks.twitter) {
-    // Simulate Twitter API call
     result.twitter = {
       followers: Math.floor(Math.random() * 10000),
       verified: Math.random() > 0.5,
     };
   }
-  
+
   if (socialLinks.discord) {
-    // Simulate Discord API call
     result.discord = {
       members: Math.floor(Math.random() * 5000),
     };
   }
-  
-  if (socialLinks.farcaster) {
-    // Simulate Farcaster API call
-    result.farcaster = {
-      followers: Math.floor(Math.random() * 2000),
-    };
-  }
-  
-  if (socialLinks.lens) {
-    // Simulate Lens API call
-    result.lens = {
-      followers: Math.floor(Math.random() * 3000),
-    };
-  }
-  
+
   return result;
 }

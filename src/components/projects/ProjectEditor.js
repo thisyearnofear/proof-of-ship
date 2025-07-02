@@ -25,7 +25,10 @@ export default function ProjectEditor({ projectSlug }) {
 
   useEffect(() => {
     async function fetchProjectData() {
-      if (!projectSlug) return;
+      if (!projectSlug) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       try {
@@ -63,7 +66,13 @@ export default function ProjectEditor({ projectSlug }) {
   const handleSave = async (e) => {
     if (e) e.preventDefault();
 
-    if (!currentUser || !hasProjectPermission(projectSlug)) {
+    if (!currentUser) {
+      setError("You must be signed in to save a project.");
+      return;
+    }
+
+    // If editing, check for permission
+    if (projectSlug && !hasProjectPermission(projectSlug)) {
       setError("You do not have permission to edit this project");
       return;
     }
@@ -73,14 +82,11 @@ export default function ProjectEditor({ projectSlug }) {
     setSuccess("");
 
     try {
-      const projectRef = doc(db, "projects", projectSlug);
-
-      // Make sure contracts have valid values
       const validContracts = contracts.filter(
         (c) => c.address && c.address.trim() !== ""
       );
 
-      await updateDoc(projectRef, {
+      const projectData = {
         name,
         description,
         contracts: validContracts,
@@ -88,17 +94,42 @@ export default function ProjectEditor({ projectSlug }) {
         founders,
         updatedAt: new Date().toISOString(),
         updatedBy: currentUser.uid,
-      });
+      };
 
-      setSuccess("Project updated successfully");
+      if (projectSlug) {
+        // Update existing project
+        const projectRef = doc(db, "projects", projectSlug);
+        await updateDoc(projectRef, projectData);
+        setSuccess("Project updated successfully!");
+      } else {
+        // Create new project
+        const newSlug = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, "");
+        if (!newSlug) {
+          setError("Project name must not be empty.");
+          setSaving(false);
+          return;
+        }
+        projectData.slug = newSlug;
+        projectData.owner = currentUser.uid; // Set owner on creation
+        projectData.createdAt = new Date().toISOString();
 
-      // Reload the page after a short delay to show the updated data
+        const projectRef = doc(db, "projects", newSlug);
+        await setDoc(projectRef, projectData);
+        setSuccess("Project created successfully!");
+      }
+
+      // Redirect after a short delay
       setTimeout(() => {
-        window.location.href = "/dashboard";
+        window.location.href = projectSlug
+          ? `/projects/${projectSlug}`
+          : "/dashboard";
       }, 2000);
     } catch (err) {
-      console.error("Error updating project:", err);
-      setError(`Failed to update project: ${err.message}`);
+      console.error("Error saving project:", err);
+      setError(`Failed to save project: ${err.message}`);
     } finally {
       setSaving(false);
     }
@@ -154,7 +185,7 @@ export default function ProjectEditor({ projectSlug }) {
     );
   }
 
-  if (!hasProjectPermission(projectSlug)) {
+  if (projectSlug && !hasProjectPermission(projectSlug)) {
     return (
       <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
         <div className="flex">
@@ -170,7 +201,9 @@ export default function ProjectEditor({ projectSlug }) {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">Edit Project: {name}</h2>
+      <h2 className="text-xl font-semibold mb-6">
+        {projectSlug ? `Edit Project: ${name}` : "Create New Project"}
+      </h2>
 
       {error && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">

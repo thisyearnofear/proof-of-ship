@@ -2,7 +2,7 @@ import React from "react";
 import localFont from "next/font/local";
 import { GithubProvider } from "@/providers/Github/Github";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { MetaMaskProvider } from "@/contexts/MetaMaskContext";
+import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/components/common/Toast";
 import { Navbar, Footer } from "@/components/common/layout";
@@ -30,37 +30,53 @@ export default function App({ Component, pageProps }) {
   // Initialize global error handling
   React.useEffect(() => {
     // Global error handler is automatically initialized
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Error handling initialized');
+    if (process.env.NODE_ENV === "development") {
+      console.log("Error handling initialized");
     }
   }, []);
 
   return (
-    <ErrorBoundary name="App Root" errorMessage="The application failed to load. Please refresh the page.">
+    <ErrorBoundary
+      name="App Root"
+      errorMessage="The application failed to load. Please refresh the page."
+    >
       <NoSSR>
-        <ErrorBoundary name="Theme Provider" errorMessage="Theme system is unavailable.">
+        <ErrorBoundary
+          name="Theme Provider"
+          errorMessage="Theme system is unavailable."
+        >
           <ThemeProvider>
-            <ErrorBoundary name="Toast Provider" errorMessage="Notification system is unavailable.">
+            <ErrorBoundary
+              name="Toast Provider"
+              errorMessage="Notification system is unavailable."
+            >
               <ToastProvider position="top-right" maxToasts={5}>
-                <ErrorBoundary name="Auth Provider" errorMessage="Authentication service is unavailable.">
-                  <MetaMaskProvider>
+                <ErrorBoundary
+                  name="Auth Provider"
+                  errorMessage="Authentication service is unavailable."
+                >
+                  <MetaMaskProvider demand={false}>
                     <AuthProvider>
                       <div
                         className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-w-[768px] font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
                       >
-                      <ErrorBoundary name="Github Provider" errorMessage="GitHub data service is unavailable.">
-                        <GithubProvider>
-                          <Navbar />
-                          <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
-                            <ErrorBoundary name="Page Component">
-                              <Component {...pageProps} />
-                            </ErrorBoundary>
-                          </main>
-                          <Footer />
-                        </GithubProvider>
-                      </ErrorBoundary>
-                    </div>
-                  </AuthProvider>
+                        <ErrorBoundary
+                          name="Github Provider"
+                          errorMessage="GitHub data service is unavailable."
+                        >
+                          <GithubProvider>
+                            <Navbar />
+                            <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
+                              <ErrorBoundary name="Page Component">
+                                <Component {...pageProps} />
+                              </ErrorBoundary>
+                            </main>
+                            <Footer />
+                          </GithubProvider>
+                        </ErrorBoundary>
+                      </div>
+                    </AuthProvider>
+                  </MetaMaskProvider>
                 </ErrorBoundary>
               </ToastProvider>
             </ErrorBoundary>

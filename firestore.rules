@@ -31,12 +31,13 @@ service cloud.firestore {
       let userId = request.auth.uid;
       return request.auth != null &&
              exists(/databases/$(database)/documents/projects/$(projectId)) &&
-             userId in get(/databases/$(database)/documents/projects/$(projectId)).data.owners;
+             get(/databases/$(database)/documents/projects/$(projectId)).data.owners.hasAny([userId]);
     }
     
     function isProjectPublic(projectId) {
       return exists(/databases/$(database)/documents/projects/$(projectId)) &&
-             get(/databases/$(database)/documents/projects/$(projectId)).data.get('isPublic', true) == true;
+             'isPublic' in get(/databases/$(database)/documents/projects/$(projectId)).data &&
+             get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true;
     }
     
     function isAdminUser() {

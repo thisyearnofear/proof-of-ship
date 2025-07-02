@@ -16,6 +16,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard" },
   { name: "About", href: "/about" },
   { name: "Papa", href: "/papa" },
+  { name: "Submit Project", href: "/projects/new", auth: true },
   { name: "Issues", href: "/issues", hidden: true },
   { name: "Pulls", href: "/pulls", hidden: true },
   { name: "Releases", href: "/releases", hidden: true },
@@ -68,6 +69,9 @@ export default function Navbar() {
                   <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                     {navigation
                       .filter((item) => !item.hidden)
+                      .filter(
+                        (item) => !item.auth || (item.auth && currentUser)
+                      )
                       .map((item) => (
                         <a
                           key={item.name}

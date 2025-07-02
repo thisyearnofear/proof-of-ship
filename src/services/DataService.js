@@ -4,6 +4,7 @@
  */
 
 import { validateGitHubData, validateProject } from "@/schemas/project";
+import repos from "../../repos.json";
 
 class DataService {
   constructor() {
@@ -239,7 +240,7 @@ class DataService {
     const { owner, repo } = this._getRepoDetails(projectSlug);
     const endpoint = this._getGitHubEndpoint(owner, repo, type);
     const headers = {
-      Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
       "Content-Type": "application/json",
     };
 
@@ -253,19 +254,16 @@ class DataService {
   }
 
   _getRepoDetails(projectSlug) {
-    // This is a placeholder. In a real application, you would have a more robust
-    // way of mapping project slugs to repository details.
-    const repos = {
-      "my-awesome-project": { owner: "user", repo: "my-awesome-project" },
-      "another-cool-thing": { owner: "user", repo: "another-cool-thing" },
-    };
-    return (
-      repos[projectSlug] || { owner: "thisyearnofear", repo: "POS-dashboard" }
-    );
+    const repo = repos.find((r) => r.slug === projectSlug);
+    if (repo) {
+      return { owner: repo.owner, repo: repo.repo };
+    }
+    // Fallback for safety, though this should ideally not be reached
+    return { owner: "thisyearnofear", repo: "POS-dashboard" };
   }
 
   _getGitHubEndpoint(owner, repo, type) {
-    const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
+    const baseUrl = `/api/github/repos/${owner}/${repo}`;
     switch (type) {
       case "issues":
         return `${baseUrl}/issues`;
@@ -342,15 +340,19 @@ export const dataService = new DataService();
 // React hook for using the data service
 import { useEffect } from "react";
 
+import { useMemo } from "react";
+
 export const useDataService = () => {
+  const service = useMemo(() => new DataService(), []);
+
   useEffect(() => {
     return () => {
       // Cleanup on unmount
-      dataService.cancelAllRequests();
+      service.destroy();
     };
-  }, []);
+  }, [service]);
 
-  return dataService;
+  return service;
 };
 
 export default DataService;

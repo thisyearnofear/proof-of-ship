@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  env: {
+    NEXT_PUBLIC_GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+  },
   // Common configuration for all environments
   images: {
     domains: ["avatars.githubusercontent.com", "github.com"],
@@ -22,16 +25,20 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        '@react-native-async-storage/async-storage': require.resolve('./src/lib/asyncStoragePolyfill.js'),
+        "@react-native-async-storage/async-storage": require.resolve(
+          "./src/lib/asyncStoragePolyfill.js"
+        ),
       };
     }
-    
+
     // Handle MetaMask SDK dependencies
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@react-native-async-storage/async-storage': require.resolve('./src/lib/asyncStoragePolyfill.js'),
+      "@react-native-async-storage/async-storage": require.resolve(
+        "./src/lib/asyncStoragePolyfill.js"
+      ),
     };
-    
+
     return config;
   },
 };

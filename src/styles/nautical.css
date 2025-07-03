@@ -1,0 +1,176 @@
+/* Nautical Theme Enhancements */
+
+/* Subtle wave animation for backgrounds */
+@keyframes gentle-wave {
+  0% { transform: translateX(0) translateY(0) rotate(0deg); }
+  33% { transform: translateX(30px) translateY(-30px) rotate(120deg); }
+  66% { transform: translateX(-20px) translateY(20px) rotate(240deg); }
+  100% { transform: translateX(0) translateY(0) rotate(360deg); }
+}
+
+/* Floating animation for nautical elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Rope-like border pattern */
+.rope-border {
+  border-image: repeating-linear-gradient(
+    45deg,
+    #8B4513,
+    #8B4513 2px,
+    #D2691E 2px,
+    #D2691E 4px
+  ) 1;
+}
+
+/* Compass rose styling */
+.compass-rose {
+  position: relative;
+}
+
+.compass-rose::before {
+  content: "🧭";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 1.2rem;
+  opacity: 0.3;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Anchor accent */
+.anchor-accent {
+  position: relative;
+}
+
+.anchor-accent::before {
+  content: "⚓";
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  font-size: 1rem;
+  opacity: 0.2;
+}
+
+/* Wave pattern background */
+.wave-pattern {
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+}
+
+/* Nautical card styling */
+.nautical-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.nautical-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    #1e40af 0%,
+    #0891b2 25%,
+    #1e40af 50%,
+    #0891b2 75%,
+    #1e40af 100%
+  );
+  background-size: 20px 3px;
+}
+
+/* Ship sailing animation */
+.sailing-ship {
+  animation: gentle-wave 8s ease-in-out infinite;
+}
+
+/* Lighthouse beam effect */
+.lighthouse-beam {
+  position: relative;
+  overflow: hidden;
+}
+
+.lighthouse-beam::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: lighthouse-sweep 4s ease-in-out infinite;
+}
+
+@keyframes lighthouse-sweep {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+/* Depth shadow for maritime feel */
+.maritime-depth {
+  box-shadow: 
+    0 4px 6px -1px rgba(59, 130, 246, 0.1),
+    0 2px 4px -1px rgba(6, 182, 212, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Tide animation for buttons */
+.tide-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.tide-button::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #0891b2, transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.tide-button:hover::before {
+  transform: translateX(100%);
+}
+
+/* Responsive nautical elements */
+@media (max-width: 768px) {
+  .compass-rose::before,
+  .anchor-accent::before {
+    display: none;
+  }
+}
+
+/* Custom scrollbar with nautical theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #1e40af, #0891b2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #1d4ed8, #0e7490);
+}

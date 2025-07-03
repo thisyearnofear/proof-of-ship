@@ -129,7 +129,7 @@ const MetaMaskContextProvider = ({ children }) => {
 };
 
 // Main provider wrapper
-export const MetaMaskProviderWrapper = ({ children, demand }) => {
+export const MetaMaskProviderWrapper = ({ children, demand = true }) => {
   const host =
     typeof window !== "undefined" ? window.location.host : "localhost";
   const sdkOptions = {
@@ -142,10 +142,7 @@ export const MetaMaskProviderWrapper = ({ children, demand }) => {
     },
   };
 
-  if (!demand) {
-    return <>{children}</>;
-  }
-
+  // Always provide the MetaMask context, but control initialization behavior
   return (
     <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
       <MetaMaskContextProvider>{children}</MetaMaskContextProvider>

@@ -191,6 +191,90 @@ export const CircleWalletProvider = ({ children }) => {
     }
   };
 
+  const calculateFundingAmount = async (creditScore) => {
+    try {
+      const response = await fetch('/api/funding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'calculateFunding',
+          creditScore: creditScore
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to calculate funding');
+      }
+
+      return result;
+    } catch (err) {
+      console.error('Failed to calculate funding:', err);
+      throw err;
+    }
+  };
+
+  const checkAPIConfiguration = async () => {
+    try {
+      const response = await fetch('/api/funding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'checkConfiguration'
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to check configuration');
+      }
+
+      return result;
+    } catch (err) {
+      console.error('Failed to check API configuration:', err);
+      throw err;
+    }
+  };
+
+  const transferUSDC = async (sourceWalletId, destinationAddress, amount, reason) => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch('/api/funding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'transferUSDC',
+          sourceWalletId,
+          destinationAddress,
+          amount,
+          reason
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Transfer failed');
+      }
+
+      return result.transfer;
+    } catch (err) {
+      console.error('USDC transfer failed:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     // SDK state
     sdk,
@@ -207,10 +291,13 @@ export const CircleWalletProvider = ({ children }) => {
     // Funding operations
     requestFunding,
     getFundingHistory,
+    calculateFundingAmount,
+    transferUSDC,
     
     // Utilities
     isConfigured: () => !!process.env.NEXT_PUBLIC_CIRCLE_CLIENT_KEY,
-    getEnvironment: () => process.env.CIRCLE_ENVIRONMENT || 'sandbox'
+    getEnvironment: () => process.env.CIRCLE_ENVIRONMENT || 'sandbox',
+    checkAPIConfiguration
   };
 
   return (

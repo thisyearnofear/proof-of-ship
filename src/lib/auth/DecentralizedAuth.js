@@ -64,7 +64,8 @@ export class DecentralizedAuthService {
       });
 
       // Verify signature locally
-      const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+      const { verifyMessage } = await import('ethers');
+      const recoveredAddress = verifyMessage(message, signature);
       
       if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
         throw new Error('Signature verification failed');

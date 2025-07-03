@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { ethers } from 'ethers';
+import { isAddress, formatUnits } from 'ethers';
 import { getProvider, getContract, getContractInfo, getTransactionCount } from '@/utils/web3';
 import { ERC20_ABI, ERC721_ABI, DETECTION_ABI } from '@/constants/abis';
 
@@ -38,7 +38,7 @@ export function useContractData(address, network = 'mainnet') {
  */
 async function fetchContractData(address, network) {
   try {
-    if (!address || !ethers.utils.isAddress(address)) {
+    if (!address || !isAddress(address)) {
       throw new Error('Invalid contract address');
     }
 
@@ -77,7 +77,7 @@ async function fetchContractData(address, network) {
           name,
           symbol,
           decimals: decimals.toString(),
-          totalSupply: ethers.utils.formatUnits(totalSupply, decimals)
+          totalSupply: formatUnits(totalSupply, decimals)
         };
       } else {
         // Check for ERC721 (NFT)

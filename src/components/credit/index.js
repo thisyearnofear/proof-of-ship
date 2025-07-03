@@ -4,7 +4,7 @@
  */
 
 // Core Credit Components
-export { default as CreditDashboard } from './CreditDashboard';
+export { CreditDashboard } from './CreditDashboard';
 
 // Visualization Components
 export { default as ScoreBreakdown } from './ScoreBreakdown';

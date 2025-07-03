@@ -13,17 +13,29 @@ const circle = new Circle(
 
 export class USDCPaymentService {
   constructor() {
-    this.circle = circle;
     this.environment = process.env.CIRCLE_ENVIRONMENT || 'sandbox';
     
-    // Validate API key is present
-    if (!process.env.CIRCLE_API_KEY) {
-      console.warn('Circle API key not found. USDC payment features will be disabled.');
+    // Initialize Circle SDK only if API key is available
+    if (process.env.CIRCLE_API_KEY) {
+      this.circle = circle;
+      
+      // Log environment for debugging (safe for testnet keys)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Circle SDK initialized in ${this.environment} mode`);
+      }
+    } else {
+      this.circle = null;
+      console.warn('Circle API key not found. Service will require API key for operations.');
     }
-    
-    // Log environment for debugging (safe for testnet keys)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Circle SDK initialized in ${this.environment} mode`);
+  }
+
+  /**
+   * Validate that Circle API is configured before operations
+   * @private
+   */
+  _validateApiKey() {
+    if (!process.env.CIRCLE_API_KEY || !this.circle) {
+      throw new Error('Circle API key is required. Please set CIRCLE_API_KEY environment variable.');
     }
   }
 
@@ -34,9 +46,7 @@ export class USDCPaymentService {
    */
   async createWallet(userId) {
     try {
-      if (!process.env.CIRCLE_API_KEY) {
-        throw new Error('Circle API key not configured');
-      }
+      this._validateApiKey();
 
       const response = await this.circle.wallets.createWallet({
         idempotencyKey: `wallet-${userId}-${Date.now()}`,
@@ -57,9 +67,7 @@ export class USDCPaymentService {
    */
   async getWalletBalance(walletId) {
     try {
-      if (!process.env.CIRCLE_API_KEY) {
-        throw new Error('Circle API key not configured');
-      }
+      this._validateApiKey();
 
       const response = await this.circle.wallets.getWallet(walletId);
       return response.data;
@@ -78,9 +86,7 @@ export class USDCPaymentService {
    */
   async transferUSDC(sourceWalletId, destinationAddress, amount) {
     try {
-      if (!process.env.CIRCLE_API_KEY) {
-        throw new Error('Circle API key not configured');
-      }
+      this._validateApiKey();
 
       const response = await this.circle.transfers.createTransfer({
         idempotencyKey: `transfer-${Date.now()}-${Math.random()}`,
@@ -113,17 +119,10 @@ export class USDCPaymentService {
    * @param {Object} creditData - Additional credit data
    * @returns {Promise<Object>} Funding result
    */
-  async processDeveloperFunding(developerAddress, creditScore, creditData) {
+  async processDeveloperFunding(developerAddress, creditScore, creditData = {}) {
     try {
-      if (!process.env.CIRCLE_API_KEY) {
-        return {
-          success: false,
-          error: 'Circle API not configured. Using mock funding for development.',
-          mockFunding: true,
-          amount: this.calculateFundingAmount(creditScore),
-          developerAddress
-        };
-      }
+      // Validate Circle API configuration
+      this._validateApiKey();
 
       // Validate credit score
       if (creditScore < 400) {
@@ -131,30 +130,23 @@ export class USDCPaymentService {
       }
 
       const fundingAmount = this.calculateFundingAmount(creditScore);
-      
-      // In a real implementation, you would:
-      // 1. Create or get platform wallet
-      // 2. Transfer USDC to developer address
-      // 3. Record transaction in database
-      
-      // For hackathon demo, we'll simulate the process
-      const mockTransfer = {
-        id: `mock-transfer-${Date.now()}`,
-        amount: fundingAmount.toString(),
-        currency: 'USD',
-        destination: developerAddress,
-        status: 'complete',
-        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`,
-        createdAt: new Date().toISOString()
-      };
+      const fundingReason = `Developer funding - Credit Score: ${creditScore}, Amount: $${fundingAmount}`;
+
+      // Execute real funding transfer
+      const transfer = await this.executeFundingTransfer(
+        developerAddress,
+        fundingAmount,
+        fundingReason
+      );
 
       return {
         success: true,
-        transfer: mockTransfer,
+        transfer,
         amount: fundingAmount,
         creditScore,
         developerAddress,
-        environment: this.environment
+        environment: this.environment,
+        message: 'Funding transfer completed successfully'
       };
 
     } catch (error) {
@@ -188,13 +180,7 @@ export class USDCPaymentService {
    */
   async getTransferStatus(transferId) {
     try {
-      if (!process.env.CIRCLE_API_KEY) {
-        return {
-          id: transferId,
-          status: 'complete',
-          mock: true
-        };
-      }
+      this._validateApiKey();
 
       const response = await this.circle.transfers.getTransfer(transferId);
       return response.data;
@@ -211,18 +197,18 @@ export class USDCPaymentService {
    */
   async getFundingHistory(developerAddress) {
     try {
-      // In a real implementation, this would query your database
-      // For now, return mock data
-      return [
-        {
-          id: 'mock-funding-1',
-          amount: '2500',
-          currency: 'USD',
-          status: 'complete',
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          creditScore: 720
-        }
-      ];
+      this._validateApiKey();
+
+      // In a real implementation, this would query your database for funding records
+      // For now, we'll query Circle API for transfer history
+      // Note: You would typically store funding records in your own database
+      // and associate them with developer addresses
+      
+      // This is a placeholder - you would implement database queries here
+      // to get funding history for the specific developer address
+      console.warn('getFundingHistory: Database integration needed for production');
+      
+      return [];
     } catch (error) {
       console.error('Error getting funding history:', error);
       throw new Error(`Failed to get funding history: ${error.message}`);
@@ -234,7 +220,7 @@ export class USDCPaymentService {
    * @returns {boolean} Configuration status
    */
   isConfigured() {
-    return !!process.env.CIRCLE_API_KEY;
+    return !!(process.env.CIRCLE_API_KEY && this.circle);
   }
 
   /**
@@ -244,15 +230,107 @@ export class USDCPaymentService {
   getEnvironment() {
     return this.environment;
   }
-}
 
-export const usdcPaymentService = new USDCPaymentService();
+  /**
+   * Validate wallet address format
+   * @param {string} address - Wallet address to validate
+   * @returns {boolean} Whether address is valid
+   */
+  validateWalletAddress(address) {
+    if (!address || typeof address !== 'string') {
+      return false;
+    }
+    
+    // Basic Ethereum address validation
+    const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
+    return ethAddressRegex.test(address);
+  }
+
+  /**
+   * Get supported chains for current environment
+   * @returns {Array} List of supported chains
+   */
+  getSupportedChains() {
+    if (this.environment === 'sandbox') {
+      return [
+        { id: 'ETH-SEPOLIA', name: 'Ethereum Sepolia', testnet: true },
+        { id: 'MATIC-MUMBAI', name: 'Polygon Mumbai', testnet: true }
+      ];
+    } else {
+      return [
+        { id: 'ETH', name: 'Ethereum Mainnet', testnet: false },
+        { id: 'MATIC', name: 'Polygon Mainnet', testnet: false }
+      ];
+    }
+  }
+
+  /**
+   * Get funding eligibility info
+   * @param {number} creditScore - Credit score to check
+   * @returns {Object} Eligibility information
+   */
+  getFundingEligibility(creditScore) {
+    const amount = this.calculateFundingAmount(creditScore);
+    const tier = getFundingTier(creditScore);
+    
+    return {
+      eligible: creditScore >= 400,
+      amount,
+      tier,
+      creditScore,
+      requirements: creditScore < 400 ? [
+        'Credit score must be at least 400',
+        'Complete credit profile verification',
+        'Link GitHub account with active repositories'
+      ] : [],
+      benefits: amount > 0 ? [
+        `Up to $${amount} in USDC funding`,
+        'No upfront collateral required',
+        'Flexible repayment terms',
+        'Build credit history through successful projects'
+      ] : []
+    };
+  }
+
+  /**
+   * Estimate transaction fees
+   * @param {string} chain - Target blockchain
+   * @param {number} amount - Transfer amount
+   * @returns {Object} Fee estimation
+   */
+  estimateTransactionFees(chain = 'ETH-SEPOLIA', amount = 0) {
+    // Mock fee estimation for demo
+    const baseFees = {
+      'ETH': { gas: 0.005, platform: 0.01 },
+      'ETH-SEPOLIA': { gas: 0.001, platform: 0.005 },
+      'MATIC': { gas: 0.001, platform: 0.005 },
+      'MATIC-MUMBAI': { gas: 0.0005, platform: 0.002 }
+    };
+
+    const fees = baseFees[chain] || baseFees['ETH-SEPOLIA'];
+    const totalFees = fees.gas + fees.platform;
+    
+    return {
+      gasEstimate: fees.gas,
+      platformFee: fees.platform,
+      totalFees,
+      netAmount: Math.max(0, amount - totalFees),
+      chain,
+      currency: 'USD'
+    };
+  }
+  /**
+   * Transfer USDC with custom reason/description
+   * @param {string} sourceWalletId - Source wallet ID
+   * @param {string} destinationAddress - Recipient address
    * @param {number} amount - Amount in USDC
    * @param {string} reason - Transfer reason/description
    * @returns {Promise<Object>} Transfer response
    */
-  async transferUSDC(sourceWalletId, destinationAddress, amount, reason = 'Developer funding') {
+  async transferUSDCWithReason(sourceWalletId, destinationAddress, amount, reason = 'Developer funding') {
     try {
+      this._validateApiKey();
+
       const response = await this.circle.transfers.createTransfer({
         idempotencyKey: `transfer-${Date.now()}-${Math.random()}`,
         source: {
@@ -262,7 +340,7 @@ export const usdcPaymentService = new USDCPaymentService();
         destination: {
           type: 'blockchain',
           address: destinationAddress,
-          chain: 'ETH', // or 'MATIC' for Polygon
+          chain: this.environment === 'sandbox' ? 'ETH-SEPOLIA' : 'ETH'
         },
         amount: {
           amount: amount.toString(),
@@ -270,107 +348,63 @@ export const usdcPaymentService = new USDCPaymentService();
         },
         description: reason,
       });
+      
       return response.data;
     } catch (error) {
-      console.error('Error transferring USDC:', error);
-      throw new Error('Failed to transfer USDC');
+      console.error('Error transferring USDC with reason:', error);
+      throw new Error(`Failed to transfer USDC: ${error.message}`);
     }
   }
 
   /**
-   * Get transfer status
-   * @param {string} transferId - Transfer ID
-   * @returns {Promise<Object>} Transfer status
+   * Get platform wallet for funding operations
+   * @returns {Promise<Object>} Platform wallet information
    */
-  async getTransferStatus(transferId) {
+  async getPlatformWallet() {
     try {
-      const response = await this.circle.transfers.getTransfer(transferId);
-      return response.data;
-    } catch (error) {
-      console.error('Error getting transfer status:', error);
-      throw new Error('Failed to get transfer status');
-    }
-  }
+      this._validateApiKey();
 
-  /**
-   * Calculate funding amount based on credit score
-   * @param {number} creditScore - User's credit score (0-1000)
-   * @returns {number} Funding amount in USDC
-   */
-  calculateFundingAmount(creditScore) {
-    // Funding tiers based on credit score
-    if (creditScore >= 800) return 5000; // Excellent: $5,000
-    if (creditScore >= 700) return 3500; // Good: $3,500
-    if (creditScore >= 600) return 2000; // Fair: $2,000
-    if (creditScore >= 500) return 1000; // Poor: $1,000
-    return 500; // Very Poor: $500 (minimum)
-  }
-
-  /**
-   * Process developer funding based on credit score
-   * @param {string} developerAddress - Developer's wallet address
-   * @param {number} creditScore - Developer's credit score
-   * @param {Object} creditData - Detailed credit information
-   * @returns {Promise<Object>} Funding transaction result
-   */
-  async processDeveloperFunding(developerAddress, creditScore, creditData) {
-    try {
-      const fundingAmount = this.calculateFundingAmount(creditScore);
-      
-      // Get treasury wallet (this would be configured in environment)
-      const treasuryWalletId = process.env.CIRCLE_TREASURY_WALLET_ID;
-      
-      if (!treasuryWalletId) {
-        throw new Error('Treasury wallet not configured');
+      if (!process.env.CIRCLE_PLATFORM_WALLET_ID) {
+        throw new Error('Circle platform wallet ID not configured. Please set CIRCLE_PLATFORM_WALLET_ID environment variable.');
       }
 
-      // Create transfer
-      const transfer = await this.transferUSDC(
-        treasuryWalletId,
-        developerAddress,
-        fundingAmount,
-        `Developer funding - Credit Score: ${creditScore} - GitHub: ${creditData.github?.username || 'N/A'}`
-      );
-
-      return {
-        success: true,
-        transferId: transfer.id,
-        amount: fundingAmount,
-        status: transfer.status,
-        creditScore,
-        developerAddress,
-      };
+      // Get actual platform wallet information
+      const response = await this.circle.wallets.getWallet(process.env.CIRCLE_PLATFORM_WALLET_ID);
+      return response.data;
     } catch (error) {
-      console.error('Error processing developer funding:', error);
-      return {
-        success: false,
-        error: error.message,
-        creditScore,
-        developerAddress,
-      };
+      console.error('Error getting platform wallet:', error);
+      throw new Error(`Failed to get platform wallet: ${error.message}`);
     }
   }
 
   /**
-   * Get funding history for a developer
+   * Execute actual funding transfer to developer
    * @param {string} developerAddress - Developer's wallet address
-   * @returns {Promise<Array>} Array of funding transactions
+   * @param {number} amount - Amount to transfer
+   * @param {string} reason - Funding reason
+   * @returns {Promise<Object>} Transfer result
    */
-  async getFundingHistory(developerAddress) {
+  async executeFundingTransfer(developerAddress, amount, reason = 'Developer funding based on credit score') {
     try {
-      // This would typically query your database for funding history
-      // For now, we'll return a placeholder
-      return [];
+      this._validateApiKey();
+
+      const platformWallet = await this.getPlatformWallet();
+      
+      return await this.transferUSDCWithReason(
+        platformWallet.id,
+        developerAddress,
+        amount,
+        reason
+      );
     } catch (error) {
-      console.error('Error getting funding history:', error);
-      throw new Error('Failed to get funding history');
+      console.error('Error executing funding transfer:', error);
+      throw new Error(`Failed to execute funding transfer: ${error.message}`);
     }
   }
 }
 
 // Export singleton instance
 export const usdcPaymentService = new USDCPaymentService();
-
 // Helper functions for frontend use
 export const formatUSDC = (amount) => {
   return new Intl.NumberFormat('en-US', {
@@ -380,7 +414,6 @@ export const formatUSDC = (amount) => {
     maximumFractionDigits: 2,
   }).format(amount);
 };
-
 export const getFundingTier = (creditScore) => {
   if (creditScore >= 800) return { tier: 'Excellent', color: 'green' };
   if (creditScore >= 700) return { tier: 'Good', color: 'blue' };
@@ -388,5 +421,4 @@ export const getFundingTier = (creditScore) => {
   if (creditScore >= 500) return { tier: 'Poor', color: 'orange' };
   return { tier: 'Very Poor', color: 'red' };
 };
-
 export default USDCPaymentService;

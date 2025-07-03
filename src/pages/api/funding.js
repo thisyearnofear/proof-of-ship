@@ -1,4 +1,4 @@
-import { usdcPaymentService } from '../../lib/usdcPayments';
+import { usdcPaymentService, getFundingTier } from '../../lib/usdcPayments';
 
 export default async function handler(req, res) {
   // Only allow POST requests
@@ -50,6 +50,56 @@ export default async function handler(req, res) {
       case 'getFundingHistory':
         const history = await usdcPaymentService.getFundingHistory(data.developerAddress);
         return res.status(200).json({ success: true, history });
+
+      case 'calculateFunding':
+        const { creditScore: score } = data;
+        if (!score || score < 0 || score > 850) {
+          return res.status(400).json({ 
+            error: 'Invalid credit score. Must be between 0 and 850.' 
+          });
+        }
+        
+        const calculatedAmount = usdcPaymentService.calculateFundingAmount(score);
+        const tier = getFundingTier(score);
+        
+        return res.status(200).json({ 
+          success: true, 
+          amount: calculatedAmount,
+          creditScore: score,
+          tier,
+          eligible: score >= 400
+        });
+
+      case 'checkConfiguration':
+        const isConfigured = usdcPaymentService.isConfigured();
+        const environment = usdcPaymentService.getEnvironment();
+        
+        return res.status(200).json({ 
+          success: true, 
+          configured: isConfigured,
+          environment,
+          message: isConfigured 
+            ? `Circle API configured for ${environment} environment`
+            : 'Circle API not configured - using mock mode'
+        });
+
+      case 'transferUSDC':
+        const { sourceWalletId, destinationAddress, amount, reason } = data;
+        
+        if (!sourceWalletId || !destinationAddress || !amount) {
+          return res.status(400).json({ 
+            error: 'Missing required fields: sourceWalletId, destinationAddress, amount' 
+          });
+        }
+
+        const transferResult = await usdcPaymentService.transferUSDCWithReason(
+          sourceWalletId,
+          destinationAddress,
+          amount,
+          reason
+        );
+        
+        return res.status(200).json({ success: true, transfer: transferResult });
 
       default:
         return res.status(400).json({ error: 'Invalid action' });

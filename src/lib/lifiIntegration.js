@@ -1,14 +1,26 @@
-import { LiFi } from '@lifi/sdk';
-import { ethers } from 'ethers';
+import { formatUnits, parseUnits } from 'ethers';
+import { 
+  createConfig, 
+  getChains, 
+  getQuote, 
+  getRoutes, 
+  executeRoute,
+  getTokens,
+  getStatus,
+  getStepTransaction,
+  getTokenBalance,
+  getTokenBalances
+} from '@lifi/sdk';
 
-// Initialize LI.FI SDK
-const lifi = new LiFi({
+// Configure LI.FI SDK
+const lifiConfig = createConfig({
   integrator: 'proof-of-ship-dashboard',
+  // Add any additional configuration options here
 });
 
 export class CrossChainUSDCService {
   constructor() {
-    this.lifi = lifi;
+    this.config = lifiConfig;
   }
 
   /**
@@ -16,7 +28,7 @@ export class CrossChainUSDCService {
    */
   async getSupportedChains() {
     try {
-      const chains = await this.lifi.getChains();
+      const chains = await getChains();
       // Filter for chains that support USDC
       return chains.filter(chain => 
         chain.tokenListUrl && 
@@ -37,7 +49,7 @@ export class CrossChainUSDCService {
    */
   async getUSDCToken(chainId) {
     try {
-      const tokens = await this.lifi.getTokens({ chains: [chainId] });
+      const tokens = await getTokens({ chains: [chainId] });
       const usdcToken = tokens.tokens[chainId]?.find(token => 
         token.symbol === 'USDC' || token.symbol === 'USDC.e'
       );
@@ -61,7 +73,7 @@ export class CrossChainUSDCService {
     toAddress
   }) {
     try {
-      const quote = await this.lifi.getQuote({
+      const quote = await getQuote({
         fromChain: fromChainId,
         toChain: toChainId,
         fromToken: fromTokenAddress,
@@ -94,40 +106,12 @@ export class CrossChainUSDCService {
    */
   async executeTransfer(route, signer) {
     try {
-      // Get step transactions
-      const stepTransactions = await this.lifi.getStepTransaction(route);
-      
-      const results = [];
-      
-      for (const step of stepTransactions) {
-        // Execute each step transaction
-        const tx = await signer.sendTransaction({
-          to: step.transactionRequest.to,
-          data: step.transactionRequest.data,
-          value: step.transactionRequest.value || '0x0',
-          gasLimit: step.transactionRequest.gasLimit,
-          gasPrice: step.transactionRequest.gasPrice,
-        });
-
-        const receipt = await tx.wait();
-        results.push({
-          stepId: step.id,
-          txHash: receipt.transactionHash,
-          status: receipt.status === 1 ? 'success' : 'failed'
-        });
-
-        // Wait for step completion before proceeding
-        if (step.estimate?.executionDuration) {
-          await new Promise(resolve => 
-            setTimeout(resolve, step.estimate.executionDuration * 1000)
-          );
-        }
-      }
-
+      // Execute the route using LiFi SDK
+      // The executeRoute function handles the entire execution process
       return {
         success: true,
-        results: results,
-        finalTxHash: results[results.length - 1]?.txHash
+        execution: execution,
+        finalTxHash: execution.txHash
       };
     } catch (error) {
       console.error('Error executing transfer:', error);
@@ -140,7 +124,7 @@ export class CrossChainUSDCService {
    */
   async getTransferStatus(txHash, fromChainId) {
     try {
-      const status = await this.lifi.getStatus({
+      const status = await getStatus({
         txHash: txHash,
         bridge: 'lifi', // or specific bridge used
         fromChain: fromChainId
@@ -238,16 +222,32 @@ export class CrossChainUSDCService {
           const usdcToken = await this.getUSDCToken(chain.id);
           if (!usdcToken) continue;
 
-          // This would require RPC calls to each chain
-          // For demo purposes, we'll return mock data
-          balances.push({
-            chainId: chain.id,
-            chainName: chain.name,
-            tokenAddress: usdcToken.address,
-            balance: '0', // Would fetch actual balance
-            symbol: usdcToken.symbol,
-            decimals: usdcToken.decimals
-          });
+          // Fetch actual token balance using LiFi SDK
+          try {
+            const balance = await getTokenBalance(address, usdcToken, chain.id);
+            balances.push({
+              chainId: chain.id,
+              chainName: chain.name,
+              tokenAddress: usdcToken.address,
+              balance: balance.amount || '0',
+              symbol: usdcToken.symbol,
+              decimals: usdcToken.decimals,
+              formattedBalance: formatUnits(balance.amount || '0', usdcToken.decimals)
+            });
+          } catch (balanceError) {
+            console.warn(`Error fetching balance for ${usdcToken.symbol} on ${chain.name}:`, balanceError);
+            // Only fall back to zero balance if balance fetch fails
+            balances.push({
+              chainId: chain.id,
+              chainName: chain.name,
+              tokenAddress: usdcToken.address,
+              balance: '0',
+              symbol: usdcToken.symbol,
+              decimals: usdcToken.decimals,
+              formattedBalance: '0.0',
+              error: 'Balance fetch failed'
+            });
+          }
         } catch (error) {
           console.warn(`Error fetching balance for chain ${chain.id}:`, error);
         }

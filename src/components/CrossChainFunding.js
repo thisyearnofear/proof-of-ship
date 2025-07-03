@@ -1,23 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { crossChainUSDCService } from '../lib/lifiIntegration';
+import { usdcPaymentService } from '../lib/usdcPayments';
 import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useCircleWallet } from '../contexts/CircleWalletContext';
 import Button from './common/Button';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';
 
 export default function CrossChainFunding({ creditScore, developerAddress, onFundingComplete }) {
   const { account, provider } = useMetaMask();
+  const { requestFunding, checkAPIConfiguration } = useCircleWallet();
   const [supportedChains, setSupportedChains] = useState([]);
   const [selectedChains, setSelectedChains] = useState([]);
   const [fundingAmount, setFundingAmount] = useState(0);
   const [distributionPlan, setDistributionPlan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [transferStatus, setTransferStatus] = useState({});
+  const [fundingMode, setFundingMode] = useState('cross-chain'); // 'cross-chain' or 'direct'
+  const [apiConfig, setApiConfig] = useState(null);
 
   useEffect(() => {
     loadSupportedChains();
     calculateFundingAmount();
+    checkCircleAPIConfig();
   }, [creditScore]);
+
+  const checkCircleAPIConfig = async () => {
+    try {
+      const config = await checkAPIConfiguration();
+      setApiConfig(config);
+    } catch (error) {
+      console.error('Error checking API configuration:', error);
+    }
+  };
 
   const loadSupportedChains = async () => {
     try {
@@ -31,26 +46,9 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
   };
 
   const calculateFundingAmount = () => {
-    if (creditScore < 400) {
-      setFundingAmount(0);
-      return;
-    }
-    
-    // Same logic as smart contract
-    const MIN_FUNDING = 500;
-    const MAX_FUNDING = 5000;
-    
-    if (creditScore >= 800) {
-      setFundingAmount(MAX_FUNDING);
-      return;
-    }
-    
-    const range = MAX_FUNDING - MIN_FUNDING;
-    const scoreRange = 800 - 400;
-    const adjustedScore = creditScore - 400;
-    
-    const amount = MIN_FUNDING + (range * adjustedScore) / scoreRange;
-    setFundingAmount(Math.floor(amount));
+    // Use the same calculation logic as the USDC payment service for consistency
+    const amount = usdcPaymentService.calculateFundingAmount(creditScore);
+    setFundingAmount(amount);
   };
 
   const handleChainSelection = (chainId) => {
@@ -120,14 +118,43 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
         success: true,
         totalAmount: fundingAmount,
         distributions: results,
-        chains: selectedChains
+        chains: selectedChains,
+        mode: 'cross-chain'
       });
 
     } catch (error) {
       console.error('Error executing funding:', error);
       onFundingComplete({
         success: false,
-        error: error.message
+        error: error.message,
+        mode: 'cross-chain'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const executeDirectFunding = async () => {
+    setIsLoading(true);
+    try {
+      const result = await requestFunding(
+        developerAddress || account,
+        creditScore
+      );
+
+      onFundingComplete({
+        success: result.success,
+        totalAmount: result.amount,
+        transfer: result.transfer,
+        mode: 'direct'
+      });
+
+    } catch (error) {
+      console.error('Error executing direct funding:', error);
+      onFundingComplete({
+        success: false,
+        error: error.message,
+        mode: 'direct'
       });
     } finally {
       setIsLoading(false);
@@ -158,7 +185,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
     <div className="space-y-6">
       {/* Funding Summary */}
       <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Cross-Chain USDC Funding</h3>
+        <h3 className="text-xl font-semibold mb-4">USDC Funding Options</h3>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-sm text-gray-600">Credit Score</p>
@@ -169,11 +196,79 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
             <p className="text-2xl font-bold text-blue-600">${fundingAmount} USDC</p>
           </div>
         </div>
+
+        {/* Funding Mode Selection */}
+        <div className="mb-4">
+          <p className="text-sm font-medium text-gray-700 mb-2">Funding Method</p>
+          <div className="flex space-x-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="fundingMode"
+                value="direct"
+                checked={fundingMode === 'direct'}
+                onChange={(e) => setFundingMode(e.target.value)}
+                className="text-blue-600"
+              />
+              <span className="text-sm">
+                Direct Transfer (Circle API)
+              </span>
+            </label>
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="radio"
+                name="fundingMode"
+                value="cross-chain"
+                checked={fundingMode === 'cross-chain'}
+                onChange={(e) => setFundingMode(e.target.value)}
+                className="text-blue-600"
+              />
+              <span className="text-sm">Cross-Chain Distribution (LI.FI)</span>
+            </label>
+          </div>
+        </div>
+
+        {/* API Status */}
+        {apiConfig && (
+          <div className={`p-3 rounded-lg text-sm ${
+            apiConfig.configured 
+              ? 'bg-green-50 text-green-800 border border-green-200' 
+              : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+          }`}>
+            {apiConfig.message}
+          </div>
+        )}
       </Card>
 
-      {/* Chain Selection */}
-      <Card className="p-6">
-        <h4 className="text-lg font-semibold mb-4">Select Target Chains</h4>
+      {/* Direct Funding Option */}
+      {fundingMode === 'direct' && (
+        <Card className="p-6">
+          <h4 className="text-lg font-semibold mb-4">Direct USDC Transfer</h4>
+          <p className="text-gray-600 mb-4">
+            Receive funding directly to your wallet using Circle's infrastructure.
+          </p>
+          
+          <Button
+            onClick={executeDirectFunding}
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <LoadingSpinner size="sm" />
+                <span>Processing...</span>
+              </div>
+            ) : (
+              `Request $${fundingAmount} USDC`
+            )}
+          </Button>
+        </Card>
+      )}
+
+      {/* Cross-Chain Funding Option */}
+      {fundingMode === 'cross-chain' && (
+        <Card className="p-6">
+          <h4 className="text-lg font-semibold mb-4">Select Target Chains</h4>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {supportedChains.slice(0, 6).map(chain => (
             <label key={chain.id} className="flex items-center space-x-2 cursor-pointer">
@@ -197,7 +292,8 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
             {isLoading ? <LoadingSpinner size="sm" /> : 'Plan Distribution'}
           </Button>
         </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Distribution Plan */}
       {distributionPlan && (

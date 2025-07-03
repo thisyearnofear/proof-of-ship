@@ -22,6 +22,8 @@ The dashboard is deployed to two different platforms:
 
 The main dashboard is deployed to Firebase Hosting at [https://proofofship.web.app](https://proofofship.web.app).
 
+firebase deploy
+
 ### Vercel (Secondary)
 
 A secondary version is deployed to Vercel at [https://proof-of-ship.vercel.app/](https://proof-of-ship.vercel.app/).

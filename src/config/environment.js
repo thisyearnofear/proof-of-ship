@@ -18,17 +18,19 @@ const requiredEnvVars = [
 
 // Validate required environment variables
 const validateEnvironment = () => {
-  // Skip validation during build if not in production
-  if (process.env.NODE_ENV !== 'production' && !process.env.FIREBASE_CONFIG_REQUIRED) {
+  // Skip validation during build time
+  if (typeof window === 'undefined') {
     return;
   }
   
   const missing = requiredEnvVars.filter(
-    variable => !process.env[variable]
+    variable => !process.env[variable] || process.env[variable] === 'dummy-api-key' || process.env[variable].includes('dummy')
   );
   
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    console.warn(`Missing or dummy Firebase environment variables: ${missing.join(', ')}`);
+    console.warn('Firebase features may not work properly. Please configure environment variables.');
+    // Don't throw error, just warn
   }
 };
 

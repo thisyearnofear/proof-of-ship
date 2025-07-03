@@ -7,7 +7,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
 import { useDecentralizedAuth } from "@/contexts/DecentralizedAuthContext";
-import { Footer } from "@/components/common/layout";
+;
 import HybridDashboard from "@/components/dashboard/HybridDashboard";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { Card } from "@/components/common/Card";
@@ -49,7 +49,7 @@ export default function ProjectsPage() {
             </div>
           </Card>
         </div>
-        <Footer />
+        
       </div>
     );
   }
@@ -65,7 +65,6 @@ export default function ProjectsPage() {
         />
       </div>
 
-      <Footer />
     </div>
   );
 }

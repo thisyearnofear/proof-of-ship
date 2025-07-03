@@ -7,7 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useEnhancedGithub } from '@/providers/Github/EnhancedGithubProvider';
 import { useDecentralizedAuth } from '@/contexts/DecentralizedAuthContext';
-import { Navbar, Footer } from '@/components/common/layout';
+import { Navbar } from '@/components/common/layout';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
@@ -136,7 +136,7 @@ export default function BaseEcosystemPage() {
           <LoadingSpinner size="lg" />
           <span className="ml-3 text-lg text-gray-600">Loading Base projects...</span>
         </div>
-        <Footer />
+        
       </div>
     );
   }
@@ -412,7 +412,6 @@ export default function BaseEcosystemPage() {
         )}
       </div>
 
-      <Footer />
     </div>
   );
 }

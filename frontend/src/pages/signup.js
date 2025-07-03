@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useDecentralizedAuth } from "../contexts/DecentralizedAuthContext";
 import { useMetaMask } from "../contexts/MetaMaskContext";
-import { Footer } from "../components/common/layout";
+
 import OnboardingFlow from "../components/onboarding/OnboardingFlow";
 import { Card } from "../components/common/Card";
 import Button from "../components/common/Button";
@@ -62,7 +62,6 @@ export default function SignUpPage() {
         <div className="flex items-center justify-center h-96">
           <LoadingSpinner size="lg" />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -73,7 +72,6 @@ export default function SignUpPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <OnboardingFlow onComplete={handleOnboardingComplete} />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -203,8 +201,6 @@ export default function SignUpPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

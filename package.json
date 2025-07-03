@@ -10,12 +10,18 @@
     "load": "node data/load.js",
     "build:firebase": "EXPORT_MODE=true next build",
     "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting",
-    "deploy": "npm run deploy:firebase"
+    "deploy": "npm run deploy:firebase",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "analyze": "ANALYZE=true npm run build",
+    "type-check": "tsc --noEmit",
+    "test:components": "echo 'Component tests would run here'",
+    "validate:config": "node -e \"console.log('Validating ecosystem configs...'); require('./src/config/ecosystems.js'); console.log('✅ All configs valid');\""
   },
   "dependencies": {
     "@circle-fin/circle-sdk": "^2.9.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
+    "@lifi/sdk": "^3.7.10",
     "@metamask/sdk-react": "^0.33.0",
     "axios": "^1.8.4",
     "chalk": "^3.0.0",

@@ -28,6 +28,9 @@ export { CreditDashboard } from './credit';
 // Cross-Chain Components
 export { default as CrossChainFunding } from './CrossChainFunding';
 
+// Testing Components
+export { NebulaTest } from './testing';
+
 // Common Components (re-export for convenience)
 export { Card } from './common/Card';
 export { default as Button } from './common/Button';

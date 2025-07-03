@@ -3,7 +3,7 @@
  * Handles both static (Celo) and dynamic (Base) project data cohesively
  */
 
-import { DataService } from './DataService';
+import DataService from './DataService';
 import { db } from '../lib/firebase/clientApp';
 import { collection, getDocs, doc, getDoc, query, where, orderBy } from 'firebase/firestore';
 import repos from '../../repos.json';

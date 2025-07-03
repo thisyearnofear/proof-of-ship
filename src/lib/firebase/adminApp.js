@@ -15,4 +15,7 @@ if (!admin.apps.length) {
   }
 }
 
+// Export the admin instance and commonly used services
 export default admin;
+export const db = admin.firestore();
+export const auth = admin.auth();

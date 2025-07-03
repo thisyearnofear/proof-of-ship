@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { JsonRpcProvider, Contract, formatEther } from 'ethers';
 
 // Default Celo provider URLs
 const CELO_MAINNET_RPC = 'https://forno.celo.org';
@@ -7,22 +7,22 @@ const CELO_ALFAJORES_RPC = 'https://alfajores-forno.celo-testnet.org';
 /**
  * Create an ethers provider for the specified network
  * @param {string} network - 'mainnet' or 'testnet'
- * @returns {ethers.providers.JsonRpcProvider} Ethers provider
+ * @returns {JsonRpcProvider} Ethers provider
  */
 export function getProvider(network = 'mainnet') {
   const rpcUrl = network === 'testnet' ? CELO_ALFAJORES_RPC : CELO_MAINNET_RPC;
-  return new ethers.providers.JsonRpcProvider(rpcUrl);
+  return new JsonRpcProvider(rpcUrl);
 }
 
 /**
  * Create a contract instance
  * @param {string} address - Contract address
  * @param {Array|string} abi - Contract ABI
- * @param {ethers.providers.Provider} provider - Ethers provider
- * @returns {ethers.Contract} Contract instance
+ * @param {JsonRpcProvider} provider - Ethers provider
+ * @returns {Contract} Contract instance
  */
 export function getContract(address, abi, provider) {
-  return new ethers.Contract(address, abi, provider);
+  return new Contract(address, abi, provider);
 }
 
 /**
@@ -45,7 +45,7 @@ export async function getContractInfo(address, network = 'mainnet') {
     
     return {
       address,
-      balance: ethers.utils.formatEther(balance),
+      balance: formatEther(balance),
       isContract,
     };
   } catch (error) {

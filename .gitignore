@@ -1,45 +1,136 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Node.js dependencies
+node_modules/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Hardhat artifacts and cache
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
 
-# testing
-/coverage
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+.env.circle
+.env.circle.*
+!.env.example
+.env.*.local
+*.env
+.secret
+secrets.json
+secrets.*.json
+*_key.json
+*_keys.json
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
+# API Keys and credentials
 *.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.crt
+*.cer
+serviceAccount*.json
+firebase-adminsdk*.json
 
-# debug
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.local.example
+# Build files
+build/
+dist/
+out/
+.next/
+public/sw.js
+public/workbox-*.js
+.vercel/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+.project
+.classpath
+.settings/
+.history/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.backup
+Desktop.ini
+$RECYCLE.BIN/
+._*
+
+# Hardhat deployment info
+deployments/
+deployed-contracts.json
+contract-addresses*.json
+
+# Gas reporter output
+gasReporterOutput.json
+gas-report*.txt
 
 # Firebase
 .firebase/
-firebase-debug.log*
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.runtimeconfig.json
+firebase-export-*
+firebaserc
+firebase-service-account*.json
 
-# vercel
+# Next.js
+.next/
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/*.js.map
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Contract-specific
+contracts-dbg/
+flattened/
+abis/
+bin/
+solc-input.json
+mythril-report.md
+slither-report.md
+
+# Testing
+.coverage
+coverage/
+coverage.json
+lcov.info
+.nyc_output
+coverage-all.json
+coverage-report/
+
+# Generated files
+generated/
+**/generated/
+auto-generated/
+.webpack/
+.serverless/
+
+# Circle and payment specific
+usdc-payment-keys.json
+wallet-credentials.json
+*wallet-key*.json

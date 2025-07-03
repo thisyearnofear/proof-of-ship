@@ -1,48 +1,93 @@
-# Proof Of Ship
+# Builder Credit Platform
 
-A dashboard for tracking projects across different hackathons and chains.
+Decentralized platform for hackathon funding and milestone verification.
 
-## About
+## Project Structure
 
-The dashboard consists of two main sections:
+This project is organized as a monorepo with two main components:
 
-1.  **Celo Proof of Ship Projects**: Tracks projects built during Celo's Proof of Ship program across three seasons. The dashboard visualizes commit activity, issues, and pull requests for each project, with filtering options by season.
+```
+/
+├── frontend/               # Next.js frontend application
+│   ├── public/
+│   ├── src/
+│   └── ...
+│
+├── blockchain/             # Smart contract code
+│   ├── contracts/
+│   ├── scripts/
+│   ├── test/
+│   └── ...
+│
+└── docs/                   # Project documentation
+```
 
-2.  **Papa Dashboard**: Tracks daily goals and progress across different blockchain projects, including Lens, Optimism, Polygon, Mantle, and Base chains.
+## Getting Started
 
-## Development
+### Prerequisites
 
-For detailed instructions on how to get started, including development workflow and code style guidelines, please refer to the [AGENT.md](./docs/AGENT.md) documentation.
+- Node.js (version specified in `.nvmrc`)
+- npm or yarn
+- MetaMask or another Web3 wallet
 
-## Deployment
+### Installation
 
-The dashboard is deployed to two different platforms:
+```bash
+# Install all dependencies (frontend, blockchain, and root)
+npm run setup
+```
 
-### Firebase Hosting (Primary)
+### Development
 
-The main dashboard is deployed to Firebase Hosting at [https://proofofship.web.app](https://proofofship.web.app).
+#### Frontend
 
-firebase deploy
+```bash
+# Start the Next.js development server
+npm run dev
+```
 
-### Vercel (Secondary)
+#### Blockchain
 
-A secondary version is deployed to Vercel at [https://proof-of-ship.vercel.app/](https://proof-of-ship.vercel.app/).
+```bash
+# Start a local Hardhat node
+npm run blockchain:node
+
+# In another terminal, compile contracts
+npm run blockchain:compile
+
+# Deploy contracts to local node
+npm run blockchain:deploy:local
+
+# Run tests
+npm run blockchain:test
+```
+
+### Deployment
+
+#### Frontend
+
+```bash
+# Build the frontend
+npm run build
+
+# Deploy to Firebase
+npm run deploy
+```
+
+#### Contracts
+
+```bash
+# Deploy to Sepolia testnet
+npm run blockchain:deploy:sepolia
+
+# Deploy to Mumbai testnet
+npm run blockchain:deploy:mumbai
+```
 
 ## Documentation
 
-For more detailed information about the project, please refer to the following documents:
+See the [docs](./docs) directory for detailed documentation.
 
-- [**AGENT.md**](./docs/AGENT.md): Development guide, commands, and code style.
-- [**HACKATHON.md**](./docs/HACKATHON.md): Information about the MetaMask Card Hackathon, including the plan, development log, and integration details.
-- [**UI_UX.md**](./docs/UI_UX.md): Details on the design token system, component library, and icon/illustration systems.
-- [**TECHNICAL.md**](./docs/TECHNICAL.md): Technical overview of the architecture, credit scoring system, and smart contract implementation.
+## License
 
-## For Project Owners
-
-If you're a project owner, you can now edit your project details:
-
-1.  **Sign in with GitHub**
-2.  **Edit Your Project**
-3.  **Request Access**
-
-Note: Only existing projects can be edited by their owners. New projects can only be added by administrators.
+MIT

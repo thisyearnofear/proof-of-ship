@@ -1,73 +1,246 @@
-# Project Roadmap: The Builder-Centric Credit Protocol
+# Development Roadmap
 
-This document outlines the strategic evolution of the Proof of Ship platform from a project tracking dashboard into a decentralized, builder-centric credit and funding protocol.
+This document outlines the strategic development plan for the Proof of Ship platform, focusing on transforming the current prototype into a production-ready application.
 
-## 1. Core Vision
+## 📋 Development Priorities
 
-The goal is to create a system where developers can leverage their multi-faceted reputation (code, social presence, on-chain history) to access instant, non-dilutive capital for building. The key principles are:
+| Priority        | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| 🔥 **Critical** | Must be addressed immediately - blocking issues or security vulnerabilities |
+| 🚀 **High**     | Essential for core functionality - should be addressed in current sprint    |
+| 📈 **Medium**   | Important for product quality - address in upcoming sprints                 |
+| 🔍 **Low**      | Nice to have - address when resources permit                                |
 
-- **Builder-Centric**: Empower individual developers and small teams to register their own projects.
-- **Multi-Chain Native**: Operate seamlessly across multiple blockchain ecosystems.
-- **Holistic Reputation**: Utilize a sophisticated credit score based on GitHub, social protocols (Farcaster, Lens), and on-chain activity.
-- **Innovative Repayment**: Pioneer a model where loans are backed by hackathon partners and success, not just personal liability.
+## 🔥 Phase 1: Critical Fixes (1-2 Weeks)
 
-## 2. Architectural Evolution & Key Concepts
+### Smart Contract Implementation
 
-To achieve this vision, we will evolve the existing architecture. Here’s how the concepts you raised map to our technical strategy:
+- 🔥 **Deploy proper contract implementation**
 
-### a. Multi-Chain Architecture
+  - Replace stub implementation with full functionality
+  - Add comprehensive testing suite
+  - Implement proper error handling
 
-- **Current State**: The plan for multi-chain support and LI.FI integration is documented in `HACKATHON.md`.
-- **Path Forward**:
-  1.  **Smart Contracts**: The `BuilderCredit` contract (outlined in `TECHNICAL.md`) must be designed for deterministic, multi-chain deployment (e.g., using `CREATE2`).
-  2.  **Credit Scoring**: The on-chain analysis component of the credit score must aggregate data from multiple chains for a single developer identity. This requires robust RPC connections and data indexing.
-  3.  **Frontend**: The UI will need a seamless network switcher and must clearly display multi-chain assets and activities associated with a user's profile.
-  4.  **Cross-Chain Distribution**: Prioritize the LI.FI SDK integration (planned in Phase 4) to enable funding distribution on any supported chain, regardless of where the credit was scored.
+- 🔥 **Fix centralization issues**
+  - Implement multi-signature requirements for milestone verification
+  - Add emergency withdrawal functionality for users
+  - Create circuit breaker mechanism for critical functions
 
-### b. On-Chain Project Registration (Moving from Hardcoded to Dynamic)
+### Frontend Integration
 
-- **Current State**: Projects are currently hardcoded or added manually by an admin.
-- **Path Forward**:
-  1.  **Smart Contract Function**: Introduce a `registerProject()` function to the `BuilderCredit` contract. This function will require builders to stake a nominal amount of a stablecoin (e.g., USDC) to register a project. This stake acts as a sybil-resistance mechanism.
-  2.  **Stake & Slashing**: The stake can be returned upon meeting a minimum progress threshold (e.g., 10 commits and a deployed contract) or slashed if the project is abandoned. This logic will be encoded in the smart contract.
-  3.  **UI/UX Flow**: Create a new section in the dashboard for project registration. This will be a simple form where builders connect their wallet, provide a project name and GitHub repository link, and submit the staking transaction.
+- 🔥 **Fix MetaMask integration**
 
-### c. Refining the Credit Eligibility Engine
+  - Replace hardcoded USDC address with network-specific constants
+  - Implement proper network detection and switching
+  - Add error handling for wallet interactions
 
-- **Current State**: A solid foundation exists with the multi-protocol scoring model (GitHub 40% + Social 30% + On-chain 20% + Identity 10%).
-- **Path Forward**:
-  1.  **Deepen On-Chain Analysis**: Go beyond transaction history. Analyze the _quality_ of on-chain interactions: gas spent, interaction with developer-focused protocols (e.g., The Graph, Chainlink), smart contract complexity, and mainnet vs. testnet deployments.
-  2.  **Strengthen Identity Verification**: Implement a robust cross-protocol identity verification system. This could involve requiring a user to sign a message with their wallet that includes their GitHub handle, Farcaster FID, and Lens handle, creating a verifiable link between their identities.
-  3.  **Dynamic Weighting**: In the long term, the credit score model could dynamically adjust weights based on the type of project or the developer's area of expertise.
+- ✅ **Replace mock Circle API implementation** *(Completed)*
 
-### d. Implementing the Innovative Repayment Model
+  - ✅ Implemented Circle API SDK with proper server-side endpoints
+  - ✅ Added proper error handling and rate limiting
+  - ✅ Created secure validation for API keys and environment variables
+  - ✅ Updated CircleWalletContext to use API endpoints instead of direct SDK access
 
-- **Current State**: The concept is documented, and the `BuilderCredit` contract has placeholders like `repaidByHackathon` and a `verifyMilestone` function stub.
-- **Path Forward**:
-  1.  **Partner Funding Pool**: Create a mechanism for hackathon partners to deposit capital into a central funding pool within the `BuilderCredit` smart contract. This pool will underwrite the loans.
-  2.  **Milestone Oracle**: Define the "oracle" for milestone verification. This could start as a multi-sig of trusted parties (hackathon judges, project admins) who can call the `verifyMilestone` function. In the future, this could be automated by an on-chain service that programmatically checks for GitHub commits or contract deployments.
-  3.  **Loan Rollover Logic**: The `Loan` struct in the smart contract will be updated to include a `hackathonId` and a `status` field (e.g., `Active`, `Repaid`, `RolledOver`). This allows a loan's lifecycle to extend beyond a single event.
+- ✅ **Fix LI.FI integration** *(Completed)*
+  - ✅ Created dedicated LiFiContext for managing cross-chain transfers
+  - ✅ Implemented CrossChainTransfer component with proper UI integration
+  - ✅ Added support for multiple chains and automatic network switching
+  - ✅ Implemented error handling and transaction status updates
 
-## 3. Revised Development Phases
+### Security & Configuration
 
-Based on this, we can revise the project's roadmap:
+- ✅ **Secure environment configuration** *(Completed)*
 
-- **Phase 3 (Revised): Smart Contracts & On-Chain Registration**
+  - ✅ Added validation for all environment variables
+  - ✅ Implemented proper error handling for missing configuration
+  - ✅ Created documentation for required environment setup in CIRCLE_SETUP.md
 
-  - [ ] Implement `registerProject()` with staking/slashing logic in the `BuilderCredit` contract.
-  - [ ] Build the UI/UX for builder-driven project registration.
-  - [ ] Refine the `verifyMilestone` function and establish the initial oracle mechanism (e.g., admin-based).
-  - [ ] Deploy initial version of the contract to a testnet.
+- ✅ **Implement basic security measures** *(Completed)*
+  - ✅ Added rate limiting for all API endpoints
+  - ✅ Implemented proper request validation
+  - ✅ Created secure API architecture with server-side secrets
 
-- **Phase 4 (Revised): Partner Integration & Repayment Logic**
+## 🚀 Phase 2: Core Functionality (2-4 Weeks)
 
-  - [ ] Implement the partner funding pool functionality in the smart contract.
-  - [ ] Build a simple interface for partners to deposit and manage funds.
-  - [ ] Implement the full loan lifecycle logic, including repayment by the hackathon pool and the rollover mechanism.
-  - [ ] Deepen the on-chain components of the credit scoring engine.
+### Smart Contract Enhancements
 
-- **Phase 5 (Revised): Full Multi-Chain Deployment & Ecosystem Growth**
-  - [ ] Integrate the LI.FI SDK for seamless cross-chain funding distribution.
-  - [ ] Deploy the finalized smart contracts to multiple mainnets (e.g., Ethereum, Linea, Base, Polygon).
-  - [ ] Onboard the first cohort of hackathon partners and builders.
-  - [ ] Develop comprehensive documentation for builders and partners.
+- 🚀 **Implement on-chain reputation**
+
+  - Create reputation token or soulbound NFT
+  - Develop verifiable credential system
+  - Build on-chain attestation mechanisms
+
+- 🚀 **Decentralize governance**
+  - Create DAO voting mechanism for protocol decisions
+  - Implement community governance for parameter adjustments
+  - Set up transparent proposal and voting system
+
+### Credit Scoring System
+
+- 🚀 **Build real credit scoring algorithm**
+
+  - Implement data collection from GitHub, social protocols, and on-chain activity
+  - Create weighted scoring system with proper validation
+  - Develop anti-Sybil mechanisms
+
+- 🚀 **Develop reputation dashboard**
+  - Create visualizations for credit components
+  - Build improvement recommendation system
+  - Implement historical tracking
+
+### Backend Infrastructure
+
+- 🚀 **Develop robust API architecture**
+
+  - Create standardized error handling
+  - Implement proper logging
+  - Set up monitoring and alerting
+
+- 🚀 **Implement testing infrastructure**
+  - Set up Jest for unit testing
+  - Implement React Testing Library for component testing
+  - Create Cypress for end-to-end testing
+  - Set up Hardhat for contract testing
+
+## 📈 Phase 3: Product Enhancement (4-8 Weeks)
+
+### User Experience
+
+- 📈 **Improve onboarding flow**
+
+  - Create step-by-step guidance
+  - Implement progress tracking
+  - Build comprehensive documentation
+
+- 📈 **Enhance dashboard interface**
+  - Implement real-time updates
+  - Create customizable layouts
+  - Add advanced filtering and sorting
+
+### Cross-Chain Functionality
+
+- 📈 **Expand multi-chain support**
+
+  - Add support for additional chains
+  - Implement cross-chain messaging
+  - Create unified user experience across chains
+
+- 📈 **Enhance LI.FI integration**
+  - ✅ Implement production SDK integration (replaced mock functionality)
+  - ✅ Add proper token decimal handling with ethers.js
+  - ✅ Implement basic error handling for API and network issues
+  - ✅ Implement transfer history functionality
+  - 📈 Optimize cross-chain transfers for gas efficiency
+  - 📈 Add support for transferring tokens other than USDC
+  - 📈 Create fallback mechanisms for API unavailability
+  - 📈 Implement real-time transfer tracking and notifications
+
+### Developer Experience
+
+- 📈 **Create developer SDK**
+
+  - Build JavaScript/TypeScript SDK
+  - Implement comprehensive documentation
+  - Create example applications
+
+- 📈 **Launch developer portal**
+  - Create API documentation
+  - Build interactive examples
+  - Implement developer dashboard
+
+## 🔍 Phase 4: Scaling & Optimization (8-12 Weeks)
+
+### Performance Optimization
+
+- 🔍 **Frontend optimization**
+
+  - Implement code splitting and lazy loading
+  - Optimize bundle size
+  - Add performance monitoring
+
+- 🔍 **Backend scaling**
+  - Implement database sharding
+  - Add load balancing
+  - Set up auto-scaling infrastructure
+
+### Advanced Features
+
+- 🔍 **Implement advanced analytics**
+
+  - Create custom dashboard builder
+  - Build export functionality
+  - Develop advanced filtering and visualization
+
+- 🔍 **Build protocol integrations**
+  - Expand social protocol integrations
+  - Add DeFi protocol connections
+  - Create ecosystem partnerships
+
+### Community Building
+
+- 🔍 **Develop contribution program**
+
+  - Create bounty system
+  - Implement hackathon sponsorships
+  - Build community governance
+
+- 🔍 **Launch educational resources**
+  - Create tutorials and guides
+  - Build interactive learning modules
+  - Develop certification program
+
+## 📆 Milestone Definitions
+
+### Milestone 1: MVP Stabilization
+
+- Critical fixes implemented
+- Core functionality restored
+- Basic testing infrastructure in place
+- Documentation updated
+
+### Milestone 2: Production Readiness
+
+- All high-priority items addressed
+- Comprehensive testing suite
+- Security audit completed
+- Performance optimized for current scale
+
+### Milestone 3: Full Feature Set
+
+- All medium-priority items implemented
+- Cross-chain functionality complete
+- Advanced analytics available
+- Developer SDK released
+
+### Milestone 4: Ecosystem Growth
+
+- All low-priority enhancements added
+- Community governance live
+- Educational resources available
+- Partner integrations complete
+
+## 🛠️ Engineering Resources Required
+
+### Phase 1-2
+
+- 2 Smart Contract Developers
+- 2 Frontend Developers
+- 1 Backend Developer
+- 1 DevOps Engineer
+
+### Phase 3-4
+
+- 2 Smart Contract Developers
+- 3 Frontend Developers
+- 2 Backend Developers
+- 1 DevOps Engineer
+- 1 Security Specialist
+- 1 UX Designer
+
+## 📈 Success Metrics
+
+- **Code Quality**: Test coverage > 80%, no critical security issues
+- **Performance**: Page load < 2s, API response < 500ms
+- **User Engagement**: Active developers > 1000, projects registered > 500
+- **Security**: Successful security audit, no vulnerabilities
+- **Reliability**: Uptime > 99.9%, error rate < 0.1%

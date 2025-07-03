@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
-import { Footer } from "@/components/common/layout";
+
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import {
@@ -406,8 +406,6 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

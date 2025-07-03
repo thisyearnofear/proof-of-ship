@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useDecentralizedAuth } from "@/contexts/DecentralizedAuthContext";
 import { useMetaMask } from "@/contexts/MetaMaskContext";
 import { CreditDashboard } from "@/components/credit";
-import { Footer } from "@/components/common/layout";
+;
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import CrossChainFunding from "@/components/CrossChainFunding";
 import { NetworkSwitcher } from "../components/wallet/NetworkSwitcher";
@@ -102,7 +102,7 @@ export default function CreditPage() {
         <div className="flex items-center justify-center h-96">
           <LoadingSpinner size="lg" />
         </div>
-        <Footer />
+        
       </div>
     );
   }
@@ -386,7 +386,6 @@ export default function CreditPage() {
         />
       </Modal>
 
-      <Footer />
     </div>
   );
 }

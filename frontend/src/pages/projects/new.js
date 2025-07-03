@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navbar, Footer } from '@/components/common/layout';
+import { Navbar } from '@/components/common/layout';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -209,7 +209,7 @@ export default function NewProjectPage() {
         <div className="flex items-center justify-center h-96">
           <LoadingSpinner size="lg" />
         </div>
-        <Footer />
+        
       </div>
     );
   }
@@ -240,7 +240,7 @@ export default function NewProjectPage() {
             </Button>
           </Card>
         </div>
-        <Footer />
+        
       </div>
     );
   }
@@ -638,7 +638,6 @@ export default function NewProjectPage() {
         </form>
       </div>
 
-      <Footer />
     </div>
   );
 }

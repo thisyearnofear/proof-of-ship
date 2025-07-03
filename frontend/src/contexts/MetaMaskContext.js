@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { MetaMaskProvider, useSDK } from "@metamask/sdk-react";
 import { ethers } from "ethers";
+import { getUSDCAddress } from "../config/networks";
 
 const MetaMaskContext = createContext();
 
@@ -17,7 +24,7 @@ const MetaMaskContextProvider = ({ children }) => {
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [networkName, setNetworkName] = useState('');
+  const [networkName, setNetworkName] = useState("");
   const [ethersProvider, setEthersProvider] = useState(null);
   const [signer, setSigner] = useState(null);
 
@@ -30,7 +37,9 @@ const MetaMaskContextProvider = ({ children }) => {
       console.log("Connected accounts:", accounts);
     } catch (err) {
       console.error("Failed to connect:", err);
-      setError(err.message || "Failed to connect to MetaMask. Please try again.");
+      setError(
+        err.message || "Failed to connect to MetaMask. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -76,7 +85,7 @@ const MetaMaskContextProvider = ({ children }) => {
         [
           "function balanceOf(address owner) view returns (uint256)",
           "function decimals() view returns (uint8)",
-          "function symbol() view returns (string)"
+          "function symbol() view returns (string)",
         ],
         ethersProvider
       );
@@ -101,74 +110,74 @@ const MetaMaskContextProvider = ({ children }) => {
   const networkConfigs = {
     // Ethereum Mainnet
     1: {
-      chainId: '0x1',
-      chainName: 'Ethereum Mainnet',
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpcUrls: ['https://mainnet.infura.io/v3/'],
-      blockExplorerUrls: ['https://etherscan.io']
+      chainId: "0x1",
+      chainName: "Ethereum Mainnet",
+      nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+      rpcUrls: ["https://mainnet.infura.io/v3/"],
+      blockExplorerUrls: ["https://etherscan.io"],
     },
     // Polygon
     137: {
-      chainId: '0x89',
-      chainName: 'Polygon Mainnet',
-      nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-      rpcUrls: ['https://polygon-rpc.com/'],
-      blockExplorerUrls: ['https://polygonscan.com']
+      chainId: "0x89",
+      chainName: "Polygon Mainnet",
+      nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+      rpcUrls: ["https://polygon-rpc.com/"],
+      blockExplorerUrls: ["https://polygonscan.com"],
     },
     // Optimism
     10: {
-      chainId: '0xa',
-      chainName: 'Optimism',
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpcUrls: ['https://mainnet.optimism.io'],
-      blockExplorerUrls: ['https://optimistic.etherscan.io']
+      chainId: "0xa",
+      chainName: "Optimism",
+      nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+      rpcUrls: ["https://mainnet.optimism.io"],
+      blockExplorerUrls: ["https://optimistic.etherscan.io"],
     },
     // Arbitrum
     42161: {
-      chainId: '0xa4b1',
-      chainName: 'Arbitrum One',
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpcUrls: ['https://arb1.arbitrum.io/rpc'],
-      blockExplorerUrls: ['https://arbiscan.io']
+      chainId: "0xa4b1",
+      chainName: "Arbitrum One",
+      nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+      rpcUrls: ["https://arb1.arbitrum.io/rpc"],
+      blockExplorerUrls: ["https://arbiscan.io"],
     },
     // BNB Chain
     56: {
-      chainId: '0x38',
-      chainName: 'BNB Smart Chain',
-      nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-      rpcUrls: ['https://bsc-dataseed.binance.org/'],
-      blockExplorerUrls: ['https://bscscan.com']
+      chainId: "0x38",
+      chainName: "BNB Smart Chain",
+      nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+      rpcUrls: ["https://bsc-dataseed.binance.org/"],
+      blockExplorerUrls: ["https://bscscan.com"],
     },
     // Avalanche
     43114: {
-      chainId: '0xa86a',
-      chainName: 'Avalanche C-Chain',
-      nativeCurrency: { name: 'Avalanche', symbol: 'AVAX', decimals: 18 },
-      rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
-      blockExplorerUrls: ['https://snowtrace.io']
+      chainId: "0xa86a",
+      chainName: "Avalanche C-Chain",
+      nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
+      rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],
+      blockExplorerUrls: ["https://snowtrace.io"],
     },
     // Celo
     42220: {
-      chainId: '0xa4ec',
-      chainName: 'Celo Mainnet',
-      nativeCurrency: { name: 'Celo', symbol: 'CELO', decimals: 18 },
-      rpcUrls: ['https://forno.celo.org'],
-      blockExplorerUrls: ['https://explorer.celo.org']
+      chainId: "0xa4ec",
+      chainName: "Celo Mainnet",
+      nativeCurrency: { name: "Celo", symbol: "CELO", decimals: 18 },
+      rpcUrls: ["https://forno.celo.org"],
+      blockExplorerUrls: ["https://explorer.celo.org"],
     },
     // Base
     8453: {
-      chainId: '0x2105',
-      chainName: 'Base',
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpcUrls: ['https://mainnet.base.org'],
-      blockExplorerUrls: ['https://basescan.org']
-    }
+      chainId: "0x2105",
+      chainName: "Base",
+      nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+      rpcUrls: ["https://mainnet.base.org"],
+      blockExplorerUrls: ["https://basescan.org"],
+    },
   };
 
   // Add a new chain to MetaMask
   const addChain = async (chainId) => {
     if (!provider) return;
-    
+
     const networkConfig = networkConfigs[chainId];
     if (!networkConfig) {
       throw new Error(`Network configuration not found for chainId ${chainId}`);
@@ -176,20 +185,20 @@ const MetaMaskContextProvider = ({ children }) => {
 
     try {
       await provider.request({
-        method: 'wallet_addEthereumChain',
+        method: "wallet_addEthereumChain",
         params: [
           {
             chainId: networkConfig.chainId,
             chainName: networkConfig.chainName,
             nativeCurrency: networkConfig.nativeCurrency,
             rpcUrls: networkConfig.rpcUrls,
-            blockExplorerUrls: networkConfig.blockExplorerUrls
-          }
-        ]
+            blockExplorerUrls: networkConfig.blockExplorerUrls,
+          },
+        ],
       });
       return true;
     } catch (err) {
-      console.error('Failed to add network:', err);
+      console.error("Failed to add network:", err);
       throw err;
     }
   };
@@ -228,30 +237,10 @@ const MetaMaskContextProvider = ({ children }) => {
     }
   };
 
-  // USDC token addresses across different chains
-  const usdcAddresses = {
-    // Mainnet USDC
-    1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    // Polygon USDC
-    137: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-    // Optimism USDC
-    10: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607',
-    // Arbitrum USDC
-    42161: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
-    // BSC USDC
-    56: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-    // Avalanche USDC
-    43114: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',
-    // Celo USDC
-    42220: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
-    // Base USDC
-    8453: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
-  };
-
   // Get current USDC address for the connected chain
   const getCurrentUSDCAddress = () => {
     if (!chainId) return null;
-    return usdcAddresses[chainId] || null;
+    return getUSDCAddress(chainId);
   };
 
   // Get USDC balance
@@ -279,7 +268,7 @@ const MetaMaskContextProvider = ({ children }) => {
           },
         },
       });
-      
+
       return wasAdded;
     } catch (err) {
       console.error(`Failed to add ${symbol} token:`, err);
@@ -297,7 +286,7 @@ const MetaMaskContextProvider = ({ children }) => {
       setError("USDC token not available on this network");
       return false;
     }
-    
+
     return await addToken(
       usdcAddress,
       "USDC",
@@ -319,11 +308,11 @@ const MetaMaskContextProvider = ({ children }) => {
       const ethProvider = new ethers.providers.Web3Provider(provider);
       setEthersProvider(ethProvider);
       setSigner(ethProvider.getSigner());
-      
+
       // Update network name
       const networkName = getNetworkName();
       setNetworkName(networkName);
-      
+
       // Get balances
       getBalance();
     } else {
@@ -351,7 +340,8 @@ const MetaMaskContextProvider = ({ children }) => {
       console.log("Chain changed:", chainIdHex);
       // No need to reload the page, we'll handle the update
       const newChainId = parseInt(chainIdHex, 16);
-      const networkName = networkConfigs[newChainId]?.chainName || `Chain ID: ${newChainId}`;
+      const networkName =
+        networkConfigs[newChainId]?.chainName || `Chain ID: ${newChainId}`;
       setNetworkName(networkName);
       getBalance();
     };
@@ -388,10 +378,9 @@ const MetaMaskContextProvider = ({ children }) => {
     addChain,
     addToken,
     addUSDCToken,
-    
+
     // Network data
     networkConfigs,
-    usdcAddresses,
     getCurrentUSDCAddress,
 
     // Provider for advanced operations
@@ -422,7 +411,7 @@ export const MetaMaskProviderWrapper = ({ children, demand = true }) => {
     },
     enableDebug: false,
     autoConnect: {
-      enable: true,  // Auto-connect if previously connected
+      enable: true, // Auto-connect if previously connected
     },
   };
 

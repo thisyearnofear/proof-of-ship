@@ -1,26 +1,15 @@
-import { formatUnits, parseUnits } from 'ethers';
-import { 
-  createConfig, 
-  getChains, 
-  getQuote, 
-  getRoutes, 
-  executeRoute,
-  getTokens,
-  getStatus,
-  getStepTransaction,
-  getTokenBalance,
-  getTokenBalances
-} from '@lifi/sdk';
+import { utils } from "ethers";
+import { LiFi } from "@lifi/sdk";
 
 // Configure LI.FI SDK
-const lifiConfig = createConfig({
-  integrator: 'proof-of-ship-dashboard',
+const lifi = new LiFi({
+  integrator: "proof-of-ship-dashboard",
   // Add any additional configuration options here
 });
 
 export class CrossChainUSDCService {
   constructor() {
-    this.config = lifiConfig;
+    this.lifi = lifi;
   }
 
   /**
@@ -28,18 +17,19 @@ export class CrossChainUSDCService {
    */
   async getSupportedChains() {
     try {
-      const chains = await getChains();
+      const chains = await this.lifi.getChains();
       // Filter for chains that support USDC
-      return chains.filter(chain => 
-        chain.tokenListUrl && 
-        (chain.name.toLowerCase().includes('ethereum') || 
-         chain.name.toLowerCase().includes('linea') ||
-         chain.name.toLowerCase().includes('polygon') ||
-         chain.name.toLowerCase().includes('optimism') ||
-         chain.name.toLowerCase().includes('arbitrum'))
+      return chains.filter(
+        (chain) =>
+          chain.tokenListUrl &&
+          (chain.name.toLowerCase().includes("ethereum") ||
+            chain.name.toLowerCase().includes("linea") ||
+            chain.name.toLowerCase().includes("polygon") ||
+            chain.name.toLowerCase().includes("optimism") ||
+            chain.name.toLowerCase().includes("arbitrum"))
       );
     } catch (error) {
-      console.error('Error fetching supported chains:', error);
+      console.error("Error fetching supported chains:", error);
       throw error;
     }
   }
@@ -49,13 +39,13 @@ export class CrossChainUSDCService {
    */
   async getUSDCToken(chainId) {
     try {
-      const tokens = await getTokens({ chains: [chainId] });
-      const usdcToken = tokens.tokens[chainId]?.find(token => 
-        token.symbol === 'USDC' || token.symbol === 'USDC.e'
+      const tokens = await this.lifi.getTokens({ chains: [chainId] });
+      const usdcToken = tokens.tokens[chainId]?.find(
+        (token) => token.symbol === "USDC" || token.symbol === "USDC.e"
       );
       return usdcToken;
     } catch (error) {
-      console.error('Error fetching USDC token:', error);
+      console.error("Error fetching USDC token:", error);
       throw error;
     }
   }
@@ -70,10 +60,10 @@ export class CrossChainUSDCService {
     toTokenAddress,
     fromAmount,
     fromAddress,
-    toAddress
+    toAddress,
   }) {
     try {
-      const quote = await getQuote({
+      const quote = await this.lifi.getQuote({
         fromChain: fromChainId,
         toChain: toChainId,
         fromToken: fromTokenAddress,
@@ -83,8 +73,8 @@ export class CrossChainUSDCService {
         toAddress: toAddress,
         options: {
           slippage: 0.03, // 3% slippage tolerance
-          order: 'RECOMMENDED', // Get best route
-        }
+          order: "RECOMMENDED", // Get best route
+        },
       });
 
       return {
@@ -93,10 +83,10 @@ export class CrossChainUSDCService {
         estimatedTime: quote.estimate.executionDuration,
         fees: quote.estimate.feeCosts,
         toAmountMin: quote.estimate.toAmountMin,
-        toAmount: quote.estimate.toAmount
+        toAmount: quote.estimate.toAmount,
       };
     } catch (error) {
-      console.error('Error getting transfer quote:', error);
+      console.error("Error getting transfer quote:", error);
       throw error;
     }
   }
@@ -111,10 +101,10 @@ export class CrossChainUSDCService {
       return {
         success: true,
         execution: execution,
-        finalTxHash: execution.txHash
+        finalTxHash: execution.txHash,
       };
     } catch (error) {
-      console.error('Error executing transfer:', error);
+      console.error("Error executing transfer:", error);
       throw error;
     }
   }
@@ -124,10 +114,10 @@ export class CrossChainUSDCService {
    */
   async getTransferStatus(txHash, fromChainId) {
     try {
-      const status = await getStatus({
+      const status = await this.lifi.getStatus({
         txHash: txHash,
-        bridge: 'lifi', // or specific bridge used
-        fromChain: fromChainId
+        bridge: "lifi", // or specific bridge used
+        fromChain: fromChainId,
       });
 
       return {
@@ -136,10 +126,10 @@ export class CrossChainUSDCService {
         substatusMessage: status.substatusMessage,
         sending: status.sending,
         receiving: status.receiving,
-        lifiExplorerLink: status.lifiExplorerLink
+        lifiExplorerLink: status.lifiExplorerLink,
       };
     } catch (error) {
-      console.error('Error checking transfer status:', error);
+      console.error("Error checking transfer status:", error);
       throw error;
     }
   }
@@ -153,7 +143,7 @@ export class CrossChainUSDCService {
     totalAmount,
     preferredChains = [1, 59144], // Ethereum, Linea
     sourceChainId = 1, // Default to Ethereum
-    sourceTokenAddress
+    sourceTokenAddress,
   }) {
     try {
       const results = [];
@@ -165,8 +155,8 @@ export class CrossChainUSDCService {
           results.push({
             chainId,
             amount: amountPerChain,
-            type: 'direct',
-            status: 'pending'
+            type: "direct",
+            status: "pending",
           });
           continue;
         }
@@ -185,15 +175,15 @@ export class CrossChainUSDCService {
           toTokenAddress: toToken.address,
           fromAmount: amountPerChain.toString(),
           fromAddress: developerAddress,
-          toAddress: developerAddress
+          toAddress: developerAddress,
         });
 
         results.push({
           chainId,
           amount: amountPerChain,
-          type: 'cross-chain',
+          type: "cross-chain",
           quote: quote,
-          status: 'quoted'
+          status: "quoted",
         });
       }
 
@@ -201,10 +191,10 @@ export class CrossChainUSDCService {
         success: true,
         distribution: results,
         totalAmount,
-        chainsCount: preferredChains.length
+        chainsCount: preferredChains.length,
       };
     } catch (error) {
-      console.error('Error planning multichain funding:', error);
+      console.error("Error planning multichain funding:", error);
       throw error;
     }
   }
@@ -224,28 +214,38 @@ export class CrossChainUSDCService {
 
           // Fetch actual token balance using LiFi SDK
           try {
-            const balance = await getTokenBalance(address, usdcToken, chain.id);
+            const balance = await this.lifi.getTokenBalance(
+              address,
+              usdcToken,
+              chain.id
+            );
             balances.push({
               chainId: chain.id,
               chainName: chain.name,
               tokenAddress: usdcToken.address,
-              balance: balance.amount || '0',
+              balance: balance.amount || "0",
               symbol: usdcToken.symbol,
               decimals: usdcToken.decimals,
-              formattedBalance: formatUnits(balance.amount || '0', usdcToken.decimals)
+              formattedBalance: utils.formatUnits(
+                balance.amount || "0",
+                usdcToken.decimals
+              ),
             });
           } catch (balanceError) {
-            console.warn(`Error fetching balance for ${usdcToken.symbol} on ${chain.name}:`, balanceError);
+            console.warn(
+              `Error fetching balance for ${usdcToken.symbol} on ${chain.name}:`,
+              balanceError
+            );
             // Only fall back to zero balance if balance fetch fails
             balances.push({
               chainId: chain.id,
               chainName: chain.name,
               tokenAddress: usdcToken.address,
-              balance: '0',
+              balance: "0",
               symbol: usdcToken.symbol,
               decimals: usdcToken.decimals,
-              formattedBalance: '0.0',
-              error: 'Balance fetch failed'
+              formattedBalance: "0.0",
+              error: "Balance fetch failed",
             });
           }
         } catch (error) {
@@ -255,7 +255,7 @@ export class CrossChainUSDCService {
 
       return balances;
     } catch (error) {
-      console.error('Error fetching developer balances:', error);
+      console.error("Error fetching developer balances:", error);
       throw error;
     }
   }

@@ -1,0 +1,109 @@
+[
+  {
+    "slug": "3wb",
+    "owner": "3-Wheeler-Bike-Club",
+    "repo": "3-wheeler-bike-club-members-app-pwa",
+    "season": 1
+  },
+  {
+    "slug": "nyfa",
+    "owner": "nyfaapp",
+    "repo": "celo-nyfa-app",
+    "season": 1
+  },
+  {
+    "slug": "jazmeen",
+    "owner": "gabrieltemtsen",
+    "repo": "jazmeen",
+    "season": 1
+  },
+  {
+    "slug": "sovseas",
+    "owner": "Olisehgenesis",
+    "repo": "sovereign-seas",
+    "season": 2
+  },
+  {
+    "slug": "mind",
+    "owner": "0xOucan",
+    "repo": "celo-mind-dn",
+    "season": 2
+  },
+  {
+    "slug": "canvass",
+    "owner": "andrewkimjoseph",
+    "repo": "canvassing-participant",
+    "season": 2
+  },
+  {
+    "slug": "subpay",
+    "owner": "Kanasjnr",
+    "repo": "Subpay",
+    "season": 2
+  },
+  {
+    "slug": "stablestation",
+    "owner": "thisyearnofear",
+    "repo": "hello-world-computer",
+    "season": 3
+  },
+  {
+    "slug": "esusu",
+    "owner": "emiridbest",
+    "repo": "esusu",
+    "season": 3
+  },
+  {
+    "slug": "moviemeter",
+    "owner": "GideonNut",
+    "repo": "Moviemeter",
+    "season": 3
+  },
+  {
+    "slug": "stablesl",
+    "owner": "pasosdeJesus",
+    "repo": "stable-sl",
+    "season": 3
+  },
+  {
+    "slug": "mobarter",
+    "owner": "philix27",
+    "repo": "mobarter-2025",
+    "season": 3
+  },
+  {
+    "slug": "famile",
+    "owner": "thisyearnofear",
+    "repo": "family",
+    "season": "papa",
+    "chain": "lens"
+  },
+  {
+    "slug": "amacast",
+    "owner": "thisyearnofear",
+    "repo": "amacaster-v2",
+    "season": "papa",
+    "chain": "optimism"
+  },
+  {
+    "slug": "imperfect",
+    "owner": "thisyearnofear",
+    "repo": "imperfect-form",
+    "season": "papa",
+    "chain": "polygon"
+  },
+  {
+    "slug": "megavibe",
+    "owner": "thisyearnofear",
+    "repo": "megavibe",
+    "season": "papa",
+    "chain": "mantle"
+  },
+  {
+    "slug": "coupondj",
+    "owner": "thisyearnofear",
+    "repo": "wayback-classic",
+    "season": "papa",
+    "chain": "base"
+  }
+]

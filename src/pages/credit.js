@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import { useDecentralizedAuth } from "@/contexts/DecentralizedAuthContext";
 import { useMetaMask } from "@/contexts/MetaMaskContext";
 import { CreditDashboard } from "@/components/credit";
-import { Navbar, Footer } from "@/components/common/layout";
+import { Footer } from "@/components/common/layout";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import CrossChainFunding from "@/components/CrossChainFunding";
 import { NetworkSwitcher } from "../components/wallet/NetworkSwitcher";
@@ -99,7 +99,6 @@ export default function CreditPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
         <div className="flex items-center justify-center h-96">
           <LoadingSpinner size="lg" />
         </div>
@@ -114,8 +113,6 @@ export default function CreditPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

@@ -24,9 +24,9 @@ export function EnhancedGithubProvider({ children }) {
 
   const mountedRef = useRef(true);
 
-  // Load all project data on mount
+  // Load essential project data on mount (meta + commits only)
   useEffect(() => {
-    loadAllProjectData();
+    loadEssentialProjectData();
     
     return () => {
       mountedRef.current = false;
@@ -38,13 +38,66 @@ export function EnhancedGithubProvider({ children }) {
     loadEcosystemStats();
   }, [activeEcosystem]);
 
+  // Load only essential data on initial mount (meta + commits)
+  const loadEssentialProjectData = async () => {
+    try {
+      setLoading(true);
+      setErrors({});
+
+      // Load projects with essential data only (meta + commits)
+      const allProjects = await enhancedDataService.loadAllProjects('all', {
+        celoDataTypes: ["meta", "commits"],
+        baseDataTypes: ["meta", "commits"]
+      });
+      
+      if (mountedRef.current) {
+        setProjectData(allProjects);
+        
+        // Create unified data map for backward compatibility
+        const unifiedDataMap = {};
+        
+        Object.entries(allProjects).forEach(([ecosystem, projects]) => {
+          projects.forEach(project => {
+            unifiedDataMap[project.slug] = {
+              ...project.githubData,
+              stats: project.stats,
+              ecosystem,
+              meta: {
+                ...project.githubData?.meta,
+                ecosystem,
+                healthScore: project.stats?.healthScore,
+                isActive: project.stats?.isActive
+              }
+            };
+          });
+        });
+        
+        setDataMap(unifiedDataMap);
+      }
+    } catch (error) {
+      console.error('Failed to load essential project data:', error);
+      if (mountedRef.current) {
+        setErrors({ general: error.message });
+      }
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Load all project data including issues and PRs (for manual refresh)
   const loadAllProjectData = async () => {
     try {
       setLoading(true);
       setErrors({});
 
-      // Load projects from both ecosystems
-      const allProjects = await enhancedDataService.loadAllProjects();
+      // Load projects with all data types
+      const allProjects = await enhancedDataService.loadAllProjects('all', {
+        celoDataTypes: ["meta", "commits", "issues", "prs"],
+        baseDataTypes: ["meta", "commits", "issues", "prs"],
+        forceRefresh: true
+      });
       
       if (mountedRef.current) {
         setProjectData(allProjects);
@@ -98,7 +151,7 @@ export function EnhancedGithubProvider({ children }) {
       // Clear cache to force fresh data
       enhancedDataService.clearAllCaches();
       
-      // Reload data
+      // Reload ALL data (including issues and PRs) for manual refresh
       await loadAllProjectData();
       await loadEcosystemStats();
       
@@ -107,6 +160,51 @@ export function EnhancedGithubProvider({ children }) {
       setErrors({ refresh: error.message });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load detailed data for a specific project (issues + PRs)
+  const loadProjectDetails = async (slug, ecosystem = null) => {
+    try {
+      // Load full data for this specific project
+      const project = await enhancedDataService.getProject(slug, ecosystem);
+      if (project && mountedRef.current) {
+        // Update the specific project in our data
+        setProjectData(prev => {
+          const updated = { ...prev };
+          const projectEcosystem = project.ecosystem || ecosystem || 'celo';
+          
+          if (updated[projectEcosystem]) {
+            const projectIndex = updated[projectEcosystem].findIndex(p => p.slug === slug);
+            if (projectIndex >= 0) {
+              updated[projectEcosystem][projectIndex] = project;
+            }
+          }
+          
+          return updated;
+        });
+        
+        // Update data map
+        setDataMap(prev => ({
+          ...prev,
+          [slug]: {
+            ...project.githubData,
+            stats: project.stats,
+            ecosystem: projectEcosystem,
+            meta: {
+              ...project.githubData?.meta,
+              ecosystem: projectEcosystem,
+              healthScore: project.stats?.healthScore,
+              isActive: project.stats?.isActive
+            }
+          }
+        }));
+      }
+      
+      return project;
+    } catch (error) {
+      console.error(`Failed to load details for project ${slug}:`, error);
+      return null;
     }
   };
 
@@ -236,6 +334,7 @@ export function EnhancedGithubProvider({ children }) {
     setSelectedSlug,
     setActiveEcosystem,
     refreshProjectData,
+    loadProjectDetails,
     submitProject,
     searchProjects,
     getProject,
@@ -247,6 +346,10 @@ export function EnhancedGithubProvider({ children }) {
     
     // Utilities
     clearCache: () => enhancedDataService.clearAllCaches(),
+    hasDetailedData: (slug) => {
+      const project = dataMap[slug];
+      return project && (project.issues || project.pulls);
+    },
     
     // Ecosystem management
     switchEcosystem: (ecosystem) => {

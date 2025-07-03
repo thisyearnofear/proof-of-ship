@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useDecentralizedAuth } from '../contexts/DecentralizedAuthContext';
-import { useMetaMask } from '../contexts/MetaMaskContext';
-import { Navbar, Footer } from '../components/common/layout';
-import OnboardingFlow from '../components/onboarding/OnboardingFlow';
-import { Card } from '../components/common/Card';
-import Button from '../components/common/Button';
-import { LoadingSpinner } from '../components/common/LoadingStates';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { useDecentralizedAuth } from "../contexts/DecentralizedAuthContext";
+import { useMetaMask } from "../contexts/MetaMaskContext";
+import { Footer } from "../components/common/layout";
+import OnboardingFlow from "../components/onboarding/OnboardingFlow";
+import { Card } from "../components/common/Card";
+import Button from "../components/common/Button";
+import { LoadingSpinner } from "../components/common/LoadingStates";
 import {
   WalletIcon,
   ShieldCheckIcon,
   SparklesIcon,
   ArrowRightIcon,
-  CheckCircleIcon
-} from '@heroicons/react/24/outline';
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 
 export default function SignUpPage() {
   const router = useRouter();
   const { connected } = useMetaMask();
-  const { 
-    isAuthenticated, 
-    onboardingComplete, 
-    userProfile, 
+  const {
+    isAuthenticated,
+    onboardingComplete,
+    userProfile,
     creditData,
     loading,
-    completeOnboarding 
+    completeOnboarding,
   } = useDecentralizedAuth();
-  
+
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     // Redirect if already fully set up
     if (isAuthenticated && onboardingComplete && creditData) {
-      const redirectTo = router.query.redirect || '/credit';
+      const redirectTo = router.query.redirect || "/credit";
       router.push(redirectTo);
     }
   }, [isAuthenticated, onboardingComplete, creditData, router]);
@@ -46,9 +46,9 @@ export default function SignUpPage() {
 
   const handleOnboardingComplete = async (profile, creditData) => {
     await completeOnboarding(profile, creditData);
-    
+
     // Redirect to intended destination
-    const redirectTo = router.query.redirect || '/credit';
+    const redirectTo = router.query.redirect || "/credit";
     router.push(redirectTo);
   };
 
@@ -59,7 +59,6 @@ export default function SignUpPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Navbar />
         <div className="flex items-center justify-center h-96">
           <LoadingSpinner size="lg" />
         </div>
@@ -71,7 +70,6 @@ export default function SignUpPage() {
   if (showOnboarding) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <OnboardingFlow onComplete={handleOnboardingComplete} />
         </div>
@@ -82,8 +80,6 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Navbar />
-      
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -93,17 +89,19 @@ export default function SignUpPage() {
               <span>Decentralized Identity Verification</span>
             </div>
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Build Your
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {' '}Developer Credit
+              {" "}
+              Developer Credit
             </span>
           </h1>
-          
+
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Connect your wallet and social profiles to build a comprehensive developer credit score. 
-            No emails, no passwords - just your on-chain and social reputation.
+            Connect your wallet and social profiles to build a comprehensive
+            developer credit score. No emails, no passwords - just your on-chain
+            and social reputation.
           </p>
         </div>
 
@@ -134,7 +132,7 @@ export default function SignUpPage() {
           <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
             Why Choose Decentralized Identity?
           </h3>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <BenefitItem
@@ -150,7 +148,7 @@ export default function SignUpPage() {
                 description="Your credit score is calculated from your actual contributions and activity across platforms."
               />
             </div>
-            
+
             <div className="space-y-4">
               <BenefitItem
                 title="Real-Time Updates"
@@ -175,9 +173,10 @@ export default function SignUpPage() {
               Ready to Build Your Developer Credit?
             </h3>
             <p className="text-gray-600 mb-6">
-              Join hundreds of developers who are already leveraging their reputation for instant funding access.
+              Join hundreds of developers who are already leveraging their
+              reputation for instant funding access.
             </p>
-            
+
             <Button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 text-lg font-semibold"
@@ -185,9 +184,10 @@ export default function SignUpPage() {
               Get Started Now
               <ArrowRightIcon className="w-5 h-5 ml-2" />
             </Button>
-            
+
             <p className="text-sm text-gray-500 mt-4">
-              Takes less than 5 minutes • No email required • Fully decentralized
+              Takes less than 5 minutes • No email required • Fully
+              decentralized
             </p>
           </Card>
         </div>
@@ -196,7 +196,10 @@ export default function SignUpPage() {
         <div className="mt-12 text-center">
           <div className="inline-flex items-center space-x-2 text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
             <ShieldCheckIcon className="w-4 h-4" />
-            <span>Your private keys never leave your wallet. We only read public data.</span>
+            <span>
+              Your private keys never leave your wallet. We only read public
+              data.
+            </span>
           </div>
         </div>
       </div>

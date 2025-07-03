@@ -19,14 +19,20 @@ class EnhancedDataService extends DataService {
   }
 
   /**
-   * Unified project loading - handles both Celo and Base projects
+   * Unified project loading - handles both Celo and Base projects with smart data loading
    */
-  async loadAllProjects(ecosystem = 'all') {
-    const cacheKey = `projects_${ecosystem}`;
+  async loadAllProjects(ecosystem = 'all', options = {}) {
+    const { 
+      celoDataTypes = ["meta", "commits"], // Default to essential data only
+      baseDataTypes = ["meta", "commits"],
+      forceRefresh = false 
+    } = options;
+    
+    const cacheKey = `projects_${ecosystem}_${celoDataTypes.join(',')}_${baseDataTypes.join(',')}`;
     
     try {
-      // Check cache first
-      if (this.projectCache.has(cacheKey)) {
+      // Check cache first (unless forcing refresh)
+      if (!forceRefresh && this.projectCache.has(cacheKey)) {
         const { data, timestamp } = this.projectCache.get(cacheKey);
         if (Date.now() - timestamp < this.cacheTTL.projects) {
           return data;
@@ -36,14 +42,14 @@ class EnhancedDataService extends DataService {
       let projects = {};
 
       if (ecosystem === 'all' || ecosystem === 'celo') {
-        // Load Celo projects (existing static data)
-        const celoProjects = await this.loadCeloProjects();
+        // Load Celo projects with specified data types
+        const celoProjects = await this.loadCeloProjects(celoDataTypes);
         projects.celo = celoProjects;
       }
 
       if (ecosystem === 'all' || ecosystem === 'base') {
-        // Load Base projects (new dynamic data)
-        const baseProjects = await this.loadBaseProjects();
+        // Load Base projects with specified data types
+        const baseProjects = await this.loadBaseProjects(baseDataTypes);
         projects.base = baseProjects;
       }
 
@@ -61,12 +67,12 @@ class EnhancedDataService extends DataService {
   }
 
   /**
-   * Load Celo projects using existing infrastructure
+   * Load Celo projects using existing infrastructure with configurable data types
    */
-  async loadCeloProjects() {
+  async loadCeloProjects(dataTypes = ["meta", "commits"]) {
     try {
-      // Use existing GitHub data loading
-      const githubData = await this.loadAllGitHubData(repos);
+      // Use existing GitHub data loading with specified data types
+      const githubData = await this.loadAllGitHubData(repos, dataTypes);
       
       // Enhance with ecosystem metadata
       const enhancedProjects = repos.map(repo => ({
@@ -75,7 +81,8 @@ class EnhancedDataService extends DataService {
         source: 'static',
         githubData: githubData[repo.slug] || {},
         stats: this.calculateProjectStats(githubData[repo.slug] || {}),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        dataTypes: dataTypes // Track what data was loaded
       }));
 
       return enhancedProjects;
@@ -86,9 +93,9 @@ class EnhancedDataService extends DataService {
   }
 
   /**
-   * Load Base projects from Firestore
+   * Load Base projects from Firestore with configurable data types
    */
-  async loadBaseProjects() {
+  async loadBaseProjects(dataTypes = ["meta", "commits"]) {
     try {
       const baseProjectsRef = collection(db, 'projects_base');
       const q = query(
@@ -103,12 +110,13 @@ class EnhancedDataService extends DataService {
       for (const docSnap of snapshot.docs) {
         const projectData = { id: docSnap.id, ...docSnap.data() };
         
-        // Fetch GitHub data for Base projects too
+        // Fetch GitHub data for Base projects with specified data types
         if (projectData.owner && projectData.repo) {
           try {
             const githubData = await this.fetchGitHubDataForProject(
               projectData.owner, 
-              projectData.repo
+              projectData.repo,
+              dataTypes
             );
             projectData.githubData = githubData;
             projectData.stats = this.calculateProjectStats(githubData);
@@ -122,7 +130,8 @@ class EnhancedDataService extends DataService {
         projects.push({
           ...projectData,
           ecosystem: 'base',
-          source: 'dynamic'
+          source: 'dynamic',
+          dataTypes: dataTypes // Track what data was loaded
         });
       }
 
@@ -134,35 +143,34 @@ class EnhancedDataService extends DataService {
   }
 
   /**
-   * Fetch GitHub data for a single project (used for Base projects)
+   * Fetch GitHub data for a single project with configurable endpoints
    */
-  async fetchGitHubDataForProject(owner, repo) {
-    const cacheKey = `github_${owner}_${repo}`;
+  async fetchGitHubDataForProject(owner, repo, dataTypes = ["meta", "commits"]) {
+    const cacheKey = `github_${owner}_${repo}_${dataTypes.join(',')}`;
     
     return await this.fetchWithCache(cacheKey, async () => {
-      const endpoints = ['commits', 'issues', 'pulls'];
       const data = {};
 
-      for (const endpoint of endpoints) {
+      for (const dataType of dataTypes) {
         try {
-          data[endpoint] = await this.fetchGitHubEndpoint(owner, repo, endpoint);
+          if (dataType === 'meta') {
+            data.meta = await this.fetchGitHubEndpoint(owner, repo, '');
+          } else if (dataType === 'commits') {
+            data.commits = await this.fetchGitHubEndpoint(owner, repo, 'stats/commit_activity');
+          } else if (dataType === 'issues') {
+            data.issues = await this.fetchGitHubEndpoint(owner, repo, 'issues');
+          } else if (dataType === 'prs') {
+            data.pulls = await this.fetchGitHubEndpoint(owner, repo, 'pulls');
+          }
         } catch (error) {
-          console.warn(`Failed to fetch ${endpoint} for ${owner}/${repo}:`, error);
-          data[endpoint] = [];
+          console.warn(`Failed to fetch ${dataType} for ${owner}/${repo}:`, error);
+          data[dataType === 'prs' ? 'pulls' : dataType] = dataType === 'meta' ? {} : [];
         }
-      }
-
-      // Fetch repository metadata
-      try {
-        data.meta = await this.fetchGitHubEndpoint(owner, repo, '');
-      } catch (error) {
-        console.warn(`Failed to fetch metadata for ${owner}/${repo}:`, error);
-        data.meta = {};
       }
 
       return data;
     }, {
-      ttl: this.cacheTTL.github,
+      ttl: this.cacheTTL.projects,
       validate: (data) => data && typeof data === 'object'
     });
   }
@@ -350,16 +358,22 @@ class EnhancedDataService extends DataService {
   }
 
   /**
-   * Get project by slug (works across ecosystems)
+   * Get project by slug with full data (including issues and PRs)
    */
   async getProject(slug, ecosystem = null) {
     if (ecosystem) {
-      const projects = await this.loadAllProjects(ecosystem);
+      const projects = await this.loadAllProjects(ecosystem, {
+        celoDataTypes: ["meta", "commits", "issues", "prs"],
+        baseDataTypes: ["meta", "commits", "issues", "prs"]
+      });
       return projects[ecosystem]?.find(p => p.slug === slug) || null;
     }
     
-    // Search across all ecosystems
-    const allProjects = await this.loadAllProjects();
+    // Search across all ecosystems with full data
+    const allProjects = await this.loadAllProjects('all', {
+      celoDataTypes: ["meta", "commits", "issues", "prs"],
+      baseDataTypes: ["meta", "commits", "issues", "prs"]
+    });
     
     for (const [eco, projects] of Object.entries(allProjects)) {
       const project = projects.find(p => p.slug === slug);

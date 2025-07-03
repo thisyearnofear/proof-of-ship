@@ -12,9 +12,16 @@ class DataService {
     this.abortControllers = new Map();
     this.requestQueue = new Map();
 
-    // Cache TTL settings
+    // Cache TTL settings - per-endpoint optimization
+    this.cacheTTLByType = {
+      meta: 24 * 60 * 60 * 1000, // 24 hours - repo metadata changes slowly
+      commits: 24 * 60 * 60 * 1000, // 24 hours - commit activity is historical
+      issues: 60 * 60 * 1000, // 1 hour - more dynamic but not real-time critical
+      prs: 60 * 60 * 1000, // 1 hour - similar to issues
+    };
+    
+    // Fallback TTL for non-GitHub resources
     this.cacheTTL = {
-      github: 5 * 60 * 1000, // 5 minutes
       contracts: 60 * 1000, // 1 minute
       projects: 10 * 60 * 1000, // 10 minutes
     };
@@ -136,11 +143,11 @@ class DataService {
   }
 
   /**
-   * Load GitHub data for a project
+   * Load GitHub data for a project with intelligent caching
    */
   async loadGitHubData(
     projectSlug,
-    dataTypes = ["issues", "prs", "commits", "meta"]
+    dataTypes = ["meta", "commits"] // Default to essential data only
   ) {
     const results = {};
     const errors = {};
@@ -148,6 +155,9 @@ class DataService {
     await Promise.allSettled(
       dataTypes.map(async (type) => {
         try {
+          // Use per-type TTL for intelligent caching
+          const ttl = this.cacheTTLByType[type] ?? (5 * 60 * 1000); // 5min fallback
+          
           const data = await this.fetchWithCache(
             `github-${projectSlug}-${type}`,
             async () => {
@@ -155,7 +165,7 @@ class DataService {
               return response;
             },
             {
-              ttl: this.cacheTTL.github,
+              ttl,
               validate: (data) => validateGitHubData(data, type),
               transform: (data) => this._transformGitHubData(data, type),
             }
@@ -173,15 +183,15 @@ class DataService {
   }
 
   /**
-   * Load multiple projects' GitHub data
+   * Load multiple projects' GitHub data with configurable data types
    */
-  async loadAllGitHubData(projects) {
+  async loadAllGitHubData(projects, dataTypes = ["meta", "commits"]) {
     const results = {};
 
     await Promise.allSettled(
       projects.map(async (project) => {
         try {
-          const { data, errors } = await this.loadGitHubData(project.slug);
+          const { data, errors } = await this.loadGitHubData(project.slug, dataTypes);
           results[project.slug] = {
             ...data,
             project,
@@ -241,13 +251,21 @@ class DataService {
     const endpoint = this._getGitHubEndpoint(owner, repo, type);
     const headers = {
       "Content-Type": "application/json",
-      "Content-Type": "application/json",
     };
 
     const response = await fetch(endpoint, { headers });
 
     if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`);
+      // Provide more helpful error messages
+      if (response.status === 401) {
+        throw new Error(`GitHub API authentication failed. Please configure GITHUB_TOKEN environment variable.`);
+      } else if (response.status === 403) {
+        throw new Error(`GitHub API rate limit exceeded. Please try again later.`);
+      } else if (response.status === 404) {
+        throw new Error(`Repository ${owner}/${repo} not found.`);
+      } else {
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+      }
     }
 
     return response.json();

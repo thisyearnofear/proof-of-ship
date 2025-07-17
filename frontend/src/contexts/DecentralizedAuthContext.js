@@ -275,7 +275,7 @@ export const DecentralizedAuthProvider = ({ children }) => {
     // Clear IndexedDB
     try {
       const request = indexedDB.deleteDatabase('ProofOfShipDB');
-      request.onsuccess = () => console.log('IndexedDB cleared');
+      request.onsuccess = () => {};
     } catch (error) {
       console.error('Failed to clear IndexedDB:', error);
     }

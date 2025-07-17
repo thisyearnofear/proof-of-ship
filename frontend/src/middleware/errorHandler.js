@@ -98,9 +98,6 @@ class ErrorHandler {
     if (!config.isProduction && !silent) {
       console.group(`🚨 Error [${severity.toUpperCase()}] - ${type}`);
       console.error('Error:', error);
-      console.log('Context:', context);
-      console.log('Metadata:', metadata);
-      console.log('Full Report:', errorReport);
       console.groupEnd();
     }
 

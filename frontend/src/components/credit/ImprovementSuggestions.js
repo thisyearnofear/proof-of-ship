@@ -357,7 +357,6 @@ export const ImprovementSuggestions = ({
 
   const handleStartAction = (suggestion) => {
     // In a real app, this would navigate to the relevant section or open a modal
-    console.log('Starting action for:', suggestion.title);
   };
 
   const filteredSuggestions = suggestions.filter(suggestion => {

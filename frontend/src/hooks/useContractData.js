@@ -96,7 +96,6 @@ async function fetchContractData(address, network) {
         }
       }
     } catch (e) {
-      console.log('Contract type detection error:', e);
     }
     
     // Get transaction count

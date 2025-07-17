@@ -23,7 +23,6 @@ class RealLiFiService {
         apiKey: this.apiKey,
       });
 
-      console.log("LI.FI SDK initialized successfully");
     } catch (error) {
       console.error("Failed to initialize LI.FI SDK:", error);
     }
@@ -120,7 +119,6 @@ class RealLiFiService {
         },
       };
 
-      console.log("Getting LI.FI quote:", quoteRequest);
       const quote = await this.lifi.getQuote(quoteRequest);
 
       return {
@@ -169,7 +167,6 @@ class RealLiFiService {
         },
       };
 
-      console.log("Getting LI.FI routes:", routesRequest);
       const routes = await this.lifi.getRoutes(routesRequest);
 
       return {
@@ -196,14 +193,12 @@ class RealLiFiService {
     }
 
     try {
-      console.log("Executing LI.FI transfer:", quote);
 
       // Execute the quote using LI.FI SDK
       const result = await this.lifi.executeQuote(quote, {
         signer,
         infiniteApproval: false,
         updateCallback: (update) => {
-          console.log("Transfer update:", update);
         },
       });
 

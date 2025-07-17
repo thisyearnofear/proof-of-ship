@@ -415,7 +415,6 @@ class EnhancedDataService extends DataService {
   clearAllCaches() {
     super.cache?.clear();
     this.projectCache.clear();
-    console.log('All caches cleared');
   }
 }
 

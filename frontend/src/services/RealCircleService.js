@@ -29,7 +29,6 @@ class RealCircleService {
         : CircleEnvironments.SANDBOX;
 
     this.circle = new Circle(this.apiKey, circleEnvironment);
-    console.log(`Circle SDK initialized in ${this.environment} mode`);
   }
 
   isConfigured() {

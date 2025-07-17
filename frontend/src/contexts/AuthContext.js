@@ -36,7 +36,6 @@ export const AuthProvider = ({ children }) => {
       )?.uid;
 
       if (!githubUsername) {
-        console.log("No GitHub username found in provider data");
         return;
       }
 
@@ -49,13 +48,9 @@ export const AuthProvider = ({ children }) => {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.log("No pending permissions found for this GitHub user");
         return;
       }
 
-      console.log(
-        `Found ${querySnapshot.size} pending permissions for GitHub user ${githubUsername}`
-      );
 
       // Process each pending permission
       const userDocRef = doc(db, "users", user.uid);
@@ -91,9 +86,6 @@ export const AuthProvider = ({ children }) => {
             if (!owners.includes(user.uid)) {
               owners.push(user.uid);
               await setDoc(projectRef, { owners }, { merge: true });
-              console.log(
-                `Added user ${user.uid} to owners of project ${permissionData.projectSlug}`
-              );
             }
           }
 
@@ -110,7 +102,6 @@ export const AuthProvider = ({ children }) => {
           { merge: true }
         );
         setUserPermissions(newPermissions);
-        console.log("Updated user permissions with pending permissions");
       }
     } catch (error) {
       console.error("Error checking pending permissions:", error);

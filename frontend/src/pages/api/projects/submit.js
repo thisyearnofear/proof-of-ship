@@ -149,11 +149,6 @@ function generateSlug(name) {
 async function notifyAdmins(projectData) {
   try {
     // You could integrate with Discord webhook, Slack, email, etc.
-    console.log("New project submission:", {
-      name: projectData.name,
-      ecosystem: projectData.ecosystem,
-      submittedAt: projectData.submittedAt,
-    });
 
     // Example Discord webhook (uncomment and configure)
     /*

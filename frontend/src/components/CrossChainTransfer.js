@@ -114,7 +114,6 @@ export default function CrossChainTransfer() {
         }
       );
 
-      console.log("LI.FI Quote:", quoteResult);
       setQuote(quoteResult);
     } catch (err) {
       console.error("Failed to get quote:", err);

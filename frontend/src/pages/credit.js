@@ -92,7 +92,6 @@ export default function CreditPage() {
     // Show success/error message
     if (result.success) {
       // You could show a toast notification here
-      console.log("Funding completed successfully:", result);
     }
   };
 

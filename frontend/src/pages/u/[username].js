@@ -8,6 +8,7 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import EcosystemSection from "@/components/dashboard/EcosystemSection";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -106,7 +107,11 @@ export default function UserPortfolioPage() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <ErrorBoundary
+        name="UserPortfolio"
+        errorMessage="Failed to load portfolio. Please refresh the page."
+      >
+        <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           <Card className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -206,6 +211,7 @@ export default function UserPortfolioPage() {
           )}
         </div>
       </div>
+        </ErrorBoundary>
     </>
   );
 }

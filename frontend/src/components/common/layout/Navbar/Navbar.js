@@ -91,20 +91,20 @@ export default function Navbar() {
       <Disclosure as="nav" className="bg-white shadow-lg border-b border-gray-200">
         {({ open }) => (
           <>
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="flex h-16 justify-between">
-                <div className="flex">
+            <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
+              <div className="flex h-14 sm:h-16 justify-between items-center">
+                <div className="flex items-center flex-shrink-0">
                   <div className="flex shrink-0 items-center">
-                    <a href="/" className="flex items-center space-x-3">
+                    <a href="/" className="flex items-center space-x-2 sm:space-x-3">
                       <img
                         src="/POS.png"
                         alt="Proof Of Ship Logo"
-                        width={40}
-                        height={40}
-                        className="rounded"
+                        width={32}
+                        height={32}
+                        className="rounded w-8 h-8 sm:w-10 sm:h-10"
                       />
                       <div className="hidden sm:block">
-                        <div className="text-lg font-bold text-gray-900">Proof of Ship</div>
+                        <div className="text-base sm:text-lg font-bold text-gray-900">Proof of Ship</div>
                         <div className="text-xs text-gray-500">Onchain Project Portfolio</div>
                       </div>
                     </a>
@@ -155,12 +155,12 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+                <div className="hidden sm:ml-4 sm:flex sm:items-center gap-2 sm:gap-4">
                   <a
                     href="https://github.com/thisyearnofear/POS-dashboard"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-full bg-white p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    className="rounded-full bg-white p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-w-touch min-h-touch flex items-center justify-center"
                     title="View on GitHub"
                   >
                     <span className="sr-only">View GitHub repository</span>
@@ -169,18 +169,18 @@ export default function Navbar() {
 
                   {/* Profile dropdown */}
                   {currentUser ? (
-                    <Menu as="div" className="relative ml-3">
+                    <Menu as="div" className="relative">
                       <div>
-                        <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                        <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 border-2 border-gray-200 hover:border-blue-300 transition-colors min-w-touch min-h-touch items-center justify-center">
                           <span className="sr-only">Open user menu</span>
                           {currentUser.photoURL ? (
                             <img
-                              className="h-8 w-8 rounded-full"
+                              className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
                               src={currentUser.photoURL}
                               alt={currentUser.displayName || "User"}
                             />
                           ) : (
-                            <UserCircleIcon className="h-8 w-8 text-gray-400 p-1" />
+                            <UserCircleIcon className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 p-0.5" />
                           )}
                         </Menu.Button>
                       </div>
@@ -193,7 +193,7 @@ export default function Navbar() {
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                       >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 sm:w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <div className="px-4 py-2 border-b border-gray-100">
                             <p className="text-sm font-medium text-gray-900">
                               {currentUser.displayName || 'Developer'}
@@ -269,16 +269,16 @@ export default function Navbar() {
                       </Transition>
                     </Menu>
                   ) : (
-                    <div className="flex items-center space-x-3">
+                    <div className="hidden xs:flex items-center gap-2">
                       <a
                         href="/login"
-                        className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+                        className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium"
                       >
                         Sign in
                       </a>
                       <a
                         href="/credit"
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
                       >
                         Get Funded
                       </a>
@@ -287,13 +287,21 @@ export default function Navbar() {
                   <ThemeToggle />
                 </div>
 
-                <div className="-mr-2 flex items-center sm:hidden">
-                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                <div className="flex sm:hidden items-center gap-1">
+                  {!currentUser && (
+                    <a
+                      href="/credit"
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
+                    >
+                      Get Funded
+                    </a>
+                  )}
+                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-touch min-h-touch">
                     <span className="sr-only">Open main menu</span>
                     {open ? (
-                      <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+                      <XMarkIcon className="block h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                     ) : (
-                      <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+                      <Bars3Icon className="block h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                     )}
                   </Disclosure.Button>
                 </div>
@@ -309,8 +317,8 @@ export default function Navbar() {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Disclosure.Panel className="sm:hidden">
-                <div className="space-y-1 px-2 pb-3 pt-2 bg-gray-50">
+              <Disclosure.Panel className="sm:hidden bg-white border-t border-gray-200">
+                <div className="space-y-1 px-2 py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
                   {navigation
                     .filter((item) => !item.hidden)
                     .filter(
@@ -327,7 +335,7 @@ export default function Navbar() {
                           : item.highlight
                           ? "bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
-                        "group flex items-center rounded-md px-3 py-2 text-base font-medium"
+                        "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium min-h-touch transition-colors"
                       )}
                       aria-current={pathname === item.href ? "page" : undefined}
                     >
@@ -339,11 +347,11 @@ export default function Navbar() {
                               : item.highlight
                               ? "text-blue-500"
                               : "text-gray-400",
-                            "mr-3 h-5 w-5"
+                            "mr-3 h-4 w-4 sm:h-5 sm:w-5"
                           )}
                         />
                       )}
-                      {item.name}
+                      <span className="flex-1">{item.name}</span>
                       {item.highlight && (
                         <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                           New
@@ -354,13 +362,12 @@ export default function Navbar() {
                   
                   {!currentUser && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                      <Disclosure.Button
-                        as="a"
-                        href="/credit"
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-2 rounded-md text-base font-medium text-center"
+                      <a
+                        href="/login"
+                        className="block bg-gray-100 text-gray-900 px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
-                        Get Funded
-                      </Disclosure.Button>
+                        Sign in
+                      </a>
                     </div>
                   )}
                 </div>
@@ -369,7 +376,7 @@ export default function Navbar() {
           </>
         )}
       </Disclosure>
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-sm hidden sm:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2">
           <Breadcrumbs />
         </div>

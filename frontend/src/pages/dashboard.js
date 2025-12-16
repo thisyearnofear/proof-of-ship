@@ -51,23 +51,23 @@ export default function Dashboard() {
         <meta name="description" content="Developer dashboard for BuilderCredit" />
       </Head>
       
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Developer Dashboard</h1>
+      <div className="py-4 sm:py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Developer Dashboard</h1>
           
           {/* Connect Wallet Message */}
           {!connected && (
-            <div className="mt-6">
-              <Card className="p-8 text-center">
-                <UserCircleIcon className="w-16 h-16 mx-auto text-gray-400" />
-                <h2 className="mt-4 text-xl font-semibold text-gray-900">Connect Your Wallet</h2>
-                <p className="mt-2 text-gray-600 max-w-md mx-auto">
+            <div className="mt-4 sm:mt-6">
+              <Card className="p-4 sm:p-8 text-center">
+                <UserCircleIcon className="w-12 sm:w-16 h-12 sm:h-16 mx-auto text-gray-400" />
+                <h2 className="mt-3 sm:mt-4 text-lg sm:text-xl font-semibold text-gray-900">Connect Your Wallet</h2>
+                <p className="mt-2 text-sm sm:text-base text-gray-600 max-w-md mx-auto">
                   Connect your Ethereum wallet to access your developer profile, request funding, and manage your projects.
                 </p>
                 <button
                   onClick={connect}
                   disabled={loading}
-                  className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="mt-4 sm:mt-6 inline-flex items-center justify-center px-4 py-2.5 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 min-h-touch"
                 >
                   {loading ? (
                     <>
@@ -84,31 +84,32 @@ export default function Dashboard() {
           
           {/* Dashboard Content */}
           {connected && (
-            <div className="mt-6">
+            <div className="mt-4 sm:mt-6">
               {/* Navigation Tabs */}
-              <div className="mb-6">
-                <nav className="flex space-x-4" aria-label="Tabs">
+              <div className="mb-4 sm:mb-6">
+                <nav className="flex flex-wrap gap-2 sm:gap-1" aria-label="Tabs" style={{overflowX: 'auto'}}>
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`
-                        px-3 py-2 rounded-md text-sm font-medium flex items-center
+                        px-2.5 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium flex items-center whitespace-nowrap min-h-touch transition-colors
                         ${activeTab === tab.id
                           ? 'bg-indigo-100 text-indigo-700'
-                          : 'text-gray-500 hover:text-gray-700'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }
                       `}
                     >
-                      <tab.icon className="w-5 h-5 mr-2" />
-                      {tab.name}
+                      <tab.icon className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2 flex-shrink-0" />
+                      <span className="hidden sm:inline">{tab.name}</span>
+                      <span className="sm:hidden">{tab.name.split(' ')[0]}</span>
                     </button>
                   ))}
                 </nav>
               </div>
               
               {/* Tab Content */}
-              <div className="mt-6">
+              <div className="mt-4 sm:mt-6">
                 {loading ? (
                   <div className="flex justify-center p-12">
                     <LoadingSpinner size="lg" />

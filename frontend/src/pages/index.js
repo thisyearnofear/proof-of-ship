@@ -150,9 +150,9 @@ export default function LandingPage() {
 
   const handleGetStarted = () => {
     if (currentUser) {
-      router.push("/credit");
+      router.push("/projects/new");
     } else {
-      router.push("/login");
+      router.push("/login?redirect=/projects/new");
     }
   };
 
@@ -177,24 +177,23 @@ export default function LandingPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium border border-blue-200 shadow-lg">
-                <span className="text-lg">⚓</span>
-                <span>Hackathon Funding & Progress Tracking</span>
+                <span className="text-lg">🌐</span>
+                <span>Onchain Project Portfolios</span>
               </div>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Anchor your
+              Showcase your
               <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                 {" "}
-                Funding
+                Onchain Projects
               </span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Borrow against hackathon prizes, based on momentum, participation,
-              and real-time progress tracking. Unlock better funding terms by
-              hitting milestones and attending workshops.{" "}
-              <strong>Ship code. Navigate to Funded Success.</strong>
+              Publish projects with GitHub + contract proof, then share them on a
+              clean portfolio (your subdomain) organized by chain. Layer in
+              verification, user feedback, hackathon tracking, and funding.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -202,7 +201,7 @@ export default function LandingPage() {
                 onClick={handleGetStarted}
                 className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-4 text-lg font-semibold shadow-lg border border-blue-200 tide-button maritime-depth"
               >
-                ⚓ Secure Funding
+                ✨ Create your portfolio
                 <ArrowRightIcon className="w-5 h-5 ml-2" />
               </Button>
 
@@ -211,22 +210,22 @@ export default function LandingPage() {
                 variant="outline"
                 className="px-8 py-4 text-lg font-semibold border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
               >
-                🗺️ Explore Fleet
+                🔎 Explore projects
               </Button>
             </div>
 
             <div className="mt-12 flex justify-center items-center space-x-8 text-sm text-gray-500">
               <div className="flex items-center space-x-2">
-                <span className="text-green-500">⚓</span>
-                <span>Borrow Against Prizes</span>
+                <span className="text-green-500">🌐</span>
+                <span>Subdomain portfolio</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-green-500">🧭</span>
-                <span>Real-Time Tracking</span>
+                <span className="text-green-500">🧪</span>
+                <span>Human verification</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-green-500">🌊</span>
-                <span>Cross-Chain Support</span>
+                <span className="text-green-500">🏁</span>
+                <span>Hackathon tracking</span>
               </div>
             </div>
           </div>

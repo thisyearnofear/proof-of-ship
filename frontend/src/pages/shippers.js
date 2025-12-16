@@ -7,9 +7,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
 import { useDecentralizedAuth } from "@/contexts/DecentralizedAuthContext";
-;
 import HybridDashboard from "@/components/dashboard/HybridDashboard";
-import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { Card } from "@/components/common/Card";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 

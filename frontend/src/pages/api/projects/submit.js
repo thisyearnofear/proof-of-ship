@@ -77,14 +77,18 @@ export default async function handler(req, res) {
       website: projectData.website || null,
       twitter: projectData.twitter || null,
       discord: projectData.discord || null,
-      teamMembers: projectData.teamMembers.filter((member) => member.trim()),
-      isOpenSource: projectData.isOpenSource,
-      lookingForFunding: projectData.lookingForFunding,
+      teamMembers: Array.isArray(projectData.teamMembers)
+        ? projectData.teamMembers.filter((member) => String(member).trim())
+        : [],
+      hackathons: Array.isArray(projectData.hackathons) ? projectData.hackathons : [],
+      isOpenSource: Boolean(projectData.isOpenSource),
+      lookingForFunding: Boolean(projectData.lookingForFunding),
       fundingAmount: projectData.fundingAmount || null,
-      milestones: projectData.milestones.filter((milestone) =>
-        milestone.trim()
-      ),
+      milestones: Array.isArray(projectData.milestones)
+        ? projectData.milestones.filter((milestone) => String(milestone).trim())
+        : [],
       submittedBy: projectData.submittedBy,
+      owners: projectData.submittedBy ? [projectData.submittedBy] : [],
       submittedAt: projectData.submittedAt,
       status: "pending_review",
       createdAt: new Date().toISOString(),
@@ -109,6 +113,34 @@ export default async function handler(req, res) {
       .collection(`projects_${projectData.ecosystem}`)
       .doc(slug)
       .set(projectDoc);
+
+    // Grant the submitter edit permissions (used by the in-app editor)
+    if (projectData.submittedBy) {
+      const userRef = db.collection("users").doc(projectData.submittedBy);
+      const userSnap = await userRef.get();
+      const userData = userSnap.exists ? userSnap.data() : {};
+      const existingPermissions = Array.isArray(userData.permissions)
+        ? userData.permissions
+        : [];
+
+      const alreadyHas = existingPermissions.some((p) => p.projectSlug === slug);
+      if (!alreadyHas) {
+        await userRef.set(
+          {
+            permissions: [
+              ...existingPermissions,
+              {
+                projectSlug: slug,
+                projectName: projectData.name,
+                role: "editor",
+                grantedAt: new Date().toISOString(),
+              },
+            ],
+          },
+          { merge: true }
+        );
+      }
+    }
 
     // Log submission for admin review
     await db.collection("admin_queue").add({

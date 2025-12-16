@@ -1,0 +1,7 @@
+{
+  "installCommand": "npm ci --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
+  "cleanUrls": true,
+  "trailingSlash": false
+}

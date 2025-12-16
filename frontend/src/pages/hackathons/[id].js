@@ -1,0 +1,450 @@
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+
+import { Card } from '@/components/common/Card';
+import Button from '@/components/common/Button';
+import { LoadingSpinner } from '@/components/common/LoadingStates';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+import {
+  CalendarIcon,
+  TrophyIcon,
+  UsersIcon,
+  CheckBadgeIcon,
+  ArrowTopRightOnSquareIcon
+} from '@heroicons/react/24/outline';
+
+/**
+ * Individual Hackathon Page
+ * Shows detailed information about a specific hackathon
+ * 
+ * Follows ENHANCEMENT FIRST by extending existing project detail patterns
+ * Maintains CLEAN separation with dedicated hackathon components
+ */
+
+export default function HackathonDetailPage() {
+  const router = useRouter();
+  const { id } = router.query;
+  const [hackathon, setHackathon] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [participationStatus, setParticipationStatus] = useState(null);
+
+  // PERFORMANT: Fetch hackathon data
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchHackathon() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch hackathon details
+        const response = await fetch(`/api/hackathons/${id}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch hackathon details');
+        }
+
+        const data = await response.json();
+        setHackathon(data.data);
+        
+        // Check if current user is participating (would need auth in real implementation)
+        // This is a placeholder - in production, use actual user ID
+        const mockUserId = 'current-user-id';
+        const userParticipation = data.data.participants.find(
+          p => p.userId === mockUserId
+        );
+        
+        setParticipationStatus(userParticipation ? userParticipation.participationStatus : null);
+        
+      } catch (err) {
+        console.error('Error fetching hackathon:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchHackathon();
+  }, [id]);
+
+  // CLEAN: Format date range
+  const formatDateRange = (start, end) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    const options = { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric' 
+    };
+    
+    return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
+  };
+
+  // CLEAN: Calculate days remaining
+  const getDaysRemaining = (endDate) => {
+    const end = new Date(endDate);
+    const now = new Date();
+    const diff = end - now;
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <ErrorBoundary
+          name="HackathonDetail"
+          errorMessage={error}
+        />
+      </div>
+    );
+  }
+
+  if (!hackathon) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">Hackathon not found</p>
+      </div>
+    );
+  }
+
+  // ORGANIZED: Calculate hackathon status for UI
+  const daysRemaining = getDaysRemaining(hackathon.endDate);
+  const isUpcoming = new Date(hackathon.startDate) > new Date();
+  const isActive = !isUpcoming && daysRemaining > 0;
+  const isCompleted = daysRemaining <= 0;
+
+  return (
+    <ErrorBoundary
+      name="HackathonDetailPage"
+      errorMessage="Failed to load hackathon details. Please refresh."
+    >
+      <div className="min-h-screen bg-gray-50">
+        <Head>
+          <title>{hackathon.name} • Hackathons</title>
+          <meta 
+            name="description" 
+            content={`Details about ${hackathon.name} - ${hackathon.ecosystem} hackathon`}
+          />
+        </Head>
+
+        {/* Hackathon Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center gap-4 mb-4">
+              <Link 
+                href="/hackathons" 
+                className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              >
+                <ArrowTopRightOnSquareIcon className="h-4 w-4 transform rotate-180" />
+                All Hackathons
+              </Link>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                  {hackathon.name}
+                  {isCompleted && (
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                      Completed
+                    </span>
+                  )}
+                </h1>
+                <div className="flex items-center gap-4 mt-2">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+                    {hackathon.ecosystem.toUpperCase()}
+                  </span>
+                  {hackathon.sponsors && hackathon.sponsors.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600 text-sm">Sponsored by:</span>
+                      {hackathon.sponsors.slice(0, 3).map(sponsor => (
+                        <span key={sponsor} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                          {sponsor}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Participation status */}
+                {participationStatus && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
+                    <CheckBadgeIcon className="h-5 w-5 text-green-600" />
+                    <span className="font-medium text-gray-900">
+                      {participationStatus.charAt(0).toUpperCase() + participationStatus.slice(1)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                {!participationStatus && isUpcoming && (
+                  <Button variant="primary" size="sm">
+                    Register
+                  </Button>
+                )}
+                
+                {!participationStatus && isActive && (
+                  <Button variant="primary" size="sm">
+                    Join Hackathon
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Dates and status */}
+            <div className="mt-6 flex flex-col md:flex-row gap-4">
+              <div className="flex items-center gap-2 text-gray-600">
+                <CalendarIcon className="h-5 w-5" />
+                <span>{formatDateRange(hackathon.startDate, hackathon.endDate)}</span>
+              </div>
+              
+              {isUpcoming && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded">
+                    Starts in {daysRemaining} days
+                  </span>
+                </div>
+              )}
+              
+              {isActive && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
+                    Ends in {daysRemaining} days
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Hackathon Details */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Overview Card */}
+              <Card>
+                <div className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Overview</h2>
+                  <p className="text-gray-600 mb-6">
+                    {hackathon.description || 'No description provided for this hackathon.'}
+                  </p>
+
+                  {/* Prize Information */}
+                  {hackathon.prizePool > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-medium text-gray-900 mb-2">Prize Pool</h3>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-gray-900">
+                          ${hackathon.prizePool.toLocaleString()}
+                        </span>
+                        <span className="text-gray-600">in prizes</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tracks */}
+                  {hackathon.tracks && hackathon.tracks.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-medium text-gray-900 mb-2">Tracks</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {hackathon.tracks.map(track => (
+                          <span 
+                            key={track} 
+                            className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                          >
+                            {track}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Verification Contract */}
+                  {hackathon.verificationContract && (
+                    <div className="mb-6">
+                      <h3 className="font-medium text-gray-900 mb-2">Verification</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 break-all">
+                          {hackathon.verificationContract}
+                        </span>
+                        <Button variant="secondary" size="xs">
+                          View on Explorer
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Participants Section */}
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">Participants</h2>
+                    <span className="text-gray-500">
+                      {hackathon.participants.length} {hackathon.participants.length === 1 ? 'participant' : 'participants'}
+                    </span>
+                  </div>
+
+                  {/* Winners */}
+                  {hackathon.participants.filter(p => p.participationStatus === 'winner').length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <TrophyIcon className="h-5 w-5 text-yellow-600" />
+                        Winners
+                      </h3>
+                      <div className="space-y-3">
+                        {hackathon.participants 
+                          .filter(p => p.participationStatus === 'winner')
+                          .map(participant => (
+                            <ParticipantCard 
+                              key={participant.id} 
+                              participant={participant} 
+                              hackathon={hackathon}
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Other Participants */}
+                  {hackathon.participants.filter(p => p.participationStatus !== 'winner').length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <UsersIcon className="h-5 w-5 text-gray-600" />
+                        Participants
+                      </h3>
+                      <div className="space-y-3">
+                        {hackathon.participants 
+                          .filter(p => p.participationStatus !== 'winner')
+                          .map(participant => (
+                            <ParticipantCard 
+                              key={participant.id} 
+                              participant={participant} 
+                              hackathon={hackathon}
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Column - Sidebar */}
+            <div className="space-y-8">
+              {/* Quick Actions */}
+              <Card>
+                <div className="p-6">
+                  <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                  <div className="space-y-3">
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
+                      Share Hackathon
+                    </Button>
+                    
+                    {isActive && (
+                      <Button variant="primary" size="sm" className="w-full justify-start">
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        Submit Project
+                      </Button>
+                    )}
+                    
+                    <Button variant="outline" size="sm" className="w-full justify-start">
+                      <CalendarIcon className="h-4 w-4 mr-2" />
+                      Add to Calendar
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Hackathon Info */}
+              <Card>
+                <div className="p-6">
+                  <h3 className="font-semibold text-gray-900 mb-4">Information</h3>
+                  <div className="space-y-3 text-sm">
+                    <InfoItem icon={<CalendarIcon />} label="Start Date" value={new Date(hackathon.startDate).toLocaleDateString()} />
+                    <InfoItem icon={<CalendarIcon />} label="End Date" value={new Date(hackathon.endDate).toLocaleDateString()} />
+                    <InfoItem icon={<UsersIcon />} label="Status" value={hackathon.status} />
+                    <InfoItem icon={<TrophyIcon />} label="Prize Pool" value={`$${hackathon.prizePool.toLocaleString()}`} />
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+/**
+ * Participant Card Component
+ * Displays individual participant information
+ * 
+ * Follows MODULAR principle with clear props interface
+ * Maintains DRY with consistent participant display
+ */
+function ParticipantCard({ participant, hackathon }) {
+  return (
+    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-semibold">
+          {participant.user?.displayName?.charAt(0) || 'U'}
+        </div>
+        <div>
+          <div className="font-medium text-gray-900">
+            {participant.user?.displayName || participant.user?.githubUsername || 'Unknown User'}
+          </div>
+          <div className="text-sm text-gray-500">
+            {participant.participationStatus}
+            {participant.prizeCategory && ` • ${participant.prizeCategory}`}
+          </div>
+        </div>
+      </div>
+      
+      {participant.prizeAmount > 0 && (
+        <div className="font-medium text-gray-900">
+          ${participant.prizeAmount.toLocaleString()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Info Item Component
+ * Reusable component for displaying key-value information
+ * 
+ * Follows CLEAN principle with simple props interface
+ */
+function InfoItem({ icon, label, value }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="text-gray-400">
+        {React.cloneElement(icon, { className: 'h-4 w-4' })}
+      </div>
+      <div>
+        <div className="text-gray-500 text-xs">{label}</div>
+        <div className="text-gray-900 font-medium">{value}</div>
+      </div>
+    </div>
+  );
+}

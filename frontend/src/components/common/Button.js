@@ -4,7 +4,7 @@ import { cva } from "class-variance-authority";
 // Button variant styles using our design tokens
 const buttonVariants = cva(
   // Base styles
-  "btn-base inline-flex items-center justify-center font-medium transition-colors focus-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] min-w-[48px]",
+  "btn-base inline-flex items-center justify-center font-medium transition-colors focus-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-touch min-w-touch",
   {
     variants: {
       variant: {
@@ -17,13 +17,13 @@ const buttonVariants = cva(
         warning: "bg-warning-500 hover:bg-warning-600 text-white shadow-sm",
         outline:
           "border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white",
-        link: "text-primary-500 hover:text-primary-600 underline-offset-4 hover:underline p-0 h-auto",
+        link: "text-primary-500 hover:text-primary-600 underline-offset-4 hover:underline p-0 h-auto min-h-0 min-w-0",
       },
       size: {
-        sm: "h-button-sm px-4 text-sm rounded-md",
-        md: "h-button-md px-5 text-base rounded-lg",
-        lg: "h-button-lg px-7 text-lg rounded-lg",
-        xl: "h-button-xl px-9 text-xl rounded-xl",
+        sm: "h-9 sm:h-10 px-3 sm:px-4 text-xs sm:text-sm rounded-md",
+        md: "h-10 sm:h-11 px-4 sm:px-5 text-sm sm:text-base rounded-lg",
+        lg: "h-11 sm:h-12 px-5 sm:px-7 text-base sm:text-lg rounded-lg",
+        xl: "h-12 sm:h-14 px-6 sm:px-9 text-base sm:text-xl rounded-xl",
       },
       fullWidth: {
         true: "w-full",
@@ -138,17 +138,17 @@ export const IconButton = React.forwardRef(
     ref
   ) => {
     const sizeClasses = {
-      sm: "h-10 w-10",
-      md: "h-12 w-12",
-      lg: "h-14 w-14",
-      xl: "h-16 w-16",
+      sm: "h-9 sm:h-10 w-9 sm:w-10 min-w-touch min-h-touch",
+      md: "h-10 sm:h-12 w-10 sm:w-12 min-w-touch min-h-touch",
+      lg: "h-12 sm:h-14 w-12 sm:w-14 min-w-touch min-h-touch",
+      xl: "h-14 sm:h-16 w-14 sm:w-16 min-w-touch min-h-touch",
     };
 
     const iconSizes = {
-      sm: "h-4 w-4",
-      md: "h-5 w-5",
-      lg: "h-6 w-6",
-      xl: "h-7 w-7",
+      sm: "h-4 sm:h-4 w-4 sm:w-4",
+      md: "h-5 sm:h-5 w-5 sm:w-5",
+      lg: "h-5 sm:h-6 w-5 sm:w-6",
+      xl: "h-6 sm:h-7 w-6 sm:w-7",
     };
 
     return (

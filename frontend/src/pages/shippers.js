@@ -3,18 +3,44 @@
  * Clean, organized view of all projects across different blockchain ecosystems
  */
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
 import { useDecentralizedAuth } from "@/contexts/DecentralizedAuthContext";
 import HybridDashboard from "@/components/dashboard/HybridDashboard";
 import { Card } from "@/components/common/Card";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { NETWORK_CONFIGS } from "@/config/networks";
+import { filterProjects } from "@/utils/projectUtils";
 
 export default function ProjectsPage() {
   const router = useRouter();
   const { projectData, loading, errors } = useEnhancedGithub();
   const { userProfile } = useDecentralizedAuth();
+
+  // Filters: ecosystem and chains (multi)
+  const [ecosystem, setEcosystem] = useState("all");
+  const [chains, setChains] = useState([]); // array of string chain ids
+
+  // Initialize from query on mount
+  useEffect(() => {
+    const { ecosystem: ecoQ, chains: chainsQ } = router.query || {};
+    if (ecoQ && (ecoQ === "celo" || ecoQ === "base" || ecoQ === "all")) {
+      setEcosystem(String(ecoQ));
+    }
+    if (chainsQ) {
+      const arr = Array.isArray(chainsQ) ? chainsQ : String(chainsQ).split(",");
+      setChains(arr.filter(Boolean).map(String));
+    }
+  }, [router.query]);
+
+  // Sync query when filters change
+  useEffect(() => {
+    const q = {};
+    if (ecosystem !== "all") q.ecosystem = ecosystem;
+    if (chains.length > 0) q.chains = chains.join(",");
+    router.replace({ pathname: router.pathname, query: q }, undefined, { shallow: true });
+  }, [ecosystem, chains]);
 
   const handleProjectClick = (project) => {
     // Navigate to project detail page
@@ -52,11 +78,72 @@ export default function ProjectsPage() {
     );
   }
 
+  // Build filtered dataset per-ecosystem
+  const filteredData = useMemo(() => {
+    const result = {};
+    if (!projectData) return result;
+    const ecosystems = ecosystem === "all" ? Object.keys(projectData) : [ecosystem];
+    ecosystems.forEach((eco) => {
+      const list = projectData[eco] || [];
+      result[eco] = filterProjects(list, { chains });
+    });
+    return result;
+  }, [projectData, ecosystem, chains]);
+
+  // Chains list from NETWORK_CONFIGS
+  const chainOptions = useMemo(() => {
+    return Object.values(NETWORK_CONFIGS).map((c) => ({
+      id: String(c.chainId),
+      name: `${c.name} (${c.chainId})`,
+    }));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Minimal Filter Bar */}
+        <Card className="p-4 mb-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Ecosystem</label>
+              <select
+                value={ecosystem}
+                onChange={(e) => setEcosystem(e.target.value)}
+                className="px-2 py-1 border border-gray-300 rounded text-sm"
+              >
+                <option value="all">All</option>
+                <option value="celo">Celo</option>
+                <option value="base">Base</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Chains</label>
+              <div className="flex flex-wrap gap-2">
+                {chainOptions.map((opt) => {
+                  const active = chains.includes(opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() =>
+                        setChains((prev) =>
+                          active ? prev.filter((id) => id !== opt.id) : [...prev, opt.id]
+                        )
+                      }
+                      className={`px-2 py-1 rounded border text-xs ${
+                        active ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-300 text-gray-700"
+                      }`}
+                    >
+                      {opt.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Card>
+
         <HybridDashboard
-          projects={projectData}
+          projects={filteredData}
           loading={loading}
           userProfile={userProfile}
           onProjectClick={handleProjectClick}

@@ -84,41 +84,6 @@ export const ECOSYSTEM_CONFIGS = {
     showActivity: true,
     showFunding: true,
     previewLimit: 4
-  },
-
-  papa: {
-    id: 'papa',
-    name: 'Papa Dashboard',
-    shortName: 'Papa',
-    description: 'Multi-chain progress tracking across various networks',
-    longDescription: 'Daily goals and progress tracking across Lens, Optimism, Polygon, Mantle, and Base chains.',
-    
-    // Visual identity
-    icon: '📊',
-    color: '#8B5CF6',
-    bgGradient: 'from-purple-50 to-violet-50',
-    borderColor: 'border-purple-200',
-    textColor: 'text-purple-800',
-    bgColor: 'bg-purple-50',
-    
-    // Routing
-    route: '/papa',
-    apiEndpoint: '/api/papa',
-    
-    // Features & metadata
-    features: ['Multi-chain support', 'Goal tracking', 'Progress analytics'],
-    category: 'Progress Tracking',
-    
-    // Data source configuration
-    dataSource: 'special', // custom papa logic
-    hasGoals: true,
-    supportedChains: ['lens', 'optimism', 'polygon', 'mantle', 'base'],
-    
-    // Display preferences
-    defaultSort: 'progress',
-    showProgress: true,
-    showGoals: true,
-    previewLimit: 3
   }
 };
 
@@ -128,7 +93,7 @@ export const getEcosystemConfig = (ecosystemId) => {
 };
 
 export const getAllEcosystems = () => {
-  return Object.values(ECOSYSTEM_CONFIGS);
+  return Object.values(ECOSYSTEM_CONFIGS).filter(e => e.dataSource !== 'special');
 };
 
 export const getEcosystemsByDataSource = (dataSource) => {

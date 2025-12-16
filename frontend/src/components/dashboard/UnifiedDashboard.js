@@ -10,32 +10,9 @@ import {
   Squares2X2Icon
 } from '@heroicons/react/24/outline';
 
-const ECOSYSTEM_CONFIGS = {
-  celo: {
-    name: 'Celo',
-    color: '#35D07F',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    textColor: 'text-green-800',
-    icon: '🌱'
-  },
-  base: {
-    name: 'Base',
-    color: '#0052FF', 
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    textColor: 'text-blue-800',
-    icon: '🔵'
-  },
-  papa: {
-    name: 'Papa',
-    color: '#8B5CF6',
-    bgColor: 'bg-purple-50', 
-    borderColor: 'border-purple-200',
-    textColor: 'text-purple-800',
-    icon: '📊'
-  }
-};
+import { ECOSYSTEM_CONFIGS as CORE_ECOSYSTEM_CONFIGS } from '@/config/ecosystems';
+
+const ECOSYSTEM_CONFIGS = CORE_ECOSYSTEM_CONFIGS;
 
 const VIEW_MODES = {
   unified: { name: 'Unified View', icon: Squares2X2Icon },
@@ -45,7 +22,7 @@ const VIEW_MODES = {
 export default function UnifiedDashboard({ projects, loading, onProjectSelect }) {
   const [viewMode, setViewMode] = useState('separated');
   const [activeFilters, setActiveFilters] = useState({
-    ecosystems: ['celo', 'base', 'papa'],
+    ecosystems: Object.keys(projects || {}).length ? Object.keys(projects) : ['celo', 'base'],
     search: '',
     sortBy: 'recent',
     showActive: false

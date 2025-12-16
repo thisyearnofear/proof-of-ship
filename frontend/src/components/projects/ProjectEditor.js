@@ -50,7 +50,7 @@ export default function ProjectEditor({ projectSlug }) {
   });
 
   const ecosystemOptions = useMemo(() => {
-    return getAllEcosystems().filter((e) => e.id !== "papa");
+    return getAllEcosystems().filter((e) => e.dataSource !== 'special');
   }, []);
 
   const ecosystemConfig = useMemo(

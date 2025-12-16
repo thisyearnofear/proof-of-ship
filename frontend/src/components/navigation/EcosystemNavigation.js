@@ -35,18 +35,6 @@ const ECOSYSTEMS = {
     features: ['Low-fee transactions', 'Coinbase integration', 'Developer funding'],
     path: '/ecosystems/base'
   },
-  papa: {
-    name: 'Papa Dashboard',
-    shortName: 'Papa',
-    description: 'Multi-chain progress tracking across various networks',
-    color: '#8B5CF6',
-    bgGradient: 'from-purple-50 to-violet-50',
-    borderColor: 'border-purple-200',
-    icon: '📊',
-    stats: { chains: 5, goals: 'Daily', category: 'Progress Tracking' },
-    features: ['Multi-chain support', 'Goal tracking', 'Progress analytics'],
-    path: '/papa'
-  }
 };
 
 export default function EcosystemNavigation({ currentEcosystem = null }) {
@@ -92,7 +80,7 @@ export default function EcosystemNavigation({ currentEcosystem = null }) {
             <div className="text-sm text-gray-600">Total Projects</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-600">3</div>
+            <div className="text-2xl font-bold text-green-600">2</div>
             <div className="text-sm text-gray-600">Ecosystems</div>
           </div>
           <div>

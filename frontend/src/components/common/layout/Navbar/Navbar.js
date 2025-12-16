@@ -36,10 +36,16 @@ const navigation = [
     description: "Explore Celo and Base ecosystem projects"
   },
   { 
-    name: "Papa Dashboard", 
-    href: "/papa", 
+    name: "Hackathons", 
+    href: "/hackathons", 
     icon: ChartBarIcon,
-    description: "Multi-chain progress tracking"
+    description: "Explore and track hackathons across ecosystems"
+  },
+  { 
+    name: "Feedback", 
+    href: "/feedback", 
+    icon: ChartBarIcon,
+    description: "Submit and review feedback recordings"
   },
   { 
     name: "Submit Project", 

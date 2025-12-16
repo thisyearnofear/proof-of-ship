@@ -68,15 +68,6 @@ export default function LandingPage() {
       color: "bg-blue-600",
       icon: "⚓",
     },
-    {
-      id: "papa",
-      name: "🧭 Navigator's Log",
-      description:
-        "Daily progress tracking across multiple chains. Your compass for navigating Lens, Optimism, Polygon, Mantle, and Base.",
-      count: "Multi-Chain Routes",
-      color: "bg-indigo-500",
-      icon: "🗺️",
-    },
   ];
 
   const userJourneys = {
@@ -337,9 +328,7 @@ export default function LandingPage() {
               <Card
                 key={ecosystem.id}
                 className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-slate-200 hover:border-blue-300 bg-white nautical-card anchor-accent"
-                onClick={() =>
-                  router.push(ecosystem.id === "papa" ? "/papa" : "/shippers")
-                }
+                onClick={() => router.push("/shippers") }
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
                   <div

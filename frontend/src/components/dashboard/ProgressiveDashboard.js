@@ -31,8 +31,7 @@ export default function ProgressiveDashboard({ projects, loading }) {
   const [complexityLevel, setComplexityLevel] = useState('simple');
   const [expandedSections, setExpandedSections] = useState({
     celo: true,
-    base: true,
-    papa: false
+    base: true
   });
   const [userPreferences, setUserPreferences] = useState({
     showInactive: false,
@@ -221,7 +220,6 @@ function EcosystemSection({
   const ecosystemConfig = {
     celo: { name: 'Celo Projects', icon: '🌱', color: 'green', description: 'Mobile-first blockchain projects' },
     base: { name: 'Base Projects', icon: '🔵', color: 'blue', description: 'Coinbase L2 applications' },
-    papa: { name: 'Papa Dashboard', icon: '📊', color: 'purple', description: 'Multi-chain progress tracking' }
   };
 
   const config = ecosystemConfig[ecosystem];

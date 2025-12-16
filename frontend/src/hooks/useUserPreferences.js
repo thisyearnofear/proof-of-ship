@@ -157,14 +157,9 @@ export const useUserPreferences = () => {
     // Determine favorite ecosystem
     const celoUsage = featureUsage['ecosystem_celo'] || 0;
     const baseUsage = featureUsage['ecosystem_base'] || 0;
-    const papaUsage = featureUsage['ecosystem_papa'] || 0;
-    
     let favoriteEcosystems = ['celo', 'base'];
     if (baseUsage > celoUsage) {
       favoriteEcosystems = ['base', 'celo'];
-    }
-    if (papaUsage > Math.max(celoUsage, baseUsage)) {
-      favoriteEcosystems = ['papa', ...favoriteEcosystems.slice(0, 1)];
     }
     
     return {

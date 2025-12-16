@@ -62,6 +62,19 @@ export const filterProjects = (projects, filters = {}) => {
         return false;
       }
     }
+
+    // Chains filter (by contract.chain or project.chain)
+    if (filters.chains && Array.isArray(filters.chains) && filters.chains.length > 0) {
+      const selected = new Set(filters.chains.map(String));
+      // Gather chains from project
+      const projectChains = new Set([
+        ...(project.chain ? [String(project.chain)] : []),
+        ...((project.contracts || []).map(c => c.chain).filter(Boolean).map(String))
+      ]);
+      if (projectChains.size === 0) return false;
+      const hasMatch = [...projectChains].some(ch => selected.has(ch));
+      if (!hasMatch) return false;
+    }
     
     return true;
   });

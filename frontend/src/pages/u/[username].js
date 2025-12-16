@@ -88,7 +88,10 @@ export default function UserPortfolioPage() {
             Portfolio not found
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
-          <Button onClick={() => router.push("/")}>Go home</Button>
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={() => router.push("/")}>Go home</Button>
+            <Button variant="outline" onClick={() => router.push("/shippers")}>Explore projects</Button>
+          </div>
         </Card>
       </div>
     );

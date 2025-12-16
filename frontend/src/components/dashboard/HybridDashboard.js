@@ -60,11 +60,11 @@ export default function HybridDashboard({
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSections, setExpandedSections] = useState(() => {
     const favoriteEcosystems = getPreference('favoriteEcosystems', ['celo', 'base']);
-    return {
-      celo: favoriteEcosystems.includes('celo'),
-      base: favoriteEcosystems.includes('base'),
-      papa: favoriteEcosystems.includes('papa')
-    };
+    const initial = {};
+    getAllEcosystems().forEach((eco) => {
+      initial[eco.id] = favoriteEcosystems.includes(eco.id);
+    });
+    return initial;
   });
   const [showSettings, setShowSettings] = useState(false);
   const [filters, setFilters] = useState(() => ({
@@ -144,11 +144,9 @@ export default function HybridDashboard({
     
     // Auto-expand sections in detailed view
     if (mode === 'detailed') {
-      setExpandedSections({
-        celo: true,
-        base: true,
-        papa: true
-      });
+      const allExpanded = {};
+      getAllEcosystems().forEach((eco) => { allExpanded[eco.id] = true; });
+      setExpandedSections(allExpanded);
     }
   };
 

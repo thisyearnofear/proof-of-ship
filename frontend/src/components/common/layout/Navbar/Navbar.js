@@ -6,10 +6,10 @@ import {
   CreditCardIcon,
   ChartBarIcon,
   PlusIcon,
-  HomeIcon
+  HomeIcon,
+  GlobeAltIcon,
 } from "@heroicons/react/24/outline";
-import { usePathname } from "next/navigation";
-import { useGithub } from "@/providers/Github/Github";
+import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import { Fragment } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
@@ -60,9 +60,13 @@ function classNames(...classes) {
 }
 
 export default function Navbar() {
-  const pathname = usePathname();
-  const { repos, selectedSlug, setSelectedSlug } = useGithub();
+  const router = useRouter();
+  const pathname = router.asPath;
   const { currentUser, logout } = useAuth();
+
+  const githubUsername =
+    currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid ||
+    null;
 
   const GithubIcon = () => {
     return (
@@ -101,7 +105,7 @@ export default function Navbar() {
                       />
                       <div className="hidden sm:block">
                         <div className="text-lg font-bold text-gray-900">Proof of Ship</div>
-                        <div className="text-xs text-gray-500">Developer Funding Platform</div>
+                        <div className="text-xs text-gray-500">Onchain Project Portfolio</div>
                       </div>
                     </a>
                   </div>
@@ -198,6 +202,24 @@ export default function Navbar() {
                               {currentUser.email}
                             </p>
                           </div>
+
+                          {githubUsername && (
+                            <Menu.Item>
+                              {({ active }) => (
+                                <a
+                                  href={`/u/${githubUsername}`}
+                                  className={classNames(
+                                    active ? "bg-gray-100" : "",
+                                    "flex items-center px-4 py-2 text-sm text-gray-700"
+                                  )}
+                                >
+                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400" />
+                                  My Portfolio
+                                </a>
+                              )}
+                            </Menu.Item>
+                          )}
+
                           <Menu.Item>
                             {({ active }) => (
                               <a

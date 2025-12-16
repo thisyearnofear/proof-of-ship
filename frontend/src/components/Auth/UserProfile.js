@@ -3,6 +3,10 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function UserProfile() {
   const { currentUser, logout, userPermissions } = useAuth();
 
+  const githubUsername =
+    currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid ||
+    null;
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -35,6 +39,17 @@ export default function UserProfile() {
           )}
         </div>
       </div>
+
+      {githubUsername && (
+        <div className="mb-6">
+          <a
+            href={`/u/${githubUsername}`}
+            className="inline-flex items-center justify-center w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition duration-150"
+          >
+            View your portfolio
+          </a>
+        </div>
+      )}
 
       {userPermissions.length > 0 && (
         <div className="mb-6">

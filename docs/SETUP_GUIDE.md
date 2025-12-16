@@ -256,6 +256,70 @@ After completing this setup, you should have:
 - ✅ USDC payment system
 - ✅ MetaMask SDK integration
 
+## 🔄 Next.js 14 Upgrade Guide
+
+### Security Update Information
+
+The platform has been upgraded from Next.js 13.4.12 to **14.2.35** to address critical React Server Components CVE vulnerabilities.
+
+### Changes Made
+
+- **Next.js**: `13.4.12` → `14.2.35` (security fix)
+- **eslint-config-next**: `^13.4.12` → `^14.2.35` (compatibility)
+
+### Upgrade Steps
+
+```bash
+# 1. Update dependencies
+cd frontend
+npm install
+
+# 2. Test development mode
+npm run dev
+
+# 3. Test production build
+npm run build
+
+# 4. Run linting
+npm run lint
+```
+
+### Testing Requirements
+
+**Critical Paths to Test:**
+- ✅ Authentication flows (MetaMask, Circle Wallet)
+- ✅ GitHub integration and data fetching
+- ✅ Project creation and editing
+- ✅ Credit scoring calculations
+- ✅ Cross-chain funding interfaces
+
+### Potential Issues to Monitor
+
+**Webpack Configuration:**
+- Custom webpack config in `next.config.js`
+- Async storage polyfill compatibility
+- MetaMask SDK aliasing
+
+**Static Export Mode:**
+- `EXPORT_MODE=true` configuration
+- Image optimization with `unoptimized: true`
+- Trailing slash handling
+
+### Rollback Plan
+
+If issues are encountered:
+
+```bash
+# Revert the commit
+git revert <commit-hash>
+
+# Reinstall dependencies
+rm -rf node_modules package-lock.json && npm install
+
+# Test previous version
+npm run dev
+```
+
 ## 📞 Support
 
 If you get stuck:

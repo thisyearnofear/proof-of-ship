@@ -1,4 +1,6 @@
 {
+  "installCommand": "pnpm --filter ./frontend --workspace-root=false install",
+  "buildCommand": "pnpm --filter ./frontend build",
   "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
   "cleanUrls": true,
   "trailingSlash": false

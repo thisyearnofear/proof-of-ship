@@ -1,5 +1,5 @@
 {
-  "installCommand": "cd frontend && npm ci",
+  "installCommand": "cd frontend && npm ci --legacy-peer-deps",
   "buildCommand": "cd frontend && npm run build",
   "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
   "cleanUrls": true,

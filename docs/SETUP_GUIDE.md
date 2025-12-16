@@ -320,6 +320,95 @@ rm -rf node_modules package-lock.json && npm install
 npm run dev
 ```
 
+## 🎨 Portfolio Feature Setup
+
+### Subdomain Configuration
+
+The platform now supports **subdomain-based user portfolios**:
+
+- **Format**: `username.yourdomain.com` → `/u/username`
+- **Local testing**: `username.localhost:3000` → `/u/username`
+- **Reserved subdomains**: www, app, api, admin (cannot be used)
+
+### Testing Subdomain Routing
+
+```bash
+# Test locally with curl
+curl -H "Host: testuser.localhost" http://localhost:3000
+
+# Should return the portfolio page for "testuser"
+```
+
+### Portfolio API Endpoints
+
+**Get User Portfolio:**
+```bash
+curl http://localhost:3000/api/portfolio/username
+```
+
+**Submit Feedback:**
+```bash
+curl -X POST http://localhost:3000/api/feedback/submit \
+  -H "Content-Type: application/json" \
+  -d '{"projectSlug":"test","message":"Great project!"}'
+```
+
+### New Pages to Test
+
+1. **User Portfolio**: `/u/username`
+2. **Feedback Form**: `/feedback`
+3. **Project Pages**: `/projects/[ecosystem]/[slug]`
+4. **Enhanced Editor**: `/projects/new`
+
+### Ecosystem Configuration
+
+Updated `ecosystems.js` with:
+- Visual identity (icons, colors, gradients)
+- Routing information
+- Submission requirements
+- Feature lists
+
+### Navbar Updates
+
+- **Branding**: "Developer Funding Platform" → "Onchain Project Portfolio"
+- **My Portfolio**: Link to user's portfolio page (when authenticated)
+- **Enhanced UI**: Better mobile responsiveness
+
+### Project Editor Enhancements
+
+- **Multi-ecosystem support**: Select ecosystem during creation
+- **Categories**: DeFi, NFTs, Gaming, Social, Infrastructure, DAO
+- **Team members**: Add multiple team members
+- **Milestones**: Track project milestones
+- **Funding options**: Looking for funding toggle
+- **Hackathon tracking**: Basic integration
+
+### Testing Checklist
+
+**Portfolio Features:**
+- [ ] Subdomain routing works locally
+- [ ] Portfolio API returns correct data
+- [ ] User portfolio page renders correctly
+- [ ] Error handling for non-existent users
+- [ ] Loading states work properly
+
+**Project Features:**
+- [ ] Project creation with new fields
+- [ ] Project editing preserves data
+- [ ] Ecosystem-specific project pages
+- [ ] Multi-ecosystem project listing
+
+**Feedback System:**
+- [ ] Feedback submission works
+- [ ] Validation prevents invalid submissions
+- [ ] Feedback stored in Firestore
+
+**UI/UX:**
+- [ ] Navbar portfolio link appears when logged in
+- [ ] Mobile responsiveness
+- [ ] Error boundaries catch errors
+- [ ] Loading states provide good UX
+
 ## 📞 Support
 
 If you get stuck:

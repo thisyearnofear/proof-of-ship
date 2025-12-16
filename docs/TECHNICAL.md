@@ -46,6 +46,7 @@ App
 ├── LiFiProvider (Cross-chain transfers)
 ├── AuthProvider (Firebase auth)
 ├── GithubProvider (Project data)
+├── PortfolioProvider (User portfolios)
 └── ThemeProvider (UI theming)
 ```
 
@@ -72,6 +73,20 @@ App
 4. **Cross-Chain Transfer Flow**:
    ```
    Source Chain → LI.FI SDK → Bridge Selection → Destination Chain
+   ```
+
+5. **Portfolio Data Flow**:
+
+   ```
+   Subdomain Request → Middleware → /u/[username] → Portfolio API → Firebase
+                          ↓
+                   User Data + Projects Data → Portfolio Page
+   ```
+
+6. **Feedback Flow**:
+
+   ```
+   User Submission → Feedback API → Firestore → Admin Dashboard
    ```
 
 ## Smart Contract System
@@ -215,6 +230,105 @@ A robust credit scoring system should:
    - Temporal analysis to prevent gaming the system
    - Peer validation mechanisms
 
+## Portfolio System Architecture
+
+### Overview
+
+The portfolio system introduces subdomain-based user profiles that showcase onchain projects across multiple ecosystems. It consists of:
+
+1. **Middleware Layer**: Subdomain detection and routing
+2. **API Layer**: Portfolio data retrieval and feedback collection
+3. **UI Layer**: User portfolio pages and project display
+4. **Data Layer**: Firestore integration for user and project data
+
+### Middleware Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Next.js Middleware                        │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Extract hostname from request headers                        │
+│  2. Parse subdomain (username.localhost → "username")           │
+│  3. Check reserved subdomains (www, app, api, admin)            │
+│  4. Rewrite root path to /u/[username]                           │
+│  5. Preserve all other routes (api, _next, etc.)                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Portfolio API Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Portfolio API Endpoint                      │
+├─────────────────────────────────────────────────────────────────┤
+│  GET /api/portfolio/[username]                                   │
+│  1. Validate username parameter                                  │
+│  2. Query Firestore for user data                               │
+│  3. Query projects (owned + submitted)                          │
+│  4. Merge and deduplicate projects                              │
+│  5. Sort by date (newest first)                                 │
+│  6. Return structured portfolio data                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Feedback API Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Feedback API Endpoint                       │
+├─────────────────────────────────────────────────────────────────┤
+│  POST /api/feedback/submit                                       │
+│  1. Validate request body                                        │
+│  2. Sanitize inputs (projectSlug, message, etc.)                │
+│  3. Create feedback document in Firestore                       │
+│  4. Return success response with feedback ID                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Portfolio Data Model
+
+**User Portfolio Response:**
+```json
+{
+  "user": {
+    "uid": "string",
+    "githubUsername": "string",
+    "displayName": "string",
+    "photoURL": "string"
+  },
+  "projects": [
+    {
+      "id": "string",
+      "name": "string",
+      "description": "string",
+      "ecosystem": "string",
+      "category": "string",
+      "githubUrl": "string",
+      "contractAddress": "string",
+      "website": "string",
+      "twitter": "string",
+      "discord": "string",
+      "createdAt": "string",
+      "updatedAt": "string"
+    }
+  ]
+}
+```
+
+**Feedback Data Model:**
+```json
+{
+  "projectSlug": "string",
+  "message": "string",
+  "rating": "number",
+  "recordingUrl": "string",
+  "verificationProvider": "string",
+  "verificationProof": "string",
+  "submittedBy": "string",
+  "createdAt": "string"
+}
+```
+
 ## API Architecture
 
 ### Current Endpoints
@@ -222,6 +336,9 @@ A robust credit scoring system should:
 ```
 /api/github/[...proxy].js - Proxies GitHub API requests
 /api/funding.js - Handles funding operations (currently mock)
+/api/portfolio/[username] - Returns user portfolio data
+/api/projects/[slug] - Returns project details
+/api/feedback/submit - Handles feedback submission
 ```
 
 ### Required Improvements

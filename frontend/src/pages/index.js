@@ -182,7 +182,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
               Showcase your
               <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                 {" "}
@@ -190,40 +190,40 @@ export default function LandingPage() {
               </span>
             </h1>
 
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
               Publish projects with GitHub + contract proof, then share them on a
               clean portfolio (your subdomain) organized by chain. Layer in
               verification, user feedback, hackathon tracking, and funding.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
               <Button
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-4 text-lg font-semibold shadow-lg border border-blue-200 tide-button maritime-depth"
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-blue-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
               >
                 ✨ Create your portfolio
-                <ArrowRightIcon className="w-5 h-5 ml-2" />
+                <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
               </Button>
 
               <Button
                 onClick={handleExploreFleet}
                 variant="outline"
-                className="px-8 py-4 text-lg font-semibold border-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+                className="px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold border-2 border-blue-300 text-blue-700 hover:bg-blue-50 min-h-touch w-full sm:w-auto"
               >
                 🔎 Explore projects
               </Button>
             </div>
 
-            <div className="mt-12 flex justify-center items-center space-x-8 text-sm text-gray-500">
-              <div className="flex items-center space-x-2">
+            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-gray-500 px-4 sm:px-0">
+              <div className="flex items-center gap-2">
                 <span className="text-green-500">🌐</span>
                 <span>Subdomain portfolio</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <span className="text-green-500">🧪</span>
                 <span>Human verification</span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <span className="text-green-500">🏁</span>
                 <span>Hackathon tracking</span>
               </div>
@@ -233,25 +233,25 @@ export default function LandingPage() {
       </div>
 
       {/* User Journey Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-12 sm:py-16">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
             🚢 All Hands on Deck
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
             Whether you're sailing solo, commanding a fleet, or funding
             expeditions - every role has a place when you prove you ship.
           </p>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-slate-100 p-1 rounded-lg border border-slate-200">
+        <div className="flex justify-center mb-8 sm:mb-12 overflow-x-auto">
+          <div className="bg-slate-100 p-1 rounded-lg border border-slate-200 inline-flex gap-1">
             {Object.keys(userJourneys).map((key) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`px-6 py-3 rounded-md font-medium transition-all ${
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-touch ${
                   activeTab === key
                     ? "bg-white text-blue-600 shadow-sm border border-blue-200"
                     : "text-gray-600 hover:text-gray-900"
@@ -264,55 +264,55 @@ export default function LandingPage() {
         </div>
 
         {/* Active Tab Content */}
-        <div className="text-center mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 px-4 sm:px-0">
             {userJourneys[activeTab].title}
           </h3>
-          <p className="text-lg text-gray-600">
+          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
             {userJourneys[activeTab].subtitle}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {userJourneys[activeTab].steps.map((step, index) => (
             <Card
               key={index}
-              className="p-6 text-center border border-slate-200 hover:border-blue-300 transition-colors nautical-card compass-rose"
+              className="p-4 sm:p-6 text-center border border-slate-200 hover:border-blue-300 transition-colors nautical-card compass-rose"
             >
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 shadow-lg">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4 shadow-lg">
                 {index + 1}
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">{step.title}</h4>
-              <p className="text-gray-600 text-sm">{step.desc}</p>
+              <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{step.title}</h4>
+              <p className="text-gray-600 text-xs sm:text-sm">{step.desc}</p>
             </Card>
           ))}
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-white py-16 border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <div className="bg-white py-12 sm:py-16 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
               ⚡ Why Hackathons Need This
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
               Solving the three biggest problems that sink great hackathon
               projects
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="p-6 text-center hover:shadow-lg transition-all hover:border-blue-300 border border-slate-200 nautical-card lighthouse-beam"
+                className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-blue-300 border border-slate-200 nautical-card lighthouse-beam"
               >
-                <feature.icon className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <feature.icon className="w-10 sm:w-12 h-10 sm:h-12 text-blue-600 mx-auto mb-3 sm:mb-4" />
+                <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
+                <p className="text-gray-600 text-xs sm:text-sm">{feature.description}</p>
               </Card>
             ))}
           </div>
@@ -320,46 +320,46 @@ export default function LandingPage() {
       </div>
 
       {/* Ecosystems Section */}
-      <div className="py-16 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <div className="py-12 sm:py-16 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
               🗺️ Chart Your Course
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
               Navigate through different blockchain territories and track your
               expedition's progress
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {ecosystems.map((ecosystem) => (
               <Card
                 key={ecosystem.id}
-                className="p-6 hover:shadow-lg transition-all cursor-pointer border border-slate-200 hover:border-blue-300 bg-white nautical-card anchor-accent"
+                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-slate-200 hover:border-blue-300 bg-white nautical-card anchor-accent"
                 onClick={() =>
                   router.push(ecosystem.id === "papa" ? "/papa" : "/shippers")
                 }
               >
-                <div className="flex items-center mb-4">
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
                   <div
-                    className={`w-12 h-12 ${ecosystem.color} rounded-lg flex items-center justify-center text-white text-xl mr-4 shadow-md`}
+                    className={`w-10 sm:w-12 h-10 sm:h-12 ${ecosystem.color} rounded-lg flex items-center justify-center text-white text-lg sm:text-xl flex-shrink-0 shadow-md`}
                   >
                     {ecosystem.icon}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base break-words">
                       {ecosystem.name}
                     </h3>
-                    <p className="text-sm text-gray-500">{ecosystem.count}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">{ecosystem.count}</p>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-gray-600 text-xs sm:text-sm mb-4">
                   {ecosystem.description}
                 </p>
-                <div className="flex items-center text-blue-600 text-sm font-medium">
+                <div className="flex items-center text-blue-600 text-xs sm:text-sm font-medium min-h-touch">
                   🧭 Explore Territory
-                  <ArrowRightIcon className="w-4 h-4 ml-1" />
+                  <ArrowRightIcon className="w-3 sm:w-4 h-3 sm:h-4 ml-1 flex-shrink-0" />
                 </div>
               </Card>
             ))}
@@ -368,29 +368,29 @@ export default function LandingPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-16 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-12 sm:py-16 relative overflow-hidden">
         {/* Nautical background elements */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 text-4xl">⚓</div>
-          <div className="absolute bottom-10 right-10 text-4xl">🌊</div>
-          <div className="absolute top-1/2 left-1/4 text-3xl">⛵</div>
-          <div className="absolute top-1/3 right-1/4 text-3xl">🧭</div>
+          <div className="absolute top-8 left-4 sm:top-10 sm:left-10 text-2xl sm:text-4xl">⚓</div>
+          <div className="absolute bottom-8 right-4 sm:bottom-10 sm:right-10 text-2xl sm:text-4xl">🌊</div>
+          <div className="absolute top-1/2 left-1/4 text-2xl sm:text-3xl">⛵</div>
+          <div className="absolute top-1/3 right-1/4 text-2xl sm:text-3xl">🧭</div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
-          <h2 className="text-3xl font-bold text-white mb-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 text-center relative">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
             ⚓ Ready to Set Sail?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
             Join the growing fleet of builders who are securing funding,
             tracking progress, and shipping successful projects through
             hackathons.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
             <Button
               onClick={handleGetStarted}
-              className="bg-white text-blue-800 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-lg"
+              className="bg-white text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
             >
               🚢 Launch Your Expedition
             </Button>
@@ -398,7 +398,7 @@ export default function LandingPage() {
             <Button
               onClick={() => router.push("/about")}
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg font-semibold"
+              className="border-white text-white hover:bg-white hover:text-blue-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
             >
               📖 Read the Captain's Log
             </Button>

@@ -14,10 +14,10 @@ const cardVariants = cva(
         ghost: 'shadow-none border-transparent hover:border-default hover:shadow-sm'
       },
       size: {
-        sm: 'p-4',
-        md: 'p-6',
-        lg: 'p-8',
-        xl: 'p-10'
+        sm: 'p-3 sm:p-4',
+        md: 'p-4 sm:p-6',
+        lg: 'p-6 sm:p-8',
+        xl: 'p-8 sm:p-10'
       },
       interactive: {
         true: 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]',
@@ -70,7 +70,7 @@ Card.displayName = 'Card';
 export const CardHeader = ({ className = '', children, ...props }) => {
   return (
     <div
-      className={`flex items-center justify-between pb-4 border-b border-default mb-6 ${className}`}
+      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 sm:pb-4 border-b border-default mb-4 sm:mb-6 gap-2 ${className}`}
       {...props}
     >
       {children}
@@ -82,7 +82,7 @@ export const CardHeader = ({ className = '', children, ...props }) => {
 export const CardTitle = ({ className = '', children, ...props }) => {
   return (
     <h3
-      className={`text-lg font-semibold text-primary leading-6 ${className}`}
+      className={`text-base sm:text-lg font-semibold text-primary leading-6 ${className}`}
       {...props}
     >
       {children}
@@ -94,7 +94,7 @@ export const CardTitle = ({ className = '', children, ...props }) => {
 export const CardDescription = ({ className = '', children, ...props }) => {
   return (
     <p
-      className={`text-sm text-secondary mt-1 ${className}`}
+      className={`text-xs sm:text-sm text-secondary mt-1 ${className}`}
       {...props}
     >
       {children}
@@ -118,7 +118,7 @@ export const CardContent = ({ className = '', children, ...props }) => {
 export const CardFooter = ({ className = '', children, ...props }) => {
   return (
     <div
-      className={`flex items-center justify-between pt-4 border-t border-default mt-6 ${className}`}
+      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between pt-3 sm:pt-4 border-t border-default mt-4 sm:mt-6 gap-2 ${className}`}
       {...props}
     >
       {children}
@@ -162,33 +162,33 @@ export const StatCard = ({
 
   return (
     <Card className={className} {...props}>
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-secondary">{title}</p>
-          <div className="flex items-baseline mt-2">
-            <p className="text-2xl font-semibold text-primary">{value}</p>
-            {change && (
-              <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${changeColors[changeType]}`}>
-                {changeType === 'positive' && '+'}
-                {change}
-              </span>
-            )}
-          </div>
-          {description && (
-            <p className="text-sm text-tertiary mt-1">{description}</p>
-          )}
-          {trend && (
-            <p className="text-xs text-secondary mt-2">{trend}</p>
-          )}
-        </div>
-        {icon && (
-          <div className="flex-shrink-0 ml-4">
-            <div className="h-8 w-8 text-text-tertiary">
-              {icon}
-            </div>
-          </div>
-        )}
-      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+         <div className="flex-1 min-w-0">
+           <p className="text-xs sm:text-sm font-medium text-secondary">{title}</p>
+           <div className="flex items-baseline mt-2 gap-2">
+             <p className="text-xl sm:text-2xl font-semibold text-primary truncate">{value}</p>
+             {change && (
+               <span className={`ml-1 px-2 py-0.5 sm:py-1 text-xs font-medium rounded-full whitespace-nowrap ${changeColors[changeType]}`}>
+                 {changeType === 'positive' && '+'}
+                 {change}
+               </span>
+             )}
+           </div>
+           {description && (
+             <p className="text-xs sm:text-sm text-tertiary mt-1">{description}</p>
+           )}
+           {trend && (
+             <p className="text-xs text-secondary mt-2">{trend}</p>
+           )}
+         </div>
+         {icon && (
+           <div className="flex-shrink-0 ml-0 sm:ml-4">
+             <div className="h-7 sm:h-8 w-7 sm:w-8 text-text-tertiary">
+               {icon}
+             </div>
+           </div>
+         )}
+       </div>
     </Card>
   );
 };
@@ -207,16 +207,16 @@ export const FeatureCard = ({
     <Card className={className} variant={variant} {...props}>
       <div className="text-center">
         {icon && (
-          <div className="mx-auto h-12 w-12 text-primary-500 mb-4">
+          <div className="mx-auto h-10 sm:h-12 w-10 sm:w-12 text-primary-500 mb-3 sm:mb-4">
             {icon}
           </div>
         )}
-        <h3 className="text-lg font-medium text-primary mb-2">{title}</h3>
+        <h3 className="text-base sm:text-lg font-medium text-primary mb-2">{title}</h3>
         {description && (
-          <p className="text-secondary mb-4">{description}</p>
+          <p className="text-xs sm:text-sm text-secondary mb-3 sm:mb-4">{description}</p>
         )}
         {action && (
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             {action}
           </div>
         )}
@@ -278,25 +278,25 @@ export const ProjectCard = ({
       </CardHeader>
       
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-secondary">Commits</p>
-            <p className="text-lg font-semibold text-primary">{project?.stats?.commits || 0}</p>
-          </div>
-          <div>
-            <p className="text-xs text-secondary">Issues</p>
-            <p className="text-lg font-semibold text-primary">{project?.stats?.issues || 0}</p>
-          </div>
-          <div>
-            <p className="text-xs text-secondary">PRs</p>
-            <p className="text-lg font-semibold text-primary">{project?.stats?.prs || 0}</p>
-          </div>
-          <div>
-            <p className="text-xs text-secondary">Stars</p>
-            <p className="text-lg font-semibold text-primary">{project?.stats?.stars || 0}</p>
-          </div>
-        </div>
-      </CardContent>
+         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+           <div>
+             <p className="text-xs text-secondary">Commits</p>
+             <p className="text-base sm:text-lg font-semibold text-primary">{project?.stats?.commits || 0}</p>
+           </div>
+           <div>
+             <p className="text-xs text-secondary">Issues</p>
+             <p className="text-base sm:text-lg font-semibold text-primary">{project?.stats?.issues || 0}</p>
+           </div>
+           <div>
+             <p className="text-xs text-secondary">PRs</p>
+             <p className="text-base sm:text-lg font-semibold text-primary">{project?.stats?.prs || 0}</p>
+           </div>
+           <div>
+             <p className="text-xs text-secondary">Stars</p>
+             <p className="text-base sm:text-lg font-semibold text-primary">{project?.stats?.stars || 0}</p>
+           </div>
+         </div>
+       </CardContent>
       
       {project?.season && (
         <CardFooter>

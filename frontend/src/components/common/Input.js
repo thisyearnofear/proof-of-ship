@@ -5,13 +5,13 @@ import { ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outl
 // Input variant styles using our design tokens
 const inputVariants = cva(
   // Base styles
-  'block w-full border rounded-input bg-surface text-primary placeholder-text-tertiary transition-colors focus-ring disabled:opacity-50 disabled:cursor-not-allowed',
+  'block w-full border rounded-input bg-surface text-primary placeholder-text-tertiary transition-colors focus-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-touch',
   {
     variants: {
       size: {
-        sm: 'h-input-sm px-3 text-sm',
-        md: 'h-input-md px-3 text-sm',
-        lg: 'h-input-lg px-4 text-base'
+        sm: 'h-input-sm sm:h-10 px-3 sm:px-3 text-sm',
+        md: 'h-input-md sm:h-11 px-3 sm:px-3 text-sm sm:text-base',
+        lg: 'h-input-lg sm:h-12 px-3 sm:px-4 text-base'
       },
       state: {
         default: 'border-default focus:border-primary-500',
@@ -28,7 +28,7 @@ const inputVariants = cva(
 );
 
 const labelVariants = cva(
-  'block text-sm font-medium mb-2',
+  'block text-xs sm:text-sm font-medium mb-2 sm:mb-2',
   {
     variants: {
       state: {
@@ -50,7 +50,7 @@ const labelVariants = cva(
 );
 
 const helperTextVariants = cva(
-  'mt-2 text-sm',
+  'mt-2 text-xs sm:text-sm',
   {
     variants: {
       state: {
@@ -307,13 +307,13 @@ export const Checkbox = React.forwardRef(({
 
   return (
     <div className={className}>
-      <div className="flex items-start">
-        <div className="flex items-center h-5">
+      <div className="flex items-start gap-3">
+        <div className="flex items-center h-6 min-w-touch">
           <input
             ref={ref}
             id={checkboxId}
             type="checkbox"
-            className="h-4 w-4 text-primary-500 border-default rounded focus-ring disabled:opacity-50"
+            className="h-5 w-5 text-primary-500 border-default rounded focus-ring disabled:opacity-50 cursor-pointer"
             disabled={disabled}
             aria-invalid={error ? 'true' : 'false'}
             aria-describedby={
@@ -325,10 +325,10 @@ export const Checkbox = React.forwardRef(({
           />
         </div>
         {label && (
-          <div className="ml-3 text-sm">
+          <div className="text-xs sm:text-sm flex-1">
             <label
               htmlFor={checkboxId}
-              className={`font-medium ${disabled ? 'text-text-tertiary' : 'text-primary'}`}
+              className={`font-medium cursor-pointer ${disabled ? 'text-text-tertiary' : 'text-primary'}`}
             >
               {label}
             </label>
@@ -363,13 +363,13 @@ export const Radio = React.forwardRef(({
 
   return (
     <div className={className}>
-      <div className="flex items-start">
-        <div className="flex items-center h-5">
+      <div className="flex items-start gap-3">
+        <div className="flex items-center h-6 min-w-touch">
           <input
             ref={ref}
             id={radioId}
             type="radio"
-            className="h-4 w-4 text-primary-500 border-default focus-ring disabled:opacity-50"
+            className="h-5 w-5 text-primary-500 border-default focus-ring disabled:opacity-50 cursor-pointer"
             disabled={disabled}
             aria-invalid={error ? 'true' : 'false'}
             aria-describedby={
@@ -381,10 +381,10 @@ export const Radio = React.forwardRef(({
           />
         </div>
         {label && (
-          <div className="ml-3 text-sm">
+          <div className="text-xs sm:text-sm flex-1">
             <label
               htmlFor={radioId}
-              className={`font-medium ${disabled ? 'text-text-tertiary' : 'text-primary'}`}
+              className={`font-medium cursor-pointer ${disabled ? 'text-text-tertiary' : 'text-primary'}`}
             >
               {label}
             </label>

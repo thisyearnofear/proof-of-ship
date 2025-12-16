@@ -73,21 +73,66 @@ class EnhancedDataService extends DataService {
     try {
       // Use existing GitHub data loading with specified data types
       const githubData = await this.loadAllGitHubData(repos, dataTypes);
-      
+
       // Enhance with ecosystem metadata
-      const enhancedProjects = repos.map(repo => ({
+      const enhancedProjects = repos.map((repo) => ({
         ...repo,
-        ecosystem: 'celo',
-        source: 'static',
+        ecosystem: "celo",
+        source: "static",
         githubData: githubData[repo.slug] || {},
         stats: this.calculateProjectStats(githubData[repo.slug] || {}),
         lastUpdated: new Date().toISOString(),
-        dataTypes: dataTypes // Track what data was loaded
+        dataTypes, // Track what data was loaded
       }));
 
-      return enhancedProjects;
+      // Merge in any approved user submissions for Celo
+      const submittedRef = collection(db, "projects_celo");
+      const submittedQuery = query(
+        submittedRef,
+        where("status", "==", "approved"),
+        orderBy("createdAt", "desc")
+      );
+
+      const submittedSnap = await getDocs(submittedQuery);
+      const submittedProjects = [];
+
+      for (const docSnap of submittedSnap.docs) {
+        const projectData = { id: docSnap.id, ...docSnap.data() };
+
+        if (projectData.owner && projectData.repo) {
+          try {
+            const gh = await this.fetchGitHubDataForProject(
+              projectData.owner,
+              projectData.repo,
+              dataTypes
+            );
+            projectData.githubData = gh;
+            projectData.stats = this.calculateProjectStats(gh);
+          } catch (error) {
+            console.warn(
+              `Failed to fetch GitHub data for submitted Celo project ${projectData.slug}:`,
+              error
+            );
+            projectData.githubData = {};
+            projectData.stats = this.getDefaultStats();
+          }
+        }
+
+        submittedProjects.push({
+          ...projectData,
+          ecosystem: "celo",
+          source: "dynamic",
+          dataTypes,
+        });
+      }
+
+      const merged = new Map();
+      for (const p of enhancedProjects) merged.set(p.slug, p);
+      for (const p of submittedProjects) merged.set(p.slug, p);
+
+      return Array.from(merged.values());
     } catch (error) {
-      console.error('Failed to load Celo projects:', error);
+      console.error("Failed to load Celo projects:", error);
       return [];
     }
   }
@@ -359,29 +404,89 @@ class EnhancedDataService extends DataService {
 
   /**
    * Get project by slug with full data (including issues and PRs)
+   *
+   * Avoid loading entire ecosystems; fetch the single project and then pull only
+   * the GitHub endpoints we need.
    */
   async getProject(slug, ecosystem = null) {
+    const dataTypes = ["meta", "commits", "issues", "prs"];
+
     if (ecosystem) {
-      const projects = await this.loadAllProjects(ecosystem, {
-        celoDataTypes: ["meta", "commits", "issues", "prs"],
-        baseDataTypes: ["meta", "commits", "issues", "prs"]
-      });
-      return projects[ecosystem]?.find(p => p.slug === slug) || null;
-    }
-    
-    // Search across all ecosystems with full data
-    const allProjects = await this.loadAllProjects('all', {
-      celoDataTypes: ["meta", "commits", "issues", "prs"],
-      baseDataTypes: ["meta", "commits", "issues", "prs"]
-    });
-    
-    for (const [eco, projects] of Object.entries(allProjects)) {
-      const project = projects.find(p => p.slug === slug);
-      if (project) {
-        return { ...project, ecosystem: eco };
+      // Dynamic ecosystems (Firestore)
+      if (ecosystem !== "celo") {
+        try {
+          const ref = doc(db, `projects_${ecosystem}`, slug);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) return null;
+
+          const projectData = { id: snap.id, ...snap.data(), ecosystem };
+
+          if (projectData.owner && projectData.repo) {
+            const githubData = await this.fetchGitHubDataForProject(
+              projectData.owner,
+              projectData.repo,
+              dataTypes
+            );
+            projectData.githubData = githubData;
+            projectData.stats = this.calculateProjectStats(githubData);
+          }
+
+          return projectData;
+        } catch (error) {
+          console.error(`Failed to load project ${slug} from ${ecosystem}:`, error);
+          return null;
+        }
+      }
+
+      // Celo: prefer a dynamic doc (if submitted), otherwise fall back to static repos.json
+      try {
+        const dynamicRef = doc(db, "projects_celo", slug);
+        const dynamicSnap = await getDoc(dynamicRef);
+        if (dynamicSnap.exists()) {
+          const projectData = { id: dynamicSnap.id, ...dynamicSnap.data(), ecosystem: "celo" };
+          if (projectData.owner && projectData.repo) {
+            const githubData = await this.fetchGitHubDataForProject(
+              projectData.owner,
+              projectData.repo,
+              dataTypes
+            );
+            projectData.githubData = githubData;
+            projectData.stats = this.calculateProjectStats(githubData);
+          }
+          return projectData;
+        }
+
+        const repoEntry = repos.find((r) => r.slug === slug);
+        if (!repoEntry) return null;
+
+        const githubData = await this.fetchGitHubDataForProject(
+          repoEntry.owner,
+          repoEntry.repo,
+          dataTypes
+        );
+
+        return {
+          ...repoEntry,
+          ecosystem: "celo",
+          source: "static",
+          githubData,
+          stats: this.calculateProjectStats(githubData),
+          lastUpdated: new Date().toISOString(),
+          dataTypes,
+        };
+      } catch (error) {
+        console.error(`Failed to load Celo project ${slug}:`, error);
+        return null;
       }
     }
-    
+
+    // Fallback: try known ecosystems without bulk-loading
+    const tryEcosystems = ["base", "celo"];
+    for (const eco of tryEcosystems) {
+      const project = await this.getProject(slug, eco);
+      if (project) return project;
+    }
+
     return null;
   }
 

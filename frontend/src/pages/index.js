@@ -25,27 +25,27 @@ export default function LandingPage() {
   const features = [
     {
       icon: RocketLaunchIcon,
-      title: "⚓ Pre-Launch Funding",
+      title: "🎨 Portfolio Showcase",
       description:
-        "Borrow against future hackathon prizes. Get $500-$5K USDC upfront to cover development costs, gas fees, and infrastructure.",
+        "Display your Farcaster mini apps with subdomain routing. Showcase projects across multiple ecosystems and attract users to test your creations.",
     },
     {
       icon: EyeIcon,
-      title: "🧭 Real-Time Progress Tracking",
+      title: "💬 User Feedback",
       description:
-        "Sponsors and organizers can monitor your journey from first commit to final deployment. No more last-minute surprises.",
+        "Collect valuable feedback with screen recordings. Incentivize users to test your mini apps and improve based on real user insights.",
     },
     {
       icon: ClockIcon,
-      title: "⏰ Workshop Incentives",
+      title: "🏆 Hackathon Tracking",
       description:
-        "Attend key workshops and hit milestones to unlock lower interest rates or even free funding. Build better, learn faster.",
+        "Follow hackathons you're interested in. Track participation, deadlines, and showcase your wins to build your reputation.",
     },
     {
       icon: UserGroupIcon,
-      title: "🚢 Fleet Support",
+      title: "🚢 Community Support",
       description:
-        "Connect with partner teams and mentors early. Get curated assistance finding your first users before the deadline hits.",
+        "Connect with other builders and mentors. Get assistance finding your first users and growing your project community.",
     },
   ];
 
@@ -85,20 +85,20 @@ export default function LandingPage() {
       subtitle: "Chart your course, secure provisions, ship with confidence",
       steps: [
         {
-          title: "⚓ Drop Anchor",
-          desc: "Connect GitHub, Farcaster, Lens, and wallet to establish your maritime credentials",
+          title: "🎨 Showcase Your Portfolio",
+          desc: "Create your builder portfolio with subdomain routing to showcase your Farcaster mini apps",
         },
         {
-          title: "🧭 Get Navigation Rating",
-          desc: "AI analyzes your sailing history across platforms to determine creditworthiness",
+          title: "💬 Collect User Feedback",
+          desc: "Get valuable feedback with screen recordings to improve your projects",
         },
         {
-          title: "💰 Secure Provisions",
-          desc: "Borrow $500-$5K USDC against future prize treasure to fund your expedition",
+          title: "🏆 Track Hackathons",
+          desc: "Follow hackathons, track participation, and showcase your wins",
         },
         {
-          title: "🚢 Set Sail & Ship",
-          desc: "Build with confidence while we track your progress and provide wind in your sails",
+          title: "🚢 Grow Your Community",
+          desc: "Connect with other builders and grow your project community",
         },
       ],
     },
@@ -107,20 +107,20 @@ export default function LandingPage() {
       subtitle: "Command your fleet, track all vessels, ensure safe passage",
       steps: [
         {
-          title: "📡 Deploy Lighthouse",
-          desc: "Set up real-time tracking for all participating builders in your hackathon",
+          title: "📡 Track Builder Progress",
+          desc: "Monitor builder participation and project progress in real-time",
         },
         {
-          title: "🗺️ Monitor Fleet Progress",
-          desc: "Watch commits, deployments, and workshop attendance across your entire armada",
+          title: "🗺️ Manage Hackathons",
+          desc: "Organize and track hackathon participation across your ecosystem",
         },
         {
-          title: "⚡ Incentivize Navigation",
-          desc: "Reward workshop attendance and milestone completion with better funding terms",
+          title: "⚡ Collect Feedback",
+          desc: "Gather valuable feedback from builders to improve your programs",
         },
         {
-          title: "🏆 Celebrate Arrivals",
-          desc: "Automatically distribute prizes and recognize successful voyages",
+          title: "🏆 Recognize Achievements",
+          desc: "Highlight successful builders and projects in your ecosystem",
         },
       ],
     },
@@ -129,20 +129,20 @@ export default function LandingPage() {
       subtitle: "Fund proven captains, minimize storms, maximize treasure",
       steps: [
         {
-          title: "🔍 Scout the Harbor",
-          desc: "Review builder reputation scores and previous successful voyages",
+          title: "🔍 Discover Builders",
+          desc: "Find talented builders and projects in our ecosystem",
         },
         {
-          title: "💸 Fund Expeditions",
-          desc: "Smart contracts automatically distribute provisions based on sailing credentials",
+          title: "💸 Support Projects",
+          desc: "Sponsor promising projects and builders to grow the ecosystem",
         },
         {
-          title: "📊 Track the Fleet",
-          desc: "Monitor progress and milestone completion across all funded expeditions",
+          title: "📊 Track Progress",
+          desc: "Monitor the impact of your sponsorship on builder success",
         },
         {
-          title: "🎯 Measure Impact",
-          desc: "See the successful ships and captains your sponsorship helped launch",
+          title: "🎯 Showcase Results",
+          desc: "Highlight successful projects and builders you've supported",
         },
       ],
     },

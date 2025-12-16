@@ -19,8 +19,6 @@ const nextConfig = {
         skipTrailingSlashRedirect: true,
       }
     : {}),
-  // Turbopack (default bundler in Next 16)
-  turbopack: {},
 };
 
 module.exports = nextConfig;

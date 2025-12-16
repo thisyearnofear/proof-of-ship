@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import nautical theme enhancements */
-@import './nautical.css';
-
-@import './themes.css';
-@import './utils.css';
-
 /* Base Styles with Design Tokens */
 html {
   font-size: 16px;

@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd frontend && npm run build",
-  "outputDirectory": "frontend/out",
-  "installCommand": "npm install && cd frontend && npm install --legacy-peer-deps",
+  "buildCommand": "pnpm --filter ./frontend build",
+  
+  "installCommand": "pnpm install",
   "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
   "cleanUrls": true,
   "trailingSlash": false

@@ -4,10 +4,10 @@
   "description": "Decentralized platform for hackathon funding and milestone verification",
   "main": "index.js",
   "scripts": {
-    "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm run build",
-    "start": "cd frontend && npm run start",
-    "export": "cd frontend && npm run export",
+    "dev": "pnpm --filter ./frontend dev",
+    "build": "pnpm --filter ./frontend build",
+    "start": "pnpm --filter ./frontend start",
+    "export": "pnpm --filter ./frontend export",
     "deploy": "npm run export && firebase deploy",
     "blockchain:test": "cd blockchain && npm run test",
     "blockchain:compile": "cd blockchain && npm run compile",
@@ -15,11 +15,11 @@
     "blockchain:deploy:sepolia": "cd blockchain && npm run deploy:sepolia",
     "blockchain:deploy:mumbai": "cd blockchain && npm run deploy:mumbai",
     "blockchain:node": "cd blockchain && npm run node",
-    "setup": "npm install && cd frontend && npm install --legacy-peer-deps && cd ../blockchain && npm install && cd .. && node scripts/setup-env.js && node scripts/cleanup.js",
+    "setup": "pnpm install && node scripts/setup-env.js && node scripts/cleanup.js",
     "setup-env": "node scripts/setup-env.js",
     "cleanup": "node scripts/cleanup.js",
-    "lint:frontend": "cd frontend && npm run lint",
-    "lint:contracts": "cd blockchain && npm run lint",
+    "lint:frontend": "pnpm --filter ./frontend lint",
+    "lint:contracts": "pnpm --filter ./blockchain lint",
     "lint": "npm run lint:frontend && npm run lint:contracts"
   },
   "keywords": [
@@ -33,6 +33,8 @@
   ],
   "author": "",
   "license": "MIT",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
   "devDependencies": {
     "dotenv": "^16.0.3"
   }

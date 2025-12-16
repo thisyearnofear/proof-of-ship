@@ -13,6 +13,9 @@ import { ToastProvider } from "@/components/common/Toast";
 import { Navbar, Footer } from "@/components/common/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "@/styles/globals.css";
+import "@/styles/nautical.css";
+import "@/styles/themes.css";
+import "@/styles/utils.css";
 
 import NoSSR from "@/providers/NoSSR/NoSSR";
 import useNoSSR from "@/providers/NoSSR/useNoSSR";

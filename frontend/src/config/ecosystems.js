@@ -25,6 +25,11 @@ export const ECOSYSTEM_CONFIGS = {
     
     // Features & metadata
     features: ['Multi-season tracking', 'GitHub analytics', 'Community metrics'],
+    submissionRequirements: [
+      'Project must be deployed on Celo',
+      'Include clear onchain contract references (address or explorer)',
+      'Provide a GitHub repo for reviewers and users'
+    ],
     category: 'Proof of Ship Program',
     
     // Data source configuration
@@ -60,6 +65,11 @@ export const ECOSYSTEM_CONFIGS = {
     
     // Features & metadata
     features: ['Developer funding', 'L2 benefits', 'Coinbase integration'],
+    submissionRequirements: [
+      'Project must be deployed on Base',
+      'Provide a GitHub repo for reviewers and users',
+      'Add at least one contract address for your onchain surface area'
+    ],
     category: 'L2 Innovation',
     
     // Data source configuration

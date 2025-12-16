@@ -1,461 +1,679 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/lib/firebase/clientApp";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { Card } from "@/components/common/Card";
+import Button from "@/components/common/Button";
+import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
+import { LoadingSpinner } from "@/components/common/LoadingStates";
+import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
+
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+
+const DEFAULT_CATEGORIES = [
+  { id: "defi", name: "DeFi" },
+  { id: "nft", name: "NFTs" },
+  { id: "gaming", name: "Gaming" },
+  { id: "social", name: "Social" },
+  { id: "infrastructure", name: "Infrastructure" },
+  { id: "dao", name: "DAO" },
+  { id: "other", name: "Other" },
+];
 
 export default function ProjectEditor({ projectSlug }) {
   const { currentUser, hasProjectPermission } = useAuth();
-  const [project, setProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  // Form state
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [contracts, setContracts] = useState([]);
-  const [socials, setSocials] = useState({
+  const isEditMode = Boolean(projectSlug);
+
+  const [loading, setLoading] = useState(Boolean(projectSlug));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    githubUrl: "",
+    ecosystem: "base",
+    category: "",
+    contractAddress: "",
+    deploymentTxHash: "",
+    website: "",
     twitter: "",
     discord: "",
-    website: "",
+    teamMembers: [""],
+    tags: "",
+    isOpenSource: true,
+    lookingForFunding: false,
+    fundingAmount: "",
+    milestones: [""],
+    hackathons: [],
   });
-  const [founders, setFounders] = useState([]);
+
+  const ecosystemOptions = useMemo(() => {
+    return getAllEcosystems().filter((e) => e.id !== "papa");
+  }, []);
+
+  const ecosystemConfig = useMemo(
+    () => getEcosystemConfig(form.ecosystem),
+    [form.ecosystem]
+  );
+
+  const categoryOptions = useMemo(() => {
+    if (Array.isArray(ecosystemConfig?.categories) && ecosystemConfig.categories.length) {
+      return ecosystemConfig.categories.map((id) => ({ id, name: id.toUpperCase() }));
+    }
+    return DEFAULT_CATEGORIES;
+  }, [ecosystemConfig]);
 
   useEffect(() => {
-    async function fetchProjectData() {
-      if (!projectSlug) {
-        setLoading(false);
-        return;
-      }
+    if (!projectSlug) return;
 
-      setLoading(true);
+    let cancelled = false;
+
+    async function load() {
       try {
-        const projectRef = doc(db, "projects", projectSlug);
-        const projectDoc = await getDoc(projectRef);
+        setLoading(true);
+        setError(null);
 
-        if (projectDoc.exists()) {
-          const projectData = projectDoc.data();
-          setProject(projectData);
-
-          // Set form state
-          setName(projectData.name || "");
-          setDescription(projectData.description || "");
-          setContracts(projectData.contracts || []);
-          setSocials({
-            twitter: projectData.socials?.twitter || "",
-            discord: projectData.socials?.discord || "",
-            website: projectData.socials?.website || "",
-          });
-          setFounders(projectData.founders || []);
-        } else {
-          setError("Project not found");
+        const res = await fetch(`/api/projects/${projectSlug}`);
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "Failed to load project");
         }
-      } catch (err) {
-        console.error("Error fetching project:", err);
-        setError("Failed to load project data");
+
+        const project = await res.json();
+
+        if (cancelled) return;
+
+        setForm({
+          name: project.name || "",
+          description: project.description || "",
+          githubUrl: project.githubUrl
+            ? project.githubUrl
+            : project.owner && project.repo
+              ? `https://github.com/${project.owner}/${project.repo}`
+              : "",
+          ecosystem: project.ecosystem || "base",
+          category: project.category || "",
+          contractAddress: project.contractAddress || "",
+          deploymentTxHash: project.deploymentTxHash || "",
+          website: project.website || "",
+          twitter: project.twitter || "",
+          discord: project.discord || "",
+          teamMembers:
+            Array.isArray(project.teamMembers) && project.teamMembers.length
+              ? project.teamMembers
+              : [""],
+          tags: Array.isArray(project.tags) ? project.tags.join(", ") : project.tags || "",
+          isOpenSource:
+            project.isOpenSource === undefined ? true : Boolean(project.isOpenSource),
+          lookingForFunding: Boolean(project.lookingForFunding),
+          fundingAmount: project.fundingAmount || "",
+          milestones:
+            Array.isArray(project.milestones) && project.milestones.length
+              ? project.milestones
+              : [""],
+          hackathons: Array.isArray(project.hackathons) ? project.hackathons : [],
+        });
+      } catch (e) {
+        if (!cancelled) setError(e.message || "Failed to load project");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    fetchProjectData();
+    load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [projectSlug]);
 
+  const canEdit = useMemo(() => {
+    if (!currentUser) return false;
+    if (!isEditMode) return true;
+    return hasProjectPermission(projectSlug);
+  }, [currentUser, hasProjectPermission, isEditMode, projectSlug]);
+
+  const setField = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateArrayItem = (field, index, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => (i === index ? value : item)),
+    }));
+  };
+
+  const addArrayItem = (field, value = "") => {
+    setForm((prev) => ({ ...prev, [field]: [...prev[field], value] }));
+  };
+
+  const removeArrayItem = (field, index) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index),
+    }));
+  };
+
+  const addHackathon = () => {
+    setForm((prev) => ({
+      ...prev,
+      hackathons: [
+        ...(prev.hackathons || []),
+        { name: "", url: "", outcome: "", payoutAt: "", notes: "" },
+      ],
+    }));
+  };
+
+  const updateHackathon = (index, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      hackathons: prev.hackathons.map((h, i) =>
+        i === index ? { ...h, [field]: value } : h
+      ),
+    }));
+  };
+
+  const removeHackathon = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      hackathons: prev.hackathons.filter((_, i) => i !== index),
+    }));
+  };
+
+  const validate = () => {
+    if (!form.name.trim()) return "Project name is required";
+    if (!form.description.trim()) return "Description is required";
+    if (!form.githubUrl.trim() || !form.githubUrl.includes("github.com")) {
+      return "A valid GitHub URL is required";
+    }
+    if (!form.ecosystem) return "Chain / ecosystem is required";
+    if (!form.category) return "Category is required";
+    if (!form.contractAddress.trim().startsWith("0x")) {
+      return "A valid contract address is required";
+    }
+    return null;
+  };
+
   const handleSave = async (e) => {
-    if (e) e.preventDefault();
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     if (!currentUser) {
-      setError("You must be signed in to save a project.");
+      setError("Please sign in to save a project.");
       return;
     }
 
-    // If editing, check for permission
-    if (projectSlug && !hasProjectPermission(projectSlug)) {
-      setError("You do not have permission to edit this project");
+    if (!canEdit) {
+      setError("You do not have permission to edit this project.");
+      return;
+    }
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setSaving(true);
-    setError("");
-    setSuccess("");
+
+    const cleaned = {
+      name: form.name.trim(),
+      description: form.description.trim(),
+      githubUrl: form.githubUrl.trim(),
+      ecosystem: form.ecosystem,
+      category: form.category,
+      contractAddress: form.contractAddress.trim(),
+      deploymentTxHash: form.deploymentTxHash.trim() || null,
+      website: form.website.trim() || null,
+      twitter: form.twitter.trim() || null,
+      discord: form.discord.trim() || null,
+      teamMembers: (form.teamMembers || []).map((t) => String(t).trim()).filter(Boolean),
+      tags: String(form.tags || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
+      isOpenSource: Boolean(form.isOpenSource),
+      lookingForFunding: Boolean(form.lookingForFunding),
+      fundingAmount: form.lookingForFunding ? form.fundingAmount || null : null,
+      milestones: (form.milestones || []).map((m) => String(m).trim()).filter(Boolean),
+      hackathons: Array.isArray(form.hackathons)
+        ? form.hackathons
+            .map((h) => ({
+              name: String(h.name || "").trim(),
+              url: String(h.url || "").trim(),
+              outcome: String(h.outcome || "").trim(),
+              payoutAt: String(h.payoutAt || "").trim(),
+              notes: String(h.notes || "").trim(),
+            }))
+            .filter((h) => h.name || h.url || h.outcome || h.payoutAt || h.notes)
+        : [],
+    };
 
     try {
-      const validContracts = contracts.filter(
-        (c) => c.address && c.address.trim() !== ""
-      );
+      if (isEditMode) {
+        const res = await fetch(`/api/projects/${projectSlug}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cleaned),
+        });
 
-      const projectData = {
-        name,
-        description,
-        contracts: validContracts,
-        socials,
-        founders,
-        updatedAt: new Date().toISOString(),
-        updatedBy: currentUser.uid,
-      };
-
-      if (projectSlug) {
-        // Update existing project
-        const projectRef = doc(db, "projects", projectSlug);
-        await updateDoc(projectRef, projectData);
-        setSuccess("Project updated successfully!");
-      } else {
-        // Create new project
-        const newSlug = name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)+/g, "");
-        if (!newSlug) {
-          setError("Project name must not be empty.");
-          setSaving(false);
-          return;
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "Failed to update project");
         }
-        projectData.slug = newSlug;
-        projectData.owner = currentUser.uid; // Set owner on creation
-        projectData.createdAt = new Date().toISOString();
 
-        const projectRef = doc(db, "projects", newSlug);
-        await setDoc(projectRef, projectData);
-        setSuccess("Project created successfully!");
+        setSuccess("Project updated");
+
+        setTimeout(() => {
+          window.location.href = `/projects/${cleaned.ecosystem}/${projectSlug}`;
+        }, 600);
+      } else {
+        const res = await fetch("/api/projects/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...cleaned,
+            submittedBy: currentUser.uid,
+            submittedAt: new Date().toISOString(),
+          }),
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "Failed to submit project");
+        }
+
+        const body = await res.json();
+        setSuccess("Project submitted");
+
+        const createdSlug = body.projectSlug;
+        setTimeout(() => {
+          window.location.href = `/projects/${cleaned.ecosystem}/${createdSlug}`;
+        }, 600);
       }
-
-      // Redirect after a short delay
-      setTimeout(() => {
-        window.location.href = projectSlug
-          ? `/projects/${projectSlug}`
-          : "/dashboard";
-      }, 2000);
-    } catch (err) {
-      console.error("Error saving project:", err);
-      setError(`Failed to save project: ${err.message}`);
+    } catch (e) {
+      setError(e.message || "Failed to save project");
     } finally {
       setSaving(false);
     }
   };
 
-  const addContract = () => {
-    setContracts([...contracts, { label: "", address: "", explorer: "" }]);
-  };
-
-  const updateContract = (index, field, value) => {
-    const updatedContracts = [...contracts];
-    updatedContracts[index] = { ...updatedContracts[index], [field]: value };
-    setContracts(updatedContracts);
-  };
-
-  const removeContract = (index) => {
-    setContracts(contracts.filter((_, i) => i !== index));
-  };
-
-  const addFounder = () => {
-    setFounders([...founders, { name: "", url: "" }]);
-  };
-
-  const updateFounder = (index, field, value) => {
-    const updatedFounders = [...founders];
-    updatedFounders[index] = { ...updatedFounders[index], [field]: value };
-    setFounders(updatedFounders);
-  };
-
-  const removeFounder = (index) => {
-    setFounders(founders.filter((_, i) => i !== index));
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   if (!currentUser) {
     return (
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-        <div className="flex">
-          <div className="ml-3">
-            <p className="text-sm text-yellow-700">
-              Please sign in to edit this project.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Card className="p-6">
+        <div className="text-gray-700">Please sign in to continue.</div>
+      </Card>
     );
   }
 
-  if (projectSlug && !hasProjectPermission(projectSlug)) {
+  if (!canEdit) {
     return (
-      <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-        <div className="flex">
-          <div className="ml-3">
-            <p className="text-sm text-red-700">
-              You do not have permission to edit this project.
-            </p>
-          </div>
+      <Card className="p-6">
+        <div className="text-red-700">
+          You do not have permission to edit this project.
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-6">
-        {projectSlug ? `Edit Project: ${name}` : "Create New Project"}
-      </h2>
-
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {success && (
-        <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-green-700">{success}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Basic Info */}
-        <div>
-          <h3 className="text-lg font-medium mb-4">Basic Information</h3>
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Project Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Contracts */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Contracts</h3>
-            <button
-              type="button"
-              onClick={addContract}
-              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <PlusIcon className="h-4 w-4 mr-1" />
-              Add Contract
-            </button>
-          </div>
-
-          {contracts.length === 0 ? (
-            <p className="text-sm text-gray-500 italic">
-              No contracts added yet.
+    <form onSubmit={handleSave} className="space-y-6">
+      <Card className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              {isEditMode ? "Edit project" : "Add a project"}
+            </h2>
+            <p className="text-gray-600 mt-1">
+              Keep it crisp. Links + contract address are the minimum viable proof.
             </p>
-          ) : (
-            <div className="space-y-3">
-              {contracts.map((contract, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-12 gap-2 items-center"
-                >
-                  <div className="col-span-3">
-                    <input
-                      type="text"
-                      placeholder="Label"
-                      value={contract.label}
-                      onChange={(e) =>
-                        updateContract(index, "label", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="col-span-5">
-                    <input
-                      type="text"
-                      placeholder="Contract Address"
-                      value={contract.address}
-                      onChange={(e) =>
-                        updateContract(index, "address", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="col-span-3">
-                    <input
-                      type="text"
-                      placeholder="Explorer URL (optional)"
-                      value={contract.explorer}
-                      onChange={(e) =>
-                        updateContract(index, "explorer", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <button
-                      type="button"
-                      onClick={() => removeContract(index)}
-                      className="inline-flex items-center p-1.5 border border-transparent rounded-md text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="submit" loading={saving}>
+              {isEditMode ? "Save" : "Submit"}
+            </Button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mt-4 bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg">
+            {success}
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6 space-y-5">
+        <h3 className="text-lg font-semibold text-gray-900">Basics</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Project name"
+            value={form.name}
+            onChange={(e) => setField("name", e.target.value)}
+            required
+          />
+
+          <Select
+            label="Chain"
+            value={form.ecosystem}
+            onChange={(e) => setField("ecosystem", e.target.value)}
+            required
+          >
+            {ecosystemOptions.map((eco) => (
+              <option key={eco.id} value={eco.id}>
+                {eco.shortName}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <Textarea
+          label="Description"
+          value={form.description}
+          onChange={(e) => setField("description", e.target.value)}
+          placeholder="What does it do, who is it for, and what’s onchain?"
+          rows={4}
+          required
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="GitHub repository"
+            value={form.githubUrl}
+            onChange={(e) => setField("githubUrl", e.target.value)}
+            placeholder="https://github.com/org/repo"
+            required
+          />
+
+          <Select
+            label="Category"
+            value={form.category}
+            onChange={(e) => setField("category", e.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Select a category
+            </option>
+            {categoryOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        {Array.isArray(ecosystemConfig?.submissionRequirements) &&
+          ecosystemConfig.submissionRequirements.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="font-medium text-gray-900 mb-2">
+                {ecosystemConfig.shortName} submission checklist
+              </div>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc pl-5">
+                {ecosystemConfig.submissionRequirements.map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+              </ul>
             </div>
           )}
+      </Card>
+
+      <Card className="p-6 space-y-5">
+        <h3 className="text-lg font-semibold text-gray-900">Onchain</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Contract address"
+            value={form.contractAddress}
+            onChange={(e) => setField("contractAddress", e.target.value)}
+            placeholder="0x..."
+            required
+          />
+          <Input
+            label="Deployment tx (optional)"
+            value={form.deploymentTxHash}
+            onChange={(e) => setField("deploymentTxHash", e.target.value)}
+            placeholder="0x..."
+          />
+        </div>
+      </Card>
+
+      <Card className="p-6 space-y-5">
+        <h3 className="text-lg font-semibold text-gray-900">Links & team</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="Website (optional)"
+            value={form.website}
+            onChange={(e) => setField("website", e.target.value)}
+            placeholder="https://..."
+          />
+          <Input
+            label="Twitter (optional)"
+            value={form.twitter}
+            onChange={(e) => setField("twitter", e.target.value)}
+            placeholder="https://twitter.com/..."
+          />
+          <Input
+            label="Discord (optional)"
+            value={form.discord}
+            onChange={(e) => setField("discord", e.target.value)}
+            placeholder="https://discord.gg/..."
+          />
         </div>
 
-        {/* Social Links */}
-        <div>
-          <h3 className="text-lg font-medium mb-4">Social Links</h3>
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Twitter
-              </label>
-              <input
-                type="text"
-                placeholder="https://twitter.com/username"
-                value={socials.twitter}
-                onChange={(e) =>
-                  setSocials({ ...socials, twitter: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Discord
-              </label>
-              <input
-                type="text"
-                placeholder="https://discord.gg/invite"
-                value={socials.discord}
-                onChange={(e) =>
-                  setSocials({ ...socials, discord: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Website
-              </label>
-              <input
-                type="text"
-                placeholder="https://yourproject.com"
-                value={socials.website}
-                onChange={(e) =>
-                  setSocials({ ...socials, website: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
+        <Input
+          label="Tags (comma separated)"
+          value={form.tags}
+          onChange={(e) => setField("tags", e.target.value)}
+          placeholder="payments, defi, wallets"
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Checkbox
+            label="Open source"
+            checked={form.isOpenSource}
+            onChange={(e) => setField("isOpenSource", e.target.checked)}
+          />
+          <Checkbox
+            label="Looking for funding"
+            checked={form.lookingForFunding}
+            onChange={(e) => setField("lookingForFunding", e.target.checked)}
+          />
         </div>
 
-        {/* Founders */}
+        {form.lookingForFunding && (
+          <Input
+            label="Funding amount (optional)"
+            value={form.fundingAmount}
+            onChange={(e) => setField("fundingAmount", e.target.value)}
+            placeholder="$500 - $5,000"
+          />
+        )}
+
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Founders</h3>
-            <button
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-medium text-gray-900">Team members</div>
+            <Button
               type="button"
-              onClick={addFounder}
-              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              variant="outline"
+              size="sm"
+              onClick={() => addArrayItem("teamMembers")}
+              leftIcon={<PlusIcon className="w-4 h-4" />}
             >
-              <PlusIcon className="h-4 w-4 mr-1" />
-              Add Founder
-            </button>
+              Add
+            </Button>
           </div>
 
-          {founders.length === 0 ? (
-            <p className="text-sm text-gray-500 italic">
-              No founders added yet.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {founders.map((founder, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-12 gap-2 items-center"
+          <div className="space-y-2">
+            {form.teamMembers.map((member, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <Input
+                  value={member}
+                  onChange={(e) =>
+                    updateArrayItem("teamMembers", idx, e.target.value)
+                  }
+                  placeholder="Name / GitHub / Farcaster"
+                  className="flex-1"
+                />
+                {form.teamMembers.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => removeArrayItem("teamMembers", idx)}
+                    leftIcon={<TrashIcon className="w-4 h-4" />}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-6 space-y-5">
+        <h3 className="text-lg font-semibold text-gray-900">Milestones</h3>
+
+        <div className="space-y-2">
+          {form.milestones.map((m, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <Input
+                value={m}
+                onChange={(e) => updateArrayItem("milestones", idx, e.target.value)}
+                placeholder="What will you ship next?"
+                className="flex-1"
+              />
+              {form.milestones.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => removeArrayItem("milestones", idx)}
+                  leftIcon={<TrashIcon className="w-4 h-4" />}
                 >
-                  <div className="col-span-5">
-                    <input
-                      type="text"
-                      placeholder="Name"
-                      value={founder.name}
-                      onChange={(e) =>
-                        updateFounder(index, "name", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="col-span-6">
-                    <input
-                      type="text"
-                      placeholder="URL (optional)"
-                      value={founder.url}
-                      onChange={(e) =>
-                        updateFounder(index, "url", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <button
-                      type="button"
-                      onClick={() => removeFounder(index)}
-                      className="inline-flex items-center p-1.5 border border-transparent rounded-md text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  Remove
+                </Button>
+              )}
             </div>
-          )}
+          ))}
         </div>
 
-        {/* Save Button */}
-        <div className="flex justify-end space-x-3">
-          <a
-            href="/dashboard"
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => addArrayItem("milestones")}
+          leftIcon={<PlusIcon className="w-4 h-4" />}
+        >
+          Add milestone
+        </Button>
+      </Card>
+
+      <Card className="p-6 space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Hackathons</h3>
+            <p className="text-gray-600 text-sm">
+              Track where you’re submitting, outcomes, and time-to-payout.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addHackathon}
+            leftIcon={<PlusIcon className="w-4 h-4" />}
           >
-            Cancel
-          </a>
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
+            Add
+          </Button>
         </div>
-      </form>
-    </div>
+
+        {form.hackathons.length === 0 ? (
+          <div className="text-gray-600">No hackathons yet.</div>
+        ) : (
+          <div className="space-y-4">
+            {form.hackathons.map((h, idx) => (
+              <Card key={idx} className="p-4 bg-gray-50 border border-gray-200">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="font-medium text-gray-900">
+                    Hackathon {idx + 1}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => removeHackathon(idx)}
+                    leftIcon={<TrashIcon className="w-4 h-4" />}
+                  >
+                    Remove
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                  <Input
+                    label="Name"
+                    value={h.name}
+                    onChange={(e) => updateHackathon(idx, "name", e.target.value)}
+                    placeholder="ETHGlobal…"
+                  />
+                  <Input
+                    label="Submission / announcement URL"
+                    value={h.url}
+                    onChange={(e) => updateHackathon(idx, "url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                  <Input
+                    label="Outcome"
+                    value={h.outcome}
+                    onChange={(e) =>
+                      updateHackathon(idx, "outcome", e.target.value)
+                    }
+                    placeholder="Submitted / finalist / winner / not selected"
+                  />
+                  <Input
+                    label="Payout received at (optional)"
+                    value={h.payoutAt}
+                    onChange={(e) =>
+                      updateHackathon(idx, "payoutAt", e.target.value)
+                    }
+                    placeholder="2025-12-01"
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <Textarea
+                    label="Notes"
+                    value={h.notes}
+                    onChange={(e) => updateHackathon(idx, "notes", e.target.value)}
+                    placeholder="Key improvements, judge feedback, what you’d do differently…"
+                    rows={3}
+                  />
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <div className="flex items-center justify-end">
+        <Button type="submit" loading={saving}>
+          {isEditMode ? "Save changes" : "Submit project"}
+        </Button>
+      </div>
+    </form>
   );
 }

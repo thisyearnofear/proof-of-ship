@@ -12,7 +12,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/components/common/Toast";
 import { Navbar, Footer } from "@/components/common/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { errorHandler } from "@/middleware/errorHandler";
 import "@/styles/globals.css";
 
 import NoSSR from "@/providers/NoSSR/NoSSR";

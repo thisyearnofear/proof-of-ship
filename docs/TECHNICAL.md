@@ -23,10 +23,19 @@ This document provides a technical overview of the Proof of Ship platform, inclu
 
 The system is built on a stack of:
 
-- **Frontend**: Next.js with React, Tailwind CSS for styling
+- **Frontend**: Next.js 14.2.35 with React, Tailwind CSS for styling (upgraded for security)
 - **Backend**: Firebase Firestore for data storage, Firebase Hosting for deployment
 - **Authentication**: Firebase Auth for GitHub login, MetaMask for wallet connection
 - **Data Sources**: GitHub API (via proxy), Blockchain data (via providers)
+
+### Version Information
+
+**Critical Dependencies:**
+- Next.js: 14.2.35 (security update from 13.4.12)
+- React: 18.2.0
+- eslint-config-next: 14.2.35 (aligned with Next.js version)
+
+**Security Note:** The Next.js 14 upgrade addresses React Server Components CVE vulnerabilities while maintaining Pages Router compatibility.
 
 ### Component Structure
 

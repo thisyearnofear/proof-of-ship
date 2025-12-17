@@ -143,3 +143,25 @@ export function parseQueryParams(query, options = {}) {
   
   return result;
 }
+
+/**
+ * Verify Firebase auth token from Authorization header
+ * Returns decoded uid or throws Error with statusCode 401
+ */
+export async function verifyAuth(req, authLib) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const err = new Error('Unauthorized');
+    err.statusCode = 401;
+    throw err;
+  }
+  const idToken = authHeader.substring(7);
+  try {
+    const decoded = await authLib.verifyIdToken(idToken);
+    return decoded.uid;
+  } catch (e) {
+    const err = new Error('Invalid token');
+    err.statusCode = 401;
+    throw err;
+  }
+}

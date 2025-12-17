@@ -1,5 +1,5 @@
 import { db, auth } from "../../../lib/firebase/adminApp";
-import { withApiMiddleware } from "../../../utils/apiMiddleware";
+import { withApiMiddleware, verifyAuth } from "../../../utils/apiMiddleware";
 
 export default withApiMiddleware(handler, { allowedMethods: ["GET", "PUT"], rateLimit: 30, rateLimitKey: "PROJECT_DETAIL" });
 
@@ -24,6 +24,8 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "verified",
   "featured",
   "status",
+  "testerTasks", // minimal tester tasks config allowed
+
 ]);
 
 async function handler(req, res) {
@@ -59,14 +61,7 @@ async function handler(req, res) {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const idToken = authHeader.substring(7);
-    let decoded;
-    try {
-      decoded = await auth.verifyIdToken(idToken);
-    } catch (e) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-    const userId = decoded.uid;
+        const userId = await verifyAuth(req, auth);
 
     const existingSnap = await projectRef.get();
     if (!existingSnap.exists) {
@@ -91,6 +86,28 @@ async function handler(req, res) {
     }
 
     const updates = {};
+
+    // Validate testerTasks if provided
+    if (Array.isArray(req.body?.testerTasks)) {
+      const valid = [];
+      for (const t of req.body.testerTasks) {
+        if (!t || typeof t !== "object") continue;
+        const task = {
+          id: String(t.id || '').trim() || Math.random().toString(36).slice(2),
+          title: String(t.title || '').trim(),
+          description: String(t.description || '').trim(),
+          rewardUSDC: Number(t.rewardUSDC || 0),
+          evidenceRequirements: Array.isArray(t.evidenceRequirements) ? t.evidenceRequirements.filter(Boolean).map(String) : [],
+          startAt: t.startAt ? String(t.startAt) : null,
+          endAt: t.endAt ? String(t.endAt) : null,
+          limit: typeof t.limit === 'number' ? t.limit : null,
+          reviewPolicy: t.reviewPolicy === 'auto' ? 'auto' : 'manual'
+        };
+        if (!task.title) continue;
+        valid.push(task);
+      }
+      updates.testerTasks = valid;
+    }
     for (const [key, value] of Object.entries(req.body || {})) {
       if (!ALLOWED_UPDATE_FIELDS.has(key)) continue;
       updates[key] = value;

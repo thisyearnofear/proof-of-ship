@@ -1,5 +1,5 @@
 import { db, auth } from "../../../lib/firebase/adminApp";
-import { withApiMiddleware } from "../../../utils/apiMiddleware";
+import { verifyAuth, withApiMiddleware } from "../../../utils/apiMiddleware";
 
 async function handler(req, res) {
   if (req.method !== "POST") {
@@ -8,18 +8,7 @@ async function handler(req, res) {
 
   try {
     // Verify auth token
-    const authHeader = req.headers.authorization || req.headers.Authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    const idToken = authHeader.substring(7);
-    let decoded;
-    try {
-      decoded = await auth.verifyIdToken(idToken);
-    } catch (e) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-    const userId = decoded.uid;
+    const userId = await verifyAuth(req, auth);
 
     const projectData = { ...(req.body || {}) };
 
@@ -78,6 +67,20 @@ async function handler(req, res) {
 
     const [, owner, repo] = githubMatch;
 
+    // Attempt ownership verification by matching user's githubUsername
+    let ownershipVerified = false;
+    let submitterGithub = null;
+    try {
+      const userRef = db.collection("users").doc(userId);
+      const userSnap = await userRef.get();
+      if (userSnap.exists) {
+        submitterGithub = (userSnap.data().githubUsername || "").trim();
+        ownershipVerified = submitterGithub && submitterGithub.toLowerCase() === owner.toLowerCase();
+      }
+    } catch (e) {
+      ownershipVerified = false;
+    }
+
     // Prepare project document
     const projectDoc = {
       slug,
@@ -105,7 +108,7 @@ async function handler(req, res) {
       submittedBy: userId,
       owners: [userId],
       submittedAt: projectData.submittedAt,
-      status: "pending_review",
+      status: ownershipVerified ? "submitted" : "pending_review",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       verified: false,
@@ -158,14 +161,16 @@ async function handler(req, res) {
     }
 
     // Log submission for admin review
-   await db.collection("admin_queue").add({
+    await db.collection("admin_queue").add({
       type: "project_submission",
       projectSlug: slug,
       ecosystem: projectData.ecosystem,
       submittedBy: userId,
       submittedAt: new Date().toISOString(),
-      status: "pending",
-      priority: projectData.ecosystem === "base" ? "high" : "normal", // Prioritize Base projects
+      status: ownershipVerified ? "info" : "pending",
+      priority: projectData.ecosystem === "base" ? "high" : "normal", // Prioritize Base projects,
+      note: ownershipVerified ? "ownership_verified_via_github_username_match" : "ownership_unverified"
+
     });
 
     // Send notification (you could integrate with Discord, Slack, etc.)

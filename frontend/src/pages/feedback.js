@@ -9,11 +9,12 @@ import { Input, Textarea, Select } from "@/components/common/Input";
 
 export default function FeedbackPage() {
   const router = useRouter();
-  const { project: projectSlug } = router.query;
+  const { project: projectSlug, taskId: initialTaskId } = router.query;
   const { currentUser } = useAuth();
 
   const [message, setMessage] = useState("");
   const [recordingUrl, setRecordingUrl] = useState("");
+  const [taskId, setTaskId] = useState(initialTaskId ? String(initialTaskId) : "");
   const [rating, setRating] = useState("5");
   const [verificationProvider, setVerificationProvider] = useState("");
   const [verificationProof, setVerificationProof] = useState("");
@@ -49,6 +50,7 @@ export default function FeedbackPage() {
           verificationProvider: verificationProvider || null,
           verificationProof: verificationProof || null,
           submittedBy: currentUser?.uid || null,
+          taskId: taskId || null,
         }),
       });
 
@@ -122,6 +124,13 @@ export default function FeedbackPage() {
                   <option value="2">2 - Friction</option>
                   <option value="1">1 - Blocked</option>
                 </Select>
+
+                <Input
+                  label="Task ID (optional)"
+                  value={taskId}
+                  onChange={(e) => setTaskId(e.target.value)}
+                  placeholder="Pre-filled when starting from a tester task"
+                />
 
                 <Textarea
                   label="What did you try? What was confusing?"

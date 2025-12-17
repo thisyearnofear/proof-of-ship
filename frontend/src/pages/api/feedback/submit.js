@@ -1,4 +1,5 @@
-import { db } from "../../../lib/firebase/adminApp";
+import { db, auth } from "../../../lib/firebase/adminApp";
+import { verifyAuth } from "../../../utils/apiMiddleware";
 import { withApiMiddleware } from "../../../utils/apiMiddleware";
 
 async function handler(req, res) {
@@ -68,6 +69,19 @@ async function handler(req, res) {
       }
     }
 
+    // Enforce that only admin can set non-submitted status
+    let finalStatus = "submitted";
+    if (["accepted","rejected"].includes(status)) {
+      try {
+        const uid = await verifyAuth(req, auth);
+        const userSnap = await db.collection('users').doc(uid).get();
+        const isAdmin = userSnap.exists && (userSnap.data().isAdmin === true || userSnap.data().role === 'admin');
+        if (isAdmin) finalStatus = status;
+      } catch (_) {
+        finalStatus = "submitted";
+      }
+    }
+
     const doc = {
       projectSlug: projectSlug.trim(),
       message: message.trim(),
@@ -80,7 +94,7 @@ async function handler(req, res) {
       submittedBy: submittedBy ? String(submittedBy) : null,
       attachments: Array.isArray(attachments) ? attachments.filter(isAllowedUrl).map(String) : [],
       taskId: taskId ? String(taskId).trim() : null,
-      status: ["submitted","accepted","rejected"].includes(status) ? status : "submitted",
+      status: finalStatus,
       createdAt: new Date().toISOString(),
     };
 

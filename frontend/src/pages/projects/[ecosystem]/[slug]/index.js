@@ -277,6 +277,47 @@ export default function ProjectDetailPage() {
             )}
           </Card>
 
+          {/* Tester Tasks */}
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Earn by testing</h2>
+            {Array.isArray(project.testerTasks) && project.testerTasks.length > 0 ? (
+              <div className="divide-y divide-gray-100">
+                {project.testerTasks.map((t) => (
+                  <div key={t.id} className="py-3 flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-medium text-gray-900">{t.title}</div>
+                      {t.description && (
+                        <div className="text-sm text-gray-600 mt-1">{t.description}</div>
+                      )}
+                      <div className="text-sm text-gray-600 mt-1">
+                        Reward: {Number(t.rewardUSDC || 0)} USDC
+                      </div>
+                      {Array.isArray(t.evidenceRequirements) && t.evidenceRequirements.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Evidence: {t.evidenceRequirements.join(', ')}
+                        </div>
+                      )}
+                      {(t.startAt || t.endAt) && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {t.startAt ? `Starts: ${t.startAt}` : ''} {t.endAt ? `Ends: ${t.endAt}` : ''}
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/feedback?project=${encodeURIComponent(slug)}&taskId=${encodeURIComponent(t.id)}`)}
+                    >
+                      Submit evidence
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600">No tester tasks available.</p>
+            )}
+          </Card>
+
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
               Feedback
@@ -291,10 +332,72 @@ export default function ProjectDetailPage() {
             >
               Leave feedback
             </Button>
+
+            {/* Minimal Admin Controls (server-side enforces admin) */}
+            <div className="mt-6 border-t pt-4">
+              <h3 className="text-md font-semibold text-gray-900 mb-2">Admin controls</h3>
+              <p className="text-sm text-gray-600 mb-3">Approve a tester reward by feedback ID. Server-side admin check is enforced.</p>
+              <AdminApproveForm projectSlug={slug} />
+            </div>
           </Card>
         </div>
       </div>
     </>
+  );
+}
+
+function AdminApproveForm({ projectSlug }) {
+  const router = useRouter();
+  const [feedbackId, setFeedbackId] = React.useState('');
+  const [taskId, setTaskId] = React.useState('');
+  const [destinationAddress, setDestinationAddress] = React.useState('');
+  const [sourceWalletId, setSourceWalletId] = React.useState('');
+  const [amount, setAmount] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
+  const [success, setSuccess] = React.useState(null);
+
+  const onApprove = async () => {
+    setError(null); setSuccess(null);
+    try {
+      setLoading(true);
+      const res = await fetch('/api/funding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'approveTesterReward',
+          feedbackId,
+          projectSlug,
+          taskId,
+          sourceWalletId,
+          destinationAddress,
+          amount: amount ? Number(amount) : undefined,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Approval failed');
+      setSuccess('Approved and payout initiated');
+      setFeedbackId(''); setTaskId(''); setDestinationAddress(''); setAmount('');
+    } catch (e) {
+      setError(e.message || 'Approval failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-3 max-w-xl">
+      {error && <div className="text-sm text-red-600">{error}</div>}
+      {success && <div className="text-sm text-green-700">{success}</div>}
+      <input className="border p-2 rounded" placeholder="Feedback ID" value={feedbackId} onChange={e=>setFeedbackId(e.target.value)} />
+      <input className="border p-2 rounded" placeholder="Task ID" value={taskId} onChange={e=>setTaskId(e.target.value)} />
+      <input className="border p-2 rounded" placeholder="Source Wallet ID" value={sourceWalletId} onChange={e=>setSourceWalletId(e.target.value)} />
+      <input className="border p-2 rounded" placeholder="Destination Address" value={destinationAddress} onChange={e=>setDestinationAddress(e.target.value)} />
+      <input className="border p-2 rounded" placeholder="Amount (optional)" value={amount} onChange={e=>setAmount(e.target.value)} />
+      <div>
+        <Button loading={loading} onClick={onApprove}>Approve & Pay</Button>
+      </div>
+    </div>
   );
 }
 

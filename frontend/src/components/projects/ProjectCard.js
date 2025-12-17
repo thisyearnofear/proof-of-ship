@@ -241,6 +241,12 @@ export const ProjectListItem = ({ project, onClick }) => {
           
           {/* Stats */}
           <div className="flex items-center space-x-6 text-sm text-gray-500">
+            {Array.isArray(project.testerTasks) && project.testerTasks.length > 0 && (
+              <div className="text-center">
+                <div className="font-medium text-purple-700">{project.testerTasks.length}</div>
+                <div className="text-xs text-purple-700">Tasks</div>
+              </div>
+            )}
             <div className="text-center">
               <div className="font-medium text-gray-900">{project.stats?.commits || 0}</div>
               <div className="text-xs">Commits</div>
@@ -329,6 +335,12 @@ export const ProjectGridCard = ({ project, onClick }) => {
           <div className="font-semibold text-gray-900">{project.stats?.commits || 0}</div>
           <div className="text-gray-500 text-xs">Commits</div>
         </div>
+        {Array.isArray(project.testerTasks) && project.testerTasks.length > 0 && (
+          <div>
+            <div className="font-semibold text-purple-700">{project.testerTasks.length}</div>
+            <div className="text-purple-700 text-xs">Tasks</div>
+          </div>
+        )}
         <div>
           <div className="font-semibold text-gray-900">{project.stats?.stars || 0}</div>
           <div className="text-gray-500 text-xs">Stars</div>

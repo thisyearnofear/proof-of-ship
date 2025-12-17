@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
 const RESERVED_SUBDOMAINS = new Set(["www", "app", "api", "admin"]);
+const SUBDOMAIN_ALIASES = {
+  papa: "thisyearnofear",
+};
 
 function getSubdomain(hostname) {
   if (!hostname) return null;
@@ -25,7 +28,10 @@ function getSubdomain(hostname) {
 
 export function middleware(req) {
   const hostname = req.headers.get("host");
-  const subdomain = getSubdomain(hostname);
+  let subdomain = getSubdomain(hostname);
+  if (subdomain && SUBDOMAIN_ALIASES[subdomain]) {
+    subdomain = SUBDOMAIN_ALIASES[subdomain];
+  }
 
   if (!subdomain || RESERVED_SUBDOMAINS.has(subdomain)) {
     return NextResponse.next();

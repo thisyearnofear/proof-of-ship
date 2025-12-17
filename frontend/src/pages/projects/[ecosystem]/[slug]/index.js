@@ -413,6 +413,12 @@ export default function ProjectDetailPage() {
                 <h3 className="text-md font-semibold text-gray-900 mb-2">Admin controls</h3>
                 <p className="text-sm text-gray-600 mb-3">Approve a tester reward by feedback ID. Server-side admin check is enforced.</p>
                 <AdminApproveForm projectSlug={slug} />
+
+                <div className="mt-8">
+                  <h4 className="text-md font-semibold text-gray-900 mb-2">Bulk approvals</h4>
+                  <p className="text-sm text-gray-600 mb-3">Paste JSON array or CSV with headers: feedbackId,projectSlug,taskId,destinationAddress,amount. Source wallet applies to all rows.</p>
+                  <BulkApproveForm projectSlug={slug} />
+                </div>
               </div>
             )}
           </Card>
@@ -529,6 +535,103 @@ function AdminApproveForm({ projectSlug }) {
       <input className="border p-2 rounded" placeholder="Amount (optional)" value={amount} onChange={e=>setAmount(e.target.value)} />
       <div>
         <Button loading={loading} onClick={onApprove}>Approve & Pay</Button>
+      </div>
+    </div>
+  );
+}
+
+function BulkApproveForm({ projectSlug }) {
+  const [bulkText, setBulkText] = React.useState('');
+  const [sourceWalletId, setSourceWalletId] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [result, setResult] = React.useState(null);
+  const [error, setError] = React.useState(null);
+
+  const parseInput = () => {
+    const text = bulkText.trim();
+    if (!text) return [];
+    // Try JSON array first
+    if (text.startsWith('[')) {
+      try {
+        const arr = JSON.parse(text);
+        if (Array.isArray(arr)) return arr.map((it) => ({ projectSlug, ...it }));
+      } catch (_) {}
+    }
+    // Try CSV
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    if (lines.length === 0) return [];
+    const headers = lines[0].split(',').map((h) => h.trim());
+    const idx = {
+      feedbackId: headers.indexOf('feedbackId'),
+      projectSlug: headers.indexOf('projectSlug'),
+      taskId: headers.indexOf('taskId'),
+      destinationAddress: headers.indexOf('destinationAddress'),
+      amount: headers.indexOf('amount'),
+    };
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map((c) => c.trim());
+      const row = {
+        feedbackId: idx.feedbackId >= 0 ? cols[idx.feedbackId] : undefined,
+        projectSlug: idx.projectSlug >= 0 ? cols[idx.projectSlug] : projectSlug,
+        taskId: idx.taskId >= 0 ? cols[idx.taskId] : undefined,
+        destinationAddress: idx.destinationAddress >= 0 ? cols[idx.destinationAddress] : undefined,
+      };
+      const amountStr = idx.amount >= 0 ? cols[idx.amount] : undefined;
+      if (amountStr) {
+        const n = Number(amountStr);
+        if (!Number.isNaN(n)) row.amount = n;
+      }
+      rows.push(row);
+    }
+    return rows;
+  };
+
+  const onSubmit = async () => {
+    setError(null); setResult(null);
+    try {
+      setLoading(true);
+      const items = parseInput();
+      if (!Array.isArray(items) || items.length === 0) {
+        setError('No valid items parsed');
+        setLoading(false);
+        return;
+      }
+      const res = await fetch('/api/funding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bulkApproveTesterRewards', items, sourceWalletId }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Bulk approve failed');
+      setResult(body.results || []);
+      setBulkText('');
+    } catch (e) {
+      setError(e.message || 'Bulk approve failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-3 max-w-2xl">
+      {error && <div className="text-sm text-red-600">{error}</div>}
+      {Array.isArray(result) && result.length > 0 && (
+        <div className="text-sm">
+          <div className="font-medium mb-1">Results</div>
+          <ul className="space-y-1">
+            {result.map((r, i) => (
+              <li key={i} className={r.ok ? 'text-green-700' : 'text-red-700'}>
+                {r.feedbackId || 'row'}: {r.ok ? 'ok' : r.error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <textarea className="border p-2 rounded min-h-[120px]" placeholder="Paste JSON array or CSV here" value={bulkText} onChange={(e)=>setBulkText(e.target.value)} />
+      <input className="border p-2 rounded" placeholder="Source Wallet ID" value={sourceWalletId} onChange={(e)=>setSourceWalletId(e.target.value)} />
+      <div>
+        <Button loading={loading} onClick={onSubmit}>Process batch</Button>
       </div>
     </div>
   );

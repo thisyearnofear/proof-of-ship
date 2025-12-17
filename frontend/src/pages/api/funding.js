@@ -144,11 +144,65 @@ async function handler(req, res) {
         if (!payoutAmount || payoutAmount <= 0) {
           return res.status(400).json({ error: 'Invalid payout amount' });
         }
+        // Optional budget check/deduct if project has budgetRemainingUSDC
+        if (typeof proj.budgetRemainingUSDC === 'number') {
+          if (payoutAmount > proj.budgetRemainingUSDC) {
+            return res.status(400).json({ error: 'Insufficient project budget' });
+          }
+        }
+
         // Transfer
         const transfer = await usdcPaymentService.transferUSDCWithReason(sourceWalletId, destinationAddress, payoutAmount, `tester_reward:${projectSlug}:${taskId}:${feedbackId}`);
+
+        // Deduct budget
+        if (typeof proj.budgetRemainingUSDC === 'number') {
+          await db.collection('projects').doc(projectSlug).set({ budgetRemainingUSDC: proj.budgetRemainingUSDC - payoutAmount }, { merge: true });
+        }
+
         // Mark feedback as accepted
         await db.collection('feedback').doc(feedbackId).set({ status: 'accepted', acceptedAt: new Date().toISOString(), approvedBy: userId }, { merge: true });
         return res.status(200).json({ success: true, transfer });
+      }
+
+      case 'bulkApproveTesterRewards': {
+        const { items, sourceWalletId } = data;
+        if (!Array.isArray(items) || items.length === 0) {
+          return res.status(400).json({ error: 'Missing items' });
+        }
+        const results = [];
+        for (const it of items) {
+          try {
+            const { feedbackId, projectSlug, taskId, destinationAddress, amount } = it;
+            if (!feedbackId || !projectSlug || !taskId || !sourceWalletId || !destinationAddress) {
+              results.push({ feedbackId, ok: false, error: 'Missing required fields' });
+              continue;
+            }
+            const fbSnap = await db.collection('feedback').doc(feedbackId).get();
+            if (!fbSnap.exists) { results.push({ feedbackId, ok: false, error: 'Feedback not found' }); continue; }
+            const fb = fbSnap.data();
+            if (fb.projectSlug !== projectSlug || fb.taskId !== taskId) { results.push({ feedbackId, ok: false, error: 'Feedback does not match project/task' }); continue; }
+            const projSnap = await db.collection('projects').doc(projectSlug).get();
+            if (!projSnap.exists) { results.push({ feedbackId, ok: false, error: 'Project not found' }); continue; }
+            const proj = projSnap.data();
+            const task = (proj.testerTasks || []).find(t => t.id === taskId);
+            if (!task) { results.push({ feedbackId, ok: false, error: 'Invalid task for project' }); continue; }
+            const payoutAmount = typeof amount === 'number' && amount > 0 ? amount : Number(task.rewardUSDC || 0);
+            if (!payoutAmount || payoutAmount <= 0) { results.push({ feedbackId, ok: false, error: 'Invalid payout amount' }); continue; }
+            if (typeof proj.budgetRemainingUSDC === 'number' && payoutAmount > proj.budgetRemainingUSDC) {
+              results.push({ feedbackId, ok: false, error: 'Insufficient project budget' });
+              continue;
+            }
+            const transfer = await usdcPaymentService.transferUSDCWithReason(sourceWalletId, destinationAddress, payoutAmount, `tester_reward:${projectSlug}:${taskId}:${feedbackId}`);
+            if (typeof proj.budgetRemainingUSDC === 'number') {
+              await db.collection('projects').doc(projectSlug).set({ budgetRemainingUSDC: proj.budgetRemainingUSDC - payoutAmount }, { merge: true });
+            }
+            await db.collection('feedback').doc(feedbackId).set({ status: 'accepted', acceptedAt: new Date().toISOString(), approvedBy: userId }, { merge: true });
+            results.push({ feedbackId, ok: true, transfer });
+          } catch (e) {
+            results.push({ feedbackId: it?.feedbackId, ok: false, error: e?.message || 'Error' });
+          }
+        }
+        return res.status(200).json({ success: true, results });
       }
 
       default:

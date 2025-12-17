@@ -41,6 +41,33 @@ async function handler(req, res) {
       }
     };
 
+    // If taskId provided, validate against project's testerTasks and time window
+    if (taskId) {
+      try {
+        const projectSnap = await db.collection('projects').doc(projectSlug).get();
+        if (!projectSnap.exists) {
+          return res.status(400).json({ error: 'Project not found for provided taskId' });
+        }
+        const project = projectSnap.data();
+        const tasks = Array.isArray(project.testerTasks) ? project.testerTasks : [];
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) {
+          return res.status(400).json({ error: 'Invalid taskId for this project' });
+        }
+        // Optional: enforce time window
+        const nowIso = new Date().toISOString();
+        if (task.startAt && nowIso < String(task.startAt)) {
+          return res.status(400).json({ error: 'Task has not started yet' });
+        }
+        if (task.endAt && nowIso > String(task.endAt)) {
+          return res.status(400).json({ error: 'Task has ended' });
+        }
+      } catch (e) {
+        console.error('Task validation failed:', e);
+        return res.status(500).json({ error: 'Task validation error' });
+      }
+    }
+
     const doc = {
       projectSlug: projectSlug.trim(),
       message: message.trim(),

@@ -107,7 +107,7 @@ async function handler(req, res) {
         : [],
       submittedBy: userId,
       owners: [userId],
-      submittedAt: projectData.submittedAt,
+      submittedAt: new Date().toISOString(),
       status: ownershipVerified ? "submitted" : "pending_review",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -1,12 +1,28 @@
 import { usdcPaymentService, getFundingTier } from '../../lib/usdcPayments';
 
-export default async function handler(req, res) {
+import { withApiMiddleware, verifyAuth } from '../../utils/apiMiddleware';
+import { db } from '../../lib/firebase/adminApp';
+
+async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    const { action, ...data } = req.body;
+
+    // For admin actions, authenticate and check admin status
+    const adminActions = new Set(['approveTesterReward']);
+    let userId = null;
+    if (adminActions.has(action)) {
+      userId = await verifyAuth(req, (await import('../../lib/firebase/adminApp')).auth);
+      const userSnap = await db.collection('users').doc(userId).get();
+      const isAdmin = userSnap.exists && (userSnap.data().isAdmin === true || userSnap.data().role === 'admin');
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+    }
     const { action, ...data } = req.body;
 
     switch (action) {
@@ -100,6 +116,41 @@ export default async function handler(req, res) {
         );
         
         return res.status(200).json({ success: true, transfer: transferResult });
+
+      case 'approveTesterReward': {
+        const { feedbackId, projectSlug, taskId, sourceWalletId, destinationAddress, amount } = data;
+        if (!feedbackId || !projectSlug || !taskId || !sourceWalletId || !destinationAddress) {
+          return res.status(400).json({ error: 'Missing required fields for approveTesterReward' });
+        }
+        // Validate feedback exists and matches project/task
+        const fbSnap = await db.collection('feedback').doc(feedbackId).get();
+        if (!fbSnap.exists) {
+          return res.status(404).json({ error: 'Feedback not found' });
+        }
+        const fb = fbSnap.data();
+        if (fb.projectSlug !== projectSlug || fb.taskId !== taskId) {
+          return res.status(400).json({ error: 'Feedback does not match project/task' });
+        }
+        // Validate task exists and get reward default
+        const projSnap = await db.collection('projects').doc(projectSlug).get();
+        if (!projSnap.exists) {
+          return res.status(404).json({ error: 'Project not found' });
+        }
+        const proj = projSnap.data();
+        const task = (proj.testerTasks || []).find(t => t.id === taskId);
+        if (!task) {
+          return res.status(400).json({ error: 'Invalid task for project' });
+        }
+        const payoutAmount = typeof amount === 'number' && amount > 0 ? amount : Number(task.rewardUSDC || 0);
+        if (!payoutAmount || payoutAmount <= 0) {
+          return res.status(400).json({ error: 'Invalid payout amount' });
+        }
+        // Transfer
+        const transfer = await usdcPaymentService.transferUSDCWithReason(sourceWalletId, destinationAddress, payoutAmount, `tester_reward:${projectSlug}:${taskId}:${feedbackId}`);
+        // Mark feedback as accepted
+        await db.collection('feedback').doc(feedbackId).set({ status: 'accepted', acceptedAt: new Date().toISOString(), approvedBy: userId }, { merge: true });
+        return res.status(200).json({ success: true, transfer });
+      }
 
       default:
         return res.status(400).json({ error: 'Invalid action' });

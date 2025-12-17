@@ -1,12 +1,27 @@
-import { db } from "../../../lib/firebase/adminApp";
+import { db, auth } from "../../../lib/firebase/adminApp";
+import { withApiMiddleware } from "../../../utils/apiMiddleware";
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const projectData = req.body;
+    // Verify auth token
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const idToken = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await auth.verifyIdToken(idToken);
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    const userId = decoded.uid;
+
+    const projectData = { ...(req.body || {}) };
 
     // Validate required fields
     const requiredFields = [
@@ -87,8 +102,8 @@ export default async function handler(req, res) {
       milestones: Array.isArray(projectData.milestones)
         ? projectData.milestones.filter((milestone) => String(milestone).trim())
         : [],
-      submittedBy: projectData.submittedBy,
-      owners: projectData.submittedBy ? [projectData.submittedBy] : [],
+      submittedBy: userId,
+      owners: [userId],
       submittedAt: projectData.submittedAt,
       status: "pending_review",
       createdAt: new Date().toISOString(),
@@ -106,7 +121,7 @@ export default async function handler(req, res) {
     };
 
     // Save to Firestore
-    await db.collection("projects").doc(slug).set(projectDoc);
+   await db.collection("projects").doc(slug).set(projectDoc);
 
     // Also save to ecosystem-specific collection for easier querying
     await db
@@ -115,8 +130,8 @@ export default async function handler(req, res) {
       .set(projectDoc);
 
     // Grant the submitter edit permissions (used by the in-app editor)
-    if (projectData.submittedBy) {
-      const userRef = db.collection("users").doc(projectData.submittedBy);
+    if (userId) {
+      const userRef = db.collection("users").doc(userId);
       const userSnap = await userRef.get();
       const userData = userSnap.exists ? userSnap.data() : {};
       const existingPermissions = Array.isArray(userData.permissions)
@@ -143,12 +158,12 @@ export default async function handler(req, res) {
     }
 
     // Log submission for admin review
-    await db.collection("admin_queue").add({
+   await db.collection("admin_queue").add({
       type: "project_submission",
       projectSlug: slug,
       ecosystem: projectData.ecosystem,
-      submittedBy: projectData.submittedBy,
-      submittedAt: projectData.submittedAt,
+      submittedBy: userId,
+      submittedAt: new Date().toISOString(),
       status: "pending",
       priority: projectData.ecosystem === "base" ? "high" : "normal", // Prioritize Base projects
     });
@@ -169,6 +184,8 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default withApiMiddleware(handler, { allowedMethods: ["POST"], rateLimit: 5, rateLimitKey: "PROJECT_SUBMIT" });
 
 function generateSlug(name) {
   return name

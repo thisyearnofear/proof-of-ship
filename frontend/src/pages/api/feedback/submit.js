@@ -1,6 +1,7 @@
 import { db } from "../../../lib/firebase/adminApp";
+import { withApiMiddleware } from "../../../utils/apiMiddleware";
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

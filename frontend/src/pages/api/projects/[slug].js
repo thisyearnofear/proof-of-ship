@@ -1,4 +1,7 @@
-import { db } from "../../../lib/firebase/adminApp";
+import { db, auth } from "../../../lib/firebase/adminApp";
+import { withApiMiddleware } from "../../../utils/apiMiddleware";
+
+export default withApiMiddleware(handler, { allowedMethods: ["GET", "PUT"], rateLimit: 30, rateLimitKey: "PROJECT_DETAIL" });
 
 const ALLOWED_UPDATE_FIELDS = new Set([
   "name",
@@ -23,7 +26,7 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "status",
 ]);
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const slug = String(req.query.slug || "").trim();
   if (!slug) {
     return res.status(400).json({ error: "Slug is required" });
@@ -47,16 +50,45 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== "PUT") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+   return res.status(405).json({ error: "Method not allowed" });
+ }
 
   try {
+    // Verify auth for update
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const idToken = authHeader.substring(7);
+    let decoded;
+    try {
+      decoded = await auth.verifyIdToken(idToken);
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    const userId = decoded.uid;
+
     const existingSnap = await projectRef.get();
     if (!existingSnap.exists) {
       return res.status(404).json({ error: "Project not found" });
     }
 
     const existing = existingSnap.data();
+
+    // Check server-side permission: owner or user permissions entry
+    let hasPermission = Array.isArray(existing.owners) && existing.owners.includes(userId);
+    if (!hasPermission) {
+      try {
+        const userSnap = await db.collection("users").doc(userId).get();
+        const perms = userSnap.exists && Array.isArray(userSnap.data().permissions) ? userSnap.data().permissions : [];
+        hasPermission = perms.some(p => p.projectSlug === slug && (p.role === "editor" || p.role === "admin"));
+      } catch (e) {
+        hasPermission = false;
+      }
+    }
+    if (!hasPermission) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
     const updates = {};
     for (const [key, value] of Object.entries(req.body || {})) {

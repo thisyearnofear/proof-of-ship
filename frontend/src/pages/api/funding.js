@@ -1,6 +1,6 @@
 import { usdcPaymentService, getFundingTier } from '../../lib/usdcPayments';
 
-import { withApiMiddleware, verifyAuth } from '../../utils/apiMiddleware';
+import { withApiMiddleware, isAdmin } from '../../utils/apiMiddleware';
 import { db } from '../../lib/firebase/adminApp';
 
 async function handler(req, res) {
@@ -16,12 +16,11 @@ async function handler(req, res) {
     const adminActions = new Set(['approveTesterReward']);
     let userId = null;
     if (adminActions.has(action)) {
-      userId = await verifyAuth(req, (await import('../../lib/firebase/adminApp')).auth);
-      const userSnap = await db.collection('users').doc(userId).get();
-      const isAdmin = userSnap.exists && (userSnap.data().isAdmin === true || userSnap.data().role === 'admin');
-      if (!isAdmin) {
+      const { uid, isAdmin: admin } = await isAdmin(req, (await import('../../lib/firebase/adminApp')).auth, db);
+      if (!admin) {
         return res.status(403).json({ error: 'Forbidden' });
       }
+      userId = uid;
     }
     const { action, ...data } = req.body;
 

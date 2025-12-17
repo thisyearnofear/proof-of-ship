@@ -13,6 +13,14 @@ This document outlines the strategic development plan for the Proof of Ship plat
 
 ## 🔥 Phase 1: Critical Fixes (1-2 Weeks)
 
+Recent Progress
+- [x] API hardening and rate limiting for critical routes
+- [x] Server-side auth/permission checks for project submission/update
+- [x] Minimal incentives (testerTasks) without bloat
+- [x] Feedback evidence structure and admin-only status changes
+- [x] Admin payout approval flow (manual) leveraging existing payments
+
+
 ### Smart Contract Implementation
 
 - 🔥 **Deploy proper contract implementation**

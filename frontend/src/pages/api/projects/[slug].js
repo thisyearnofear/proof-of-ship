@@ -1,5 +1,5 @@
 import { db, auth } from "../../../lib/firebase/adminApp";
-import { withApiMiddleware, verifyAuth } from "../../../utils/apiMiddleware";
+import { withApiMiddleware, verifyAuth, requireProjectPermission } from "../../../utils/apiMiddleware";
 
 export default withApiMiddleware(handler, { allowedMethods: ["GET", "PUT"], rateLimit: 30, rateLimitKey: "PROJECT_DETAIL" });
 
@@ -70,17 +70,8 @@ async function handler(req, res) {
 
     const existing = existingSnap.data();
 
-    // Check server-side permission: owner or user permissions entry
-    let hasPermission = Array.isArray(existing.owners) && existing.owners.includes(userId);
-    if (!hasPermission) {
-      try {
-        const userSnap = await db.collection("users").doc(userId).get();
-        const perms = userSnap.exists && Array.isArray(userSnap.data().permissions) ? userSnap.data().permissions : [];
-        hasPermission = perms.some(p => p.projectSlug === slug && (p.role === "editor" || p.role === "admin"));
-      } catch (e) {
-        hasPermission = false;
-      }
-    }
+    // Check server-side permission via shared helper
+    const hasPermission = await requireProjectPermission(db, userId, slug, ['editor','admin']);
     if (!hasPermission) {
       return res.status(403).json({ error: "Forbidden" });
     }

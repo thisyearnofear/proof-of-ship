@@ -8,6 +8,8 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getEcosystemConfig } from "@/config/ecosystems";
+import { db as clientDb } from "@/lib/firebase/clientApp";
+import { collection, getDocs, limit, orderBy, query, where, getDoc, doc } from "firebase/firestore";
 import { getGitHubUrl } from "@/utils/projectUtils";
 
 import {
@@ -28,6 +30,9 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [recentFeedback, setRecentFeedback] = useState([]);
+  const [isAdminClient, setIsAdminClient] = useState(false);
+
   useEffect(() => {
     if (!ecosystem || !slug) return;
 
@@ -43,6 +48,23 @@ export default function ProjectDetailPage() {
 
         if (!cancelled) setProject(data);
 
+        // Load recent feedback previews (client-side, 5 latest)
+        try {
+          const q = query(
+            collection(clientDb, 'feedback'),
+            where('projectSlug', '==', String(slug)),
+            orderBy('createdAt', 'desc'),
+            limit(5)
+          );
+          const snaps = await getDocs(q);
+          if (!cancelled) {
+            const items = snaps.docs.map(d => ({ id: d.id, ...d.data() }));
+            setRecentFeedback(items);
+          }
+        } catch (_) {
+          if (!cancelled) setRecentFeedback([]);
+        }
+
         // Opportunistically load extra details (issues/PRs) in the background.
         loadProjectDetails(slug, ecosystem).catch(() => {});
       } catch (e) {
@@ -57,6 +79,24 @@ export default function ProjectDetailPage() {
     return () => {
       cancelled = true;
     };
+  }, [ecosystem, slug, getProject, loadProjectDetails]);
+
+  // Client-side admin check (server still enforces)
+  useEffect(() => {
+    let cancelled = false;
+    async function checkAdmin() {
+      try {
+        if (!currentUser?.uid) { setIsAdminClient(false); return; }
+        const snap = await getDoc(doc(clientDb, 'users', currentUser.uid));
+        const admin = snap.exists() && (snap.data().isAdmin === true || snap.data().role === 'admin');
+        if (!cancelled) setIsAdminClient(Boolean(admin));
+      } catch {
+        if (!cancelled) setIsAdminClient(false);
+      }
+    }
+    checkAdmin();
+    return () => { cancelled = true; };
+  }, [currentUser?.uid]);
   }, [ecosystem, slug, getProject, loadProjectDetails]);
 
   const ecosystemConfig = useMemo(
@@ -236,6 +276,40 @@ export default function ProjectDetailPage() {
 
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Recent tester submissions
+            </h2>
+            {recentFeedback.length > 0 ? (
+              <div className="divide-y divide-gray-100">
+                {recentFeedback.map((f) => (
+                  <div key={f.id} className="py-3 flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${f.status === 'accepted' ? 'bg-green-100 text-green-800' : f.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>{f.status || 'submitted'}</span>
+                        {f.status === 'accepted' && f.acceptedAt && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Paid</span>
+                        )}
+                        {f.taskId && <span className="text-xs text-gray-500">Task: {f.taskId}</span>}
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1 line-clamp-2">{f.message}</div>
+                      {Array.isArray(f.attachments) && f.attachments.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          {f.attachments.slice(0,3).map((u, idx) => (
+                            <AttachmentThumb key={idx} url={u} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => router.push(`/feedback?project=${encodeURIComponent(slug)}`)}>Give feedback</Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600">No recent submissions.</p>
+            )}
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Hackathons
             </h2>
 
@@ -333,17 +407,64 @@ export default function ProjectDetailPage() {
               Leave feedback
             </Button>
 
-            {/* Minimal Admin Controls (server-side enforces admin) */}
-            <div className="mt-6 border-t pt-4">
-              <h3 className="text-md font-semibold text-gray-900 mb-2">Admin controls</h3>
-              <p className="text-sm text-gray-600 mb-3">Approve a tester reward by feedback ID. Server-side admin check is enforced.</p>
-              <AdminApproveForm projectSlug={slug} />
-            </div>
+            {/* Admin Controls (client-hide, server-enforced) */}
+            {isAdminClient && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="text-md font-semibold text-gray-900 mb-2">Admin controls</h3>
+                <p className="text-sm text-gray-600 mb-3">Approve a tester reward by feedback ID. Server-side admin check is enforced.</p>
+                <AdminApproveForm projectSlug={slug} />
+              </div>
+            )}
           </Card>
         </div>
       </div>
     </>
   );
+}
+
+function AttachmentThumb({ url }) {
+  try {
+    const u = new URL(url);
+    const host = u.host;
+    const isImgur = host.includes('imgur.com');
+    const isYouTube = host.includes('youtube.com') || host.includes('youtu.be');
+    const isLoom = host.includes('loom.com');
+
+    if (isImgur) {
+      return (
+        <a href={url} target="_blank" rel="noreferrer" className="block w-20 h-14 bg-gray-100 rounded overflow-hidden">
+          <img src={url} alt="attachment" className="w-full h-full object-cover" />
+        </a>
+      );
+    }
+    if (isYouTube) {
+      // best-effort thumbnail
+      let id = '';
+      if (u.searchParams.get('v')) id = u.searchParams.get('v');
+      const pathParts = u.pathname.split('/').filter(Boolean);
+      if (!id && pathParts.length) id = pathParts[pathParts.length-1];
+      const thumb = id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+      return (
+        <a href={url} target="_blank" rel="noreferrer" className="block w-20 h-14 bg-gray-100 rounded overflow-hidden">
+          {thumb ? <img src={thumb} alt="video" className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">Video</div>}
+        </a>
+      );
+    }
+    if (isLoom) {
+      return (
+        <a href={url} target="_blank" rel="noreferrer" className="block w-20 h-14 bg-gray-100 rounded overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">Loom</div>
+        </a>
+      );
+    }
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="block w-20 h-14 bg-gray-100 rounded overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">Link</div>
+      </a>
+    );
+  } catch {
+    return null;
+  }
 }
 
 function AdminApproveForm({ projectSlug }) {
@@ -356,6 +477,18 @@ function AdminApproveForm({ projectSlug }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
+
+  const prefillFromFeedback = async (id) => {
+    try {
+      if (!id) return;
+      const res = await fetch(`/api/feedback/lookup?id=${encodeURIComponent(id)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.feedback && data.user && data.user.walletAddress) {
+        setDestinationAddress(data.user.walletAddress);
+      }
+    } catch (_) {}
+  };
 
   const onApprove = async () => {
     setError(null); setSuccess(null);
@@ -389,7 +522,7 @@ function AdminApproveForm({ projectSlug }) {
     <div className="grid gap-3 max-w-xl">
       {error && <div className="text-sm text-red-600">{error}</div>}
       {success && <div className="text-sm text-green-700">{success}</div>}
-      <input className="border p-2 rounded" placeholder="Feedback ID" value={feedbackId} onChange={e=>setFeedbackId(e.target.value)} />
+      <input className="border p-2 rounded" placeholder="Feedback ID" value={feedbackId} onChange={e=>{ setFeedbackId(e.target.value); prefillFromFeedback(e.target.value); }} />
       <input className="border p-2 rounded" placeholder="Task ID" value={taskId} onChange={e=>setTaskId(e.target.value)} />
       <input className="border p-2 rounded" placeholder="Source Wallet ID" value={sourceWalletId} onChange={e=>setSourceWalletId(e.target.value)} />
       <input className="border p-2 rounded" placeholder="Destination Address" value={destinationAddress} onChange={e=>setDestinationAddress(e.target.value)} />

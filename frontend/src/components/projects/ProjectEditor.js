@@ -402,6 +402,16 @@ export default function ProjectEditor({ projectSlug }) {
             placeholder="https://github.com/org/repo"
             required
           />
+          <div className="text-xs text-gray-600">
+            Verify repo ownership to speed up review. If not connected, submission may be marked pending review.
+          </div>
+          <div className="mt-2">
+            <Button type="button" variant="outline" onClick={async ()=>{
+              try {
+                await (await import('@/contexts/AuthContext')).useAuth().signInWithGithub();
+              } catch (e) { console.warn('GitHub connect failed'); }
+            }}>Connect GitHub</Button>
+          </div>
 
           <Select
             label="Category"

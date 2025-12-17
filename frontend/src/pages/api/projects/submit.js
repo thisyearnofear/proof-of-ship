@@ -67,15 +67,24 @@ async function handler(req, res) {
 
     const [, owner, repo] = githubMatch;
 
-    // Attempt ownership verification by matching user's githubUsername
+    // Attempt ownership verification via OAuth and username match
     let ownershipVerified = false;
     let submitterGithub = null;
+    let oauthVerified = false;
     try {
       const userRef = db.collection("users").doc(userId);
       const userSnap = await userRef.get();
       if (userSnap.exists) {
-        submitterGithub = (userSnap.data().githubUsername || "").trim();
-        ownershipVerified = submitterGithub && submitterGithub.toLowerCase() === owner.toLowerCase();
+        const udata = userSnap.data();
+        submitterGithub = (udata.githubUsername || "").trim();
+        const token = (udata.githubAccessToken || "").trim();
+        if (token) {
+          try {
+            const gh = (await import("../../../services/RealGitHubService")).realGitHubService;
+            oauthVerified = await gh.hasRepoPushAccess(owner, repo, token);
+          } catch (_) { oauthVerified = false; }
+        }
+        ownershipVerified = oauthVerified || (submitterGithub && submitterGithub.toLowerCase() === owner.toLowerCase());
       }
     } catch (e) {
       ownershipVerified = false;

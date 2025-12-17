@@ -2,7 +2,7 @@
 
 Progress Update (Completed)
 - DRY API auth and permissions (verifyAuth, isAdmin, requireProjectPermission)
-- Project submission hardening with ownership verification by GitHub username match
+- Project submission hardening with ownership verification via GitHub OAuth (push/admin/maintain) when available, with fallback to GitHub username match
 - testerTasks minimal config on project with validation
 - Feedback: attachments allowlist, taskId, admin-only status changes, time-window validation
 - Admin payout flow: approveTesterReward wired to USDC transfer and feedback accepted status

@@ -337,7 +337,7 @@ Now includes evidence attachments and task-aware validation. Admin-only status c
 ### Recent Enhancements
 - Standardized API middleware with rate limiting and error handling via withApiMiddleware
 - DRY auth helpers: verifyAuth(req, auth), isAdmin(req, auth, db), requireProjectPermission(db, userId, slug)
-- Project submission: server-side auth required; ownership verification by matching users.githubUsername with repo owner from githubUrl; admin_queue note
+- Project submission: server-side auth required; ownership verification via GitHub OAuth (push/admin/maintain) when available, with fallback to users.githubUsername matching repo owner from githubUrl; admin_queue note
 - Project update: server-side auth + permission check (owner/editor/admin), testerTasks array supported with validation
 - Feedback submit: supports attachments URL allowlist, optional taskId, and admin-only status changes; validates task windows
 - Admin funding: approveTesterReward action reuses usdc payments, marks feedback accepted

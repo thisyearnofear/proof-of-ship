@@ -174,6 +174,15 @@ export const AuthProvider = ({ children }) => {
       const provider = new GithubAuthProvider();
       provider.addScope("repo"); // Request repo access to verify ownership
       const result = await signInWithPopup(auth, provider);
+      try {
+        const credential = GithubAuthProvider.credentialFromResult(result);
+        const accessToken = credential?.accessToken || null;
+        if (accessToken) {
+          await setDoc(doc(db, 'users', result.user.uid), { githubAccessToken: accessToken }, { merge: true });
+        }
+      } catch (e) {
+        console.warn('Could not persist GitHub access token', e?.message);
+      }
 
       // This gives you a GitHub Access Token
       const credential = GithubAuthProvider.credentialFromResult(result);

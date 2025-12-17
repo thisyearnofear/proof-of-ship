@@ -43,6 +43,34 @@ class RealGitHubService {
     return response.json();
   }
 
+  async makeUserRequest(endpoint, userToken, options = {}) {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = {
+      Authorization: `token ${userToken}`,
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "Builder-Credit-Platform",
+      ...options.headers,
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(`GitHub API (user) error: ${response.status} ${response.statusText} - ${error.message || 'Unknown error'}`);
+    }
+    return response.json();
+  }
+
+  async hasRepoPushAccess(owner, repo, userToken) {
+    if (!userToken) return false;
+    try {
+      const repoData = await this.makeUserRequest(`/repos/${owner}/${repo}`, userToken);
+      // repoData.permissions exists for the authenticated user
+      const perms = repoData.permissions || {};
+      return Boolean(perms.push || perms.admin || perms.maintain);
+    } catch (e) {
+      return false;
+    }
+  }
+
   /**
    * Get user profile information
    */

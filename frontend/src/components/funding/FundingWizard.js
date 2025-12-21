@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/common';
 import { CreditScoreCircular } from '@/components/common/CircularProgress';
-import { CreditTierBadge } from '@/components/credit/CreditTierBadge';
 import { 
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -128,10 +127,6 @@ const EligibilityStep = ({ creditData, onNext, onBack }) => {
         />
         
         <div className="text-center lg:text-left">
-          <div className="mb-4">
-            <CreditTierBadge score={totalScore} size="lg" variant="gradient" />
-          </div>
-          
           {isEligible ? (
             <div className="space-y-3">
               <div className="flex items-center text-success-600">

@@ -4,7 +4,6 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useBuilderCredit } from '../contexts/BuilderCreditContext';
 import { useMetaMask } from '../contexts/MetaMaskContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
@@ -24,17 +23,6 @@ import {
 
 export default function DeveloperDashboard() {
   const { account, connected } = useMetaMask();
-  const {
-    creditProfile,
-    developerProjects,
-    projectDetails,
-    usdcBalance,
-    loading: contractLoading,
-    error: contractError,
-    repayLoan,
-    loadUserData,
-    formatUSDC
-  } = useBuilderCredit();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -42,13 +30,6 @@ export default function DeveloperDashboard() {
   const [repayAmount, setRepayAmount] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showRepayModal, setShowRepayModal] = useState(false);
-
-  // Refresh data when account changes
-  useEffect(() => {
-    if (connected && account) {
-      loadUserData();
-    }
-  }, [connected, account]);
 
   const handleRepayLoan = async () => {
     if (!repayAmount || parseFloat(repayAmount) <= 0) {

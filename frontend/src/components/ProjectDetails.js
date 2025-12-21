@@ -4,7 +4,6 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useBuilderCredit } from '../contexts/BuilderCreditContext';
 import { useMetaMask } from '../contexts/MetaMaskContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
@@ -21,12 +20,6 @@ import {
 
 export default function ProjectDetails({ projectId, onMilestoneComplete }) {
   const { account } = useMetaMask();
-  const {
-    coreContract,
-    projectDetails,
-    loading: contractLoading,
-    creditProfile
-  } = useBuilderCredit();
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(false);

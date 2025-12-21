@@ -22,7 +22,6 @@ async function handler(req, res) {
       }
       userId = uid;
     }
-    const { action, ...data } = req.body;
 
     switch (action) {
       case 'createWallet':

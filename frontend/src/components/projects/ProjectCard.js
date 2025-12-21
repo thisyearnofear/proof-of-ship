@@ -8,6 +8,8 @@ import { Card } from '../common/Card';
 import Button from '../common/Button';
 import { getEcosystemConfig, getEcosystemClasses } from '../../config/ecosystems';
 import { getGitHubUrl } from '../../utils/projectUtils';
+import ChainBadges from '../showcase/ChainBadges';
+import SectorBadges from '../showcase/SectorBadges';
 import {
   StarIcon,
   CodeBracketIcon,
@@ -123,6 +125,22 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
           {project.description}
         </p>
       )}
+
+      {/* Badges */}
+      <div className="mb-4 space-y-2">
+        {project.chains && project.chains.length > 0 && (
+          <div>
+            <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">Networks</div>
+            <ChainBadges chains={project.chains} compact={true} />
+          </div>
+        )}
+        {project.sectors && project.sectors.length > 0 && (
+          <div>
+            <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">Sectors</div>
+            <SectorBadges sectors={project.sectors} compact={true} />
+          </div>
+        )}
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
@@ -326,6 +344,16 @@ export const ProjectGridCard = ({ project, onClick }) => {
           <p className="text-gray-500 text-sm italic">
             {project.owner}/{project.repo}
           </p>
+        )}
+      </div>
+
+      {/* Badges */}
+      <div className="mb-4 space-y-2">
+        {project.chains && project.chains.length > 0 && (
+          <ChainBadges chains={project.chains} compact={true} />
+        )}
+        {project.sectors && project.sectors.length > 0 && (
+          <SectorBadges sectors={project.sectors} compact={true} />
         )}
       </div>
 

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useMetaMask } from "../contexts/MetaMaskContext";
-import { useBuilderCredit } from "../contexts/BuilderCreditContext";
 import { useLiFi } from "../contexts/LiFiContext";
 import { ethers } from "ethers";
 import { Card } from "./common/Card";
@@ -24,7 +23,6 @@ import {
 
 export default function CrossChainTransfer() {
   const { account, chainId, provider, switchNetwork } = useMetaMask();
-  const { usdcBalance } = useBuilderCredit();
   const {
     availableChains,
     availableTokens,

@@ -18,19 +18,24 @@ export default function ProjectsPage() {
   const { projectData, loading, errors } = useEnhancedGithub();
   const { userProfile } = useDecentralizedAuth();
 
-  // Filters: ecosystem and chains (multi)
+  // Filters: ecosystem, chains, and sectors (multi)
   const [ecosystem, setEcosystem] = useState("all");
   const [chains, setChains] = useState([]); // array of string chain ids
+  const [sectors, setSectors] = useState([]); // array of string sector ids
 
   // Initialize from query on mount
   useEffect(() => {
-    const { ecosystem: ecoQ, chains: chainsQ } = router.query || {};
+    const { ecosystem: ecoQ, chains: chainsQ, sectors: sectorsQ } = router.query || {};
     if (ecoQ && (ecoQ === "celo" || ecoQ === "base" || ecoQ === "all")) {
       setEcosystem(String(ecoQ));
     }
     if (chainsQ) {
       const arr = Array.isArray(chainsQ) ? chainsQ : String(chainsQ).split(",");
       setChains(arr.filter(Boolean).map(String));
+    }
+    if (sectorsQ) {
+      const arr = Array.isArray(sectorsQ) ? sectorsQ : String(sectorsQ).split(",");
+      setSectors(arr.filter(Boolean).map(String));
     }
   }, [router.query]);
 
@@ -39,8 +44,9 @@ export default function ProjectsPage() {
     const q = {};
     if (ecosystem !== "all") q.ecosystem = ecosystem;
     if (chains.length > 0) q.chains = chains.join(",");
+    if (sectors.length > 0) q.sectors = sectors.join(",");
     router.replace({ pathname: router.pathname, query: q }, undefined, { shallow: true });
-  }, [ecosystem, chains]);
+  }, [ecosystem, chains, sectors]);
 
   const handleProjectClick = (project) => {
     // Navigate to project detail page
@@ -85,10 +91,19 @@ export default function ProjectsPage() {
     const ecosystems = ecosystem === "all" ? Object.keys(projectData) : [ecosystem];
     ecosystems.forEach((eco) => {
       const list = projectData[eco] || [];
-      result[eco] = filterProjects(list, { chains });
+      // Apply both chain and sector filters
+      result[eco] = list.filter(p => {
+        if (chains.length > 0 && (!p.chains || !p.chains.some(c => chains.includes(c)))) {
+          return false;
+        }
+        if (sectors.length > 0 && (!p.sectors || !p.sectors.some(s => sectors.includes(s)))) {
+          return false;
+        }
+        return true;
+      });
     });
     return result;
-  }, [projectData, ecosystem, chains]);
+  }, [projectData, ecosystem, chains, sectors]);
 
   // Chains list from NETWORK_CONFIGS
   const chainOptions = useMemo(() => {
@@ -97,6 +112,20 @@ export default function ProjectsPage() {
       name: `${c.name} (${c.chainId})`,
     }));
   }, []);
+
+  // Sector options
+  const sectorOptions = [
+    { id: 'defi', name: '💰 DeFi' },
+    { id: 'gaming', name: '🎮 Gaming' },
+    { id: 'rwa', name: '🏢 RWA' },
+    { id: 'health', name: '🏥 Health' },
+    { id: 'infrastructure', name: '🏗️ Infrastructure' },
+    { id: 'social', name: '👥 Social' },
+    { id: 'nft', name: '🖼️ NFT' },
+    { id: 'dao', name: '🗳️ DAO' },
+    { id: 'marketplace', name: '🛍️ Marketplace' },
+    { id: 'bridge', name: '🌉 Bridge' }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -139,8 +168,31 @@ export default function ProjectsPage() {
                 })}
               </div>
             </div>
-          </div>
-        </Card>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Sectors</label>
+              <div className="flex flex-wrap gap-2">
+                {sectorOptions.map((opt) => {
+                  const active = sectors.includes(opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() =>
+                        setSectors((prev) =>
+                          active ? prev.filter((id) => id !== opt.id) : [...prev, opt.id]
+                        )
+                      }
+                      className={`px-2 py-1 rounded border text-xs ${
+                        active ? "bg-green-50 border-green-300 text-green-700" : "bg-white border-gray-300 text-gray-700"
+                      }`}
+                    >
+                      {opt.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            </div>
+            </Card>
 
         <HybridDashboard
           projects={filteredData}

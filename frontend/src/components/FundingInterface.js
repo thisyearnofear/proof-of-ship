@@ -6,7 +6,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCircleWallet } from '../contexts/CircleWalletContext';
 import { useMetaMask } from '../contexts/MetaMaskContext';
-import { useBuilderCredit } from '../contexts/BuilderCreditContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
@@ -32,12 +31,6 @@ export default function FundingInterface({
     getEnvironment,
     loading: circleLoading
   } = useCircleWallet();
-  
-  const {
-    calculateFundingAmount: contractCalculateFunding,
-    loading: contractLoading,
-    creditFactors
-  } = useBuilderCredit();
   
   const [fundingAmount, setFundingAmount] = useState(0);
   const [fundingHistory, setFundingHistory] = useState([]);

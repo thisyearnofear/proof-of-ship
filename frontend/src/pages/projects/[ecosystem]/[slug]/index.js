@@ -11,6 +11,7 @@ import { getEcosystemConfig } from "@/config/ecosystems";
 import { db as clientDb } from "@/lib/firebase/clientApp";
 import { collection, getDocs, limit, orderBy, query, where, getDoc, doc } from "firebase/firestore";
 import { getGitHubUrl } from "@/utils/projectUtils";
+import ProjectShowcase from "@/components/showcase/ProjectShowcase";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -97,7 +98,6 @@ export default function ProjectDetailPage() {
     checkAdmin();
     return () => { cancelled = true; };
   }, [currentUser?.uid]);
-  }, [ecosystem, slug, getProject, loadProjectDetails]);
 
   const ecosystemConfig = useMemo(
     () => getEcosystemConfig(project?.ecosystem || ecosystem),
@@ -273,6 +273,11 @@ export default function ProjectDetailPage() {
               </div>
             </Card>
           </div>
+
+          {/* Traction & Credibility Showcase */}
+          <Card className="p-6">
+            <ProjectShowcase project={project} />
+          </Card>
 
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">

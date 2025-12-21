@@ -22,9 +22,6 @@ export { default as OnboardingFlow } from './onboarding/OnboardingFlow';
 // Navigation Components
 export { default as EcosystemNavigation } from './navigation/EcosystemNavigation';
 
-// Credit Components
-export { CreditDashboard } from './credit';
-
 // Cross-Chain Components
 export { default as CrossChainFunding } from './CrossChainFunding';
 

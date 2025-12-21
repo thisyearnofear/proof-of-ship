@@ -26,12 +26,43 @@ service cloud.firestore {
       allow write: if isAdminUser();
     }
 
+    // Campaigns - project owners create, testers discover active ones
+    match /campaigns/{campaignId} {
+      // Public read for active campaigns
+      allow read: if resource.data.status == 'active' || isProjectOwner(resource.data.projectId) || isAdminUser();
+      
+      // Project owners can create/update/delete their campaigns
+      allow create, update, delete: if isProjectOwner(resource.data.projectId) || isAdminUser();
+    }
+
+    // Campaign submissions - testers submit, project owners + admins review
+    match /submissions/{submissionId} {
+      // Testers can read their own submissions, project owners + admins can read all
+      allow read: if request.auth.uid == resource.data.testerId || 
+                     isCampaignOwner(resource.data.campaignId) || 
+                     isAdminUser();
+      
+      // Testers can create and update their own submissions (only if status is 'submitted')
+      allow create: if request.auth.uid == request.resource.data.testerId && isAuthenticated();
+      allow update: if request.auth.uid == resource.data.testerId || 
+                       isCampaignOwner(resource.data.campaignId) || 
+                       isAdminUser();
+      
+      // Only project owners and admins can delete
+      allow delete: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
+    }
+
     // Helper functions for access control
     function isProjectOwner(projectId) {
       let userId = request.auth.uid;
       return request.auth != null &&
              exists(/databases/$(database)/documents/projects/$(projectId)) &&
              get(/databases/$(database)/documents/projects/$(projectId)).data.owners.hasAny([userId]);
+    }
+
+    function isCampaignOwner(campaignId) {
+      let campaign = get(/databases/$(database)/documents/campaigns/$(campaignId)).data;
+      return request.auth != null && isProjectOwner(campaign.projectId);
     }
     
     function isProjectPublic(projectId) {

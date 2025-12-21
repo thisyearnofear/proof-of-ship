@@ -1,6 +1,11 @@
-# Development Roadmap
+# Development Roadmap: Proof of Ship 2.0
 
-This document outlines the strategic development plan for the Proof of Ship platform, focusing on transforming the current prototype into a production-ready application.
+**Vision**: The GitHub for On-Chain Apps—a transparent developer portfolio + community testing marketplace with equity upside.
+
+**Mission**: 
+- Developers showcase live on-chain traction (TVL, users, volume) + GitHub commit history
+- Testers validate products at scale with USDC bounties + equity %
+- Investors see authentic demand signals before funding
 
 ## 📋 Development Priorities
 
@@ -11,244 +16,310 @@ This document outlines the strategic development plan for the Proof of Ship plat
 | 📈 **Medium**   | Important for product quality - address in upcoming sprints                 |
 | 🔍 **Low**      | Nice to have - address when resources permit                                |
 
-## 🔥 Phase 1: Critical Fixes (1-2 Weeks)
+## 🔥 Phase 1: Foundation & Cleanup (1-2 Weeks)
 
-Recent Progress
-- [x] API hardening and rate limiting for critical routes
-- [x] Server-side auth/permission checks for project submission/update
-- [x] Minimal incentives (testerTasks) without bloat
-- [x] Feedback evidence structure and admin-only status changes
-- [x] Admin payout approval flow (manual) leveraging existing payments
+### Codebase Consolidation
+- 🔥 **Remove credit scoring system**
+  - Delete: CreditScoringService, credit scoring hooks, scoring logic
+  - Update: All references in dashboards and project pages
+  - Replace with: On-chain traction metrics and GitHub analytics
+  
+- 🔥 **Remove governance/DAO stubs**
+  - Delete: Decentralized governance contracts
+  - Keep: Smart contract base for future phase if needed
 
+- 🔥 **Consolidate authentication**
+  - Audit: Multiple auth contexts (AuthContext, DecentralizedAuthContext)
+  - Consolidate: Single source of truth for user identity
+  - Remove: Redundant permission checking code
 
-### Smart Contract Implementation
+### Smart Contract Review
+- 🔥 **Audit BuilderCredit contracts**
+  - Confirm: Only essential contract functions needed
+  - Remove: Stub functions, unused features
+  - Deploy: Minimal, testable contract to Sepolia
 
-- 🔥 **Deploy proper contract implementation**
+### Testing Infrastructure
+- 🔥 **Set up Jest for frontend**
+  - Configure: Unit test suite
+  - Add: Tests for critical components (Portfolio, ProjectCard, Feedback)
+  
+- 🔥 **Set up Hardhat tests for contracts**
+  - Test: Core contract functionality
+  - Add: Integration tests
 
-  - Replace stub implementation with full functionality
-  - Add comprehensive testing suite
-  - Implement proper error handling
+## 🚀 Phase 2: On-Chain Traction Showcase (2-3 Weeks)
 
-- 🔥 **Fix centralization issues**
-  - Implement multi-signature requirements for milestone verification
-  - Add emergency withdrawal functionality for users
-  - Create circuit breaker mechanism for critical functions
+### On-Chain Metrics Integration
+- 🚀 **Integrate Dune Analytics API**
+  - Fetch: TVL, transaction volume, user count per contract
+  - Store: Cache in Firestore (update every 6 hours)
+  - Display: TractionCard component on project pages
+  
+- 🚀 **Add chain stratification**
+  - Detect: Which chains contract is deployed on
+  - Display: Chain badges on project cards
+  - Filter: Discovery by chain (Ethereum, Polygon, Arbitrum, etc.)
 
-### Frontend Integration
+- 🚀 **Create sector taxonomy**
+  - Define: DeFi, Gaming, RWA, Health, Infrastructure, Social
+  - Allow: Manual project classification
+  - Enable: Discovery filtering by sector
 
-- 🔥 **Fix MetaMask integration**
+### GitHub Analytics Integration
+- 🚀 **Fetch GitHub contribution metrics**
+  - API calls: User's commit frequency, PR history, test coverage
+  - Cache: In Firestore with GitHub webhook for updates
+  - Display: DeveloperCredibilityCard on portfolio
 
-  - Replace hardcoded USDC address with network-specific constants
-  - Implement proper network detection and switching
-  - Add error handling for wallet interactions
+- 🚀 **Build credibility card**
+  - Show: Commits/week, total PRs, active repos
+  - Visual: Activity heatmap (similar to GitHub graph)
+  - Update: Weekly via webhook or cron
 
-- ✅ **Replace mock Circle API implementation** *(Completed)*
+## 🚀 Phase 3: Testing Campaign System (3-5 Weeks)
 
-  - ✅ Implemented Circle API SDK with proper server-side endpoints
-  - ✅ Added proper error handling and rate limiting
-  - ✅ Created secure validation for API keys and environment variables
-  - ✅ Updated CircleWalletContext to use API endpoints instead of direct SDK access
+### Campaign Manager (Developer Side)
+- 🚀 **Create testing campaign builder**
+  - UI: Form to create bounty campaigns
+  - Fields: Campaign title, description, reward structure (USDC amount or token %)
+  - Schedule: Campaign duration, deadline
+  - Storage: `testingCampaigns` Firestore collection
 
-- ✅ **Fix LI.FI integration** *(Completed)*
-  - ✅ Created dedicated LiFiContext for managing cross-chain transfers
-  - ✅ Implemented CrossChainTransfer component with proper UI integration
-  - ✅ Added support for multiple chains and automatic network switching
-  - ✅ Implemented error handling and transaction status updates
+- 🚀 **Campaign dashboard (developer view)**
+  - Display: Active campaigns, tester submissions, metrics
+  - Actions: Approve/reject submissions, trigger payouts
+  - Metrics: Application count, submission quality, estimated spend
 
-### Security & Configuration
+### Campaign Discovery (Tester Side)
+- 🚀 **Campaign listing page**
+  - Filter: By sector, reward type, deadline
+  - Display: Campaign cards with project info, reward details
+  - CTA: "Apply to Test"
 
-- ✅ **Secure environment configuration** *(Completed)*
+- 🚀 **Application + submission flow**
+  - Reuse: Existing feedback form (attachments, evidence)
+  - New: Optional token % allocation field
+  - Submit: Video/screenshot evidence (required)
 
-  - ✅ Added validation for all environment variables
-  - ✅ Implemented proper error handling for missing configuration
-  - ✅ Created documentation for required environment setup in CIRCLE_SETUP.md
+### Testing Workflow Integration
+- 🚀 **Merge campaigns with testerTasks**
+  - Unify: Campaign bounties and project-specific tasks
+  - Firestore schema: `testingCampaigns` → `submissions` → feedback docs
+  - API: Endpoint to list active campaigns for authenticated user
 
-- ✅ **Implement basic security measures** *(Completed)*
-  - ✅ Added rate limiting for all API endpoints
-  - ✅ Implemented proper request validation
-  - ✅ Created secure API architecture with server-side secrets
+## 📈 Phase 4: Token Allocation & Equity Tracking (2-3 Weeks)
 
-## 🚀 Phase 2: Core Functionality (2-4 Weeks)
+### Token Allocation System
+- 📈 **Build token allocation tracker**
+  - Data model: `testingCampaigns.tokenAllocation[tester_uid]` = {percentage, vestingSchedule, notes}
+  - API: POST /api/campaigns/[id]/allocate-equity (dev + admin only)
+  - Storage: Track vesting schedule (cliff, duration, release schedule)
 
-### Smart Contract Enhancements
+- 📈 **Create equity commitment proof**
+  - Export: PDF/JSON document of allocation commitments
+  - Sign: Optional on-chain attestation (via Verifiable Credentials)
+  - Legal: Ready for legal teams to formalize
 
-- 🚀 **Implement on-chain reputation**
+- 📈 **Dashboard for tracking**
+  - Dev view: Total % allocated, vesting timelines, recipient list
+  - Tester view: Equity offered, vesting schedule, contract status
+  - Admin view: All allocations for audit
 
-  - Create reputation token or soulbound NFT
-  - Develop verifiable credential system
-  - Build on-chain attestation mechanisms
+### Payout Integration
+- 📈 **Extend Circle integration for campaign payouts**
+  - Trigger: On campaign completion, admin approves payouts
+  - Split: USDC immediate + equity tracker (separate system)
+  - Record: Store payout events in Firestore for audit trail
 
-- 🚀 **Decentralize governance**
-  - Create DAO voting mechanism for protocol decisions
-  - Implement community governance for parameter adjustments
-  - Set up transparent proposal and voting system
+## 📈 Phase 5: Tester Reputation & Leaderboards (2 Weeks)
 
-### Credit Scoring System
+### Tester Profile & Metrics
+- 📈 **Build tester reputation system**
+  - Metrics: Total reviews submitted, avg quality score, earnings (USDC + equity)
+  - Badges: "Top DeFi Tester", "Video Specialist", "Consistency Champion"
+  - Visibility: Public tester profile, review history
 
-- 🚀 **Build real credit scoring algorithm**
+- 📈 **Create quality scoring system**
+  - Expand feedback: Add `qualityScore` field (1-5)
+  - Helpfulness votes: Other users rate if review was helpful
+  - Algorithm: Quality = (rating * 0.6 + helpfulness * 0.4)
 
-  - Implement data collection from GitHub, social protocols, and on-chain activity
-  - Create weighted scoring system with proper validation
-  - Develop anti-Sybil mechanisms
+### Leaderboards
+- 📈 **Build public leaderboards**
+  - Global: Top testers by earnings, reviews, quality
+  - Sectoral: Top testers by sector (DeFi, Gaming, etc.)
+  - Trending: New testers entering top 100
+  - Update: Weekly via Firestore aggregation
 
-- 🚀 **Develop reputation dashboard**
-  - Create visualizations for credit components
-  - Build improvement recommendation system
-  - Implement historical tracking
+### Notifications & Engagement
+- 📈 **Tester engagement loop**
+  - Notify: When campaign matches tester's interests
+  - Remind: Submission deadline approaching
+  - Celebrate: New badge earned, ranked up
 
-### Backend Infrastructure
+## 🔍 Phase 6: Discovery UX & Optimization (1-2 Weeks)
 
-- 🚀 **Develop robust API architecture**
+### Enhanced Discovery
+- 🔍 **Project discovery dashboard**
+  - Filter: Chain, sector, funding stage, traction metrics
+  - Sort: By TVL, activity, newest launches
+  - Search: By name, category, developer
+  - Save: Favorites and watch lists
 
-  - Create standardized error handling
-  - Implement proper logging
-  - Set up monitoring and alerting
+- 🔍 **Tester discovery (for developers)**
+  - Find: Testers by specialty (DeFi, Gaming, mobile)
+  - Filter: By quality score, engagement, sector expertise
+  - Invite: Direct outreach to top testers
 
-- 🚀 **Implement testing infrastructure**
-  - Set up Jest for unit testing
-  - Implement React Testing Library for component testing
-  - Create Cypress for end-to-end testing
-  - Set up Hardhat for contract testing
-
-## 📈 Phase 3: Product Enhancement (4-8 Weeks)
-
-### User Experience
-
-- 📈 **Improve onboarding flow**
-
-  - Create step-by-step guidance
-  - Implement progress tracking
-  - Build comprehensive documentation
-
-- 📈 **Enhance dashboard interface**
-  - Implement real-time updates
-  - Create customizable layouts
-  - Add advanced filtering and sorting
-
-### Cross-Chain Functionality
-
-- 📈 **Expand multi-chain support**
-
-  - Add support for additional chains
-  - Implement cross-chain messaging
-  - Create unified user experience across chains
-
-- 📈 **Enhance LI.FI integration**
-  - ✅ Implement production SDK integration (replaced mock functionality)
-  - ✅ Add proper token decimal handling with ethers.js
-  - ✅ Implement basic error handling for API and network issues
-  - ✅ Implement transfer history functionality
-  - 📈 Optimize cross-chain transfers for gas efficiency
-  - 📈 Add support for transferring tokens other than USDC
-  - 📈 Create fallback mechanisms for API unavailability
-  - 📈 Implement real-time transfer tracking and notifications
-
-### Developer Experience
-
-- 📈 **Create developer SDK**
-
-  - Build JavaScript/TypeScript SDK
-  - Implement comprehensive documentation
-  - Create example applications
-
-- 📈 **Launch developer portal**
-  - Create API documentation
-  - Build interactive examples
-  - Implement developer dashboard
-
-## 🔍 Phase 4: Scaling & Optimization (8-12 Weeks)
-
-### Performance Optimization
-
-- 🔍 **Frontend optimization**
-
-  - Implement code splitting and lazy loading
-  - Optimize bundle size
-  - Add performance monitoring
-
-- 🔍 **Backend scaling**
-  - Implement database sharding
-  - Add load balancing
-  - Set up auto-scaling infrastructure
-
-### Advanced Features
-
-- 🔍 **Implement advanced analytics**
-
-  - Create custom dashboard builder
-  - Build export functionality
-  - Develop advanced filtering and visualization
-
-- 🔍 **Build protocol integrations**
-  - Expand social protocol integrations
-  - Add DeFi protocol connections
-  - Create ecosystem partnerships
-
-### Community Building
-
-- 🔍 **Develop contribution program**
-
-  - Create bounty system
-  - Implement hackathon sponsorships
-  - Build community governance
-
-- 🔍 **Launch educational resources**
-  - Create tutorials and guides
-  - Build interactive learning modules
-  - Develop certification program
+### Performance & Caching
+- 🔍 **Optimize data loading**
+  - Cache: Traction metrics (6h), GitHub data (24h)
+  - Pagination: Campaign listings, leaderboards
+  - Lazy load: Detailed metrics on project page
+  - CDN: Static assets, optimized images
 
 ## 📆 Milestone Definitions
 
-### Milestone 1: MVP Stabilization
+### Milestone 1: Core Showcase (Weeks 1-3)
+- ✅ Codebase consolidated (credit scoring removed)
+- ✅ On-chain traction metrics live (Dune integration)
+- ✅ GitHub credibility cards displayed
+- ✅ Chain and sector filtering working
 
-- Critical fixes implemented
-- Core functionality restored
-- Basic testing infrastructure in place
-- Documentation updated
+### Milestone 2: Testing Platform (Weeks 4-8)
+- ✅ Campaign creation and discovery functional
+- ✅ Testing workflow (submit + evidence) complete
+- ✅ Token allocation tracker available
+- ✅ Basic payout system integrated
 
-### Milestone 2: Production Readiness
+### Milestone 3: Community Reputation (Weeks 9-10)
+- ✅ Tester profiles and metrics aggregated
+- ✅ Leaderboards live and updated weekly
+- ✅ Quality scoring and voting system active
+- ✅ Public reputation visible on platform
 
-- All high-priority items addressed
-- Comprehensive testing suite
-- Security audit completed
-- Performance optimized for current scale
-
-### Milestone 3: Full Feature Set
-
-- All medium-priority items implemented
-- Cross-chain functionality complete
-- Advanced analytics available
-- Developer SDK released
-
-### Milestone 4: Ecosystem Growth
-
-- All low-priority enhancements added
-- Community governance live
-- Educational resources available
-- Partner integrations complete
+### Milestone 4: Marketplace Maturity (Week 11+)
+- ✅ Enhanced discovery with all filters
+- ✅ Performance optimized (sub-2s page loads)
+- ✅ Mobile-first testing workflow
+- ✅ Analytics dashboard for devs and admins
 
 ## 🛠️ Engineering Resources Required
 
-### Phase 1-2
+### Phase 1-2 (Weeks 1-4)
+- 1 Senior Backend Engineer (API, integrations)
+- 1 Full-Stack Engineer (campaign system)
+- 1 Frontend Engineer (UI/discovery)
+- 1 Smart Contract Engineer (contract audit)
 
-- 2 Smart Contract Developers
-- 2 Frontend Developers
-- 1 Backend Developer
-- 1 DevOps Engineer
-
-### Phase 3-4
-
-- 2 Smart Contract Developers
-- 3 Frontend Developers
-- 2 Backend Developers
-- 1 DevOps Engineer
-- 1 Security Specialist
-- 1 UX Designer
+### Phase 3-4 (Weeks 5-8)
+- Same team + 1 additional frontend for reputation UI
 
 ## 📈 Success Metrics
 
-- **Code Quality**: Test coverage > 80%, no critical security issues
+### User Engagement
+- **Developers**: 100+ projects with traction metrics visible
+- **Testers**: 50+ active testers in first month
+- **Campaigns**: 20+ testing campaigns running concurrently
+
+### Platform Health
+- **Discovery**: 70%+ of visitors filter by sector/chain
+- **Testing**: 200+ submissions in first quarter
+- **Quality**: Avg review quality score > 4.0 / 5.0
+- **Equity**: $500K+ in token allocations tracked
+
+### Technical
 - **Performance**: Page load < 2s, API response < 500ms
-- **User Engagement**: Active developers > 1000, projects registered > 500
-- **Security**: Successful security audit, no vulnerabilities
-- **Reliability**: Uptime > 99.9%, error rate < 0.1%
+- **Uptime**: 99.9%+ availability
+- **Code Quality**: Test coverage > 70%
+- **Security**: Zero critical vulnerabilities
+
+## 🎯 Core Principles Alignment
+
+### ENHANCEMENT FIRST
+- Extend existing portfolio system with traction metrics
+- Reuse feedback form for campaign submissions
+- Build on testerTasks framework for campaign tracking
+- Leverage existing Circle integration for payouts
+
+### AGGRESSIVE CONSOLIDATION
+- Delete credit scoring (CreditScoringService, related hooks)
+- Remove governance contract stubs
+- Consolidate authentication contexts
+- Unify campaign + feedback systems
+
+### PREVENT BLOAT
+- Single TestingCampaign model (no separate bounty system)
+- Reuse TractionCard, not new dashboard widgets
+- GitHub data fetched once, cached globally
+- One leaderboard calculation, served multiple ways
+
+### DRY
+- Shared traction fetching service (Dune API wrapper)
+- Reusable quality scoring algorithm
+- Common payout triggers (USDC or equity)
+- Single notification system for all alerts
+
+### CLEAN
+- Clear separation: Portfolio (showcase) / TestingCampaigns (validation)
+- Explicit: What requires dev auth vs. tester auth vs. admin
+- Decoupled: Traction metrics independent of project mutations
+- Isolated: Equity tracking separate from cash payouts
+
+### MODULAR
+- TractionCard component: Independent of project page
+- CampaignManager: Standalone feature, testable
+- QualityScoring: Pure function, reusable algorithm
+- Leaderboard: Generic aggregation, sector-agnostic
+
+### PERFORMANT
+- Traction data: Firestore caching with 6h TTL
+- GitHub data: Webhook-triggered updates, no polling
+- Leaderboards: Pre-computed weekly, served from cache
+- Images: Optimized, CDN-delivered
+
+### ORGANIZED
+- `/src/components/showcase/` — Portfolio, TractionCard, DeveloperCard
+- `/src/components/testing/` — CampaignManager, Submissions, Leaderboard
+- `/src/lib/integrations/` — Dune, GitHub, CirclePayments
+- `/src/pages/api/campaigns/` — Campaign CRUD and submissions
+- `/src/pages/api/metrics/` — Traction and reputation aggregation
+
+## 🔄 Migration from Old Architecture
+
+### Remove (Deprecate First, Then Delete)
+- ❌ `CreditScoringService` and all related hooks
+- ❌ `DecentralizedAuthContext` (consolidate into AuthContext)
+- ❌ Governance contract stubs
+- ❌ Hackathon tracking system design docs
+- ❌ Incentive points system docs
+
+### Keep & Enhance
+- ✅ Portfolio system → Add traction metrics + credibility cards
+- ✅ Feedback system → Rename to TestingSubmission, extend for campaigns
+- ✅ testerTasks → Integrate into TestingCampaigns
+- ✅ Circle API → Extend for campaign payouts
+- ✅ Firebase auth → Consolidate, keep strong
+
+### New Integrations
+- 🆕 Dune Analytics API → Traction metrics
+- 🆕 GitHub GraphQL API → Developer analytics
+- 🆕 Verifiable Credentials (optional) → Equity proofs
+
+## 📊 Market Differentiation
+
+**Proof of Ship 2.0** = GitHub Portfolio + Product Hunt Discovery + Equity Testnet
+
+| Feature | Status | Why It Matters |
+|---------|--------|---|
+| On-chain traction (TVL, users, volume) | New | Investors see real demand, not hype |
+| Developer commit consistency | New | GitHub as reputation proxy |
+| Community testing with bounties | Enhanced | Users validate before invest |
+| Token % allocation tracking | New | Testers get skin in game |
+| Public reputation leaderboards | New | Quality self-regulates |
+| Multi-chain + sector discovery | New | Organic market segmentation |
+
+---
+
+**Next Action**: Update IMPLEMENTATION_PLAN.md with detailed technical specs for each phase.

@@ -7,17 +7,9 @@
 export const validateCampaign = (campaign) => {
   const errors = [];
 
-  // Required fields
-  if (!campaign.id || typeof campaign.id !== 'string') {
-    errors.push('Campaign ID is required and must be a string');
-  }
-
+  // Project ID required (ID and creatorId will be set at Firestore write time)
   if (!campaign.projectId || typeof campaign.projectId !== 'string') {
     errors.push('Project ID is required and must be a string');
-  }
-
-  if (!campaign.creatorId || typeof campaign.creatorId !== 'string') {
-    errors.push('Creator ID is required and must be a string');
   }
 
   if (!campaign.title || typeof campaign.title !== 'string' || campaign.title.length < 5) {
@@ -111,10 +103,7 @@ export const validateCampaign = (campaign) => {
 export const validateCampaignSubmission = (submission) => {
   const errors = [];
 
-  if (!submission.id || typeof submission.id !== 'string') {
-    errors.push('Submission ID is required');
-  }
-
+  // campaignId and testerId will be set at Firestore write time
   if (!submission.campaignId || typeof submission.campaignId !== 'string') {
     errors.push('Campaign ID is required');
   }
@@ -171,9 +160,7 @@ export const sanitizeCampaign = (campaign) => {
   const validStatuses = ['draft', 'open', 'closed', 'review', 'approved', 'rejected'];
 
   const sanitized = {
-    id: String(campaign.id || '').trim(),
     projectId: String(campaign.projectId || '').trim(),
-    creatorId: String(campaign.creatorId || '').trim(),
     title: String(campaign.title || '').trim().substring(0, 100),
     description: String(campaign.description || '').trim().substring(0, 2000),
     status: validStatuses.includes(campaign.status) ? campaign.status : 'draft',
@@ -238,7 +225,6 @@ export const sanitizeCampaign = (campaign) => {
 // Sanitize submission data
 export const sanitizeSubmission = (submission) => {
   const sanitized = {
-    id: String(submission.id || '').trim(),
     campaignId: String(submission.campaignId || '').trim(),
     testerId: String(submission.testerId || '').trim(),
     results: submission.results && typeof submission.results === 'object'

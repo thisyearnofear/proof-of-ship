@@ -26,29 +26,35 @@ service cloud.firestore {
       allow write: if isAdminUser();
     }
 
-    // Campaigns - project owners create, testers discover active ones
-    match /campaigns/{campaignId} {
-      // Public read for active campaigns
-      allow read: if resource.data.status == 'active' || isProjectOwner(resource.data.projectId) || isAdminUser();
+    // Testing Campaigns - project owners create, testers discover open ones
+    match /TestingCampaigns/{campaignId} {
+      // Public read for open campaigns, owners and admins can read all
+      allow read: if resource.data.status == 'open' || 
+                     isProjectOwner(resource.data.projectId) || 
+                     isAdminUser();
       
-      // Project owners can create/update/delete their campaigns
+      // Only project owners and admins can create/update/delete
       allow create, update, delete: if isProjectOwner(resource.data.projectId) || isAdminUser();
     }
 
-    // Campaign submissions - testers submit, project owners + admins review
-    match /submissions/{submissionId} {
-      // Testers can read their own submissions, project owners + admins can read all
+    // Campaign Submissions - testers submit, project owners + admins review
+    match /CampaignSubmissions/{submissionId} {
+      // Testers can read their own submissions, campaign owners + admins can read all
       allow read: if request.auth.uid == resource.data.testerId || 
                      isCampaignOwner(resource.data.campaignId) || 
                      isAdminUser();
       
-      // Testers can create and update their own submissions (only if status is 'submitted')
-      allow create: if request.auth.uid == request.resource.data.testerId && isAuthenticated();
-      allow update: if request.auth.uid == resource.data.testerId || 
+      // Testers can create submissions for open campaigns
+      allow create: if request.auth.uid == request.resource.data.testerId && 
+                       isAuthenticated() &&
+                       get(/databases/$(database)/documents/TestingCampaigns/$(request.resource.data.campaignId)).data.status == 'open';
+      
+      // Testers can update their own submissions, owners/admins can update to approve/reject
+      allow update: if (request.auth.uid == resource.data.testerId && resource.data.status == 'draft') || 
                        isCampaignOwner(resource.data.campaignId) || 
                        isAdminUser();
       
-      // Only project owners and admins can delete
+      // Only campaign owners and admins can delete
       allow delete: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
     }
 

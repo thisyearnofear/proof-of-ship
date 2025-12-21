@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingStates';
+import PapaProjectHighlight from '../projects/PapaProjectHighlight';
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -20,6 +22,7 @@ const VIEW_MODES = {
 };
 
 export default function UnifiedDashboard({ projects, loading, onProjectSelect }) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState('separated');
   const [activeFilters, setActiveFilters] = useState({
     ecosystems: Object.keys(projects || {}).length ? Object.keys(projects) : ['celo', 'base'],
@@ -191,6 +194,14 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
           </label>
         </div>
       </Card>
+
+      {/* Papa's Example Projects (if no filters applied) */}
+      {!activeFilters.search && !activeFilters.showActive && (
+        <PapaProjectHighlight 
+          projects={Object.values(projects || {}).flat()} 
+          viewMode={viewMode}
+        />
+      )}
 
       {/* Projects Display */}
       {viewMode === 'separated' ? (

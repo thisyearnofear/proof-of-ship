@@ -58,6 +58,50 @@ service cloud.firestore {
       allow delete: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
     }
 
+    // Token Allocations - dev allocates equity to testers after campaign
+    match /TokenAllocations/{allocationId} {
+      // Testers can read their own allocations, campaign owners + admins can read all
+      allow read: if request.auth.uid == resource.data.testerId || 
+                     isCampaignOwner(resource.data.campaignId) || 
+                     isAdminUser();
+      
+      // Campaign owners + admins can create allocations
+      allow create: if isCampaignOwner(request.resource.data.campaignId) || isAdminUser();
+      
+      // Testers can accept/reject, owners can update status
+      allow update: if (request.auth.uid == resource.data.testerId && 
+                       request.resource.data.status in ['accepted', 'rejected']) ||
+                      isCampaignOwner(resource.data.campaignId) || 
+                      isAdminUser();
+      
+      // Only admins can delete
+      allow delete: if isAdminUser();
+    }
+
+    // Payouts - USDC transfers to testers
+    match /Payouts/{payoutId} {
+      // Testers can read their own payouts, campaign owners + admins can read all
+      allow read: if request.auth.uid == resource.data.testerId || 
+                     isCampaignOwner(resource.data.campaignId) || 
+                     isAdminUser();
+      
+      // Campaign owners + admins can create payouts (triggers Circle API)
+      allow create: if isCampaignOwner(request.resource.data.campaignId) || isAdminUser();
+      
+      // Campaign owners + admins can update status
+      allow update: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
+      
+      // Immutable - no deletes
+      allow delete: if false;
+    }
+
+    // Payout Logs - audit trail for all transfers
+    match /PayoutLogs/{logId} {
+      // Admins only
+      allow read: if isAdminUser();
+      allow create, update, delete: if isAdminUser();
+    }
+
     // Helper functions for access control
     function isProjectOwner(projectId) {
       let userId = request.auth.uid;
@@ -67,7 +111,7 @@ service cloud.firestore {
     }
 
     function isCampaignOwner(campaignId) {
-      let campaign = get(/databases/$(database)/documents/campaigns/$(campaignId)).data;
+      let campaign = get(/databases/$(database)/documents/TestingCampaigns/$(campaignId)).data;
       return request.auth != null && isProjectOwner(campaign.projectId);
     }
     

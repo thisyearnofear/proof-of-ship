@@ -12,7 +12,7 @@ import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 import { ProjectDetailCard, ProjectGridCard, ProjectListItem } from '@/components/projects/ProjectCard';
-import PapaProjectHighlight from '@/components/projects/PapaProjectHighlight';
+import TrendingProjects from '@/components/projects/TrendingProjects';
 import { getEcosystemConfig } from '@/config/ecosystems';
 import { filterProjects, sortProjects, calculateProjectStats } from '@/utils/projectUtils';
 import {
@@ -342,12 +342,13 @@ export default function BaseEcosystemPage() {
           </div>
         </Card>
 
-        {/* Papa's Example Projects (if no filters applied) */}
+        {/* Trending Projects (if no filters applied) */}
         {!filters.search && filters.category === 'all' && filters.fundingStatus === 'all' && (
-          <PapaProjectHighlight 
+          <TrendingProjects 
             projects={baseProjects} 
             ecosystem="base"
             viewMode={viewMode}
+            limit={3}
           />
         )}
 

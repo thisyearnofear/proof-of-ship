@@ -12,7 +12,7 @@ import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 import { ProjectDetailCard, ProjectGridCard, ProjectListItem } from '@/components/projects/ProjectCard';
-import PapaProjectHighlight from '@/components/projects/PapaProjectHighlight';
+import TrendingProjects from '@/components/projects/TrendingProjects';
 import { getEcosystemConfig } from '@/config/ecosystems';
 import { filterProjects, sortProjects, calculateProjectStats } from '@/utils/projectUtils';
 import {
@@ -288,12 +288,13 @@ export default function CeloEcosystemPage() {
           </div>
         </Card>
 
-        {/* Papa's Example Projects (if no filters applied) */}
+        {/* Trending Projects (if no filters applied) */}
         {!filters.search && filters.season === 'all' && !filters.activeOnly && filters.minHealthScore === 0 && (
-          <PapaProjectHighlight 
+          <TrendingProjects 
             projects={celoProjects} 
             ecosystem="celo"
             viewMode={viewMode}
+            limit={3}
           />
         )}
 

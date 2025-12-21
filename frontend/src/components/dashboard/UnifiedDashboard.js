@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingStates';
-import PapaProjectHighlight from '../projects/PapaProjectHighlight';
+import TrendingProjects from '../projects/TrendingProjects';
 import {
   FunnelIcon,
   MagnifyingGlassIcon,
@@ -195,11 +195,12 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
         </div>
       </Card>
 
-      {/* Papa's Example Projects (if no filters applied) */}
+      {/* Trending Projects (if no filters applied) */}
       {!activeFilters.search && !activeFilters.showActive && (
-        <PapaProjectHighlight 
+        <TrendingProjects 
           projects={Object.values(projects || {}).flat()} 
           viewMode={viewMode}
+          limit={3}
         />
       )}
 

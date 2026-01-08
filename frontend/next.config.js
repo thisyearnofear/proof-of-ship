@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Enable skew protection (if supported by the deployment platform)
+  deploymentId: process.env.NEXT_PUBLIC_DEPLOYMENT_ID || 'stable',
   // Common configuration for all environments
   images: {
     remotePatterns: [

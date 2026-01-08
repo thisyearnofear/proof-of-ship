@@ -14,7 +14,8 @@ class EnhancedDataService extends DataService {
     this.projectCache = new Map();
     this.ecosystemData = {
       celo: { projects: repos, source: 'static' },
-      base: { projects: [], source: 'dynamic' }
+      base: { projects: [], source: 'dynamic' },
+      linea: { projects: [], source: 'dynamic' }
     };
   }
 
@@ -48,9 +49,13 @@ class EnhancedDataService extends DataService {
       }
 
       if (ecosystem === 'all' || ecosystem === 'base') {
-        // Load Base projects with specified data types
         const baseProjects = await this.loadBaseProjects(baseDataTypes);
         projects.base = baseProjects;
+      }
+
+      if (ecosystem === 'all' || ecosystem === 'linea') {
+        const lineaProjects = await this.loadLineaProjects(baseDataTypes);
+        projects.linea = lineaProjects;
       }
 
       // Cache the results
@@ -183,6 +188,55 @@ class EnhancedDataService extends DataService {
       return projects;
     } catch (error) {
       console.error('Failed to load Base projects:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Load Linea projects from Firestore with configurable data types
+   */
+  async loadLineaProjects(dataTypes = ["meta", "commits"]) {
+    try {
+      const lineaProjectsRef = collection(db, 'projects_linea');
+      const q = query(
+        lineaProjectsRef, 
+        where('status', '==', 'approved'),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const snapshot = await getDocs(q);
+      const projects = [];
+
+      for (const docSnap of snapshot.docs) {
+        const projectData = { id: docSnap.id, ...docSnap.data() };
+        
+        if (projectData.owner && projectData.repo) {
+          try {
+            const githubData = await this.fetchGitHubDataForProject(
+              projectData.owner, 
+              projectData.repo,
+              dataTypes
+            );
+            projectData.githubData = githubData;
+            projectData.stats = this.calculateProjectStats(githubData);
+          } catch (error) {
+            console.warn(`Failed to fetch GitHub data for ${projectData.slug}:`, error);
+            projectData.githubData = {};
+            projectData.stats = this.getDefaultStats();
+          }
+        }
+
+        projects.push({
+          ...projectData,
+          ecosystem: 'linea',
+          source: 'dynamic',
+          dataTypes: dataTypes
+        });
+      }
+
+      return projects;
+    } catch (error) {
+      console.error('Failed to load Linea projects:', error);
       return [];
     }
   }
@@ -481,7 +535,7 @@ class EnhancedDataService extends DataService {
     }
 
     // Fallback: try known ecosystems without bulk-loading
-    const tryEcosystems = ["base", "celo"];
+    const tryEcosystems = ["base", "celo", "linea"];
     for (const eco of tryEcosystems) {
       const project = await this.getProject(slug, eco);
       if (project) return project;

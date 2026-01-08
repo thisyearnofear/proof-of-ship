@@ -21,12 +21,22 @@ export const useMetaMask = () => {
 
 const MetaMaskContextProvider = ({ children }) => {
   const { sdk, connected, connecting, provider, chainId, account } = useSDK();
+  const [activeProvider, setActiveProvider] = useState(null);
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [networkName, setNetworkName] = useState("");
   const [ethersProvider, setEthersProvider] = useState(null);
   const [signer, setSigner] = useState(null);
+
+  // Sync active provider from SDK
+  useEffect(() => {
+    if (sdk) {
+      setActiveProvider(sdk.getProvider());
+    } else if (provider) {
+      setActiveProvider(provider);
+    }
+  }, [sdk, provider]);
 
   // Connect to MetaMask
   const connect = async () => {
@@ -54,11 +64,11 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Get account balance
   const getBalance = async () => {
-    if (!provider || !account) return;
+    if (!activeProvider || !account) return;
 
     try {
       setLoading(true);
-      const balance = await provider.request({
+      const balance = await activeProvider.request({
         method: "eth_getBalance",
         params: [account, "latest"],
       });
@@ -77,7 +87,7 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Get token balance (for any ERC20 token)
   const getTokenBalance = async (tokenAddress, decimals = 18) => {
-    if (!provider || !account || !ethersProvider) return 0;
+    if (!activeProvider || !account || !ethersProvider) return 0;
 
     try {
       const tokenContract = new ethers.Contract(
@@ -176,7 +186,7 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Add a new chain to MetaMask
   const addChain = async (chainId) => {
-    if (!provider) return;
+    if (!activeProvider) return;
 
     const networkConfig = networkConfigs[chainId];
     if (!networkConfig) {
@@ -184,7 +194,7 @@ const MetaMaskContextProvider = ({ children }) => {
     }
 
     try {
-      await provider.request({
+      await activeProvider.request({
         method: "wallet_addEthereumChain",
         params: [
           {
@@ -205,12 +215,12 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Switch to a specific network
   const switchNetwork = async (chainId) => {
-    if (!provider) return;
+    if (!activeProvider) return;
 
     const hexChainId = `0x${chainId.toString(16)}`;
 
     try {
-      await provider.request({
+      await activeProvider.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: hexChainId }],
       });
@@ -221,7 +231,7 @@ const MetaMaskContextProvider = ({ children }) => {
         try {
           await addChain(chainId);
           // Try switching again after adding
-          await provider.request({
+          await activeProvider.request({
             method: "wallet_switchEthereumChain",
             params: [{ chainId: hexChainId }],
           });
@@ -252,11 +262,11 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Add any token to wallet
   const addToken = async (tokenAddress, symbol, decimals, imageUrl) => {
-    if (!provider) return false;
+    if (!activeProvider) return false;
 
     try {
       setLoading(true);
-      const wasAdded = await provider.request({
+      const wasAdded = await activeProvider.request({
         method: "wallet_watchAsset",
         params: {
           type: "ERC20",
@@ -304,8 +314,8 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Initialize ethers provider and update network name
   useEffect(() => {
-    if (provider && connected) {
-      const ethProvider = new ethers.providers.Web3Provider(provider);
+    if (activeProvider && connected) {
+      const ethProvider = new ethers.providers.Web3Provider(activeProvider);
       setEthersProvider(ethProvider);
       setSigner(ethProvider.getSigner());
 
@@ -319,11 +329,11 @@ const MetaMaskContextProvider = ({ children }) => {
       setEthersProvider(null);
       setSigner(null);
     }
-  }, [provider, connected, chainId, getNetworkName]);
+  }, [activeProvider, connected, chainId, getNetworkName]);
 
   // Listen for account and chain changes
   useEffect(() => {
-    if (!provider) return;
+    if (!activeProvider) return;
 
     const handleAccountsChanged = (accounts) => {
       console.log("Accounts changed:", accounts);
@@ -347,15 +357,15 @@ const MetaMaskContextProvider = ({ children }) => {
     };
 
     // Subscribe to events
-    provider.on("accountsChanged", handleAccountsChanged);
-    provider.on("chainChanged", handleChainChanged);
+    activeProvider.on("accountsChanged", handleAccountsChanged);
+    activeProvider.on("chainChanged", handleChainChanged);
 
     // Cleanup
     return () => {
-      provider.removeListener("accountsChanged", handleAccountsChanged);
-      provider.removeListener("chainChanged", handleChainChanged);
+      activeProvider.removeListener("accountsChanged", handleAccountsChanged);
+      activeProvider.removeListener("chainChanged", handleChainChanged);
     };
-  }, [provider, disconnect]);
+  }, [activeProvider, disconnect]);
 
   const value = {
     // Connection state
@@ -384,7 +394,7 @@ const MetaMaskContextProvider = ({ children }) => {
     getCurrentUSDCAddress,
 
     // Provider for advanced operations
-    provider,
+    provider: activeProvider,
     ethersProvider,
     signer,
     sdk,

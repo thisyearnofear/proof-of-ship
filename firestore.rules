@@ -1,133 +1,125 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper functions for access control
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdminUser() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isProjectOwner(col, projectId) {
+      let userId = request.auth.uid;
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/$(col)/$(projectId)) &&
+             get(/databases/$(database)/documents/$(col)/$(projectId)).data.owners.hasAny([userId]);
+    }
+
+    function isProjectPublic(col, projectId) {
+      return exists(/databases/$(database)/documents/$(col)/$(projectId)) &&
+             'isPublic' in get(/databases/$(database)/documents/$(col)/$(projectId)).data &&
+             get(/databases/$(database)/documents/$(col)/$(projectId)).data.isPublic == true;
+    }
+
+    function isCampaignOwner(campaignId) {
+      let campaign = get(/databases/$(database)/documents/TestingCampaigns/$(campaignId)).data;
+      return isAuthenticated() && isProjectOwner('projects', campaign.projectId);
+    }
+
     // Projects - public read, controlled write
     match /projects/{projectId} {
-      // Public read access for project listings and details
-      allow read: if isProjectPublic(projectId) || isProjectOwner(projectId) || isAdminUser();
-      
-      // Only project owners can update their projects
-      allow update: if isProjectOwner(projectId) || isAdminUser();
-      
-      // Only admins can create/delete projects
+      allow read: if isProjectPublic('projects', projectId) || isProjectOwner('projects', projectId) || isAdminUser();
+      allow update: if isProjectOwner('projects', projectId) || isAdminUser();
+      allow create, delete: if isAdminUser();
+    }
+
+    // Ecosystem specific projects
+    match /projects_celo/{projectId} {
+      allow read: if isProjectPublic('projects_celo', projectId) || isProjectOwner('projects_celo', projectId) || isAdminUser();
+      allow update: if isProjectOwner('projects_celo', projectId) || isAdminUser();
+      allow create, delete: if isAdminUser();
+    }
+
+    match /projects_base/{projectId} {
+      allow read: if isProjectPublic('projects_base', projectId) || isProjectOwner('projects_base', projectId) || isAdminUser();
+      allow update: if isProjectOwner('projects_base', projectId) || isAdminUser();
+      allow create, delete: if isAdminUser();
+    }
+
+    match /projects_linea/{projectId} {
+      allow read: if isProjectPublic('projects_linea', projectId) || isProjectOwner('projects_linea', projectId) || isAdminUser();
+      allow update: if isProjectOwner('projects_linea', projectId) || isAdminUser();
       allow create, delete: if isAdminUser();
     }
 
     // User profiles are readable by the user themselves
     match /users/{userId} {
-      // Allow users to read and update their own profiles
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // Pending permissions collection
     match /pendingPermissions/{permissionId} {
-      // Only admins can write, authenticated users can read
       allow read: if isAuthenticated();
       allow write: if isAdminUser();
     }
 
-    // Testing Campaigns - project owners create, testers discover open ones
+    // Testing Campaigns
     match /TestingCampaigns/{campaignId} {
-      // Public read for open campaigns, owners and admins can read all
       allow read: if resource.data.status == 'open' || 
-                     isProjectOwner(resource.data.projectId) || 
+                     isProjectOwner('projects', resource.data.projectId) || 
                      isAdminUser();
-      
-      // Only project owners and admins can create/update/delete
-      allow create, update, delete: if isProjectOwner(resource.data.projectId) || isAdminUser();
+      allow create, update, delete: if isProjectOwner('projects', resource.data.projectId) || isAdminUser();
     }
 
-    // Campaign Submissions - testers submit, project owners + admins review
+    // Campaign Submissions
     match /CampaignSubmissions/{submissionId} {
-      // Testers can read their own submissions, campaign owners + admins can read all
-      allow read: if request.auth.uid == resource.data.testerId || 
+      allow read: if (isAuthenticated() && request.auth.uid == resource.data.testerId) || 
                      isCampaignOwner(resource.data.campaignId) || 
                      isAdminUser();
-      
-      // Testers can create submissions for open campaigns
-      allow create: if request.auth.uid == request.resource.data.testerId && 
-                       isAuthenticated() &&
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == request.resource.data.testerId && 
                        get(/databases/$(database)/documents/TestingCampaigns/$(request.resource.data.campaignId)).data.status == 'open';
-      
-      // Testers can update their own submissions, owners/admins can update to approve/reject
-      allow update: if (request.auth.uid == resource.data.testerId && resource.data.status == 'draft') || 
+      allow update: if (isAuthenticated() && request.auth.uid == resource.data.testerId && resource.data.status == 'draft') || 
                        isCampaignOwner(resource.data.campaignId) || 
                        isAdminUser();
-      
-      // Only campaign owners and admins can delete
       allow delete: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
     }
 
-    // Token Allocations - dev allocates equity to testers after campaign
+    // Token Allocations
     match /TokenAllocations/{allocationId} {
-      // Testers can read their own allocations, campaign owners + admins can read all
-      allow read: if request.auth.uid == resource.data.testerId || 
+      allow read: if (isAuthenticated() && request.auth.uid == resource.data.testerId) || 
                      isCampaignOwner(resource.data.campaignId) || 
                      isAdminUser();
-      
-      // Campaign owners + admins can create allocations
-      allow create: if isCampaignOwner(request.resource.data.campaignId) || isAdminUser();
-      
-      // Testers can accept/reject, owners can update status
-      allow update: if (request.auth.uid == resource.data.testerId && 
+      allow create: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
+      allow update: if (isAuthenticated() && request.auth.uid == resource.data.testerId && 
                        request.resource.data.status in ['accepted', 'rejected']) ||
                       isCampaignOwner(resource.data.campaignId) || 
                       isAdminUser();
-      
-      // Only admins can delete
       allow delete: if isAdminUser();
     }
 
-    // Payouts - USDC transfers to testers
+    // Payouts
     match /Payouts/{payoutId} {
-      // Testers can read their own payouts, campaign owners + admins can read all
-      allow read: if request.auth.uid == resource.data.testerId || 
+      allow read: if (isAuthenticated() && request.auth.uid == resource.data.testerId) || 
                      isCampaignOwner(resource.data.campaignId) || 
                      isAdminUser();
-      
-      // Campaign owners + admins can create payouts (triggers Circle API)
-      allow create: if isCampaignOwner(request.resource.data.campaignId) || isAdminUser();
-      
-      // Campaign owners + admins can update status
+      allow create: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
       allow update: if isCampaignOwner(resource.data.campaignId) || isAdminUser();
-      
-      // Immutable - no deletes
       allow delete: if false;
     }
 
-    // Payout Logs - audit trail for all transfers
+    // Payout Logs
     match /PayoutLogs/{logId} {
-      // Admins only
       allow read: if isAdminUser();
       allow create, update, delete: if isAdminUser();
     }
-
-    // Helper functions for access control
-    function isProjectOwner(projectId) {
-      let userId = request.auth.uid;
-      return request.auth != null &&
-             exists(/databases/$(database)/documents/projects/$(projectId)) &&
-             get(/databases/$(database)/documents/projects/$(projectId)).data.owners.hasAny([userId]);
-    }
-
-    function isCampaignOwner(campaignId) {
-      let campaign = get(/databases/$(database)/documents/TestingCampaigns/$(campaignId)).data;
-      return request.auth != null && isProjectOwner(campaign.projectId);
-    }
     
-    function isProjectPublic(projectId) {
-      return exists(/databases/$(database)/documents/projects/$(projectId)) &&
-             'isPublic' in get(/databases/$(database)/documents/projects/$(projectId)).data &&
-             get(/databases/$(database)/documents/projects/$(projectId)).data.isPublic == true;
-    }
-    
-    function isAdminUser() {
-      return request.auth != null &&
-             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
-    }
-    
-    function isAuthenticated() {
-      return request.auth != null;
+    // Admins collection
+    match /admins/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
     }
   }
 }

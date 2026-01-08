@@ -68,6 +68,15 @@ export default function LandingPage() {
       color: "bg-blue-600",
       icon: "⚓",
     },
+    {
+      id: "linea",
+      name: "🌊 Linea Frontiers",
+      description:
+        "Navigate the deep waters of the Linea ecosystem. Discover the innovative fleet of builders scaling new horizons on this zkEVM voyage.",
+      count: "First Venture",
+      color: "bg-indigo-600",
+      icon: "🔭",
+    },
   ];
 
   const userJourneys = {

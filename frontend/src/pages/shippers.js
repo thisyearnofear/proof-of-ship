@@ -26,7 +26,7 @@ export default function ProjectsPage() {
   // Initialize from query on mount
   useEffect(() => {
     const { ecosystem: ecoQ, chains: chainsQ, sectors: sectorsQ } = router.query || {};
-    if (ecoQ && (ecoQ === "celo" || ecoQ === "base" || ecoQ === "all")) {
+    if (ecoQ && (ecoQ === "celo" || ecoQ === "base" || ecoQ === "linea" || ecoQ === "all")) {
       setEcosystem(String(ecoQ));
     }
     if (chainsQ) {
@@ -143,6 +143,7 @@ export default function ProjectsPage() {
                 <option value="all">All</option>
                 <option value="celo">Celo</option>
                 <option value="base">Base</option>
+                <option value="linea">Linea</option>
               </select>
             </div>
             <div className="flex items-center gap-2">

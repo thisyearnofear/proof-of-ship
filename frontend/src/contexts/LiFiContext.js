@@ -63,7 +63,8 @@ export const LiFiProvider = ({ children }) => {
         setLoading(true);
 
         // Get available chains from LI.FI
-        const { chains: lifiChains } = await lifi.getChains();
+        const response = await lifi.getChains();
+        const lifiChains = response?.chains || [];
 
         // Filter and map chains to our format, using network configs as fallback
         const chains = lifiChains

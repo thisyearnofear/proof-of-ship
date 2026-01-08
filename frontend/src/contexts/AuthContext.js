@@ -229,13 +229,46 @@ export const AuthProvider = ({ children }) => {
     return userPermissions.some(p => p.projectSlug === projectSlug && p.role === 'editor');
   };
 
+  // Link a wallet address to the current GitHub user
+  const linkWallet = async (address, signature, message) => {
+    if (!currentUser) throw new Error("Must be signed in with GitHub to link a wallet");
+
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      const userData = userDoc.exists() ? userDoc.data() : {};
+      
+      const linkedWallets = userData.linkedWallets || [];
+      if (!linkedWallets.some(w => w.address.toLowerCase() === address.toLowerCase())) {
+        linkedWallets.push({
+          address: address.toLowerCase(),
+          linkedAt: new Date().toISOString(),
+          signature,
+          message
+        });
+
+        await setDoc(userDocRef, { 
+          linkedWallets,
+          primaryWallet: address.toLowerCase()
+        }, { merge: true });
+        
+        console.log(`Linked wallet ${address} to user ${currentUser.uid}`);
+      }
+      return true;
+    } catch (error) {
+      console.error("Error linking wallet:", error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     userPermissions,
     loading,
     signInWithGithub,
     logout,
-    hasProjectPermission
+    hasProjectPermission,
+    linkWallet
   };
 
   return (

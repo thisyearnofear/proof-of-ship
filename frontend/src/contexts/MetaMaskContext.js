@@ -403,7 +403,7 @@ export const MetaMaskProviderWrapper = ({ children, demand = true }) => {
     typeof window !== "undefined" ? window.location.host : "localhost";
   const sdkOptions = {
     logging: { developerMode: false },
-    checkInstallationImmediately: false,
+    checkInstallationImmediately: true,
     dappMetadata: {
       name: "Builder Credit Dashboard",
       url: `https://${host}`,

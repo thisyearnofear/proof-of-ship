@@ -31,10 +31,13 @@ const MetaMaskContextProvider = ({ children }) => {
 
   // Sync active provider from SDK
   useEffect(() => {
-    if (sdk) {
+    if (sdk?.getProvider()) {
       setActiveProvider(sdk.getProvider());
     } else if (provider) {
       setActiveProvider(provider);
+    } else if (typeof window !== 'undefined' && window.ethereum) {
+      // Fallback to direct window.ethereum if SDK provider is missing
+      setActiveProvider(window.ethereum);
     }
   }, [sdk, provider]);
 
@@ -43,7 +46,15 @@ const MetaMaskContextProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const accounts = await sdk?.connect();
+      let accounts = await sdk?.connect();
+      
+      // If SDK fails to return accounts, try manual request via active provider
+      if (!accounts || accounts.length === 0) {
+        if (activeProvider) {
+          accounts = await activeProvider.request({ method: 'eth_requestAccounts' });
+        }
+      }
+      
       console.log("Connected accounts:", accounts);
     } catch (err) {
       console.error("Failed to connect:", err);
@@ -413,7 +424,7 @@ export const MetaMaskProviderWrapper = ({ children, demand = true }) => {
     typeof window !== "undefined" ? window.location.host : "localhost";
   const sdkOptions = {
     logging: { developerMode: false },
-    checkInstallationImmediately: true,
+    checkInstallationImmediately: false,
     dappMetadata: {
       name: "Builder Credit Dashboard",
       url: `https://${host}`,
@@ -421,8 +432,10 @@ export const MetaMaskProviderWrapper = ({ children, demand = true }) => {
     },
     enableDebug: false,
     autoConnect: {
-      enable: true, // Auto-connect if previously connected
+      enable: true,
     },
+    // Prevent the SDK from fighting over window.ethereum on desktop
+    extensionOnly: true,
   };
 
   // Always provide the MetaMask context, but control initialization behavior

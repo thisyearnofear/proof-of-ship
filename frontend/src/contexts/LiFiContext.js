@@ -47,7 +47,7 @@ export const LiFiProvider = ({ children }) => {
   useEffect(() => {
     // Initialize the LI.FI SDK with recommended configuration
     const lifiInstance = new LiFi({
-      apiUrl: "https://li.fi/api",
+      apiUrl: "https://li.fi/api/v1",
       integrator: "BuilderCredit",
     });
 

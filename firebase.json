@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "proofofship",
     "public": "frontend/out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [

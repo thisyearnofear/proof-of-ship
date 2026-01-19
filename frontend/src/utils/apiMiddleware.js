@@ -21,14 +21,14 @@ export function withApiMiddleware(handler, options = {}) {
     rateLimit: rateLimitCount = 10,
     rateLimitKey = 'API_REQUEST'
   } = options;
-  
+
   // Create rate limiter
   const limiter = rateLimit({
     interval: 60 * 1000, // 1 minute
     uniqueTokenPerInterval: 500, // Max 500 users per minute
   });
-  
-  return async function(req, res) {
+
+  return async function (req, res) {
     try {
       // 1. Validate HTTP method
       if (!allowedMethods.includes(req.method)) {
@@ -38,7 +38,7 @@ export function withApiMiddleware(handler, options = {}) {
           allowedMethods
         });
       }
-      
+
       // 2. Apply rate limiting
       try {
         await limiter.check(res, rateLimitCount, rateLimitKey);
@@ -51,15 +51,15 @@ export function withApiMiddleware(handler, options = {}) {
         }
         throw error; // Re-throw unexpected errors
       }
-      
+
       // 3. Call the original handler
       return await handler(req, res);
     } catch (error) {
       console.error(`API Error in ${req.url}:`, error);
-      
+
       // Handle different types of errors
       const statusCode = error.statusCode || error.response?.status || 500;
-      
+
       return res.status(statusCode).json({
         success: false,
         error: error.message || 'Internal server error',
@@ -81,7 +81,7 @@ export function withApiMiddleware(handler, options = {}) {
  */
 export function validateRequiredFields(body, requiredFields) {
   const missingFields = requiredFields.filter(field => !body[field]);
-  
+
   if (missingFields.length > 0) {
     const error = new Error(`Missing required fields: ${missingFields.join(', ')}`);
     error.statusCode = 400;
@@ -110,21 +110,21 @@ export function parseQueryParams(query, options = {}) {
     numberParams = [],
     booleanParams = []
   } = options;
-  
+
   const result = {};
-  
+
   // Process string parameters
   stringParams.forEach(param => {
     if (query[param] !== undefined) {
       result[param] = String(query[param]);
     }
   });
-  
+
   // Process number parameters
   numberParams.forEach(param => {
     if (query[param] !== undefined) {
       result[param] = Number(query[param]);
-      
+
       // Validate number parsing
       if (isNaN(result[param])) {
         const error = new Error(`Invalid number format for parameter: ${param}`);
@@ -133,14 +133,14 @@ export function parseQueryParams(query, options = {}) {
       }
     }
   });
-  
+
   // Process boolean parameters
   booleanParams.forEach(param => {
     if (query[param] !== undefined) {
       result[param] = query[param] === 'true' || query[param] === '1';
     }
   });
-  
+
   return result;
 }
 
@@ -163,5 +163,86 @@ export async function verifyAuth(req, authLib) {
     const err = new Error('Invalid token');
     err.statusCode = 401;
     throw err;
+  }
+}
+
+/**
+ * Check if a user is an admin
+ * 
+ * @param {Object} req - Request object
+ * @param {Object} authLib - Firebase Admin Auth
+ * @param {Object} db - Firebase Admin Firestore
+ * @returns {Object} { isAdmin: boolean, userId: string }
+ */
+export async function isAdmin(req, authLib, db) {
+  try {
+    const userId = await verifyAuth(req, authLib);
+
+    // Check admins collection
+    const adminSnap = await db.collection('admins').doc(userId).get();
+    if (adminSnap.exists) {
+      return { isAdmin: true, userId };
+    }
+
+    // Check users collection for role
+    const userSnap = await db.collection('users').doc(userId).get();
+    if (userSnap.exists) {
+      const user = userSnap.data();
+      return {
+        isAdmin: user.role === 'admin' || user.isAdmin === true,
+        userId
+      };
+    }
+
+    return { isAdmin: false, userId };
+  } catch (e) {
+    return { isAdmin: false };
+  }
+}
+
+/**
+ * Check if a user has permission to manage a project
+ * 
+ * @param {Object} db - Firestore instance
+ * @param {string} userId - User ID
+ * @param {string} projectSlug - Project slug
+ * @param {string[]} allowedRoles - List of allowed roles
+ * @returns {Promise<boolean>}
+ */
+export async function requireProjectPermission(db, userId, projectSlug, allowedRoles = ['admin']) {
+  if (!userId || !projectSlug) return false;
+
+  try {
+    // 1. First check if user is a global admin
+    const userSnap = await db.collection('users').doc(userId).get();
+    if (userSnap.exists) {
+      const user = userSnap.data();
+      if (user.role === 'admin' || user.isAdmin === true) return true;
+    }
+
+    // 2. Check the project's own permissions
+    const projectSnap = await db.collection('projects').doc(projectSlug).get();
+    if (!projectSnap.exists) return false;
+
+    const project = projectSnap.data();
+
+    // Creator always has permission
+    if (project.creatorId === userId) return true;
+
+    // Check team members
+    const team = project.teamMembers || [];
+    const userRole = team.find(m => m.userId === userId || m.id === userId)?.role;
+
+    if (userRole && allowedRoles.includes(userRole)) {
+      return true;
+    }
+
+    // Check if specifically in allowedRoles or is editor
+    if (userRole === 'editor' && allowedRoles.includes('editor')) return true;
+
+    return false;
+  } catch (error) {
+    console.error('Permission check failed:', error);
+    return false;
   }
 }

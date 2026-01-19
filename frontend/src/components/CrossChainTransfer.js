@@ -19,6 +19,7 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   InformationCircleIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 export default function CrossChainTransfer() {
@@ -87,8 +88,7 @@ export default function CrossChainTransfer() {
 
       if (!fromTokenAddress || !toTokenAddress) {
         throw new Error(
-          `USDC token not available on ${
-            !fromTokenAddress ? fromChain.name : toChain.name
+          `USDC token not available on ${!fromTokenAddress ? fromChain.name : toChain.name
           }`
         );
       }

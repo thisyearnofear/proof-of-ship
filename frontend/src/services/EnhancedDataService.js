@@ -484,6 +484,19 @@ class EnhancedDataService extends DataService {
             projectData.githubData = githubData;
             projectData.stats = this.calculateProjectStats(githubData);
           }
+          
+          // Fetch owner wallet address if owners array exists
+          if (Array.isArray(projectData.owners) && projectData.owners.length > 0) {
+            try {
+              const ownerRef = doc(db, 'users', projectData.owners[0]);
+              const ownerSnap = await getDoc(ownerRef);
+              if (ownerSnap.exists()) {
+                projectData.ownerWalletAddress = ownerSnap.data().walletAddress || null;
+              }
+            } catch (error) {
+              console.warn('Failed to fetch owner wallet address:', error);
+            }
+          }
 
           return projectData;
         } catch (error) {
@@ -497,7 +510,7 @@ class EnhancedDataService extends DataService {
         const dynamicRef = doc(db, "projects_celo", slug);
         const dynamicSnap = await getDoc(dynamicRef);
         if (dynamicSnap.exists()) {
-          const projectData = { id: dynamicSnap.id, ...dynamicSnap.data(), ecosystem: "celo" };
+        const projectData = { id: dynamicSnap.id, ...dynamicSnap.data(), ecosystem: "celo" };
           if (projectData.owner && projectData.repo) {
             const githubData = await this.fetchGitHubDataForProject(
               projectData.owner,
@@ -507,6 +520,20 @@ class EnhancedDataService extends DataService {
             projectData.githubData = githubData;
             projectData.stats = this.calculateProjectStats(githubData);
           }
+          
+          // Fetch owner wallet address if owners array exists
+          if (Array.isArray(projectData.owners) && projectData.owners.length > 0) {
+            try {
+              const ownerRef = doc(db, 'users', projectData.owners[0]);
+              const ownerSnap = await getDoc(ownerRef);
+              if (ownerSnap.exists()) {
+                projectData.ownerWalletAddress = ownerSnap.data().walletAddress || null;
+              }
+            } catch (error) {
+              console.warn('Failed to fetch owner wallet address:', error);
+            }
+          }
+          
           return projectData;
         }
 

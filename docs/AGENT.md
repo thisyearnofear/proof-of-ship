@@ -47,34 +47,25 @@
 
 ```
 /
-├── contracts/            # Smart contract source files
-│   ├── interfaces/       # Contract interfaces
-│   ├── libraries/        # Shared contract libraries
-│   └── mocks/            # Mock contracts for testing
+├── blockchain/           # Smart contract workspace (Hardhat)
+│   ├── contracts/        # Solidity source files
+│   ├── scripts/          # Contract deployment/utility scripts
+│   └── test/             # Contract tests
 ├── data/                 # GitHub data cache and loading scripts
 ├── docs/                 # Project documentation
-├── public/               # Static assets
-├── scripts/              # Utility scripts for deployment and management
-├── test/                 # Test files for smart contracts and frontend
-└── src/
-    ├── components/       # Reusable UI components
-    │   ├── common/       # Shared UI elements
-    │   ├── dashboard/    # Dashboard-specific components
-    │   ├── forms/        # Form components
-    │   └── layout/       # Layout components
-    ├── config/           # Environment and configuration
-    ├── constants/        # Application constants
-    ├── contexts/         # React context providers
-    ├── hooks/            # Custom React hooks
-    ├── lib/              # Utility functions and service integrations
-    ├── middleware/       # Next.js middleware
-    ├── pages/            # Next.js pages and API routes
-    │   └── api/          # API endpoints
-    ├── providers/        # Provider components
-    ├── schemas/          # Data validation schemas
-    ├── services/         # Business logic services
-    ├── styles/           # Global styles
-    └── utils/            # Utility functions
+├── frontend/             # Next.js web application
+│   ├── public/           # Static assets
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── config/       # Environment and configuration
+│   │   ├── contexts/     # React context providers
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── pages/        # Next.js pages and API routes
+│   │   ├── services/     # Business logic services
+│   │   └── utils/        # Utility functions
+│   └── next.config.js    # Next.js configuration
+├── scripts/              # Root utility scripts
+└── package.json          # Root workspace configuration
 ```
 
 ### Key Architecture Components

@@ -18,7 +18,7 @@ if (process.env.NODE_ENV !== 'production') {
   console.log("GitHub Token:", GITHUB_TOKEN ? "Token found" : "Token not found");
 }
 
-const repos = require(path.join(__dirname, "../repos.json"));
+const repos = require(path.join(__dirname, "repos.json"));
 
 async function getGithubData(endpoint, owner, repoName) {
   const response = await axios.get(
@@ -48,8 +48,7 @@ async function getGithubDataWithPagination(owner, repoName, endpoint) {
   while (true) {
     try {
       const response = await axios.get(
-        `${GITHUB_API_URL}/repos/${owner}/${repoName}/${endpoint}${
-          endpoint.includes("?") ? "&" : "?"
+        `${GITHUB_API_URL}/repos/${owner}/${repoName}/${endpoint}${endpoint.includes("?") ? "&" : "?"
         }page=${page}&per_page=100`,
         {
           headers: {

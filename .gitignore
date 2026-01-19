@@ -5,8 +5,6 @@ node_modules/
 artifacts/
 cache/
 typechain-types/
-coverage/
-coverage.json
 
 # Environment variables and secrets
 .env
@@ -47,14 +45,17 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Build files
+# Build and Export files
 build/
 dist/
 out/
 .next/
-public/sw.js
-public/workbox-*.js
 .vercel/
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/*.js.map
 
 # Editor directories and files
 .idea/
@@ -77,14 +78,19 @@ Desktop.ini
 $RECYCLE.BIN/
 ._*
 
-# Hardhat deployment info
+# Hardhat & Blockchain info
 deployments/
 deployed-contracts.json
 contract-addresses*.json
-
-# Gas reporter output
 gasReporterOutput.json
 gas-report*.txt
+contracts-dbg/
+flattened/
+abis/
+bin/
+solc-input.json
+mythril-report.md
+slither-report.md
 
 # Firebase
 .firebase/
@@ -95,24 +101,6 @@ ui-debug.log
 firebase-export-*
 firebaserc
 firebase-service-account*.json
-
-# Next.js
-.next/
-public/sw.js
-public/sw.js.map
-public/workbox-*.js
-public/workbox-*.js.map
-public/*.js.map
-.vercel
-
-# Contract-specific
-contracts-dbg/
-flattened/
-abis/
-bin/
-solc-input.json
-mythril-report.md
-slither-report.md
 
 # Testing
 .coverage

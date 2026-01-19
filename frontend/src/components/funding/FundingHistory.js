@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/common';
-import { 
+import {
   ClockIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -9,7 +9,8 @@ import {
   CalendarIcon,
   DocumentTextIcon,
   ArrowTopRightOnSquareIcon,
-  FunnelIcon
+  FunnelIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 // Mock funding history data
@@ -166,7 +167,7 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
             <div className={`p-2 rounded-full ${statusInfo.bgColor}`}>
               <StatusIcon className={`h-5 w-5 ${statusInfo.color}`} />
             </div>
-            
+
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <h3 className="text-lg font-semibold text-primary">{funding.projectTitle}</h3>
@@ -174,9 +175,9 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
                   {statusInfo.label}
                 </span>
               </div>
-              
+
               <p className="text-secondary text-sm mb-3">{funding.projectDescription}</p>
-              
+
               <div className="flex flex-wrap items-center gap-4 text-sm text-secondary">
                 <div className="flex items-center">
                   <BanknotesIcon className="h-4 w-4 mr-1" />
@@ -195,7 +196,7 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
               </div>
             </div>
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -216,9 +217,8 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
             </div>
             <div className="w-full bg-background-secondary rounded-full h-2">
               <div
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  funding.status === 'overdue' ? 'bg-error-500' : 'bg-success-500'
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${funding.status === 'overdue' ? 'bg-error-500' : 'bg-success-500'
+                  }`}
                 style={{
                   width: `${(funding.milestones.filter(m => m.status === 'completed').length / funding.milestones.length) * 100}%`
                 }}
@@ -317,9 +317,9 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
 };
 
 // Main funding history component
-export const FundingHistory = ({ 
+export const FundingHistory = ({
   fundingData = null,
-  className = '' 
+  className = ''
 }) => {
   const [expandedRecords, setExpandedRecords] = useState(new Set());
   const [statusFilter, setStatusFilter] = useState('all');
@@ -374,21 +374,21 @@ export const FundingHistory = ({
             <div className="text-sm text-secondary">Total Funded</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-primary">{activeFunding}</div>
             <div className="text-sm text-secondary">Active Projects</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-success-600">{completedFunding}</div>
             <div className="text-sm text-secondary">Completed</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-error-600">{overdueCount}</div>
@@ -405,7 +405,7 @@ export const FundingHistory = ({
               <DocumentTextIcon className="h-5 w-5 mr-2" />
               Funding History
             </CardTitle>
-            
+
             <div className="flex flex-wrap items-center gap-3">
               {/* Status Filter */}
               <div className="flex items-center space-x-2">
@@ -422,7 +422,7 @@ export const FundingHistory = ({
                   <option value="pending">Pending</option>
                 </select>
               </div>
-              
+
               {/* Sort Options */}
               <select
                 value={sortBy}
@@ -437,15 +437,15 @@ export const FundingHistory = ({
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent>
           {filteredFunding.length === 0 ? (
             <div className="text-center py-8">
               <DocumentTextIcon className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
               <h3 className="text-lg font-medium text-primary mb-2">No Funding Records</h3>
               <p className="text-secondary">
-                {statusFilter === 'all' 
-                  ? "You haven't received any funding yet." 
+                {statusFilter === 'all'
+                  ? "You haven't received any funding yet."
                   : `No funding records with status "${statusFilter}".`
                 }
               </p>

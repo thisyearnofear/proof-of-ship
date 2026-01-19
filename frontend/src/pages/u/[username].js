@@ -9,6 +9,8 @@ import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import EcosystemSection from "@/components/dashboard/EcosystemSection";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ethosService from "@/services/EthosService";
+import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -24,6 +26,8 @@ export default function UserPortfolioPage() {
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ethosUser, setEthosUser] = useState(null);
+  const [ethosLoading, setEthosLoading] = useState(false);
 
   useEffect(() => {
     if (!username) return;
@@ -43,6 +47,19 @@ export default function UserPortfolioPage() {
 
         const data = await res.json();
         if (!cancelled) setPortfolio(data);
+        
+        // Fetch Ethos score if wallet address exists
+        if (data?.user?.walletAddress && !cancelled) {
+          setEthosLoading(true);
+          try {
+            const ethosData = await ethosService.getScoresByAddress(data.user.walletAddress);
+            if (!cancelled) setEthosUser(ethosData);
+          } catch (e) {
+            console.error('Failed to fetch Ethos score:', e);
+          } finally {
+            if (!cancelled) setEthosLoading(false);
+          }
+        }
       } catch (e) {
         if (!cancelled) setError(e.message || "Failed to load portfolio");
       } finally {
@@ -132,9 +149,25 @@ export default function UserPortfolioPage() {
                 )}
 
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {displayName}
-                  </h1>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      {displayName}
+                    </h1>
+                    {/* Ethos Credibility Score Badge */}
+                    {portfolio?.user?.walletAddress && (
+                      ethosLoading ? (
+                        <div className="text-xs text-gray-500">Loading...</div>
+                      ) : ethosUser ? (
+                        <EthosScoreBadge 
+                          score={ethosUser.score} 
+                          ethosUser={ethosUser}
+                          size="sm"
+                        />
+                      ) : (
+                        <EthosScoreBadge score={null} size="sm" showLabel={false} />
+                      )
+                    )}
+                  </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
                     <a
                       href={`https://github.com/${portfolio?.user?.githubUsername}`}
@@ -148,6 +181,18 @@ export default function UserPortfolioPage() {
                     </a>
                     <span className="text-gray-300">•</span>
                     <span>{portfolio?.projects?.length || 0} projects</span>
+                    {ethosUser && portfolio?.user?.walletAddress && (
+                      <>
+                        <span className="text-gray-300">•</span>
+                        <EthosProfileLink 
+                          address={portfolio.user.walletAddress}
+                          username={ethosUser.username}
+                          className="text-xs"
+                        >
+                          Ethos Profile
+                        </EthosProfileLink>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

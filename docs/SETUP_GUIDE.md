@@ -1,4 +1,4 @@
-# 🚀 Builder Credit Platform - Setup Guide
+# 🚀 Proof of Ship - Setup Guide
 
 ## 📋 Phase 1: Get API Keys & Accounts (30 minutes)
 
@@ -30,12 +30,6 @@
 1. Go to https://infura.io/
 2. Create a new project
 3. Get your project ID: `INFURA_API_KEY`
-
-### 5. MetaMask Project ID (optional - for $2k bonus)
-
-1. Go to https://cloud.metamask.io/
-2. Create a new project
-3. Get your project ID: `NEXT_PUBLIC_METAMASK_PROJECT_ID`
 
 ## 🔧 Phase 2: Environment Setup (15 minutes)
 
@@ -77,9 +71,6 @@ NEXT_PUBLIC_LIFI_API_KEY=your_lifi_api_key
 
 # GitHub API (REQUIRED)
 GITHUB_TOKEN=your_github_personal_access_token
-
-# MetaMask SDK (BONUS)
-NEXT_PUBLIC_METAMASK_PROJECT_ID=your_metamask_project_id
 
 # Firebase (keep your existing values)
 NEXT_PUBLIC_FIREBASE_API_KEY=your_existing_value
@@ -220,194 +211,6 @@ curl http://localhost:3000/api/circle/config
 
 - Add testnet networks to MetaMask manually
 - Make sure you're on the right network
-
-## 📝 Phase 7: Prepare for Hackathon Submission
-
-### 1. Document Your Progress
-
-- Take screenshots of working features
-- Record a demo video
-- List all implemented features
-
-### 2. Prepare Demo Script
-
-1. Show wallet connection
-2. Demonstrate GitHub credit scoring
-3. Show USDC transfers
-4. Demonstrate cross-chain functionality
-5. Show smart contract interactions
-
-### 3. Verify Hackathon Requirements
-
-- ✅ MetaMask Card integration
-- ✅ Circle Wallets ($2k bonus)
-- ✅ LI.FI SDK ($2k bonus)
-- ✅ USDC payments
-- ✅ Real-world use cases
-
-## 🎯 Success Criteria
-
-After completing this setup, you should have:
-
-- ✅ Real Circle API integration
-- ✅ Deployed smart contracts on multiple testnets
-- ✅ Working GitHub credit scoring
-- ✅ Functional LI.FI cross-chain transfers
-- ✅ USDC payment system
-- ✅ MetaMask SDK integration
-
-## 🔄 Next.js 14 Upgrade Guide
-
-### Security Update Information
-
-The platform has been upgraded from Next.js 13.4.12 to **14.2.35** to address critical React Server Components CVE vulnerabilities.
-
-### Changes Made
-
-- **Next.js**: `13.4.12` → `14.2.35` (security fix)
-- **eslint-config-next**: `^13.4.12` → `^14.2.35` (compatibility)
-
-### Upgrade Steps
-
-```bash
-# 1. Update dependencies
-cd frontend
-npm install
-
-# 2. Test development mode
-npm run dev
-
-# 3. Test production build
-npm run build
-
-# 4. Run linting
-npm run lint
-```
-
-### Testing Requirements
-
-**Critical Paths to Test:**
-- ✅ Authentication flows (MetaMask, Circle Wallet)
-- ✅ GitHub integration and data fetching
-- ✅ Project creation and editing
-- ✅ Credit scoring calculations
-- ✅ Cross-chain funding interfaces
-
-### Potential Issues to Monitor
-
-**Webpack Configuration:**
-- Custom webpack config in `next.config.js`
-- Async storage polyfill compatibility
-- MetaMask SDK aliasing
-
-**Static Export Mode:**
-- `EXPORT_MODE=true` configuration
-- Image optimization with `unoptimized: true`
-- Trailing slash handling
-
-### Rollback Plan
-
-If issues are encountered:
-
-```bash
-# Revert the commit
-git revert <commit-hash>
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json && npm install
-
-# Test previous version
-npm run dev
-```
-
-## 🎨 Portfolio Feature Setup
-
-### Subdomain Configuration
-
-The platform now supports **subdomain-based user portfolios**:
-
-- **Format**: `username.yourdomain.com` → `/u/username`
-- **Local testing**: `username.localhost:3000` → `/u/username`
-- **Reserved subdomains**: www, app, api, admin (cannot be used)
-
-### Testing Subdomain Routing
-
-```bash
-# Test locally with curl
-curl -H "Host: testuser.localhost" http://localhost:3000
-
-# Should return the portfolio page for "testuser"
-```
-
-### Portfolio API Endpoints
-
-**Get User Portfolio:**
-```bash
-curl http://localhost:3000/api/portfolio/username
-```
-
-**Submit Feedback:**
-```bash
-curl -X POST http://localhost:3000/api/feedback/submit \
-  -H "Content-Type: application/json" \
-  -d '{"projectSlug":"test","message":"Great project!"}'
-```
-
-### New Pages to Test
-
-1. **User Portfolio**: `/u/username`
-2. **Feedback Form**: `/feedback`
-3. **Project Pages**: `/projects/[ecosystem]/[slug]`
-4. **Enhanced Editor**: `/projects/new`
-
-### Ecosystem Configuration
-
-Updated `ecosystems.js` with:
-- Visual identity (icons, colors, gradients)
-- Routing information
-- Submission requirements
-- Feature lists
-
-### Navbar Updates
-
-- **Branding**: "Developer Funding Platform" → "Onchain Project Portfolio"
-- **My Portfolio**: Link to user's portfolio page (when authenticated)
-- **Enhanced UI**: Better mobile responsiveness
-
-### Project Editor Enhancements
-
-- **Multi-ecosystem support**: Select ecosystem during creation
-- **Categories**: DeFi, NFTs, Gaming, Social, Infrastructure, DAO
-- **Team members**: Add multiple team members
-- **Milestones**: Track project milestones
-- **Funding options**: Looking for funding toggle
-- **Hackathon tracking**: Basic integration
-
-### Testing Checklist
-
-**Portfolio Features:**
-- [ ] Subdomain routing works locally
-- [ ] Portfolio API returns correct data
-- [ ] User portfolio page renders correctly
-- [ ] Error handling for non-existent users
-- [ ] Loading states work properly
-
-**Project Features:**
-- [ ] Project creation with new fields
-- [ ] Project editing preserves data
-- [ ] Ecosystem-specific project pages
-- [ ] Multi-ecosystem project listing
-
-**Feedback System:**
-- [ ] Feedback submission works
-- [ ] Validation prevents invalid submissions
-- [ ] Feedback stored in Firestore
-
-**UI/UX:**
-- [ ] Navbar portfolio link appears when logged in
-- [ ] Mobile responsiveness
-- [ ] Error boundaries catch errors
-- [ ] Loading states provide good UX
 
 ## 📞 Support
 

@@ -63,6 +63,7 @@ export default async function handler(req, res) {
         githubUsername: user.githubUsername || username,
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
+        walletAddress: user.walletAddress || null,
       },
       projects,
     });

@@ -2,7 +2,7 @@
   "indexes": [
     {
       "collectionGroup": "TestingCampaigns",
-      "queryScope": "Collection",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "status",
@@ -16,7 +16,7 @@
     },
     {
       "collectionGroup": "TestingCampaigns",
-      "queryScope": "Collection",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "projectId",
@@ -30,7 +30,7 @@
     },
     {
       "collectionGroup": "CampaignSubmissions",
-      "queryScope": "Collection",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "campaignId",
@@ -44,7 +44,7 @@
     },
     {
       "collectionGroup": "CampaignSubmissions",
-      "queryScope": "Collection",
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "testerId",

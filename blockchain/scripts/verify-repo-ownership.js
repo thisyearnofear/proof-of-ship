@@ -31,16 +31,16 @@ const db = admin.firestore();
 async function verifyRepoOwnership() {
   try {
     // Read the repos.json file
-    const reposPath = path.join(__dirname, '../repos.json');
+    const reposPath = path.join(__dirname, '../../data/repos.json');
     const reposContent = fs.readFileSync(reposPath, 'utf8');
     const repos = JSON.parse(reposContent);
-    
+
     console.log(`Found ${repos.length} repositories to verify`);
-    
+
     // Get all users with GitHub tokens
     const usersSnapshot = await db.collection('users').get();
     const users = [];
-    
+
     usersSnapshot.forEach(doc => {
       const userData = doc.data();
       if (userData.githubToken && userData.githubUsername) {
@@ -50,13 +50,13 @@ async function verifyRepoOwnership() {
         });
       }
     });
-    
+
     console.log(`Found ${users.length} users with GitHub tokens`);
-    
+
     // For each user, check if they have access to any of the repos
     for (const user of users) {
       console.log(`Checking repositories for user ${user.githubUsername}...`);
-      
+
       // Get user's repositories from GitHub API
       try {
         const response = await axios.get('https://api.github.com/user/repos', {
@@ -68,34 +68,34 @@ async function verifyRepoOwnership() {
             per_page: 100
           }
         });
-        
+
         const userRepos = response.data;
         const userRepoFullNames = userRepos.map(repo => `${repo.owner.login}/${repo.name}`);
-        
+
         // Check if user owns any of the repos in repos.json
         const matchingRepos = repos.filter(repo => {
           const repoFullName = `${repo.owner}/${repo.repo}`;
           return userRepoFullNames.includes(repoFullName);
         });
-        
+
         if (matchingRepos.length > 0) {
           console.log(`User ${user.githubUsername} owns ${matchingRepos.length} repositories in our list`);
-          
+
           // Grant permissions for each matching repo
           const userRef = db.collection('users').doc(user.id);
           const userDoc = await userRef.get();
           const userData = userDoc.data();
-          
+
           // Get existing permissions
           const existingPermissions = userData.permissions || [];
-          
+
           // Add new permissions
           const newPermissions = [...existingPermissions];
-          
+
           for (const repo of matchingRepos) {
             // Check if permission already exists
             const existingPermIndex = newPermissions.findIndex(p => p.projectSlug === repo.slug);
-            
+
             if (existingPermIndex >= 0) {
               console.log(`Permission for ${repo.slug} already exists for user ${user.githubUsername}`);
             } else {
@@ -109,24 +109,24 @@ async function verifyRepoOwnership() {
               console.log(`Granted editor permission for ${repo.slug} to user ${user.githubUsername}`);
             }
           }
-          
+
           // Update user document with new permissions
           await userRef.update({
             permissions: newPermissions
           });
-          
+
           console.log(`Updated permissions for user ${user.githubUsername}`);
         } else {
           console.log(`User ${user.githubUsername} does not own any repositories in our list`);
         }
-        
+
       } catch (error) {
         console.error(`Error checking repositories for user ${user.githubUsername}:`, error.message);
       }
     }
-    
+
     console.log('Repository ownership verification completed successfully!');
-    
+
   } catch (error) {
     console.error('Error during verification:', error);
   }

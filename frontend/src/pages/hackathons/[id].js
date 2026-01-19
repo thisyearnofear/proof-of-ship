@@ -13,7 +13,8 @@ import {
   TrophyIcon,
   UsersIcon,
   CheckBadgeIcon,
-  ArrowTopRightOnSquareIcon
+  ArrowTopRightOnSquareIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 
 /**
@@ -43,23 +44,23 @@ export default function HackathonDetailPage() {
 
         // Fetch hackathon details
         const response = await fetch(`/api/hackathons/${id}`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch hackathon details');
         }
 
         const data = await response.json();
         setHackathon(data.data);
-        
+
         // Check if current user is participating (would need auth in real implementation)
         // This is a placeholder - in production, use actual user ID
         const mockUserId = 'current-user-id';
         const userParticipation = data.data.participants.find(
           p => p.userId === mockUserId
         );
-        
+
         setParticipationStatus(userParticipation ? userParticipation.participationStatus : null);
-        
+
       } catch (err) {
         console.error('Error fetching hackathon:', err);
         setError(err.message);
@@ -75,14 +76,14 @@ export default function HackathonDetailPage() {
   const formatDateRange = (start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    
-    const options = { 
-      weekday: 'short', 
-      month: 'short', 
+
+    const options = {
+      weekday: 'short',
+      month: 'short',
       day: 'numeric',
-      year: 'numeric' 
+      year: 'numeric'
     };
-    
+
     return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
   };
 
@@ -135,8 +136,8 @@ export default function HackathonDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <Head>
           <title>{hackathon.name} • Hackathons</title>
-          <meta 
-            name="description" 
+          <meta
+            name="description"
             content={`Details about ${hackathon.name} - ${hackathon.ecosystem} hackathon`}
           />
         </Head>
@@ -145,8 +146,8 @@ export default function HackathonDetailPage() {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center gap-4 mb-4">
-              <Link 
-                href="/hackathons" 
+              <Link
+                href="/hackathons"
                 className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
               >
                 <ArrowTopRightOnSquareIcon className="h-4 w-4 transform rotate-180" />
@@ -198,7 +199,7 @@ export default function HackathonDetailPage() {
                     Register
                   </Button>
                 )}
-                
+
                 {!participationStatus && isActive && (
                   <Button variant="primary" size="sm">
                     Join Hackathon
@@ -213,7 +214,7 @@ export default function HackathonDetailPage() {
                 <CalendarIcon className="h-5 w-5" />
                 <span>{formatDateRange(hackathon.startDate, hackathon.endDate)}</span>
               </div>
-              
+
               {isUpcoming && (
                 <div className="flex items-center gap-2 text-gray-600">
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded">
@@ -221,7 +222,7 @@ export default function HackathonDetailPage() {
                   </span>
                 </div>
               )}
-              
+
               {isActive && (
                 <div className="flex items-center gap-2 text-gray-600">
                   <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
@@ -265,8 +266,8 @@ export default function HackathonDetailPage() {
                       <h3 className="font-medium text-gray-900 mb-2">Tracks</h3>
                       <div className="flex flex-wrap gap-2">
                         {hackathon.tracks.map(track => (
-                          <span 
-                            key={track} 
+                          <span
+                            key={track}
                             className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
                           >
                             {track}
@@ -311,12 +312,12 @@ export default function HackathonDetailPage() {
                         Winners
                       </h3>
                       <div className="space-y-3">
-                        {hackathon.participants 
+                        {hackathon.participants
                           .filter(p => p.participationStatus === 'winner')
                           .map(participant => (
-                            <ParticipantCard 
-                              key={participant.id} 
-                              participant={participant} 
+                            <ParticipantCard
+                              key={participant.id}
+                              participant={participant}
                               hackathon={hackathon}
                             />
                           ))}
@@ -332,12 +333,12 @@ export default function HackathonDetailPage() {
                         Participants
                       </h3>
                       <div className="space-y-3">
-                        {hackathon.participants 
+                        {hackathon.participants
                           .filter(p => p.participationStatus !== 'winner')
                           .map(participant => (
-                            <ParticipantCard 
-                              key={participant.id} 
-                              participant={participant} 
+                            <ParticipantCard
+                              key={participant.id}
+                              participant={participant}
                               hackathon={hackathon}
                             />
                           ))}
@@ -359,14 +360,14 @@ export default function HackathonDetailPage() {
                       <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
                       Share Hackathon
                     </Button>
-                    
+
                     {isActive && (
                       <Button variant="primary" size="sm" className="w-full justify-start">
                         <PlusIcon className="h-4 w-4 mr-2" />
                         Submit Project
                       </Button>
                     )}
-                    
+
                     <Button variant="outline" size="sm" className="w-full justify-start">
                       <CalendarIcon className="h-4 w-4 mr-2" />
                       Add to Calendar
@@ -419,7 +420,7 @@ function ParticipantCard({ participant, hackathon }) {
           </div>
         </div>
       </div>
-      
+
       {participant.prizeAmount > 0 && (
         <div className="font-medium text-gray-900">
           ${participant.prizeAmount.toLocaleString()}

@@ -18,6 +18,7 @@
     "setup": "pnpm install && node scripts/setup-env.js && node scripts/cleanup.js",
     "setup-env": "node scripts/setup-env.js",
     "cleanup": "node scripts/cleanup.js",
+    "sync-github": "node scripts/sync-github.js",
     "lint:frontend": "pnpm --filter ./frontend lint",
     "lint:contracts": "pnpm --filter ./blockchain lint",
     "lint": "npm run lint:frontend && npm run lint:contracts"
@@ -39,6 +40,7 @@
     "node": "20.x"
   },
   "devDependencies": {
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "firebase-admin": "^13.4.0"
   }
 }

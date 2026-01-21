@@ -77,6 +77,12 @@ service cloud.firestore {
       allow update, delete: if isAdminUser();
     }
 
+    // GitHub cache - public read (populated by sync script)
+    match /github_cache/{cacheId} {
+      allow read: if true;
+      allow write: if false; // Only written by admin scripts
+    }
+
     // Pending permissions collection
     match /pendingPermissions/{permissionId} {
       allow read: if isAuthenticated();

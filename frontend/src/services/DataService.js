@@ -1,9 +1,12 @@
 /**
  * Centralized data service for GitHub and Firebase operations
- * Handles caching, error recovery, and request management
+ * Reads GitHub data from Firestore cache (populated by scripts/sync-github.js)
+ * No runtime GitHub API calls - eliminates rate limit issues
  */
 
 import { validateGitHubData, validateProject } from "@/schemas/project";
+import { db } from "../lib/firebase/clientApp";
+import { doc, getDoc } from "firebase/firestore";
 import repos from "../../repos.json";
 
 class DataService {
@@ -143,7 +146,8 @@ class DataService {
   }
 
   /**
-   * Load GitHub data for a project with intelligent caching
+   * Load GitHub data for a project from Firestore cache
+   * Data is populated by scripts/sync-github.js - no runtime GitHub API calls
    */
   async loadGitHubData(
     projectSlug,
@@ -152,32 +156,63 @@ class DataService {
     const results = {};
     const errors = {};
 
-    await Promise.allSettled(
-      dataTypes.map(async (type) => {
-        try {
-          // Use per-type TTL for intelligent caching
-          const ttl = this.cacheTTLByType[type] ?? (5 * 60 * 1000); // 5min fallback
-          
-          const data = await this.fetchWithCache(
-            `github-${projectSlug}-${type}`,
-            async () => {
-              const response = await this.fetchFromGitHub(projectSlug, type);
-              return response;
-            },
-            {
-              ttl,
-              validate: (data) => validateGitHubData(data, type),
-              transform: (data) => this._transformGitHubData(data, type),
-            }
-          );
-
-          results[type] = data;
-        } catch (error) {
-          errors[type] = error.message;
-          console.error(`Failed to load ${type} for ${projectSlug}:`, error);
+    try {
+      const { owner, repo } = this._getRepoDetails(projectSlug);
+      const cacheKey = `${owner}_${repo}`;
+      
+      // Check memory cache first
+      const memoryCacheKey = `github-cache-${cacheKey}`;
+      if (this.cache.has(memoryCacheKey)) {
+        const { data, timestamp } = this.cache.get(memoryCacheKey);
+        if (Date.now() - timestamp < this.cacheTTL.projects) {
+          return this._extractDataTypes(data, dataTypes);
         }
-      })
-    );
+      }
+
+      // Read from Firestore cache
+      const cacheDoc = await getDoc(doc(db, "github_cache", cacheKey));
+      
+      if (!cacheDoc.exists()) {
+        errors.cache = `No cached data for ${owner}/${repo}. Run: node scripts/sync-github.js`;
+        return { data: results, errors };
+      }
+
+      const cachedData = cacheDoc.data();
+      
+      // Store in memory cache
+      this.cache.set(memoryCacheKey, { data: cachedData, timestamp: Date.now() });
+      
+      return this._extractDataTypes(cachedData, dataTypes);
+      
+    } catch (error) {
+      errors.fetch = error.message;
+      console.error(`Failed to load GitHub data for ${projectSlug}:`, error);
+      return { data: results, errors };
+    }
+  }
+
+  /**
+   * Extract requested data types from cached document
+   */
+  _extractDataTypes(cachedData, dataTypes) {
+    const results = {};
+    const errors = {};
+
+    for (const type of dataTypes) {
+      if (type === "meta" && cachedData.meta) {
+        results.meta = cachedData.meta;
+      } else if (type === "commits" && cachedData.commits) {
+        results.commits = cachedData.commits;
+      } else if (type === "stats" && cachedData.stats) {
+        results.stats = cachedData.stats;
+      } else if (type === "issues") {
+        // Issues not cached - would need separate sync
+        results.issues = [];
+      } else if (type === "prs") {
+        // PRs not cached - would need separate sync
+        results.prs = [];
+      }
+    }
 
     return { data: results, errors };
   }
@@ -246,54 +281,12 @@ class DataService {
     }
   }
 
-  async fetchFromGitHub(projectSlug, type) {
-    const { owner, repo } = this._getRepoDetails(projectSlug);
-    const endpoint = this._getGitHubEndpoint(owner, repo, type);
-    const headers = {
-      "Content-Type": "application/json",
-    };
-
-    const response = await fetch(endpoint, { headers });
-
-    if (!response.ok) {
-      // Provide more helpful error messages
-      if (response.status === 401) {
-        throw new Error(`GitHub API authentication failed. Please configure GITHUB_TOKEN environment variable.`);
-      } else if (response.status === 403) {
-        throw new Error(`GitHub API rate limit exceeded. Please try again later.`);
-      } else if (response.status === 404) {
-        throw new Error(`Repository ${owner}/${repo} not found.`);
-      } else {
-        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
-      }
-    }
-
-    return response.json();
-  }
-
   _getRepoDetails(projectSlug) {
     const repo = repos.find((r) => r.slug === projectSlug);
     if (repo) {
       return { owner: repo.owner, repo: repo.repo };
     }
-    // Fallback for safety, though this should ideally not be reached
-    return { owner: "thisyearnofear", repo: "POS-dashboard" };
-  }
-
-  _getGitHubEndpoint(owner, repo, type) {
-    const baseUrl = `/api/github/repos/${owner}/${repo}`;
-    switch (type) {
-      case "issues":
-        return `${baseUrl}/issues`;
-      case "prs":
-        return `${baseUrl}/pulls`;
-      case "commits":
-        return `${baseUrl}/stats/commit_activity`;
-      case "meta":
-        return baseUrl;
-      default:
-        throw new Error(`Invalid GitHub data type: ${type}`);
-    }
+    return { owner: "unknown", repo: "unknown" };
   }
 
   /**

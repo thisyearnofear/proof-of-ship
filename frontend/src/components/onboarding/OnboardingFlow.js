@@ -271,7 +271,7 @@ export default function OnboardingFlow({ onComplete }) {
                   <span className="text-green-800 font-medium">Wallet Connected</span>
                 </div>
                 <p className="text-green-700 text-sm mt-1">
-                  {account.slice(0, 6)}...{account.slice(-4)}
+                  {account ? `${account.slice(0, 6)}...${account.slice(-4)}` : 'Connected'}
                 </p>
               </div>
             )}

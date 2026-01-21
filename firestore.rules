@@ -35,35 +35,46 @@ service cloud.firestore {
       return isAuthenticated() && isProjectOwner('projects', campaign.projectId);
     }
 
-    // Projects - public read if approved/public, controlled write
+    // Projects - public read if approved/public, authenticated users can create
     match /projects/{projectId} {
       allow read: if isProjectApproved('projects', projectId) || isProjectPublic('projects', projectId) || isProjectOwner('projects', projectId) || isAdminUser();
       allow update: if isProjectOwner('projects', projectId) || isAdminUser();
-      allow create, delete: if isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
+      allow delete: if isAdminUser();
     }
 
     // Ecosystem specific projects
     match /projects_celo/{projectId} {
       allow read: if isProjectApproved('projects_celo', projectId) || isProjectPublic('projects_celo', projectId) || isProjectOwner('projects_celo', projectId) || isAdminUser();
       allow update: if isProjectOwner('projects_celo', projectId) || isAdminUser();
-      allow create, delete: if isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
+      allow delete: if isAdminUser();
     }
 
     match /projects_base/{projectId} {
       allow read: if isProjectApproved('projects_base', projectId) || isProjectPublic('projects_base', projectId) || isProjectOwner('projects_base', projectId) || isAdminUser();
       allow update: if isProjectOwner('projects_base', projectId) || isAdminUser();
-      allow create, delete: if isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
+      allow delete: if isAdminUser();
     }
 
     match /projects_linea/{projectId} {
       allow read: if isProjectApproved('projects_linea', projectId) || isProjectPublic('projects_linea', projectId) || isProjectOwner('projects_linea', projectId) || isAdminUser();
       allow update: if isProjectOwner('projects_linea', projectId) || isAdminUser();
-      allow create, delete: if isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
+      allow delete: if isAdminUser();
     }
 
     // User profiles are readable by the user themselves
     match /users/{userId} {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Admin queue - authenticated users can add entries for their submissions
+    match /admin_queue/{queueId} {
+      allow read: if isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.submittedBy == request.auth.uid;
+      allow update, delete: if isAdminUser();
     }
 
     // Pending permissions collection

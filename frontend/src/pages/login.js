@@ -119,7 +119,7 @@ export default function LoginPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-bold text-primary">Web3 Wallet</p>
-                    <p className="text-xs text-secondary">{connected ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Destination for your funding'}</p>
+                    <p className="text-xs text-secondary">{connected && account ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Destination for your funding'}</p>
                   </div>
                 </div>
                 {!connected && (

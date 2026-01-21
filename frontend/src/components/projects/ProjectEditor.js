@@ -6,6 +6,7 @@ import Button from "@/components/common/Button";
 import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
+import { submitProject as submitProjectClient } from "@/services/ClientProjectService";
 
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 
@@ -272,25 +273,49 @@ export default function ProjectEditor({ projectSlug }) {
           window.location.href = `/projects/${cleaned.ecosystem}/${projectSlug}`;
         }, 600);
       } else {
-        const res = await fetch("/api/projects/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...cleaned,
-            submittedBy: currentUser.uid,
-            submittedAt: new Date().toISOString(),
-          }),
-        });
+        let result;
+        let useClientSide = false;
+        
+        try {
+          const res = await fetch("/api/projects/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...cleaned,
+              submittedBy: currentUser.uid,
+              submittedAt: new Date().toISOString(),
+            }),
+          });
 
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || "Failed to submit project");
+          const contentType = res.headers.get("content-type") || "";
+          
+          if (!contentType.includes("application/json")) {
+            useClientSide = true;
+          } else if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.error || "Failed to submit project");
+          } else {
+            result = await res.json();
+          }
+        } catch (fetchError) {
+          if (fetchError.message?.includes("<!DOCTYPE") || fetchError.message?.includes("Unexpected token")) {
+            useClientSide = true;
+          } else {
+            throw fetchError;
+          }
         }
 
-        const body = await res.json();
+        if (useClientSide) {
+          const clientResult = await submitProjectClient(cleaned);
+          if (!clientResult.success) {
+            throw new Error(clientResult.error || "Failed to submit project");
+          }
+          result = clientResult;
+        }
+
         setSuccess("Project submitted");
 
-        const createdSlug = body.projectSlug;
+        const createdSlug = result.projectSlug;
         setTimeout(() => {
           window.location.href = `/projects/${cleaned.ecosystem}/${createdSlug}`;
         }, 600);

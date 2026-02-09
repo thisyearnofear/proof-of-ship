@@ -122,3 +122,4 @@ auto-generated/
 usdc-payment-keys.json
 wallet-credentials.json
 *wallet-key*.json
+.env

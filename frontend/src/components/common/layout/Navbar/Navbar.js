@@ -8,6 +8,7 @@ import {
   PlusIcon,
   HomeIcon,
   GlobeAltIcon,
+  CalculatorIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,13 @@ const navigation = [
     href: "/shippers", 
     icon: ChartBarIcon,
     description: "Explore Celo and Base ecosystem projects"
+  },
+  { 
+    name: "Expedition", 
+    href: "/expedition", 
+    icon: GlobeAltIcon,
+    description: "Scout and back projects with tiered ROI multipliers",
+    highlight: true
   },
   { 
     name: "Hackathons", 
@@ -251,6 +259,20 @@ export default function Navbar() {
                               >
                                 <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400" />
                                 Your Profile
+                              </a>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <a
+                                href="/admin/payout-simulation"
+                                className={classNames(
+                                  active ? "bg-gray-100" : "",
+                                  "flex items-center px-4 py-2 text-sm text-gray-700 font-semibold text-blue-600 border-t border-gray-100"
+                                )}
+                              >
+                                <CalculatorIcon className="mr-3 h-4 w-4 text-blue-500" />
+                                Payout Simulator
                               </a>
                             )}
                           </Menu.Item>

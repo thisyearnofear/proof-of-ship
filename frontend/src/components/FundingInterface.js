@@ -43,10 +43,30 @@ export default function FundingInterface({
   // Project form fields
   const [githubUrl, setGithubUrl] = useState('');
   const [projectName, setProjectName] = useState('');
+  const [selectedHackathons, setSelectedHackathons] = useState([1]);
   const [milestones, setMilestones] = useState([
     { description: '', reward: '' }
   ]);
   const [showProjectForm, setShowProjectForm] = useState(false);
+
+  const availableHackathons = [
+    { id: 1, name: 'Global DeFi Summit' },
+    { id: 2, name: 'ETHGlobal Online' },
+    { id: 3, name: 'Circle Hacker House' },
+    { id: 4, name: 'Solana Grizzlython' }
+  ];
+
+  const toggleHackathon = (id) => {
+    if (selectedHackathons.includes(id)) {
+      if (selectedHackathons.length > 1) {
+        setSelectedHackathons(selectedHackathons.filter(hId => hId !== id));
+      }
+    } else {
+      if (selectedHackathons.length < 5) {
+        setSelectedHackathons([...selectedHackathons, id]);
+      }
+    }
+  };
 
   const [pledgedPrize, setPledgedPrize] = useState('');
 
@@ -177,12 +197,12 @@ export default function FundingInterface({
       
       // Request funding with all required parameters
       const result = await requestFunding(
-        account,
         creditScore,
         githubUrl,
         projectName,
         milestoneDescriptions,
-        milestoneRewards
+        milestoneRewards,
+        selectedHackathons
       );
       
       // Pledge prize if provided
@@ -324,6 +344,31 @@ export default function FundingInterface({
             <h4 className="text-lg font-medium text-gray-900 mb-4">Project Details</h4>
             
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Hackathons (Expedition Mode)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableHackathons.map(h => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => toggleHackathon(h.id)}
+                      className={`px-3 py-2 text-xs font-medium rounded-md border ${
+                        selectedHackathons.includes(h.id)
+                          ? 'bg-indigo-100 border-indigo-500 text-indigo-700'
+                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {h.name}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Select up to 5 hackathons. Verifiers from any of these can approve your milestones.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   GitHub URL

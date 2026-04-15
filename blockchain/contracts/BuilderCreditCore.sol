@@ -36,7 +36,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     
     // Structures
     struct Project {
-        uint256 hackathonId;
+        uint256[] hackathonIds;
         address developer;
         string githubUrl;
         string name;
@@ -84,12 +84,13 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     mapping(uint256 => Milestone[]) public projectMilestones;
     mapping(uint256 => mapping(uint256 => MilestoneApproval)) public approvals;
     mapping(address => uint256[]) public developerProjects;
+    mapping(address => uint256[]) public backerProjects;
     mapping(address => CreditLine) public creditLines;
     
     // Events
     event ProjectCreated(
         uint256 indexed projectId, 
-        uint256 indexed hackathonId, 
+        uint256[] hackathonIds, 
         address indexed developer, 
         uint256 amount,
         string name
@@ -156,7 +157,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     
     /**
      * @dev Requests funding for a project
-     * @param hackathonId ID of the hackathon
+     * @param hackathonIds IDs of the hackathons
      * @param creditScore Credit score of the developer
      * @param githubUrl GitHub URL of the project
      * @param projectName Name of the project
@@ -165,7 +166,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
      * @return projectId ID of the created project
      */
     function requestFunding(
-        uint256 hackathonId,
+        uint256[] calldata hackathonIds,
         uint256 creditScore,
         string calldata githubUrl,
         string calldata projectName,
@@ -181,6 +182,8 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         require(bytes(projectName).length > 0, "Project name cannot be empty");
         require(milestoneDescriptions.length == milestoneAmounts.length, "Mismatched milestone arrays");
         require(milestoneDescriptions.length > 0, "No milestones provided");
+        require(hackathonIds.length > 0, "At least one hackathon required");
+        require(hackathonIds.length <= 5, "Too many hackathons");
         
         // Calculate total funding amount
         uint256 totalAmount = 0;
@@ -201,7 +204,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 projectId = _projectIdCounter.current();
         
         projects[projectId] = Project({
-            hackathonId: hackathonId,
+            hackathonIds: hackathonIds,
             developer: msg.sender,
             githubUrl: githubUrl,
             name: projectName,
@@ -226,7 +229,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         // Track project for this developer
         developerProjects[msg.sender].push(projectId);
         
-        emit ProjectCreated(projectId, hackathonId, msg.sender, totalAmount, projectName);
+        emit ProjectCreated(projectId, hackathonIds, msg.sender, totalAmount, projectName);
         
         return projectId;
     }
@@ -247,10 +250,22 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         Project storage project = projects[projectId];
         require(project.isActive, "Project is not active");
         
-        uint256 hackathonId = project.hackathonId;
+        // Verify the caller is an authorized verifier for any of the project's hackathons
+        bool isAuthorized = false;
+        uint256 minRequiredSignatures = 999;
         
-        // Verify the caller is an authorized verifier for this hackathon
-        require(registry.isVerifier(hackathonId, msg.sender), "Not an authorized verifier");
+        for (uint i = 0; i < project.hackathonIds.length; i++) {
+            uint256 hId = project.hackathonIds[i];
+            if (registry.isVerifier(hId, msg.sender)) {
+                isAuthorized = true;
+            }
+            uint256 req = registry.getRequiredSignatures(hId);
+            if (req < minRequiredSignatures) {
+                minRequiredSignatures = req;
+            }
+        }
+        
+        require(isAuthorized, "Not an authorized verifier");
         
         // Get milestone
         require(milestoneId < projectMilestones[projectId].length, "Invalid milestone ID");
@@ -266,8 +281,8 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         
         emit MilestoneApproved(projectId, milestoneId, msg.sender);
         
-        // Check if threshold reached
-        if (approval.approvalCount >= registry.getRequiredSignatures(hackathonId)) {
+        // Check if threshold reached (using the minimum required signatures of the expedition's hackathons)
+        if (approval.approvalCount >= minRequiredSignatures) {
             _completeMilestone(projectId, milestoneId);
         }
     }
@@ -351,7 +366,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     /**
      * @dev Backs a project with USDC
      * @param projectId ID of the project
-     * @param multiplier Multiplier choice (150, 200, 300 for 1.5x, 2x, 3x)
+     * @param multiplier Multiplier choice (e.g., 150, 200, 300 for 1.5x, 2x, 3x)
      * @param amount Amount of USDC to stake
      */
     function backProject(uint256 projectId, uint256 multiplier, uint256 amount) 
@@ -359,9 +374,14 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         whenNotPaused 
         nonReentrant 
     {
-        require(projects[projectId].isActive, "Project not active");
-        require(multiplier == 150 || multiplier == 200 || multiplier == 300, "Invalid multiplier");
+        Project storage project = projects[projectId];
+        require(project.isActive, "Project not active");
         require(amount > 0, "Amount must be > 0");
+
+        // Reputation-Adjusted Interest (Dynamic Multipliers)
+        uint256 maxAllowedMultiplier = getMaxMultiplier(project.creditScore);
+        require(multiplier <= maxAllowedMultiplier, "Multiplier exceeds allowed limit for this builder's reputation");
+        require(multiplier >= 100, "Invalid multiplier"); // At least 1x
 
         usdcToken.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -373,9 +393,12 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         }));
 
         totalProjectBacking[projectId] += amount;
+        
+        // Track project for this backer
+        backerProjects[msg.sender].push(projectId);
 
         // Also boost the credit line of the developer
-        CreditLine storage creditLine = creditLines[projects[projectId].developer];
+        CreditLine storage creditLine = creditLines[project.developer];
         creditLine.totalAmount += (amount * 2); // 2x confidence boost
         
         emit ProjectBacked(projectId, msg.sender, amount, multiplier);
@@ -459,6 +482,23 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         
         return boostedAmount > currentMax ? currentMax : boostedAmount;
     }
+
+    /**
+     * @dev Returns the maximum allowed multiplier based on credit score
+     * @param creditScore Credit score of the builder
+     * @return maxMultiplier Max allowed multiplier (e.g., 150 for 1.5x)
+     */
+    function getMaxMultiplier(uint256 creditScore) public pure returns (uint256) {
+        if (creditScore >= 800) {
+            return 150; // 1.5x
+        } else if (creditScore >= 700) {
+            return 200; // 2.0x
+        } else if (creditScore >= 600) {
+            return 250; // 2.5x
+        } else {
+            return 300; // 3.0x
+        }
+    }
     
     /**
      * @dev Updates credit calculation parameters
@@ -499,6 +539,19 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         tokenContract.safeTransfer(msg.sender, amount);
         
         emit FundsWithdrawn(token, msg.sender, amount);
+    }
+    
+    /**
+     * @dev Gets all projects backed by an address
+     * @param backer Address of the backer
+     * @return Array of project IDs
+     */
+    function getBackerProjects(address backer) 
+        external 
+        view 
+        returns (uint256[] memory) 
+    {
+        return backerProjects[backer];
     }
     
     /**

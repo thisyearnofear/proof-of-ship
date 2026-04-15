@@ -26,7 +26,7 @@ const navigation = [
     name: "Get Funded", 
     href: "/credit", 
     icon: CreditCardIcon,
-    description: "Check your credit score and get instant USDC funding",
+    description: "Check your predictive credit and get instant prize-collateralized funding",
     highlight: true
   },
   { 
@@ -111,7 +111,7 @@ export default function Navbar() {
                       />
                       <div className="hidden sm:block">
                         <div className="text-base sm:text-lg font-bold text-gray-900">Proof of Ship</div>
-                        <div className="text-xs text-gray-500">Onchain Project Portfolio</div>
+                        <div className="text-xs text-gray-500">Predictive Credit Platform</div>
                       </div>
                     </a>
                   </div>

@@ -25,27 +25,27 @@ export default function LandingPage() {
   const features = [
     {
       icon: RocketLaunchIcon,
-      title: "🎨 Portfolio Showcase",
+      title: "🚀 Predictive Credit",
       description:
-        "Display your Farcaster mini apps with subdomain routing. Showcase projects across multiple ecosystems and attract users to test your creations.",
+        "Access instant liquidity through market-backed credit limits. Your reputation and backer confidence determine your funding.",
     },
     {
       icon: EyeIcon,
-      title: "💬 User Feedback",
+      title: "🎯 Prize Collateral",
       description:
-        "Collect valuable feedback with screen recordings. Incentivize users to test your mini apps and improve based on real user insights.",
+        "Use your future hackathon winnings as collateral for upfront credit. Move faster without financial roadblocks.",
     },
     {
       icon: ClockIcon,
-      title: "🏆 Hackathon Tracking",
+      title: "🎲 Backer Markets",
       description:
-        "Follow hackathons you're interested in. Track participation, deadlines, and showcase your wins to build your reputation.",
+        "Backers bet on your milestones. High market confidence translates directly into higher credit limits and lower rates.",
     },
     {
       icon: UserGroupIcon,
-      title: "🚢 Community Support",
+      title: "🚢 Milestone Proof",
       description:
-        "Connect with other builders and mentors. Get assistance finding your first users and growing your project community.",
+        "Every milestone you ship builds your reputation and validates your backers' bets, unlocking more credit.",
     },
   ];
 
@@ -125,24 +125,24 @@ export default function LandingPage() {
       ],
     },
     sponsors: {
-      title: "💎 For Sponsors",
-      subtitle: "Fund proven captains, minimize storms, maximize treasure",
+      title: "💎 For Backers",
+      subtitle: "Bet on top builders, earn from their success",
       steps: [
         {
-          title: "🔍 Discover Builders",
-          desc: "Find talented builders and projects in our ecosystem",
+          title: "🔍 Scout Talent",
+          desc: "Find promising builders by analyzing their GitHub history and onchain reputation",
         },
         {
-          title: "💸 Support Projects",
-          desc: "Sponsor promising projects and builders to grow the ecosystem",
+          title: "🎲 Place Your Bets",
+          desc: "Back builders you believe in by staking capital on their milestone completion",
         },
         {
-          title: "📊 Track Progress",
-          desc: "Monitor the impact of your sponsorship on builder success",
+          title: "📈 Market Confidence",
+          desc: "Your backing increases the builder's credit limit through market confidence",
         },
         {
-          title: "🎯 Showcase Results",
-          desc: "Highlight successful projects and builders you've supported",
+          title: "💰 Shared Rewards",
+          desc: "Earn a portion of the hackathon prizes when your backed builders win",
         },
       ],
     },
@@ -183,17 +183,17 @@ export default function LandingPage() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-              Showcase your
+              Unlock
               <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                 {" "}
-                Onchain Projects
+                Predictive Credit
               </span>
+              <br /> for Onchain Builders
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
-              Publish projects with GitHub + contract proof, then share them on a
-              clean portfolio (your subdomain) organized by chain. Layer in
-              verification, user feedback, hackathon tracking, and funding.
+              The first backer-funded, prize-collateralized credit loop. 
+              Get instant liquidity based on market confidence in your ability to ship and win.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">

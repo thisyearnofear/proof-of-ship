@@ -4,26 +4,21 @@ import Link from "next/link";
 export default function About() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow mt-8">
-      <h1 className="text-2xl font-bold mb-4">About Proof Of Ship Tracker</h1>
+      <h1 className="text-2xl font-bold mb-4">About Predictive Credit System</h1>
       <p className="mb-4 text-gray-700">
-        <b>Proof Of Ship Tracker</b> is a minimal dashboard for tracking,
-        comparing, and exploring the progress of Celo Proof Of Ship hackathon
-        projects. It visualizes commit activity, contributions, and will soon
-        support milestone insights and prediction markets.
+        <b>Predictive Credit System</b> is a backer-funded, prize-collateralized platform that provides instant liquidity to hackathon developers.
+        It visualizes commit activity, contributions, and supports predictive credit markets where backers bet on builder success.
       </p>
       <h2 className="text-xl font-semibold mb-2 mt-6">FAQ</h2>
       <ul className="mb-4 text-gray-700 list-disc pl-6">
         <li>
-          <b>What is this?</b> A dashboard to track open-source Celo hackathon
-          projects and their progress.
+          <b>What is this?</b> A platform that uses market confidence and future prize winnings to provide upfront credit to builders.
         </li>
         <li>
-          <b>Who is it for?</b> Developers, community, and anyone interested in
-          Celo project growth.
+          <b>Who is it for?</b> Builders who need upfront liquidity and Backers who want to support top talent and earn from their success.
         </li>
         <li>
-          <b>What's next?</b> Analytics, milestone tracking, and prediction
-          markets.
+          <b>What's next?</b> Deep integration with onchain reputation and automated backer payouts.
         </li>
       </ul>
       <h2 className="text-xl font-semibold mb-2 mt-6">Learn More</h2>

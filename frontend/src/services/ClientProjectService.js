@@ -140,6 +140,40 @@ export async function submitProject(projectData) {
   }
 }
 
+/**
+ * Get evidence for a project (PRs and other activity)
+ * @param {string} projectSlug - The project slug
+ * @returns {Promise<Array>}
+ */
+export async function getProjectEvidence(projectSlug) {
+  try {
+    const projectDoc = await getDoc(doc(db, 'projects', projectSlug));
+    if (!projectDoc.exists()) return [];
+
+    const project = projectDoc.data();
+    const { owner, repo } = project;
+
+    if (!owner || !repo) return [];
+
+    // In a real app, we would call the GitHub API here.
+    // Since we're in a client service, we might call an API route or use a GitHub service.
+    // For now, we'll return some mock data or attempt to fetch from an API if available.
+    
+    // Assuming there's an API route /api/projects/[slug]/evidence
+    const response = await fetch(`/api/projects/${projectSlug}/evidence`);
+    if (response.ok) {
+      const data = await response.json();
+      return data.evidence || [];
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error fetching project evidence:', error);
+    return [];
+  }
+}
+
 export default {
   submitProject,
+  getProjectEvidence,
 };

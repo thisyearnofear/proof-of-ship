@@ -79,6 +79,13 @@ class RealGitHubService {
   }
 
   /**
+   * Get pull requests for a specific repository
+   */
+  async getRepoPullRequests(owner, repo, state = "all") {
+    return this.makeRequest(`/repos/${owner}/${repo}/pulls?state=${state}&per_page=10`);
+  }
+
+  /**
    * Get user's repositories
    */
   async getUserRepos(username, page = 1, perPage = 100) {

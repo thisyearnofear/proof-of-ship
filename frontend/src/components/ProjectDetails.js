@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import BackingPanel from './BackingPanel';
+import ProjectHealthChart from './expedition/ProjectHealthChart';
 
 export default function ProjectDetails({ projectId, onMilestoneComplete }) {
   const { account } = useMetaMask();
@@ -247,6 +248,43 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
           <div className="flex items-center text-gray-600">
             <DocumentTextIcon className="w-5 h-5 mr-1" />
             <span>{project.milestones.length} Milestones</span>
+          </div>
+        </div>
+      </Card>
+
+      {/* Predictive Health & Confidence Section */}
+      <Card className="p-6 border-l-4 border-blue-500">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <GlobeAltIcon className="w-5 h-5 text-blue-600" />
+          Predictive Market Metrics
+        </h3>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <ProjectHealthChart 
+              health={project.health || 75} 
+              confidence={project.confidence || 82} 
+              size="lg"
+            />
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <h4 className="text-sm font-bold text-gray-700 uppercase mb-3">Expedition Data</h4>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Backing Multiplier</span>
+                <span className="text-sm font-bold text-blue-600">2.5x</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Active Backers</span>
+                <span className="text-sm font-bold text-gray-900">14 Scouts</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Projected ROI</span>
+                <span className="text-sm font-bold text-green-600">+150%</span>
+              </div>
+            </div>
+            <Button className="w-full mt-4 bg-blue-600 text-white min-h-touch" size="sm">
+              Scout this Project
+            </Button>
           </div>
         </div>
       </Card>

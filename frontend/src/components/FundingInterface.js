@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCircleWallet } from '../contexts/CircleWalletContext';
 import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useBuilderCredit } from '../contexts/BuilderCreditContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
@@ -24,6 +25,7 @@ export default function FundingInterface({
   onFundingComplete 
 }) {
   const { account } = useMetaMask();
+  const { coreContract, contractLoading } = useBuilderCredit();
   const {
     requestFunding,
     getFundingHistory,
@@ -45,6 +47,8 @@ export default function FundingInterface({
     { description: '', reward: '' }
   ]);
   const [showProjectForm, setShowProjectForm] = useState(false);
+
+  const [pledgedPrize, setPledgedPrize] = useState('');
 
   // Calculate funding amount based on credit score
   useEffect(() => {
@@ -180,6 +184,17 @@ export default function FundingInterface({
         milestoneDescriptions,
         milestoneRewards
       );
+      
+      // Pledge prize if provided
+      if (pledgedPrize && result.projectId && coreContract) {
+        try {
+          const prizeUnits = ethers.utils.parseUnits(pledgedPrize, 6);
+          await coreContract.pledgePrize(result.projectId, prizeUnits);
+        } catch (pledgeErr) {
+          console.warn('Failed to pledge prize:', pledgeErr);
+          // Continue even if prize pledge fails
+        }
+      }
       
       setSuccess({
         amount: result.amount,
@@ -335,6 +350,27 @@ export default function FundingInterface({
                 />
               </div>
               
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pledge Expected Prize (USDC)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <CurrencyDollarIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="number"
+                    value={pledgedPrize}
+                    onChange={(e) => setPledgedPrize(e.target.value)}
+                    placeholder="e.g. 5000"
+                    className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Collateralize your credit with expected hackathon winnings to boost your limit.
+                </p>
+              </div>
+
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-medium text-gray-700">

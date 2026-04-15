@@ -23,6 +23,7 @@ import {
 
 export default function DeveloperDashboard() {
   const { account, connected } = useMetaMask();
+  const { coreContract, usdcContract, contractLoading, creditProfile, repayLoan, loadUserData, formatUSDC, usdcBalance, developerProjects, projectDetails, contractError } = useBuilderCredit();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -30,6 +31,35 @@ export default function DeveloperDashboard() {
   const [repayAmount, setRepayAmount] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showRepayModal, setShowRepayModal] = useState(false);
+  const [prizeAmount, setPrizeAmount] = useState('1000');
+
+  const handleSimulatePrize = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      // Call distributePrize function from contract
+      if (selectedProjectId && coreContract) {
+        const tx = await coreContract.distributePrize(selectedProjectId, ethers.utils.parseUnits(prizeAmount, 6));
+        await tx.wait();
+        
+        setSuccess({
+          amount: prizeAmount,
+          transactionHash: tx.hash,
+          message: 'Prize distributed and backers repaid!'
+        });
+      } else {
+        setError('Please select a project first');
+      }
+
+    } catch (err) {
+      console.error('Failed to distribute prize:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRepayLoan = async () => {
     if (!repayAmount || parseFloat(repayAmount) <= 0) {
@@ -292,10 +322,10 @@ export default function DeveloperDashboard() {
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-green-900 mb-2">
-                Loan Repayment Successful!
+                {success.message || 'Loan Repayment Successful!'}
               </h4>
               <p className="text-green-800 mb-3">
-                You have repaid ${parseFloat(success.amount).toFixed(2)} USDC
+                Amount: ${parseFloat(success.amount).toFixed(2)} USDC
               </p>
               
               {success.transactionHash && (
@@ -312,6 +342,43 @@ export default function DeveloperDashboard() {
           </div>
         </Card>
       )}
+
+      {/* Admin/Demo Controls */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Backer Loop Simulation (Demo)</h2>
+        <Card className="p-6 bg-indigo-50 border-indigo-100">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-indigo-900">Simulate Prize Payout</h3>
+              <p className="text-sm text-indigo-700">
+                Mock a prize win to trigger the automated backer repayment loop.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={prizeAmount}
+                onChange={(e) => setPrizeAmount(e.target.value)}
+                className="w-32 px-3 py-2 border border-indigo-200 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Prize Amount"
+              />
+              <Button
+                onClick={handleSimulatePrize}
+                disabled={loading || !selectedProjectId}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white min-h-touch"
+              >
+                Trigger Payout Loop
+              </Button>
+            </div>
+          </div>
+          {!selectedProjectId && (
+            <p className="mt-2 text-xs text-indigo-500 flex items-center">
+              <ExclamationCircleIcon className="w-4 h-4 mr-1" />
+              Select a project below to simulate its prize payout
+            </p>
+          )}
+        </Card>
+      </section>
 
       {/* Project List and Details */}
       <section>

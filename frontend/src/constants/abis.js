@@ -40,3 +40,22 @@ export const DETECTION_ABI = [
   "function tokenURI(uint256) view returns (string)",
   "function ownerOf(uint256) view returns (address)"
 ];
+
+// BuilderCreditCore ABI
+export const BUILDER_CREDIT_CORE_ABI = [
+  "function requestFunding(uint256 hackathonId, uint256 creditScore, string githubUrl, string projectName, string[] milestoneDescriptions, uint256[] milestoneAmounts) external returns (uint256)",
+  "function backProject(uint256 projectId, uint256 multiplier, uint256 amount) external",
+  "function pledgePrize(uint256 projectId, uint256 amount) external",
+  "function distributePrize(uint256 projectId, uint256 prizeAmount) external",
+  "function approveMilestone(uint256 projectId, uint256 milestoneId) external",
+  "function calculateFundingAmount(uint256 creditScore) public view returns (uint256)",
+  "function calculateBoostedFundingAmount(uint256 creditScore, uint256 projectId) public view returns (uint256)",
+  "function totalProjectBacking(uint256 projectId) public view returns (uint256)",
+  "function projectPledgedPrize(uint256 projectId) public view returns (uint256)",
+  "function projects(uint256 projectId) public view returns (uint256 hackathonId, address developer, string githubUrl, string name, uint256 fundingAmount, bool isActive, uint256 fundedAt, uint256 creditScore, uint256 milestonesCompleted, uint256 milestonesCount)",
+  "function getDeveloperProjects(address developer) external view returns (uint256[] memory)",
+  "function creditLines(address developer) public view returns (uint256 totalAmount, uint256 usedAmount, uint256 reputation, bool active, uint256 lastUpdated)",
+  "event ProjectCreated(uint256 indexed projectId, uint256 indexed hackathonId, address indexed developer, uint256 amount, string name)",
+  "event ProjectBacked(uint256 indexed projectId, address indexed backer, uint256 amount, uint256 multiplier)",
+  "event PrizeDistributed(uint256 indexed projectId, uint256 totalAmount, uint256 backerPayout, uint256 builderPayout)"
+];

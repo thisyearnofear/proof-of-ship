@@ -262,22 +262,31 @@ export default function BuilderDashboardPage() {
                     {/* Backer Activity */}
                     <div className="mt-6">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-600 font-medium">Backer Support</span>
-                        <span className="text-blue-700 font-bold">{predictiveCredit.backerCount} backers betting on you</span>
+                        <span className="text-gray-600 font-medium">Market Confidence per Milestone</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
-                        <div
-                          className="bg-blue-600 h-full"
-                          style={{ width: `${predictiveCredit.marketConfidence}%` }}
-                        ></div>
-                        <div
-                          className="bg-blue-300 h-full"
-                          style={{ width: `${100 - predictiveCredit.marketConfidence}%` }}
-                        ></div>
+                      <div className="space-y-3">
+                        {predictiveCredit.milestones.map((milestone, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-gray-700">{milestone.name}</span>
+                              <span className="font-semibold text-blue-600">{milestone.confidence}% confidence</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className="bg-blue-600 h-full"
+                                style={{ width: `${milestone.confidence}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>Low Confidence</span>
-                        <span>High Confidence</span>
+                      <div className="mt-4 pt-4 border-t border-blue-100">
+                        <div className="flex justify-between items-center">
+                          <div className="text-xs text-gray-500">
+                            <span className="font-bold text-blue-700">{predictiveCredit.backerCount} backers</span> are betting on your success
+                          </div>
+                          <Button size="xs" variant="outline" className="text-[10px] h-7">Manage Backers</Button>
+                        </div>
                       </div>
                     </div>
                   </div>

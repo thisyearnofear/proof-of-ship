@@ -382,11 +382,11 @@ function QuickStats({ stats }) {
       color: 'purple'
     },
     {
-      title: 'Max Funding',
-      value: '$5K',
+      title: 'Market Capital',
+      value: '$42.5K',
       icon: CurrencyDollarIcon,
       color: 'yellow',
-      subtitle: 'Per developer'
+      subtitle: 'Total backer stakes'
     }
   ];
 

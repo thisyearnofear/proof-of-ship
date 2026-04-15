@@ -61,32 +61,14 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
       };
 
       // Load milestones
-      const MAX_MILESTONES = 20;
-      let totalMilestoneRewards = 0;
+      const milestones = await coreContract.getProjectMilestones(projectId);
       
-      for (let i = 0; i < MAX_MILESTONES; i++) {
-        try {
-          const milestone = await coreContract.getMilestoneDetails(projectId, i);
-          
-          if (!milestone || !milestone.description) {
-            break;
-          }
-          
-          const milestoneReward = parseFloat(ethers.utils.formatUnits(milestone.reward, 6));
-          totalMilestoneRewards += milestoneReward;
-          
-          formattedProject.milestones.push({
-            description: milestone.description,
-            reward: milestoneReward,
-            confirmations: milestone.confirmations.toNumber(),
-            completed: milestone.completed,
-            completedAt: milestone.completedAt.toNumber()
-          });
-        } catch (err) {
-          // End of milestones
-          break;
-        }
-      }
+      formattedProject.milestones = milestones.map(m => ({
+        description: m.description,
+        reward: parseFloat(ethers.utils.formatUnits(m.amount, 6)),
+        completed: m.completed,
+        completedAt: m.completedAt.toNumber()
+      }));
       
       // Set completed percentage
       const completedMilestones = formattedProject.milestones.filter(m => m.completed).length;
@@ -126,17 +108,17 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
       setError(null);
       setSuccess(null);
 
-      // Call the completeMilestone function on the contract
-      const tx = await coreContract.completeMilestone(projectId, milestoneIndex);
+      // Call the approveMilestone function on the contract
+      const tx = await coreContract.approveMilestone(projectId, milestoneIndex);
       const receipt = await tx.wait();
 
-      // Find MilestoneCompleted event
-      const milestoneEvent = receipt.events.find(e => e.event === "MilestoneCompleted");
+      // Find MilestoneApproved event
+      const approvedEvent = receipt.events.find(e => e.event === "MilestoneApproved");
       
       setSuccess({
         milestoneIndex,
         transactionHash: receipt.transactionHash,
-        reward: ethers.utils.formatUnits(milestoneEvent.args.reward, 6)
+        message: "Milestone approved successfully!"
       });
 
       // Reload project details
@@ -301,11 +283,13 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
             <CheckCircleIcon className="w-6 h-6 text-green-600 mt-0.5" />
             <div className="flex-1">
               <h4 className="font-semibold text-green-900 mb-2">
-                Milestone Completed Successfully!
+                {success.message || "Milestone Completed Successfully!"}
               </h4>
-              <p className="text-green-800 mb-3">
-                You have earned ${parseFloat(success.reward).toFixed(2)} USDC for this milestone.
-              </p>
+              {success.reward && (
+                <p className="text-green-800 mb-3">
+                  You have earned ${parseFloat(success.reward).toFixed(2)} USDC for this milestone.
+                </p>
+              )}
               
               {success.transactionHash && (
                 <div className="bg-white bg-opacity-50 rounded-lg p-3">
@@ -377,7 +361,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
                           Processing...
                         </>
                       ) : (
-                        'Mark Complete'
+                        'Approve Milestone'
                       )}
                     </Button>
                   )}

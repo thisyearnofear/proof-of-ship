@@ -44,6 +44,12 @@ const navigation = [
     highlight: true
   },
   { 
+    name: "Portfolio", 
+    href: "/backer-portfolio", 
+    icon: UserCircleIcon,
+    description: "Track your backed projects and rewards",
+  },
+  { 
     name: "Hackathons", 
     href: "/hackathons", 
     icon: ChartBarIcon,

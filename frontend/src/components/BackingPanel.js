@@ -28,6 +28,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
   const [success, setSuccess] = useState(null);
   const [userBalance, setUserBalance] = useState('0');
   const [totalBacking, setTotalBacking] = useState('0');
+  const [maxAllowedMultiplier, setMaxAllowedMultiplier] = useState(300);
 
   useEffect(() => {
     if (account) {
@@ -35,6 +36,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
     }
     if (projectId && coreContract) {
       loadProjectBacking();
+      loadMaxMultiplier();
     }
   }, [account, projectId, coreContract]);
 
@@ -44,6 +46,20 @@ export default function BackingPanel({ projectId, developerAddress }) {
       setUserBalance(balance);
     } catch (err) {
       console.error("Failed to load USDC balance:", err);
+    }
+  };
+
+  const loadMaxMultiplier = async () => {
+    try {
+      const project = await coreContract.projects(projectId);
+      const maxMult = await coreContract.getMaxMultiplier(project.creditScore);
+      setMaxAllowedMultiplier(maxMult.toNumber());
+      // Adjust selected multiplier if it exceeds max
+      if (multiplier > maxMult.toNumber()) {
+        setMultiplier(maxMult.toNumber());
+      }
+    } catch (err) {
+      console.error("Failed to load max multiplier:", err);
     }
   };
 
@@ -124,21 +140,32 @@ export default function BackingPanel({ projectId, developerAddress }) {
           Select Your Reward Multiplier
         </label>
         <div className="grid grid-cols-3 gap-3">
-          {multipliers.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => setMultiplier(m.value)}
-              className={`p-3 border rounded-lg flex flex-col items-center transition-all min-h-touch ${
-                multiplier === m.value
-                  ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600'
-                  : 'border-gray-200 hover:border-indigo-300 text-gray-600'
-              }`}
-            >
-              <span className="text-lg font-bold">{m.label}</span>
-              <span className="text-xs opacity-75">{m.risk}</span>
-            </button>
-          ))}
+          {multipliers.map((m) => {
+            const isDisabled = m.value > maxAllowedMultiplier;
+            return (
+              <button
+                key={m.value}
+                onClick={() => !isDisabled && setMultiplier(m.value)}
+                disabled={isDisabled}
+                className={`p-3 border rounded-lg flex flex-col items-center transition-all min-h-touch ${
+                  multiplier === m.value
+                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600'
+                    : isDisabled
+                      ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-200 hover:border-indigo-300 text-gray-600'
+                }`}
+              >
+                <span className="text-lg font-bold">{m.label}</span>
+                <span className="text-xs opacity-75">{isDisabled ? 'Locked' : m.risk}</span>
+              </button>
+            );
+          })}
         </div>
+        {maxAllowedMultiplier < 300 && (
+          <p className="mt-2 text-xs text-amber-600">
+            Higher multipliers are restricted based on this builder's current reputation.
+          </p>
+        )}
       </div>
 
       <div className="mb-6">

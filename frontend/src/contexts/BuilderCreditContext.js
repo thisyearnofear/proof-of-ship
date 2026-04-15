@@ -94,7 +94,11 @@ export const BuilderCreditProvider = ({ children }) => {
                     fundedAt: p.fundedAt.toNumber(),
                     isActive: p.isActive,
                     developer: p.developer,
-                    githubUrl: p.githubUrl
+                    githubUrl: p.githubUrl,
+                    hackathonIds: p.hackathonIds ? p.hackathonIds.map(h => h.toString()) : [],
+                    creditScore: p.creditScore ? p.creditScore.toNumber() : 0,
+                    milestonesCompleted: p.milestonesCompleted ? p.milestonesCompleted.toNumber() : 0,
+                    milestonesCount: p.milestonesCount ? p.milestonesCount.toNumber() : 0
                 };
             }
             setProjectDetails(details);
@@ -113,15 +117,13 @@ export const BuilderCreditProvider = ({ children }) => {
         }
     }, [coreContract, account, loadUserData]);
 
-    const requestFunding = async (score, githubUrl, projectName, milestoneDescriptions, milestoneRewards) => {
+    const requestFunding = async (score, githubUrl, projectName, milestoneDescriptions, milestoneRewards, hackathonIds = [1]) => {
         if (!coreContract) throw new Error("Contract not initialized");
         
-        // Use hackathon ID 1 for demo
-        const hackathonId = 1;
         const rewardsUnits = milestoneRewards.map(r => ethers.utils.parseUnits(r.toString(), 6));
         
         const tx = await coreContract.requestFunding(
-            hackathonId,
+            hackathonIds,
             score,
             githubUrl,
             projectName,
@@ -141,6 +143,42 @@ export const BuilderCreditProvider = ({ children }) => {
             projectId,
             amount,
             transactionHash: receipt.transactionHash
+        };
+    };
+
+    const getBackerProjects = async (backerAddress) => {
+        if (!coreContract) return [];
+        try {
+            const projectIds = await coreContract.getBackerProjects(backerAddress || account);
+            return projectIds.map(id => id.toString());
+        } catch (err) {
+            console.error("Failed to fetch backer projects:", err);
+            return [];
+        }
+    };
+
+    const backProject = async (projectId, multiplier, amount) => {
+        if (!coreContract || !usdcContract) throw new Error("Contracts not initialized");
+        
+        const amountUnits = ethers.utils.parseUnits(amount.toString(), 6);
+        
+        // Approve first
+        const allowance = await usdcContract.allowance(account, coreContract.address);
+        if (allowance.lt(amountUnits)) {
+            const approveTx = await usdcContract.approve(coreContract.address, ethers.constants.MaxUint256);
+            await approveTx.wait();
+        }
+        
+        const tx = await coreContract.backProject(projectId, multiplier, amountUnits);
+        const receipt = await tx.wait();
+        
+        await loadUserData();
+        
+        return {
+            transactionHash: receipt.transactionHash,
+            projectId,
+            amount,
+            multiplier
         };
     };
 
@@ -186,12 +224,23 @@ export const BuilderCreditProvider = ({ children }) => {
         usdcBalance,
         loadUserData,
         requestFunding,
+        getBackerProjects,
+        backProject,
         repayLoan,
         formatUSDC,
         calculateFundingAmount: async (score) => {
             if (!coreContract) return "0";
             const amount = await coreContract.calculateFundingAmount(score);
             return ethers.utils.formatUnits(amount, 6);
+        },
+        getMaxMultiplier: async (score) => {
+            if (!coreContract) return "300";
+            try {
+                const multiplier = await coreContract.getMaxMultiplier(score);
+                return multiplier.toString();
+            } catch (err) {
+                return "300";
+            }
         }
     };
 

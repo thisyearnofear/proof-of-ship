@@ -48,6 +48,13 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 milestonesCount;
     }
     
+    struct Backing {
+        address backer;
+        uint256 amount;
+        uint256 multiplier; // 150, 200, 300 for 1.5x, 2x, 3x
+        bool claimed;
+    }
+    
     struct Milestone {
         string description;
         uint256 amount;
@@ -71,6 +78,9 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     
     // Storage
     mapping(uint256 => Project) public projects;
+    mapping(uint256 => Backing[]) public projectBackings;
+    mapping(uint256 => uint256) public totalProjectBacking;
+    mapping(uint256 => uint256) public projectPledgedPrize;
     mapping(uint256 => Milestone[]) public projectMilestones;
     mapping(uint256 => mapping(uint256 => MilestoneApproval)) public approvals;
     mapping(address => uint256[]) public developerProjects;
@@ -83,6 +93,25 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         address indexed developer, 
         uint256 amount,
         string name
+    );
+
+    event ProjectBacked(
+        uint256 indexed projectId, 
+        address indexed backer, 
+        uint256 amount, 
+        uint256 multiplier
+    );
+
+    event PrizePledged(
+        uint256 indexed projectId, 
+        uint256 amount
+    );
+
+    event PrizeDistributed(
+        uint256 indexed projectId, 
+        uint256 totalAmount, 
+        uint256 backerPayout, 
+        uint256 builderPayout
     );
     
     event MilestoneCompleted(
@@ -320,6 +349,87 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     }
     
     /**
+     * @dev Backs a project with USDC
+     * @param projectId ID of the project
+     * @param multiplier Multiplier choice (150, 200, 300 for 1.5x, 2x, 3x)
+     * @param amount Amount of USDC to stake
+     */
+    function backProject(uint256 projectId, uint256 multiplier, uint256 amount) 
+        external 
+        whenNotPaused 
+        nonReentrant 
+    {
+        require(projects[projectId].isActive, "Project not active");
+        require(multiplier == 150 || multiplier == 200 || multiplier == 300, "Invalid multiplier");
+        require(amount > 0, "Amount must be > 0");
+
+        usdcToken.safeTransferFrom(msg.sender, address(this), amount);
+
+        projectBackings[projectId].push(Backing({
+            backer: msg.sender,
+            amount: amount,
+            multiplier: multiplier,
+            claimed: false
+        }));
+
+        totalProjectBacking[projectId] += amount;
+
+        // Also boost the credit line of the developer
+        CreditLine storage creditLine = creditLines[projects[projectId].developer];
+        creditLine.totalAmount += (amount * 2); // 2x confidence boost
+        
+        emit ProjectBacked(projectId, msg.sender, amount, multiplier);
+    }
+
+    /**
+     * @dev Pledges expected prize for a project
+     * @param projectId ID of the project
+     * @param amount Expected prize amount
+     */
+    function pledgePrize(uint256 projectId, uint256 amount) external {
+        require(projects[projectId].developer == msg.sender, "Only developer can pledge");
+        projectPledgedPrize[projectId] = amount;
+        emit PrizePledged(projectId, amount);
+    }
+
+    /**
+     * @dev Distributes prize and handles backer repayments
+     * @param projectId ID of the project
+     * @param prizeAmount Total prize amount being distributed
+     */
+    function distributePrize(uint256 projectId, uint256 prizeAmount) 
+        external 
+        onlyRole(TREASURY_ROLE) 
+        nonReentrant 
+    {
+        require(prizeAmount > 0, "Prize amount must be > 0");
+        
+        usdcToken.safeTransferFrom(msg.sender, address(this), prizeAmount);
+
+        uint256 totalBackerPayout = 0;
+        Backing[] storage backings = projectBackings[projectId];
+        
+        for (uint i = 0; i < backings.length; i++) {
+            if (!backings[i].claimed) {
+                uint256 payout = (backings[i].amount * backings[i].multiplier) / 100;
+                if (prizeAmount >= totalBackerPayout + payout) {
+                    backings[i].claimed = true;
+                    totalBackerPayout += payout;
+                    usdcToken.safeTransfer(backings[i].backer, payout);
+                }
+            }
+        }
+
+        uint256 builderPayout = 0;
+        if (prizeAmount > totalBackerPayout) {
+            builderPayout = prizeAmount - totalBackerPayout;
+            usdcToken.safeTransfer(projects[projectId].developer, builderPayout);
+        }
+
+        emit PrizeDistributed(projectId, prizeAmount, totalBackerPayout, builderPayout);
+    }
+
+    /**
      * @dev Calculates funding amount based on credit score
      * @param creditScore Credit score of the developer
      * @return amount Calculated funding amount
@@ -330,6 +440,24 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         
         // Cap at maximum amount
         return amount > maxCreditAmount ? maxCreditAmount : amount;
+    }
+
+    /**
+     * @dev Calculates boosted funding amount including backer confidence
+     * @param creditScore Credit score of the developer
+     * @param projectId ID of the project
+     * @return amount Calculated funding amount
+     */
+    function calculateBoostedFundingAmount(uint256 creditScore, uint256 projectId) public view returns (uint256) {
+        uint256 baseAmount = calculateFundingAmount(creditScore);
+        
+        // Confidence Boost: 2 * totalProjectBacking
+        uint256 boostedAmount = baseAmount + (2 * totalProjectBacking[projectId]);
+        
+        // Increase max credit by backing amount
+        uint256 currentMax = maxCreditAmount + totalProjectBacking[projectId];
+        
+        return boostedAmount > currentMax ? currentMax : boostedAmount;
     }
     
     /**

@@ -18,8 +18,11 @@ import {
   BanknotesIcon
 } from '@heroicons/react/24/outline';
 
+import BackingPanel from './BackingPanel';
+
 export default function ProjectDetails({ projectId, onMilestoneComplete }) {
   const { account } = useMetaMask();
+  const { coreContract, usdcContract, contractLoading } = useBuilderCredit();
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -247,6 +250,11 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
           </div>
         </div>
       </Card>
+
+      {/* Backer Panel */}
+      {!isProjectOwner && (
+        <BackingPanel projectId={projectId} developerAddress={project.developer} />
+      )}
 
       {/* Success Message */}
       {success && (

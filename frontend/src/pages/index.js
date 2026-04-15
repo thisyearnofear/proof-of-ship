@@ -37,9 +37,9 @@ export default function LandingPage() {
     },
     {
       icon: ClockIcon,
-      title: "🎲 Predictive Betting",
+      title: "🎲 Simple Multiplier Betting",
       description:
-        "Backers place bets on your project milestones. Higher stakes from the community lead to better credit terms for you.",
+        "Backers place 1.5x, 2x, or 3x bets on your project milestones. Higher stakes from the community lead to better credit terms for you.",
     },
     {
       icon: UserGroupIcon,
@@ -134,7 +134,7 @@ export default function LandingPage() {
         },
         {
           title: "🎲 Place Your Bets",
-          desc: "Back builders you believe in by staking capital on their milestone completion",
+          desc: "Back builders you believe in by staking capital with 1.5x-3x reward multipliers on their milestone completion",
         },
         {
           title: "📈 Market Confidence",

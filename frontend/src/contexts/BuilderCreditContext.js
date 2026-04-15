@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useMetaMask } from './MetaMaskContext';
-import { BUILDER_CREDIT_CORE_ABI, ERC20_ABI } from '../constants/abis';
-import { BUILDER_CREDIT_CORE_ADDRESSES, TESTNET_USDC_ADDRESSES } from '../config/tokens';
+import { BUILDER_CREDIT_CORE_ABI, ERC20_ABI, HACKATHON_REGISTRY_ABI } from '../constants/abis';
+import { BUILDER_CREDIT_CORE_ADDRESSES, TESTNET_USDC_ADDRESSES, HACKATHON_REGISTRY_ADDRESSES } from '../config/tokens';
 
 const BuilderCreditContext = createContext();
 
@@ -19,6 +19,7 @@ export const BuilderCreditProvider = ({ children }) => {
     
     const [coreContract, setCoreContract] = useState(null);
     const [usdcContract, setUsdcContract] = useState(null);
+    const [hackathonRegistryContract, setHackathonRegistryContract] = useState(null);
     const [contractLoading, setContractLoading] = useState(false);
     const [contractError, setContractError] = useState(null);
     const [creditProfile, setCreditProfile] = useState(null);
@@ -32,13 +33,16 @@ export const BuilderCreditProvider = ({ children }) => {
             try {
                 const coreAddress = BUILDER_CREDIT_CORE_ADDRESSES[chainId];
                 const usdcAddress = TESTNET_USDC_ADDRESSES[chainId];
+                const registryAddress = HACKATHON_REGISTRY_ADDRESSES[chainId];
                 
-                if (coreAddress && usdcAddress) {
+                if (coreAddress && usdcAddress && registryAddress) {
                     const core = new ethers.Contract(coreAddress, BUILDER_CREDIT_CORE_ABI, signer);
                     const usdc = new ethers.Contract(usdcAddress, ERC20_ABI, signer);
+                    const registry = new ethers.Contract(registryAddress, HACKATHON_REGISTRY_ABI, signer);
                     
                     setCoreContract(core);
                     setUsdcContract(usdc);
+                    setHackathonRegistryContract(registry);
                     setContractError(null);
                 } else {
                     console.warn(`Contracts not configured for chainId ${chainId}`);
@@ -216,6 +220,7 @@ export const BuilderCreditProvider = ({ children }) => {
     const value = {
         coreContract,
         usdcContract,
+        hackathonRegistryContract,
         contractLoading,
         contractError,
         creditProfile,

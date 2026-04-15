@@ -57,9 +57,23 @@ export const BUILDER_CREDIT_CORE_ABI = [
   "function getDeveloperProjects(address developer) external view returns (uint256[] memory)",
   "function getBackerProjects(address backer) external view returns (uint256[] memory)",
   "function getProjectMilestones(uint256 projectId) external view returns (tuple(string description, uint256 amount, bool completed, uint256 completedAt)[] memory)",
+  "function getMilestoneApprovalStatus(uint256 projectId, uint256 milestoneId, address verifier) external view returns (bool hasApproved, uint8 approvalCount, bool isCompleted)",
   "function projectBackings(uint256 projectId, uint256 backingId) public view returns (address backer, uint256 amount, uint256 multiplier, bool claimed)",
   "function creditLines(address developer) public view returns (uint256 totalAmount, uint256 usedAmount, uint256 reputation, bool active, uint256 lastUpdated)",
   "event ProjectCreated(uint256 indexed projectId, uint256[] hackathonIds, address indexed developer, uint256 amount, string name)",
   "event ProjectBacked(uint256 indexed projectId, address indexed backer, uint256 amount, uint256 multiplier)",
   "event PrizeDistributed(uint256 indexed projectId, uint256 totalAmount, uint256 backerPayout, uint256 builderPayout)"
+];
+
+// HackathonRegistry ABI
+export const HACKATHON_REGISTRY_ABI = [
+  "function isVerifier(uint256 hackathonId, address account) external view returns (bool)",
+  "function getRequiredSignatures(uint256 hackathonId) external view returns (uint256)",
+  "function getHackathonVerifiers(uint256 hackathonId) external view returns (address[] memory)",
+  "function getHackathonIdByName(string name) external view returns (uint256)",
+  "function getHackathonDetails(uint256 hackathonId) external view returns (string name, address organizer, uint256 startDate, uint256 endDate, bool isActive)",
+  "function hackathons(uint256 hackathonId) external view returns (address host, uint8 requiredSignatures, bool active, uint256 startDate, uint256 endDate, uint256 createdAt, string name)",
+  "event HackathonCreated(uint256 indexed hackathonId, string name, address host, uint8 requiredSignatures)",
+  "event VerifierAdded(uint256 indexed hackathonId, address verifier)",
+  "event VerifierRemoved(uint256 indexed hackathonId, address verifier)"
 ];

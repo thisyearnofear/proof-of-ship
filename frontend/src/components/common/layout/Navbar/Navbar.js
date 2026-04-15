@@ -9,6 +9,7 @@ import {
   HomeIcon,
   GlobeAltIcon,
   CalculatorIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
@@ -265,6 +266,20 @@ export default function Navbar() {
                               >
                                 <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400" />
                                 Your Profile
+                              </a>
+                            )}
+                          </Menu.Item>
+                          <Menu.Item>
+                            {({ active }) => (
+                              <a
+                                href="/admin/war-room"
+                                className={classNames(
+                                  active ? "bg-gray-100" : "",
+                                  "flex items-center px-4 py-2 text-sm text-gray-700 font-bold text-orange-600"
+                                )}
+                              >
+                                <ShieldCheckIcon className="mr-3 h-4 w-4 text-orange-500" />
+                                Verification War Room
                               </a>
                             )}
                           </Menu.Item>

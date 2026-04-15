@@ -25,27 +25,27 @@ export default function LandingPage() {
   const features = [
     {
       icon: RocketLaunchIcon,
-      title: "🚀 Predictive Credit",
+      title: "🚀 Market-Backed Credit",
       description:
-        "Access instant liquidity through market-backed credit limits. Your reputation and backer confidence determine your funding.",
+        "Your credit limit isn't just a score—it's a market. Backer confidence directly scales your available liquidity.",
     },
     {
       icon: EyeIcon,
       title: "🎯 Prize Collateral",
       description:
-        "Use your future hackathon winnings as collateral for upfront credit. Move faster without financial roadblocks.",
+        "Collateralize your potential hackathon winnings to get USDC upfront. We bridge the gap between building and winning.",
     },
     {
       icon: ClockIcon,
-      title: "🎲 Backer Markets",
+      title: "🎲 Predictive Betting",
       description:
-        "Backers bet on your milestones. High market confidence translates directly into higher credit limits and lower rates.",
+        "Backers place bets on your project milestones. Higher stakes from the community lead to better credit terms for you.",
     },
     {
       icon: UserGroupIcon,
-      title: "🚢 Milestone Proof",
+      title: "🚢 Proven Delivery",
       description:
-        "Every milestone you ship builds your reputation and validates your backers' bets, unlocking more credit.",
+        "Ship milestones to validate backer bets and unlock the next tier of credit. A virtuous cycle of shipping and funding.",
     },
   ];
 
@@ -183,17 +183,17 @@ export default function LandingPage() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-              Unlock
+              Predictive Credit:
               <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                 {" "}
-                Predictive Credit
+                Backer-Funded,
               </span>
-              <br /> for Onchain Builders
+              <br /> Prize-Collateralized
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
-              The first backer-funded, prize-collateralized credit loop. 
-              Get instant liquidity based on market confidence in your ability to ship and win.
+              The first liquidity loop where market confidence in your ability to ship 
+              directly determines your credit limit. Borrow against your future prizes.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">

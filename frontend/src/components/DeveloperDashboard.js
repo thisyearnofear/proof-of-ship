@@ -128,7 +128,7 @@ export default function DeveloperDashboard() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">Developer Credit Profile</h2>
         
         {creditProfile ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -196,6 +196,20 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
             </Card>
+
+            <Card className="p-4 bg-blue-50 border-blue-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-blue-600">Market Confidence</div>
+                  <div className="text-2xl font-bold text-blue-700">
+                    82%
+                  </div>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <ArrowTrendingUpIcon className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </Card>
           </div>
         ) : (
           <Card className="p-6 bg-gray-50">
@@ -225,6 +239,10 @@ export default function DeveloperDashboard() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Active Loan:</span>
                 <span className="font-medium text-gray-900">${formatUSDC(creditProfile.activeLoanAmount)} USDC</span>
+              </div>
+              <div className="flex justify-between text-blue-700 font-semibold">
+                <span className="text-blue-600">Prize-Collateralized Limit:</span>
+                <span>$5,000.00 USDC</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Last Funding Date:</span>

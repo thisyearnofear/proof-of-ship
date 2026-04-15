@@ -4,13 +4,13 @@
 
 **Predictive Credit System**: A backer-funded, prize-collateralized platform that provides instant liquidity to hackathon developers. We use a "Predictive Credit" loop where backers bet on builders hitting milestones and winning prizes, which in turn determines the builder's credit limit.
 
-### Core Concept
+### Core Concept (IMPLEMENTED)
 
-- **Builders** request upfront credit for hackathon projects.
+- **Builders** request upfront credit for hackathon projects based on their reputation and market confidence.
 - **Backers** stake capital on builders they believe will ship and win.
-- **Market Confidence** score is generated based on backer activity.
-- **Prize Collateralization** allows builders to borrow against future winnings.
-- **Milestone Completion** validates bets and releases funds.
+- **Market Confidence** score is dynamically generated based on backer activity and milestone progress.
+- **Prize Collateralization** allows builders to borrow against future winnings, with limits set by market confidence.
+- **Milestone Completion** validates bets, releases funds, and increases credit limits.
 
 ## 🏆 Hackathon Track Alignment
 

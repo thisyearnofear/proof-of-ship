@@ -182,6 +182,27 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
         </div>
       )}
 
+      {/* Backer Market Section */}
+      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">Predictive Market</span>
+          <span className="text-xs font-medium text-blue-600">82% Confidence</span>
+        </div>
+        <div className="flex items-center justify-between mb-2 text-sm">
+          <span className="text-gray-600">Total Backed</span>
+          <span className="font-bold text-gray-900">$2,450 USDC</span>
+        </div>
+        <Button 
+          className="w-full py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            alert('Betting mechanism implementation coming soon! You will be able to stake capital on this builder\'s milestones.');
+          }}
+        >
+          🎲 Back this Builder
+        </Button>
+      </div>
+
       {/* Footer */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="flex items-center space-x-3 text-xs text-gray-500">

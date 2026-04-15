@@ -2,30 +2,30 @@
 
 ## 🎯 Project Overview
 
-**Builder Credit System**: An AI-powered platform that provides instant liquidity to hackathon developers based on their creditworthiness, determined by GitHub activity, on-chain behavior, and social reputation across Farcaster and Lens protocols.
+**Predictive Credit System**: A backer-funded, prize-collateralized platform that provides instant liquidity to hackathon developers. We use a "Predictive Credit" loop where backers bet on builders hitting milestones and winning prizes, which in turn determines the builder's credit limit.
 
 ### Core Concept
 
-- **Developers** showcase progress on our dashboard
-- **AI agents** track and score their creditworthiness
-- **Smart contracts** provide conditional funding
-- **Hackathon sponsors** back successful loans for builders who meet milestones
-- **Social protocols** bootstrap initial reputation scores
+- **Builders** request upfront credit for hackathon projects.
+- **Backers** stake capital on builders they believe will ship and win.
+- **Market Confidence** score is generated based on backer activity.
+- **Prize Collateralization** allows builders to borrow against future winnings.
+- **Milestone Completion** validates bets and releases funds.
 
 ## 🏆 Hackathon Track Alignment
 
 ### **Primary Track: Smart Agents & Liquidity Automation ($6k)**
 
-- AI agents for automated creditworthiness assessment
-- Real-time liquidity management for builder funding pools
-- Smart contract automation for conditional payments
+- Market agents for automated market confidence assessment
+- Predictive liquidity management for builder funding pools
+- Smart contract automation for conditional backer payouts
 - Cross-chain portfolio rebalancing for funding distribution
 
 ### **Secondary Track: Identity & OnChain Reputation ($6k)**
 
 - Multi-protocol reputation scoring (GitHub + Farcaster + Lens + On-chain)
-- Behavioral credit assessment based on development patterns
-- Tiered access system based on reputation levels
+- Market-based reputation assessment through backer bets
+- Tiered access system based on market confidence levels
 - Privacy-preserving reputation aggregation
 
 ### **Bonus Opportunities ($6k total)**
@@ -84,24 +84,19 @@ To meet hackathon requirements, the following improvements are necessary:
 
 ## 🔥 Feature Implementation Roadmap
 
-### Phase 1: Core Infrastructure (PRIORITY)
+### Phase 1: Core Predictive Loop (PRIORITY)
 
-1. **Smart Contract Deployment**
+1. **Backer Betting Mechanism**
+   - Implement the betting/staking logic for backers.
+   - Set up the market confidence calculation engine.
 
-   - Deploy the `BuilderCredit.sol` contract to test networks
-   - Set up proper contract verification
-   - Implement comprehensive test coverage
+2. **Prize Collateralization**
+   - Implement the logic to collateralize future prize winnings.
+   - Update credit limit calculations to include market-based factors.
 
-2. **Fix API Integrations**
-
-   - Replace mock implementations with real API calls
-   - Implement proper error handling and validation
-   - Set up proper environment variable management
-
-3. **User Authentication Flow**
-   - Implement secure wallet authentication
-   - Set up proper session management
-   - Connect wallet identity with GitHub, Farcaster, and Lens accounts
+3. **Dashboard Updates**
+   - Real-time market confidence visualization.
+   - Backer activity tracking for builders.
 
 ### Phase 2: Credit Scoring System
 
@@ -157,15 +152,15 @@ To meet hackathon requirements, the following improvements are necessary:
 
 **Narration**:
 
-> "Introducing the Builder Credit System - the first AI-powered platform that provides instant USDC funding to hackathon developers based on their creditworthiness."
+> "Introducing the Predictive Credit System - the first backer-funded, prize-collateralized platform that provides instant USDC liquidity to hackathon developers."
 
 **Visual**: Show the three pillars with icons
 
-- GitHub activity analysis
-- Social reputation (Farcaster + Lens)
-- On-chain behavior tracking
+- Onchain Reputation
+- Backer Betting Markets
+- Prize Collateralization
 
-> "Our AI agents analyze developers across GitHub, Farcaster, and Lens protocols to create a comprehensive credit score. Higher scores unlock larger funding amounts - from $500 to $5,000 USDC."
+> "Our platform allows backers to bet on builders they believe in. High market confidence unlocks larger prize-collateralized credit limits - from $500 to $5,000 USDC."
 
 #### **[1:00-2:00] Live Demo**
 
@@ -201,11 +196,11 @@ _Show successful transfers and balance updates_
 
 **Narration**:
 
-> "What makes this revolutionary? First, we're the first to combine social proof with on-chain behavior for developer creditworthiness."
+> "What makes this revolutionary? We're moving from static credit scoring to dynamic predictive markets. We're the first to use hackathon prizes as collateral for upfront development credit."
 
 **Visual**: Show integration badges
 
-> "We integrate MetaMask SDK for seamless wallet connectivity, Circle's USDC infrastructure for stable payments, and LI.FI for cross-chain distribution - hitting all three bonus categories."
+> "We integrate MetaMask SDK for seamless wallet connectivity, Circle's USDC infrastructure for stable payments, and LI.FI for cross-chain distribution - all secured by our predictive credit loop."
 
 **Visual**: Smart contract interaction
 

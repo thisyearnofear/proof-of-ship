@@ -31,6 +31,7 @@ export default function BuilderDashboardPage() {
   const [stats, setStats] = useState(null);
   const [hackathons, setHackathons] = useState([]);
   const [eligibility, setEligibility] = useState(null);
+  const [predictiveCredit, setPredictiveCredit] = useState(null);
 
   // PERFORMANT: Fetch all dashboard data in parallel
   useEffect(() => {
@@ -49,13 +50,15 @@ export default function BuilderDashboardPage() {
         // 4. Fetch portfolio data
         // 5. Combine all data
         
-        const [hackathonData, eligibilityData] = await Promise.all([
+        const [hackathonData, eligibilityData, predictiveData] = await Promise.all([
           fetchMockHackathons(),
-          fetchMockEligibility()
+          fetchMockEligibility(),
+          fetchMockPredictiveCredit()
         ]);
 
         setHackathons(hackathonData);
         setEligibility(eligibilityData);
+        setPredictiveCredit(predictiveData);
         setStats(generateMockStats(hackathonData, eligibilityData));
         
       } catch (err) {
@@ -140,89 +143,147 @@ export default function BuilderDashboardPage() {
               </div>
             )}
 
-            {/* Funding Eligibility */}
-            {eligibility && (
-              <Card>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900">Funding Eligibility</h2>
-                    <Link 
-                      href="/funding" 
-                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                    >
-                      View Details
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                    </Link>
-                  </div>
+            {/* Funding Eligibility & Predictive Credit */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {eligibility && (
+                <Card>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold text-gray-900">Reputation Score</h2>
+                      <Link 
+                        href="/funding" 
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        View Details
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      </Link>
+                    </div>
 
-                  <div className="flex flex-col md:flex-row md:items-center gap-6">
-                    {/* Eligibility Score */}
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-4xl font-bold text-gray-900">
-                          {eligibility.eligibilityScore}
-                        </span>
-                        <span className="text-gray-600">/ 100</span>
+                    <div className="flex flex-col md:flex-row md:items-center gap-6">
+                      {/* Eligibility Score */}
+                      <div className="flex-1">
+                        <div className="flex items-baseline gap-2 mb-2">
+                          <span className="text-4xl font-bold text-gray-900">
+                            {eligibility.eligibilityScore}
+                          </span>
+                          <span className="text-gray-600">/ 100</span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {eligibility.eligible ? 'High Reputation' : 'Building Reputation'}
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        {eligibility.eligible ? 'Eligible' : 'Not Eligible'} for Funding
+
+                      {/* Progress Bar */}
+                      <div className="flex-1 w-full">
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className="bg-blue-600 h-2.5 rounded-full"
+                            style={{ width: `${eligibility.eligibilityScore}%` }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>0</span>
+                          <span>50</span>
+                          <span>100</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="flex-1 w-full">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    {/* Eligibility Factors */}
+                    <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="font-medium text-gray-900">
+                          {eligibility.factors.totalParticipations}
+                        </div>
+                        <div className="text-gray-500">Participations</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-gray-900">
+                          {eligibility.factors.totalWins}
+                        </div>
+                        <div className="text-gray-500">Wins</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-gray-900">
+                          {eligibility.factors.hasRecentWin ? 'Yes' : 'No'}
+                        </div>
+                        <div className="text-gray-500">Recent Win</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-gray-900">
+                          {eligibility.eligibilityScore}/100
+                        </div>
+                        <div className="text-gray-500">Score</div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {predictiveCredit && (
+                <Card className="border-blue-200 bg-blue-50/30">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-semibold text-gray-900">Predictive Credit</h2>
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wider">Market Based</span>
+                      </div>
+                      <Link 
+                        href="/market" 
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        Market View
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      </Link>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-6">
+                      {/* Market Confidence */}
+                      <div className="flex-1">
+                        <div className="flex items-baseline gap-2 mb-2">
+                          <span className="text-4xl font-bold text-blue-700">
+                            {predictiveCredit.marketConfidence}%
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Market Confidence Score
+                        </div>
+                      </div>
+
+                      {/* Prize Collateral */}
+                      <div className="flex-1 text-right">
+                        <div className="text-2xl font-bold text-gray-900">
+                          ${predictiveCredit.prizeCollateralAmount.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-600">Prize-Collateralized Limit</div>
+                      </div>
+                    </div>
+
+                    {/* Backer Activity */}
+                    <div className="mt-6">
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-600 font-medium">Backer Support</span>
+                        <span className="text-blue-700 font-bold">{predictiveCredit.backerCount} backers betting on you</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
                         <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{ width: `${eligibility.eligibilityScore}%` }}
+                          className="bg-blue-600 h-full"
+                          style={{ width: `${predictiveCredit.marketConfidence}%` }}
+                        ></div>
+                        <div
+                          className="bg-blue-300 h-full"
+                          style={{ width: `${100 - predictiveCredit.marketConfidence}%` }}
                         ></div>
                       </div>
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>0</span>
-                        <span>50</span>
-                        <span>100</span>
+                        <span>Low Confidence</span>
+                        <span>High Confidence</span>
                       </div>
-                    </div>
-
-                    {/* Estimated Amount */}
-                    <div className="flex-1 text-right">
-                      <div className="text-2xl font-bold text-gray-900">
-                        ${eligibility.estimatedFundingAmount.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-600">Estimated Amount</div>
                     </div>
                   </div>
-
-                  {/* Eligibility Factors */}
-                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="text-center">
-                      <div className="font-medium text-gray-900">
-                        {eligibility.factors.totalParticipations}
-                      </div>
-                      <div className="text-gray-500">Participations</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-gray-900">
-                        {eligibility.factors.totalWins}
-                      </div>
-                      <div className="text-gray-500">Wins</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-gray-900">
-                        {eligibility.factors.hasRecentWin ? 'Yes' : 'No'}
-                      </div>
-                      <div className="text-gray-500">Recent Win</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-medium text-gray-900">
-                        {eligibility.eligibilityScore}/100
-                      </div>
-                      <div className="text-gray-500">Score</div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            )}
+                </Card>
+              )}
+            </div>
 
             {/* Recent Hackathons */}
             {hackathons.length > 0 && (
@@ -519,6 +580,20 @@ async function fetchMockEligibility() {
       totalWins: 3,
       hasRecentWin: true
     }
+  };
+}
+
+async function fetchMockPredictiveCredit() {
+  return {
+    marketConfidence: 82,
+    prizeCollateralAmount: 5000,
+    backerCount: 12,
+    totalBets: 2500,
+    milestones: [
+      { name: 'Beta Launch', confidence: 90 },
+      { name: '100 Active Users', confidence: 75 },
+      { name: 'Prize Win', confidence: 65 }
+    ]
   };
 }
 

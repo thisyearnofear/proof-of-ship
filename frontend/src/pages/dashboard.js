@@ -6,6 +6,9 @@
 import React, { useState } from 'react';
 import { useMetaMask } from '../contexts/MetaMaskContext';
 import { useBuilderCredit } from '../contexts/BuilderCreditContext';
+import { LiFiProvider } from '../contexts/LiFiContext';
+import { CircleWalletProvider } from '../contexts/CircleWalletContext';
+import { UserBehaviorProvider } from '../contexts/UserBehaviorContext';
 import FundingInterface from '../components/FundingInterface';
 import DeveloperDashboard from '../components/DeveloperDashboard';
 import CrossChainTransfer from '../components/CrossChainTransfer';
@@ -45,6 +48,9 @@ export default function Dashboard() {
   const loading = metaMaskLoading || contractLoading;
   
   return (
+    <LiFiProvider>
+    <CircleWalletProvider>
+    <UserBehaviorProvider>
     <>
       <Head>
         <title>Developer Dashboard | BuilderCredit</title>
@@ -187,5 +193,8 @@ export default function Dashboard() {
         </div>
       </div>
     </>
+    </UserBehaviorProvider>
+    </CircleWalletProvider>
+    </LiFiProvider>
   );
 }

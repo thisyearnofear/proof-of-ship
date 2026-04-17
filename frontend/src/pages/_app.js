@@ -5,7 +5,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
 import { DecentralizedAuthProvider } from "@/contexts/DecentralizedAuthContext";
 import { CircleWalletProvider } from "@/contexts/CircleWalletContext";
-import { IdentityProvider } from "@/contexts/IdentityContext";
 import { LiFiProvider } from "@/contexts/LiFiContext";
 import { UserBehaviorProvider } from "@/contexts/UserBehaviorContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -65,7 +64,6 @@ export default function App({ Component, pageProps }) {
                         <DecentralizedAuthProvider>
                         <UserBehaviorProvider>
                         <AuthProvider>
-                          <IdentityProvider>
                             <div
                                className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-w-[768px] font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
                             >
@@ -84,7 +82,6 @@ export default function App({ Component, pageProps }) {
                             </EnhancedGithubProvider>
                            </ErrorBoundary>
                          </div>
-                       </IdentityProvider>
                        </AuthProvider>
                        </UserBehaviorProvider>
                      </DecentralizedAuthProvider>

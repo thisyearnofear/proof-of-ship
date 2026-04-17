@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMetaMask } from "@/contexts/MetaMaskContext";
-import { useIdentity } from "@/contexts/IdentityContext";
 import Head from "next/head";
 
 export default function LoginPage() {
-  const { currentUser, signInWithGithub, loading: authLoading } = useAuth();
+  const { currentUser, signInWithGithub, loading: authLoading, isFullyAuthed, linkIdentity } = useAuth();
   const { connected, account, connect, connecting } = useMetaMask();
-  const { isFullyAuthed, linkIdentity } = useIdentity();
   
   const router = useRouter();
   const { redirect } = router.query;

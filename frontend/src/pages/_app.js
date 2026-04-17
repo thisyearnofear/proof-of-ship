@@ -4,6 +4,7 @@ import sdk from "@farcaster/frame-sdk";
 import { EnhancedGithubProvider } from "@/providers/Github/EnhancedGithubProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
+import { BuilderCreditProvider } from "@/contexts/BuilderCreditContext";
 import { ReputationProvider } from "@/contexts/ReputationContext";
 import { CircleWalletProvider } from "@/contexts/CircleWalletContext";
 import { IdentityProvider } from "@/contexts/IdentityContext";
@@ -68,6 +69,7 @@ export default function App({ Component, pageProps }) {
                   errorMessage="Authentication service is unavailable."
                 >
                   <MetaMaskProvider demand={false}>
+                    <BuilderCreditProvider>
                     <LiFiProvider>
                       <CircleWalletProvider>
                         <ReputationProvider>
@@ -98,6 +100,7 @@ export default function App({ Component, pageProps }) {
                      </ReputationProvider>
                    </CircleWalletProvider>
                   </LiFiProvider>
+                  </BuilderCreditProvider>
                   </MetaMaskProvider>
             </ErrorBoundary>
             </ToastProvider>

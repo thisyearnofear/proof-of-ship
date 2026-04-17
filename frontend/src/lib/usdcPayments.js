@@ -206,7 +206,6 @@ export class USDCPaymentService {
       
       // This is a placeholder - you would implement database queries here
       // to get funding history for the specific developer address
-      console.warn('getFundingHistory: Database integration needed for production');
       
       return [];
     } catch (error) {

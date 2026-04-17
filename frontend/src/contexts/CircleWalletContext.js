@@ -79,9 +79,6 @@ export const CircleWalletProvider = ({ children }) => {
         // Don't block initialization for this error
       }
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Circle Wallet context initialized in', environment, 'mode');
-      }
 
     } catch (err) {
       console.error('Failed to initialize Circle Wallet SDK:', err);

@@ -20,7 +20,7 @@ if (!admin.apps.length) {
       });
     }
   } catch (error) {
-    console.log('Firebase admin initialization error', error.stack);
+    console.error('Firebase admin initialization error', error.stack);
   }
 }
 

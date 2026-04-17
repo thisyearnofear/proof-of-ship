@@ -54,8 +54,6 @@ const MetaMaskContextProvider = ({ children }) => {
           accounts = await activeProvider.request({ method: 'eth_requestAccounts' });
         }
       }
-      
-      console.log("Connected accounts:", accounts);
     } catch (err) {
       console.error("Failed to connect:", err);
       setError(
@@ -347,7 +345,6 @@ const MetaMaskContextProvider = ({ children }) => {
     if (!activeProvider) return;
 
     const handleAccountsChanged = (accounts) => {
-      console.log("Accounts changed:", accounts);
       if (accounts.length === 0) {
         // Disconnected
         disconnect();
@@ -358,7 +355,6 @@ const MetaMaskContextProvider = ({ children }) => {
     };
 
     const handleChainChanged = (chainIdHex) => {
-      console.log("Chain changed:", chainIdHex);
       // No need to reload the page, we'll handle the update
       const newChainId = parseInt(chainIdHex, 16);
       const networkName =

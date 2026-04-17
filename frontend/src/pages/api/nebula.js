@@ -90,13 +90,6 @@ export default async function handler(req, res) {
     }
 
     // Log the request in development only
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `Nebula API request: ${message.substring(0, 100)}${
-          message.length > 100 ? "..." : ""
-        }`
-      );
-    }
 
     // Make the request to the Nebula API
     const response = await fetch(`${NEBULA_API_BASE_URL}/chat`, {
@@ -128,11 +121,6 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     // Log success (for debugging)
-    console.log(
-      `Nebula API response received: ${
-        data.message ? data.message.substring(0, 100) + "..." : "No message"
-      }`
-    );
 
     return res.status(200).json(data);
   } catch (error) {

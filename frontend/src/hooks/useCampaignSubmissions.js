@@ -183,6 +183,34 @@ export default function useCampaignSubmissions() {
         updatedAt: Timestamp.fromDate(new Date()),
       });
 
+      // Share to Farcaster if approved
+      if (status === 'approved') {
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const submissionData = docSnap.data();
+            
+            // Fetch user FID for notifications
+            let userFid = null;
+            if (submissionData.testerId) {
+              const userSnap = await getDoc(doc(db, 'users', submissionData.testerId));
+              if (userSnap.exists()) {
+                userFid = userSnap.data().farcasterFid;
+              }
+            }
+
+            const { socialSharingService } = await import('@/services/SocialSharingService');
+            // Attempt to get project slug from campaign or submission
+            const projectSlug = submissionData.projectSlug || submissionData.campaignId;
+            await socialSharingService.shareVerifiedMilestone(projectSlug, {
+              title: submissionData.title || 'New Progress',
+            }, userFid);
+          }
+        } catch (shareError) {
+          console.warn('Failed to share verified milestone:', shareError);
+        }
+      }
+
       return true;
     } catch (err) {
       console.error('Error approving submission:', err);

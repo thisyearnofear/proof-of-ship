@@ -1,5 +1,6 @@
 import React from "react";
 import localFont from "next/font/local";
+import sdk from "@farcaster/frame-sdk";
 import { EnhancedGithubProvider } from "@/providers/Github/EnhancedGithubProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
@@ -36,7 +37,14 @@ export default function App({ Component, pageProps }) {
 
   // Initialize global error handling
   React.useEffect(() => {
-    // Global error handler is automatically initialized
+    const init = async () => {
+      try {
+        await sdk.actions.ready();
+      } catch (error) {
+        console.error("Farcaster Frame SDK initialization failed", error);
+      }
+    };
+    init();
   }, []);
 
   return (

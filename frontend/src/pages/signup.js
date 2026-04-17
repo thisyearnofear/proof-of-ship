@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useDecentralizedAuth } from "../contexts/DecentralizedAuthContext";
+import { useReputation } from "../contexts/ReputationContext";
 import { useMetaMask } from "../contexts/MetaMaskContext";
 
 import OnboardingFlow from "../components/onboarding/OnboardingFlow";
@@ -25,7 +25,7 @@ export default function SignUpPage() {
     creditData,
     loading,
     completeOnboarding,
-  } = useDecentralizedAuth();
+  } = useReputation();
 
   const [showOnboarding, setShowOnboarding] = useState(false);
 

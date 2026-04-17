@@ -6,7 +6,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
-import { useDecentralizedAuth } from "@/contexts/DecentralizedAuthContext";
+import { useReputation } from "@/contexts/ReputationContext";
 import HybridDashboard from "@/components/dashboard/HybridDashboard";
 import { Card } from "@/components/common/Card";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
@@ -16,7 +16,7 @@ import { filterProjects } from "@/utils/projectUtils";
 export default function ProjectsPage() {
   const router = useRouter();
   const { projectData, loading, errors } = useEnhancedGithub();
-  const { userProfile } = useDecentralizedAuth();
+  const { userProfile } = useReputation();
 
   // Filters: ecosystem, chains, and sectors (multi)
   const [ecosystem, setEcosystem] = useState("all");

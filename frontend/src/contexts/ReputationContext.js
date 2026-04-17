@@ -2,17 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { decentralizedAuth } from '../lib/auth/DecentralizedAuth';
 import { useMetaMask } from './MetaMaskContext';
 
-const DecentralizedAuthContext = createContext();
+const ReputationContext = createContext();
 
-export const useDecentralizedAuth = () => {
-  const context = useContext(DecentralizedAuthContext);
+export const useReputation = () => {
+  const context = useContext(ReputationContext);
   if (!context) {
-    throw new Error('useDecentralizedAuth must be used within a DecentralizedAuthProvider');
+    throw new Error('useReputation must be used within a ReputationProvider');
   }
   return context;
 };
 
-export const DecentralizedAuthProvider = ({ children }) => {
+export const ReputationProvider = ({ children }) => {
   const { account, provider, connected } = useMetaMask();
   const [userProfile, setUserProfile] = useState(null);
   const [creditData, setCreditData] = useState(null);
@@ -329,8 +329,8 @@ export const DecentralizedAuthProvider = ({ children }) => {
   };
 
   return (
-    <DecentralizedAuthContext.Provider value={value}>
+    <ReputationContext.Provider value={value}>
       {children}
-    </DecentralizedAuthContext.Provider>
+    </ReputationContext.Provider>
   );
 };

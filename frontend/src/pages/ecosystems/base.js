@@ -6,7 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useEnhancedGithub } from '@/providers/Github/EnhancedGithubProvider';
-import { useDecentralizedAuth } from '@/contexts/DecentralizedAuthContext';
+import { useReputation } from '@/contexts/ReputationContext';
 import { Navbar } from '@/components/common/layout';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -47,7 +47,7 @@ const PROJECT_CATEGORIES = [
 export default function BaseEcosystemPage() {
   const router = useRouter();
   const { projectData, loading, submitProject } = useEnhancedGithub();
-  const { userProfile, isAuthenticated } = useDecentralizedAuth();
+  const { userProfile, isAuthenticated } = useReputation();
   
   const [viewMode, setViewMode] = useState('grid');
   const [filters, setFilters] = useState({

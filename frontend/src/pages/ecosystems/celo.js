@@ -6,7 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useEnhancedGithub } from '@/providers/Github/EnhancedGithubProvider';
-import { useDecentralizedAuth } from '@/contexts/DecentralizedAuthContext';
+import { useReputation } from '@/contexts/ReputationContext';
 import { Navbar } from '@/components/common/layout';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -34,7 +34,7 @@ const VIEW_MODES = {
 export default function CeloEcosystemPage() {
   const router = useRouter();
   const { projectData, loading } = useEnhancedGithubProvider();
-  const { userProfile } = useDecentralizedAuth();
+  const { userProfile } = useReputation();
   
   const [viewMode, setViewMode] = useState('grid');
   const [filters, setFilters] = useState({

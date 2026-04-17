@@ -4,7 +4,7 @@ import sdk from "@farcaster/frame-sdk";
 import { EnhancedGithubProvider } from "@/providers/Github/EnhancedGithubProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
-import { DecentralizedAuthProvider } from "@/contexts/DecentralizedAuthContext";
+import { ReputationProvider } from "@/contexts/ReputationContext";
 import { CircleWalletProvider } from "@/contexts/CircleWalletContext";
 import { IdentityProvider } from "@/contexts/IdentityContext";
 import { LiFiProvider } from "@/contexts/LiFiContext";
@@ -70,7 +70,7 @@ export default function App({ Component, pageProps }) {
                   <MetaMaskProvider demand={false}>
                     <LiFiProvider>
                       <CircleWalletProvider>
-                        <DecentralizedAuthProvider>
+                        <ReputationProvider>
                         <UserBehaviorProvider>
                         <AuthProvider>
                           <IdentityProvider>
@@ -95,7 +95,7 @@ export default function App({ Component, pageProps }) {
                        </IdentityProvider>
                        </AuthProvider>
                        </UserBehaviorProvider>
-                     </DecentralizedAuthProvider>
+                     </ReputationProvider>
                    </CircleWalletProvider>
                   </LiFiProvider>
                   </MetaMaskProvider>

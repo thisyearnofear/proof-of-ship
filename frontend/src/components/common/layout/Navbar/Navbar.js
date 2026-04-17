@@ -18,62 +18,64 @@ import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
 
 const navigation = [
-  { 
-    name: "Home", 
-    href: "/", 
-    icon: HomeIcon,
-    description: "Platform overview and getting started"
-  },
-  { 
-    name: "Get Funded", 
-    href: "/credit", 
-    icon: CreditCardIcon,
-    description: "Check your predictive credit and get instant prize-collateralized funding",
-    highlight: true
-  },
+  // Explore — for everyone
   { 
     name: "Projects", 
     href: "/shippers", 
     icon: ChartBarIcon,
-    description: "Explore Celo and Base ecosystem projects"
+    group: "explore",
+    description: "Explore ecosystem projects"
   },
+  { 
+    name: "Hackathons", 
+    href: "/hackathons", 
+    icon: GlobeAltIcon,
+    group: "explore",
+    description: "Track hackathons across ecosystems"
+  },
+  // Build — for builders
+  { 
+    name: "Credit", 
+    href: "/credit", 
+    icon: CreditCardIcon,
+    group: "build",
+    description: "Your credit score and funding",
+    highlight: true
+  },
+  { 
+    name: "Dashboard", 
+    href: "/dashboard", 
+    icon: ChartBarIcon,
+    group: "build",
+    auth: true,
+    description: "Your projects and funding"
+  },
+  { 
+    name: "Feedback", 
+    href: "/feedback", 
+    icon: ChartBarIcon,
+    group: "build",
+    description: "Submit and review feedback"
+  },
+  // Back — for backers
   { 
     name: "Expedition", 
     href: "/expedition", 
     icon: GlobeAltIcon,
-    description: "Scout and back projects with tiered ROI multipliers",
+    group: "back",
+    description: "Scout and back projects",
     highlight: true
   },
   { 
     name: "Portfolio", 
     href: "/backer-portfolio", 
     icon: UserCircleIcon,
-    description: "Track your backed projects and rewards",
+    group: "back",
+    description: "Track your backed projects"
   },
-  { 
-    name: "Hackathons", 
-    href: "/hackathons", 
-    icon: ChartBarIcon,
-    description: "Explore and track hackathons across ecosystems"
-  },
-  { 
-    name: "Feedback", 
-    href: "/feedback", 
-    icon: ChartBarIcon,
-    description: "Submit and review feedback recordings"
-  },
-  { 
-    name: "Submit Project", 
-    href: "/projects/new", 
-    icon: PlusIcon,
-    auth: true,
-    description: "Add your project to the ecosystem"
-  },
+  // Utility — hidden from main nav
   { name: "About", href: "/about", hidden: true },
-  { name: "Dashboard", href: "/dashboard", hidden: true },
-  { name: "Issues", href: "/issues", hidden: true },
-  { name: "Pulls", href: "/pulls", hidden: true },
-  { name: "Releases", href: "/releases", hidden: true },
+  { name: "Submit Project", href: "/projects/new", hidden: true, auth: true },
 ];
 
 function classNames(...classes) {

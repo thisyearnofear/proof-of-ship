@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useBuilderCredit } from '../contexts/BuilderCreditContext';
 import FundingInterface from '../components/FundingInterface';
 import DeveloperDashboard from '../components/DeveloperDashboard';
 import CrossChainTransfer from '../components/CrossChainTransfer';
@@ -23,6 +24,7 @@ import Head from 'next/head';
 
 export default function Dashboard() {
   const { connected, connect, loading: metaMaskLoading } = useMetaMask();
+  const { contractLoading, creditProfile } = useBuilderCredit();
   
   const [activeTab, setActiveTab] = useState('profile');
   

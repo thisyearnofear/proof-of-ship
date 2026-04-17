@@ -22,6 +22,10 @@ This project is organized as a monorepo with two main components:
 │   ├── src/
 │   └── ...
 │
+├── snap-server/            # Hono-based Farcaster Snap server
+│   ├── src/
+│   └── ...
+│
 ├── blockchain/             # Smart contract code
 │   ├── contracts/
 │   ├── scripts/

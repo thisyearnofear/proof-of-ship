@@ -12,6 +12,8 @@ import { db as clientDb } from "@/lib/firebase/clientApp";
 import { collection, getDocs, limit, orderBy, query, where, getDoc, doc } from "firebase/firestore";
 import { getGitHubUrl } from "@/utils/projectUtils";
 import ProjectShowcase from "@/components/showcase/ProjectShowcase";
+import ethosService from "@/services/EthosService";
+import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -33,6 +35,8 @@ export default function ProjectDetailPage() {
 
   const [recentFeedback, setRecentFeedback] = useState([]);
   const [isAdminClient, setIsAdminClient] = useState(false);
+  const [ownerEthosUser, setOwnerEthosUser] = useState(null);
+  const [ownerEthosLoading, setOwnerEthosLoading] = useState(false);
 
   useEffect(() => {
     if (!ecosystem || !slug) return;
@@ -68,6 +72,19 @@ export default function ProjectDetailPage() {
 
         // Opportunistically load extra details (issues/PRs) in the background.
         loadProjectDetails(slug, ecosystem).catch(() => {});
+        
+        // Fetch Ethos score for project owner
+        if (data.ownerWalletAddress && !cancelled) {
+          setOwnerEthosLoading(true);
+          try {
+            const ethosData = await ethosService.getScoresByAddress(data.ownerWalletAddress);
+            if (!cancelled) setOwnerEthosUser(ethosData);
+          } catch (e) {
+            console.error('Failed to fetch owner Ethos score:', e);
+          } finally {
+            if (!cancelled) setOwnerEthosLoading(false);
+          }
+        }
       } catch (e) {
         if (!cancelled) setError(e.message || "Failed to load project");
       } finally {
@@ -255,6 +272,18 @@ export default function ProjectDetailPage() {
                   <span className="text-gray-600">Submitted by</span>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-900">{project.submittedBy || "—"}</span>
+                    {project.ownerWalletAddress && (
+                      ownerEthosLoading ? (
+                        <span className="text-xs text-gray-500">Loading...</span>
+                      ) : ownerEthosUser ? (
+                        <EthosScoreBadge 
+                          score={ownerEthosUser.score} 
+                          ethosUser={ownerEthosUser}
+                          size="sm"
+                          showLabel={false}
+                        />
+                      ) : null
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import sdk from '@farcaster/frame-sdk';
 import { db } from '@/lib/firebase/clientApp';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import ethosService from '@/services/EthosService';
+import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 
 export default function UserProfile() {
   const { currentUser, logout, userPermissions } = useAuth();
@@ -12,6 +15,16 @@ export default function UserProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [ethosUser, setEthosUser] = useState(null);
+  const [ethosLoading, setEthosLoading] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isFrame, setIsFrame] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsFrame(true); // Simplified for this environment
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,7 +37,22 @@ export default function UserProfile() {
         if (!cancelled && snap.exists()) {
           const data = snap.data();
           setGithubUsername(String(data.githubUsername || ''));
-          setWalletAddress(String(data.walletAddress || ''));
+          setNotificationsEnabled(!!data.notificationsEnabled);
+          const wallet = String(data.walletAddress || '');
+          setWalletAddress(wallet);
+          
+          // Fetch Ethos score if wallet address exists
+          if (wallet && !cancelled) {
+            setEthosLoading(true);
+            try {
+              const ethosData = await ethosService.getScoresByAddress(wallet);
+              if (!cancelled) setEthosUser(ethosData);
+            } catch (e) {
+              console.error('Failed to fetch Ethos score:', e);
+            } finally {
+              if (!cancelled) setEthosLoading(false);
+            }
+          }
         }
       } catch (e) {
         if (!cancelled) setError('Failed to load profile');
@@ -45,6 +73,7 @@ export default function UserProfile() {
     if (!currentUser?.uid) return;
     try {
       setSaving(true); setError(null); setSuccess(null);
+      // Basic validation
       const gh = githubUsername.trim();
       const wa = walletAddress.trim();
       if (gh && !/^([A-Za-z0-9-]{1,39})$/.test(gh)) {
@@ -62,14 +91,57 @@ export default function UserProfile() {
       await setDoc(userRef, {
         githubUsername: gh || null,
         walletAddress: wa || null,
+        notificationsEnabled,
       }, { merge: true });
 
       setSuccess('Profile updated');
+      
+      // Fetch Ethos score for new wallet address
+      if (wa) {
+        setEthosLoading(true);
+        try {
+          const ethosData = await ethosService.getScoresByAddress(wa);
+          setEthosUser(ethosData);
+        } catch (e) {
+          console.error('Failed to fetch Ethos score:', e);
+        } finally {
+          setEthosLoading(false);
+        }
+      } else {
+        setEthosUser(null);
+      }
     } catch (e) {
       console.error(e);
       setError('Failed to save profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    try {
+      if (!notificationsEnabled) {
+        const context = await sdk.context;
+        const result = await sdk.actions.addFrame();
+        
+        const userRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userRef, {
+          notificationsEnabled: true,
+          farcasterFid: context?.user?.fid || null,
+        }, { merge: true });
+        setNotificationsEnabled(true);
+        setSuccess('Farcaster notifications enabled');
+      } else {
+        const userRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userRef, {
+          notificationsEnabled: false,
+        }, { merge: true });
+        setNotificationsEnabled(false);
+        setSuccess('Notifications disabled');
+      }
+    } catch (e) {
+      console.error('Notification toggle failed:', e);
+      setError('Failed to update notification settings');
     }
   };
 
@@ -88,6 +160,34 @@ export default function UserProfile() {
             <p className="text-sm text-gray-500">
               Portfolio: <a href={`/u/${githubUsername}`} className="text-blue-600 underline">/u/{githubUsername}</a>
             </p>
+          )}
+          
+          {/* Ethos Credibility Score */}
+          {walletAddress && (
+            <div className="mt-2">
+              {ethosLoading ? (
+                <div className="text-sm text-gray-500">Loading Ethos score...</div>
+              ) : ethosUser ? (
+                <div className="flex items-center gap-2">
+                  <EthosScoreBadge 
+                    score={ethosUser.score} 
+                    ethosUser={ethosUser}
+                    size="sm"
+                  />
+                  <EthosProfileLink 
+                    address={walletAddress}
+                    username={ethosUser.username}
+                    className="text-xs"
+                  >
+                    View Details
+                  </EthosProfileLink>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">
+                  <EthosScoreBadge score={null} size="sm" />
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -117,6 +217,26 @@ export default function UserProfile() {
           />
           <p className="text-xs text-gray-500 mt-1">Saved for payouts and auto-fill in approvals.</p>
         </div>
+
+        {isFrame && (
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+            <div>
+              <h4 className="text-sm font-medium">Farcaster Notifications</h4>
+              <p className="text-xs text-gray-500">Get notified when your ships are verified</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleNotifications}
+              className={`px-3 py-1 rounded text-xs font-medium ${
+                notificationsEnabled 
+                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                  : 'bg-blue-600 text-white'
+              }`}
+            >
+              {notificationsEnabled ? 'Enabled' : 'Enable'}
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center gap-3">
           <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">

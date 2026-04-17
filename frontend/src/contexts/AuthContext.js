@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -252,23 +252,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Identity linking (merged from IdentityContext)
-  const isFullyAuthed = !!currentUser && typeof window !== 'undefined' && !!window.ethereum?.selectedAddress;
-
-  const linkIdentity = useCallback(async () => {
-    if (!currentUser || typeof window === 'undefined' || !window.ethereum?.selectedAddress) {
-      throw new Error("GitHub and Wallet must both be connected to link identity");
-    }
-    const account = window.ethereum.selectedAddress;
-    const message = `Proof of Ship - Link Identity\n\nGitHub: ${currentUser.displayName}\nWallet: ${account}\nTimestamp: ${Date.now()}`;
-    const signature = await window.ethereum.request({
-      method: 'personal_sign',
-      params: [message, account]
-    });
-    await linkWallet(account, signature, message);
-    return true;
-  }, [currentUser, linkWallet]);
-
   const value = {
     currentUser,
     userPermissions,
@@ -276,9 +259,7 @@ export const AuthProvider = ({ children }) => {
     signInWithGithub,
     logout,
     hasProjectPermission,
-    linkWallet,
-    isFullyAuthed,
-    linkIdentity
+    linkWallet
   };
 
   return (

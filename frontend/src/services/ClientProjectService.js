@@ -109,6 +109,14 @@ export async function submitProject(projectData) {
     // Save to Firestore
     await setDoc(doc(db, 'projects', slug), projectDoc);
 
+    // Call Social Sharing Service
+    try {
+      const { socialSharingService } = await import('./SocialSharingService');
+      await socialSharingService.shareNewProject(projectDoc);
+    } catch (shareError) {
+      console.warn('Failed to share project to social:', shareError);
+    }
+
     // Also save to ecosystem-specific collection
     await setDoc(doc(db, `projects_${projectData.ecosystem}`, slug), projectDoc);
 

@@ -25,6 +25,13 @@ const navigation = [
     description: "Platform overview and getting started"
   },
   { 
+    name: "Get Funded", 
+    href: "/credit", 
+    icon: CreditCardIcon,
+    description: "Check your predictive credit and get instant prize-collateralized funding",
+    highlight: true
+  },
+  { 
     name: "Projects", 
     href: "/shippers", 
     icon: ChartBarIcon,
@@ -64,6 +71,9 @@ const navigation = [
   },
   { name: "About", href: "/about", hidden: true },
   { name: "Dashboard", href: "/dashboard", hidden: true },
+  { name: "Issues", href: "/issues", hidden: true },
+  { name: "Pulls", href: "/pulls", hidden: true },
+  { name: "Releases", href: "/releases", hidden: true },
 ];
 
 function classNames(...classes) {

@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOiA4ODcyLCAidHlwZSI6ICJjdXN0b2RpYWwiLCAia2V5IjogIjB4N0U0M0Y0RDVFNjU0OEY0RTZFNDVFNjU0OEY0RTZFNDVifQ",
+    "payload": "eyJkb21haW4iOiAicHJvb2ZvZnNoaXaueHl6In0",
+    "signature": "MHg0ZTQzZjRkNTVlNjU0OGY0ZTZlNDVlNjU0OGY0ZTZlNDVlNjU0OGY0ZTZlNDVlNjU0OGY0ZTZlNDVlNjU0OGY0ZTZlNDVlNjU0OGY0ZTZlNDVlNjU0OGY0ZTZlNDU"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Proof of Ship",
+    "iconUrl": "https://proofofship.xyz/icon.png",
+    "homeUrl": "https://proofofship.xyz",
+    "imageUrl": "https://proofofship.xyz/og-image.png",
+    "buttonTitle": "Open Proof of Ship",
+    "splashImageUrl": "https://proofofship.xyz/splash.png",
+    "splashBackgroundColor": "#000000",
+    "webhookUrl": "https://proofofship.xyz/api/webhook"
+  }
+}

@@ -19,6 +19,7 @@
     "setup-env": "node scripts/setup-env.js",
     "cleanup": "node scripts/cleanup.js",
     "sync-github": "node scripts/sync-github.js",
+    "snap:dev": "cd snap-server && npx ts-node src/index.ts",
     "lint:frontend": "pnpm --filter ./frontend lint",
     "lint:contracts": "pnpm --filter ./blockchain lint",
     "lint": "npm run lint:frontend && npm run lint:contracts"

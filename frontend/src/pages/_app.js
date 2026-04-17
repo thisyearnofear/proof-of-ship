@@ -1,10 +1,12 @@
 import React from "react";
 import localFont from "next/font/local";
+import sdk from "@farcaster/frame-sdk";
 import { EnhancedGithubProvider } from "@/providers/Github/EnhancedGithubProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
 import { DecentralizedAuthProvider } from "@/contexts/DecentralizedAuthContext";
 import { CircleWalletProvider } from "@/contexts/CircleWalletContext";
+import { IdentityProvider } from "@/contexts/IdentityContext";
 import { LiFiProvider } from "@/contexts/LiFiContext";
 import { UserBehaviorProvider } from "@/contexts/UserBehaviorContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -35,7 +37,14 @@ export default function App({ Component, pageProps }) {
 
   // Initialize global error handling
   React.useEffect(() => {
-    // Global error handler is automatically initialized
+    const init = async () => {
+      try {
+        await sdk.actions.ready();
+      } catch (error) {
+        console.error("Farcaster Frame SDK initialization failed", error);
+      }
+    };
+    init();
   }, []);
 
   return (
@@ -64,6 +73,7 @@ export default function App({ Component, pageProps }) {
                         <DecentralizedAuthProvider>
                         <UserBehaviorProvider>
                         <AuthProvider>
+                          <IdentityProvider>
                             <div
                                className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-w-[768px] font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
                             >
@@ -82,6 +92,7 @@ export default function App({ Component, pageProps }) {
                             </EnhancedGithubProvider>
                            </ErrorBoundary>
                          </div>
+                       </IdentityProvider>
                        </AuthProvider>
                        </UserBehaviorProvider>
                      </DecentralizedAuthProvider>

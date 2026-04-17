@@ -345,4 +345,25 @@ class DataService {
   }
 }
 
+// Singleton instance
+export const dataService = new DataService();
+
+// React hook for using the data service
+import { useEffect } from "react";
+
+import { useMemo } from "react";
+
+export const useDataService = () => {
+  const service = useMemo(() => new DataService(), []);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount
+      service.destroy();
+    };
+  }, [service]);
+
+  return service;
+};
+
 export default DataService;

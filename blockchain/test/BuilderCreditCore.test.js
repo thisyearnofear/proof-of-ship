@@ -106,12 +106,13 @@ describe("BuilderCreditCore", function () {
 
   describe("Project Funding", function () {
     it("Should allow a developer to request funding", async function () {
-      const creditScore = 50; // Medium credit score
+      const verifiedScore = 600; // Verified credit score sufficient for requested funding
+      await builderCreditCore.connect(owner).setReputation(developer1.address, verifiedScore);
       
       await expect(
         builderCreditCore.connect(developer1).requestFunding(
           hackathonId,
-          creditScore,
+          verifiedScore,
           githubUrl,
           projectName,
           milestoneDescriptions,
@@ -131,6 +132,7 @@ describe("BuilderCreditCore", function () {
       expect(project.name).to.equal(projectName);
       expect(project.fundingAmount).to.equal(totalAmount);
       expect(project.isActive).to.equal(true);
+      expect(project.creditScore).to.equal(verifiedScore);
       
       // Check milestones
       const milestones = await builderCreditCore.getProjectMilestones(projectId);
@@ -144,20 +146,21 @@ describe("BuilderCreditCore", function () {
       
       // Check credit line
       const creditLine = await builderCreditCore.creditLines(developer1.address);
-      expect(creditLine.totalAmount).to.be.gt(0);
+      expect(creditLine.totalAmount).to.be.gte(totalAmount);
       expect(creditLine.usedAmount).to.equal(totalAmount);
-      expect(creditLine.reputation).to.equal(creditScore);
+      expect(creditLine.reputation).to.equal(verifiedScore);
       expect(creditLine.active).to.equal(true);
     });
     
     it("Should revert if requested amount exceeds credit limit", async function () {
-      const creditScore = 0; // Very low credit score
+      const verifiedScore = 400;
+      await builderCreditCore.connect(owner).setReputation(developer1.address, verifiedScore);
       const largeAmount = ethers.parseUnits("10000", 6); // Way too much for this credit score
       
       await expect(
         builderCreditCore.connect(developer1).requestFunding(
           hackathonId,
-          creditScore,
+          verifiedScore,
           githubUrl,
           projectName,
           ["Single large milestone"],
@@ -271,17 +274,14 @@ describe("BuilderCreditCore", function () {
 
   describe("Credit Management", function () {
     it("Should calculate credit limit correctly", async function () {
-      const creditScore = 50;
+      const creditScore = 400;
       const calculatedAmount = await builderCreditCore.calculateFundingAmount(creditScore);
       
       // Based on default parameters:
-      // baseCreditAmount = 100 USDC
-      // creditMultiplier = 10 USDC per point
-      // maxCreditAmount = 10,000 USDC
-      // Formula: baseCreditAmount + (creditScore * creditMultiplier)
-      const expectedAmount = ethers.parseUnits("100", 6).add(
-        ethers.parseUnits("10", 6).mul(creditScore)
-      );
+      // baseCreditAmount = 500 USDC
+      // maxCreditAmount = 5,000 USDC
+      // Score range = 400 points (400-800)
+      const expectedAmount = ethers.parseUnits("500", 6);
       
       expect(calculatedAmount).to.equal(expectedAmount);
     });
@@ -290,8 +290,8 @@ describe("BuilderCreditCore", function () {
       const veryHighScore = 2000; // This would exceed the max
       const calculatedAmount = await builderCreditCore.calculateFundingAmount(veryHighScore);
       
-      // Max is 10,000 USDC
-      const expectedAmount = ethers.parseUnits("10000", 6);
+      // Max is 5,000 USDC
+      const expectedAmount = ethers.parseUnits("5000", 6);
       
       expect(calculatedAmount).to.equal(expectedAmount);
     });

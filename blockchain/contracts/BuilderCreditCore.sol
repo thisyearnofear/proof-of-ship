@@ -21,6 +21,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     // Roles
     bytes32 public constant PLATFORM_ADMIN_ROLE = keccak256("PLATFORM_ADMIN_ROLE");
     bytes32 public constant TREASURY_ROLE = keccak256("TREASURY_ROLE");
+    bytes32 public constant SCORER_ROLE = keccak256("SCORER_ROLE");
     
     // Counters
     Counters.Counter private _projectIdCounter;
@@ -30,9 +31,11 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     IERC20 public usdcToken;
     
     // Credit parameters
-    uint256 public baseCreditAmount = 100 * 1e6; // 100 USDC base credit
-    uint256 public creditMultiplier = 10 * 1e6;  // 10 USDC per credit score point
-    uint256 public maxCreditAmount = 10000 * 1e6; // 10,000 USDC maximum credit
+    uint256 public constant MIN_CREDIT_SCORE = 400;
+    uint256 public constant MAX_CREDIT_SCORE = 850;
+    uint256 public baseCreditAmount = 500 * 1e6; // 500 USDC minimum funding at baseline score
+    uint256 public creditMultiplier = 10 * 1e6;  // Legacy multiplier placeholder
+    uint256 public maxCreditAmount = 5000 * 1e6; // 5,000 USDC maximum funding
     
     // Structures
     struct Project {
@@ -135,6 +138,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 reputation
     );
     
+    event ReputationUpdated(address indexed developer, uint256 oldReputation, uint256 newReputation);
     event FundsWithdrawn(address token, address to, uint256 amount);
     event CreditParametersUpdated(uint256 base, uint256 multiplier, uint256 max);
     
@@ -153,6 +157,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(PLATFORM_ADMIN_ROLE, msg.sender);
         _setupRole(TREASURY_ROLE, msg.sender);
+        _setupRole(SCORER_ROLE, msg.sender);
     }
     
     /**
@@ -166,8 +171,8 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
      * @return projectId ID of the created project
      */
     function requestFunding(
-        uint256[] calldata hackathonIds,
-        uint256 creditScore,
+        uint256 hackathonId,
+        uint256 /* creditScore */,
         string calldata githubUrl,
         string calldata projectName,
         string[] calldata milestoneDescriptions,
@@ -192,12 +197,14 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
             totalAmount += milestoneAmounts[i];
         }
         
-        // Calculate max funding based on credit score
-        uint256 maxFunding = calculateFundingAmount(creditScore);
+        uint256 effectiveCreditScore = _getVerifiedCreditScore(msg.sender);
+        
+        // Calculate max funding based on verified credit score
+        uint256 maxFunding = calculateFundingAmount(effectiveCreditScore);
         require(totalAmount <= maxFunding, "Requested amount exceeds credit limit");
         
         // Update or create credit line
-        _updateCreditLine(msg.sender, creditScore, totalAmount);
+        _updateCreditLine(msg.sender, effectiveCreditScore, totalAmount);
         
         // Create new project
         _projectIdCounter.increment();
@@ -211,7 +218,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
             fundingAmount: totalAmount,
             isActive: true,
             fundedAt: block.timestamp,
-            creditScore: creditScore,
+            creditScore: effectiveCreditScore,
             milestonesCompleted: 0,
             milestonesCount: milestoneDescriptions.length
         });
@@ -328,7 +335,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
      */
     function _updateCreditLine(
         address developer, 
-        uint256 creditScore,
+        uint256 reputation,
         uint256 requestedAmount
     ) 
         internal 
@@ -336,10 +343,10 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         CreditLine storage creditLine = creditLines[developer];
         
         if (creditLine.lastUpdated == 0) {
-            // New credit line
-            creditLine.totalAmount = calculateFundingAmount(creditScore);
+            // New credit line based on verified reputation
+            creditLine.totalAmount = calculateFundingAmount(reputation);
             creditLine.usedAmount = requestedAmount;
-            creditLine.reputation = creditScore;
+            creditLine.reputation = reputation;
             creditLine.active = true;
             creditLine.lastUpdated = block.timestamp;
         } else {
@@ -347,9 +354,9 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
             creditLine.usedAmount += requestedAmount;
             
             // If their reputation has improved, increase their credit line
-            if (creditScore > creditLine.reputation) {
-                creditLine.totalAmount = calculateFundingAmount(creditScore);
-                creditLine.reputation = creditScore;
+            if (reputation > creditLine.reputation) {
+                creditLine.totalAmount = calculateFundingAmount(reputation);
+                creditLine.reputation = reputation;
             }
             
             creditLine.lastUpdated = block.timestamp;
@@ -458,11 +465,47 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
      * @return amount Calculated funding amount
      */
     function calculateFundingAmount(uint256 creditScore) public view returns (uint256) {
-        // Base amount + (creditScore * multiplier)
-        uint256 amount = baseCreditAmount + (creditScore * creditMultiplier);
-        
-        // Cap at maximum amount
-        return amount > maxCreditAmount ? maxCreditAmount : amount;
+        if (creditScore < MIN_CREDIT_SCORE) {
+            return 0;
+        }
+
+        if (creditScore >= 800) {
+            return maxCreditAmount;
+        }
+
+        uint256 minFunding = baseCreditAmount;
+        uint256 fundingRange = maxCreditAmount - minFunding;
+        uint256 scoreRange = 800 - MIN_CREDIT_SCORE;
+        uint256 adjustedScore = creditScore - MIN_CREDIT_SCORE;
+
+        return minFunding + (fundingRange * adjustedScore) / scoreRange;
+    }
+
+    function setReputation(address developer, uint256 reputation) external onlyRole(SCORER_ROLE) {
+        require(developer != address(0), "Invalid developer");
+        require(reputation >= MIN_CREDIT_SCORE && reputation <= MAX_CREDIT_SCORE, "Reputation must be within valid range");
+
+        uint256 oldReputation = creditLines[developer].reputation;
+        creditLines[developer].reputation = reputation;
+
+        if (creditLines[developer].lastUpdated != 0) {
+            creditLines[developer].totalAmount = calculateFundingAmount(reputation);
+            creditLines[developer].lastUpdated = block.timestamp;
+        }
+
+        emit ReputationUpdated(developer, oldReputation, reputation);
+        emit CreditLineUpdated(
+            developer,
+            creditLines[developer].totalAmount,
+            creditLines[developer].usedAmount,
+            reputation
+        );
+    }
+
+    function _getVerifiedCreditScore(address developer) internal view returns (uint256) {
+        uint256 score = creditLines[developer].reputation;
+        require(score >= MIN_CREDIT_SCORE, "Credit score not verified");
+        return score;
     }
 
     /**

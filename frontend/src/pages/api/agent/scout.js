@@ -121,9 +121,32 @@ export default async function handler(req, res) {
       })),
     });
 
-    // If POST with execute=1, we'd call the contract here
-    // For now, return the recommendations — execution wired in Day 3
-    const executed = req.method === "POST" && req.query.execute === "1";
+    // If POST with execute=1, trigger on-chain backings via Arc
+    let executionResult = null;
+    const shouldExecute = req.method === "POST" && req.query.execute === "1";
+
+    if (shouldExecute && toBack.length > 0) {
+      try {
+        const baseUrl = req.headers.host?.includes("localhost")
+          ? `http://${req.headers.host}`
+          : `https://${req.headers.host}`;
+
+        const execRes = await fetch(`${baseUrl}/api/agent/execute`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projects: toBack.map((p) => ({
+              id: p.id,
+              amount: p.recommendation.amount,
+              multiplier: p.recommendation.multiplier,
+            })),
+          }),
+        });
+        executionResult = await execRes.json();
+      } catch (err) {
+        executionResult = { error: err.message };
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -132,8 +155,9 @@ export default async function handler(req, res) {
         evaluated: scored.length,
         recommended: toBack.length,
         totalStake: `$${totalStake.toFixed(2)} USDC`,
-        executed,
+        executed: shouldExecute,
       },
+      execution: executionResult,
       projects: scored,
     });
   } catch (error) {

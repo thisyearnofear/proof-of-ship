@@ -104,36 +104,6 @@ const STATUS_FLOWS = {
   overdue: ['draft', 'submitted', 'under_review', 'approved', 'disbursed', 'active', 'overdue']
 };
 
-// Mock funding application data
-const generateMockFundingApplication = (status = 'active') => ({
-  id: 'app-001',
-  status: status,
-  amount: 2500,
-  currency: 'USDC',
-  projectTitle: 'DeFi Portfolio Tracker',
-  submittedAt: '2024-06-15T10:30:00Z',
-  reviewStartedAt: '2024-06-15T11:00:00Z',
-  approvedAt: '2024-06-15T14:20:00Z',
-  disbursedAt: '2024-06-15T15:45:00Z',
-  dueDate: '2024-12-15T23:59:59Z',
-  estimatedReviewTime: '2-4 hours',
-  estimatedDisbursementTime: '1-2 hours',
-  transactionHash: '0x1234567890abcdef1234567890abcdef12345678',
-  network: 'ethereum',
-  walletAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
-  creditScore: 720,
-  milestones: [
-    { id: 1, title: 'MVP Development', status: 'completed', progress: 100 },
-    { id: 2, title: 'Beta Testing', status: 'in-progress', progress: 60 },
-    { id: 3, title: 'Production Launch', status: 'pending', progress: 0 }
-  ],
-  nextActions: [
-    'Complete beta testing phase',
-    'Submit progress report',
-    'Prepare for production launch'
-  ]
-});
-
 // Status timeline component
 const StatusTimeline = ({ currentStatus, timestamps = {} }) => {
   const getStatusFlow = (status) => {
@@ -289,12 +259,10 @@ export const FundingStatusTracker = ({
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Use mock data if no real data provided
+  // Use provided data or show empty state
   useEffect(() => {
     if (applicationData) {
       setApplication(applicationData);
-    } else {
-      setApplication(generateMockFundingApplication());
     }
   }, [applicationData]);
 

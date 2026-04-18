@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -27,6 +28,7 @@ import {
 
 export default function HackathonDetailPage() {
   const router = useRouter();
+  const { currentUser } = useAuth();
   const { id } = router.query;
   const [hackathon, setHackathon] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -52,12 +54,9 @@ export default function HackathonDetailPage() {
         const data = await response.json();
         setHackathon(data.data);
 
-        // Check if current user is participating (would need auth in real implementation)
-        // This is a placeholder - in production, use actual user ID
-        const mockUserId = 'current-user-id';
-        const userParticipation = data.data.participants.find(
-          p => p.userId === mockUserId
-        );
+        const userParticipation = currentUser
+          ? data.data.participants.find(p => p.userId === currentUser.uid)
+          : null;
 
         setParticipationStatus(userParticipation ? userParticipation.participationStatus : null);
 

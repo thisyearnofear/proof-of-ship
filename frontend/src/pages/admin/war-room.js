@@ -77,42 +77,6 @@ export default function WarRoomPage() {
     }
   };
 
-  // Mock Evidence Feed Data - in a real app, this would be fetched from GitHub API & Contract Events
-  const mockEvidence = useMemo(() => [
-    {
-      type: 'pr',
-      title: 'feat: implement core auth logic',
-      description: 'Connected Firebase auth to the main dashboard and added protected routes.',
-      project: 'Project Alpha',
-      timestamp: '2h ago',
-      url: 'https://github.com'
-    },
-    {
-      type: 'contract',
-      title: 'Contract Deployed',
-      description: 'AlphaRegistry.sol deployed to Base Sepolia at 0x1234...5678',
-      project: 'Project Alpha',
-      timestamp: '5h ago',
-      url: 'https://basescan.org'
-    },
-    {
-      type: 'pr',
-      title: 'fix: resolve cross-chain latency',
-      description: 'Optimized CCIP message handling to reduce finality time by 40%.',
-      project: 'OmniChain Protocol',
-      timestamp: '1d ago',
-      url: 'https://github.com'
-    },
-    {
-      type: 'ship',
-      title: 'Mainnet Demo Live',
-      description: 'The production-ready demo is now live at alpha-demo.io',
-      project: 'Project Alpha',
-      timestamp: '2d ago',
-      url: 'https://google.com'
-    }
-  ], []);
-
   if (loading && !pendingMilestones.length) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -258,7 +222,7 @@ export default function WarRoomPage() {
               <h2 className="font-black text-sm uppercase tracking-wider">Evidence Feed</h2>
             </div>
             <Card className="p-4 bg-slate-50 border-gray-200">
-              <EvidenceFeed events={evidence.length > 0 ? evidence : mockEvidence} />
+              <EvidenceFeed events={evidence} />
               <Button variant="outline" className="w-full mt-4 text-xs font-bold bg-white">
                 Load More History
               </Button>

@@ -14,12 +14,18 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
-export default function ExpeditionCard({ project, onBack }) {
+export default function ExpeditionCard({ project, onBack, scoutScore }) {
   const progress = (project.totalBacked / project.targetFunding) * 100;
   
   return (
     <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 border-t-4 border-blue-500">
       <div className="p-5 flex-1">
+        {/* AI Scout Badge */}
+        {scoutScore?.backed && (
+          <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-full px-2.5 py-1 w-fit">
+            <span>🤖</span> AI Scout: {scoutScore.score}/100 · {scoutScore.recommendation?.label}
+          </div>
+        )}
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>

@@ -67,6 +67,21 @@ function DiscoverTab() {
   const [backingMultiplier, setBackingMultiplier] = useState("150");
   const [backingStatus, setBackingStatus] = useState(null); // 'pending' | 'success' | 'error'
   const [backingError, setBackingError] = useState(null);
+  const [scoutData, setScoutData] = useState(null);
+
+  // Fetch latest scout run
+  useEffect(() => {
+    fetch("/api/agent/scout")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => data?.success && setScoutData(data))
+      .catch(() => {});
+  }, []);
+
+  // Helper: check if a project was AI-backed
+  const getScoutScore = (projectId) => {
+    if (!scoutData?.projects) return null;
+    return scoutData.projects.find((p) => p.id === projectId || p.slug === projectId);
+  };
 
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
@@ -105,6 +120,21 @@ function DiscoverTab() {
 
   return (
     <>
+      {/* AI Scout Banner */}
+      {scoutData && (
+        <Card className="p-3 mb-4 bg-indigo-50 border-indigo-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm">
+              <span>🤖</span>
+              <span className="font-medium text-indigo-900">AI Scout</span>
+              <span className="text-indigo-600">
+                evaluated {scoutData.summary.evaluated} projects · recommended {scoutData.summary.recommended} · {scoutData.summary.totalStake}
+              </span>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-3 mb-8 items-center">
         <div className="relative w-full md:max-w-md">
@@ -133,7 +163,7 @@ function DiscoverTab() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <ExpeditionCard key={project.id} project={project} onBack={handleBackProject} />
+            <ExpeditionCard key={project.id} project={project} onBack={handleBackProject} scoutScore={getScoutScore(project.id || project.slug)} />
           ))}
         </div>
       )}

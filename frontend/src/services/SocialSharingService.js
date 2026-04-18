@@ -47,6 +47,30 @@ class SocialSharingService {
   }
 
   /**
+   * Share a celebration event to Farcaster
+   * @param {string} type - 'payout' or 'milestone'
+   * @param {Object} projectData - The project data
+   * @param {Object} [details] - Additional details (amount, milestone title)
+   */
+  async shareCelebration(type, projectData, details = {}) {
+    try {
+      const { slug, name } = projectData;
+      const snapUrl = `${this.snapServerUrl}/snaps/celebration/${slug}?type=${type}`;
+      
+      let castText = '';
+      if (type === 'payout') {
+        castText = `💰 PROOF OF SHIP: ${name} just received a ${details.amount || ''} USDC payout! Builders are shipping. 🚢`;
+      } else {
+        castText = `🎉 CELEBRATION: ${name} just hit a major milestone: "${details.title || 'Incredible progress'}"! 🚢`;
+      }
+
+      await this.castToFarcaster(castText, [snapUrl]);
+    } catch (error) {
+      console.error('Error sharing celebration:', error);
+    }
+  }
+
+  /**
    * Send a push notification via Hypersnap (through our Snap Server)
    * @param {number} fid - Farcaster FID
    * @param {string} title - Notification title

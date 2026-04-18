@@ -380,3 +380,24 @@ export const getGitHubUrl = (project) => {
   if (!project.owner || !project.repo) return null;
   return `https://github.com/${project.owner}/${project.repo}`;
 };
+
+/**
+ * AI Scouting Logic: Flag projects with high velocity but low backing
+ */
+export const calculateScoutingFlags = (project) => {
+  if (!project || !project.stats) return { highVelocity: false, underBacked: false, isScoutChoice: false };
+
+  // highVelocity: True if commits in the last 7 days > 10 (or health score > 80 and active)
+  const highVelocity = (project.stats.commits >= 10 && getRecentActivityScore(project.stats.lastCommit) >= 80) || (project.stats.healthScore >= 85);
+
+  // underBacked: True if totalStaked < 500 USDC while having milestones > 2
+  const totalStaked = project.totalStaked || 0;
+  const milestonesCount = Array.isArray(project.milestones) ? project.milestones.length : 0;
+  const underBacked = totalStaked < 500 && milestonesCount >= 2;
+
+  return {
+    highVelocity,
+    underBacked,
+    isScoutChoice: highVelocity && underBacked
+  };
+};

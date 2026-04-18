@@ -7,7 +7,7 @@ import React from 'react';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import { getEcosystemConfig, getEcosystemClasses } from '../../config/ecosystems';
-import { getGitHubUrl } from '../../utils/projectUtils';
+import { getGitHubUrl, calculateScoutingFlags } from '../../utils/projectUtils';
 import ChainBadges from '../showcase/ChainBadges';
 import SectorBadges from '../showcase/SectorBadges';
 import {
@@ -19,7 +19,9 @@ import {
   UserGroupIcon,
   RocketLaunchIcon,
   ShieldCheckIcon,
-  TrophyIcon
+  TrophyIcon,
+  MagnifyingGlassCircleIcon,
+  Battery100Icon
 } from '@heroicons/react/24/outline';
 
 /**
@@ -108,6 +110,7 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
   const ecosystemConfig = getEcosystemConfig(project.ecosystem);
   const githubUrl = getGitHubUrl(project);
   const tier = getEvolutionTier(project.stats?.healthScore || 0);
+  const scoutFlags = calculateScoutingFlags(project);
   
   const handleLinkClick = (e, url) => {
     e.stopPropagation();
@@ -154,6 +157,30 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
           )}
         </div>
       </div>
+
+      {/* AI Scouting Flags */}
+      {(scoutFlags.highVelocity || scoutFlags.underBacked) && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {scoutFlags.isScoutChoice && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold animate-pulse">
+              <MagnifyingGlassCircleIcon className="w-4 h-4" />
+              SCOUT'S CHOICE
+            </div>
+          )}
+          {scoutFlags.highVelocity && !scoutFlags.isScoutChoice && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-lg text-[10px] font-bold uppercase">
+              <Battery100Icon className="w-3.5 h-3.5" />
+              High Velocity
+            </div>
+          )}
+          {scoutFlags.underBacked && !scoutFlags.isScoutChoice && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-bold uppercase">
+              <RocketLaunchIcon className="w-3.5 h-3.5" />
+              Under-Backed
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Description */}
       {project.description && (

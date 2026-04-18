@@ -1,5 +1,6 @@
 import { db, auth } from "../../../lib/firebase/adminApp";
 import { verifyAuth, withApiMiddleware } from "../../../utils/apiMiddleware";
+import { logActivity } from "../../../utils/activityLogger";
 
 async function handler(req, res) {
   if (req.method !== "POST") {
@@ -184,6 +185,16 @@ async function handler(req, res) {
 
     // Send notification (you could integrate with Discord, Slack, etc.)
     await notifyAdmins(projectDoc);
+
+    // Log to engagement feed
+    await logActivity({
+      type: "project_submitted",
+      projectSlug: slug,
+      projectName: projectData.name,
+      userHandle: userId, // In a real app, you might fetch the actual username/handle
+      description: `New project "${projectData.name}" was launched in the ${projectData.ecosystem} ecosystem!`,
+      ecosystem: projectData.ecosystem
+    });
 
     res.status(201).json({
       success: true,

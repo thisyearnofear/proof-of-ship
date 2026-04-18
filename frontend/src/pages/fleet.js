@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase/clientApp';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import EngagementTicker from '@/components/dashboard/EngagementTicker';
 import { Card } from '@/components/common/Card';
-import { ShipWheelIcon, MapIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { MapIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 const FleetMap = () => {
   const [projects, setProjects] = useState([]);

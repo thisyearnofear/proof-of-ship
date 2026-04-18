@@ -33,6 +33,14 @@ const navigation = [
     group: "explore",
     description: "Track hackathons across ecosystems"
   },
+  { 
+    name: "Fleet Map", 
+    href: "/fleet", 
+    icon: GlobeAltIcon,
+    group: "explore",
+    description: "Global fleet visualization",
+    highlight: true
+  },
   // Build — for builders
   { 
     name: "Credit", 

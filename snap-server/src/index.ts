@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import * as admin from 'firebase-admin';
 import { scoutSnap } from './snaps/scout';
+import { celebrationSnap } from './snaps/celebration';
 
 const app = new Hono();
 
@@ -52,6 +53,7 @@ app.get('/.well-known/farcaster.json', (c) => {
 
 // Snap routes
 app.route('/snaps/scout', scoutSnap);
+app.route('/snaps/celebration', celebrationSnap);
 
 // Hypersnap webhook handler
 app.post('/api/webhook', async (c) => {

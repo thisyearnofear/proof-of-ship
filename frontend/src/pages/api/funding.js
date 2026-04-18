@@ -2,6 +2,8 @@ import { usdcPaymentService, getFundingTier } from '../../lib/usdcPayments';
 
 import { withApiMiddleware, isAdmin } from '../../utils/apiMiddleware';
 import { db } from '../../lib/firebase/adminApp';
+import { logActivity } from '../../utils/activityLogger';
+import { socialSharingService } from '../../services/SocialSharingService';
 
 async function handler(req, res) {
   // Only allow POST requests
@@ -54,6 +56,17 @@ async function handler(req, res) {
           creditScore,
           creditData
         );
+
+        // Log to engagement feed
+        if (result.success) {
+          await logActivity({
+            type: "payout_processed",
+            userHandle: developerAddress,
+            description: `Developer ${developerAddress.substring(0, 6)}... received ${result.amount} USDC funding based on their credit score of ${creditScore}!`,
+            amount: result.amount,
+            metadata: { creditScore }
+          });
+        }
 
         return res.status(200).json(result);
 
@@ -160,6 +173,21 @@ async function handler(req, res) {
 
         // Mark feedback as accepted
         await db.collection('feedback').doc(feedbackId).set({ status: 'accepted', acceptedAt: new Date().toISOString(), approvedBy: userId }, { merge: true });
+
+        // Log to engagement feed
+        await logActivity({
+          type: "milestone_verified",
+          projectSlug: projectSlug,
+          projectName: proj.name,
+          userHandle: destinationAddress,
+          description: `Tester was rewarded ${payoutAmount} USDC for completing a task on ${proj.name}!`,
+          amount: payoutAmount,
+          ecosystem: proj.ecosystem
+        });
+
+        // Trigger viral celebration snap
+        await socialSharingService.shareCelebration('payout', proj, { amount: payoutAmount });
+
         return res.status(200).json({ success: true, transfer });
       }
 

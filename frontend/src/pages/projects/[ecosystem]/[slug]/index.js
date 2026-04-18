@@ -14,6 +14,7 @@ import { getGitHubUrl } from "@/utils/projectUtils";
 import ProjectShowcase from "@/components/showcase/ProjectShowcase";
 import ethosService from "@/services/EthosService";
 import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
+import ShipsLog from "@/components/projects/ShipsLog";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -309,6 +310,8 @@ export default function ProjectDetailPage() {
           <Card className="p-6">
             <ProjectShowcase project={project} />
           </Card>
+
+          <ShipsLog projectSlug={slug} canEdit={canEdit} />
 
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">

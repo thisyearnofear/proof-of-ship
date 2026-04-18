@@ -16,8 +16,37 @@ import {
   ExclamationCircleIcon,
   ArrowTopRightOnSquareIcon,
   CalendarIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  RocketLaunchIcon,
+  ShieldCheckIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
+
+/**
+ * Evolution tier helper based on reputation or health score
+ */
+export const getEvolutionTier = (score = 0) => {
+  if (score >= 90) return { 
+    name: 'Admiral', 
+    class: 'tier-admiral lighthouse-beam rope-border-gold', 
+    icon: <TrophyIcon className="w-5 h-5 text-amber-500" /> 
+  };
+  if (score >= 75) return { 
+    name: 'Captain', 
+    class: 'tier-captain compass-rose', 
+    icon: <ShieldCheckIcon className="w-5 h-5 text-purple-500" /> 
+  };
+  if (score >= 50) return { 
+    name: 'Voyager', 
+    class: 'tier-voyager anchor-accent', 
+    icon: <RocketLaunchIcon className="w-5 h-5 text-blue-500" /> 
+  };
+  return { 
+    name: 'Scout', 
+    class: 'tier-scout', 
+    icon: <UserGroupIcon className="w-5 h-5 text-gray-400" /> 
+  };
+};
 
 /**
  * Base Project Card - Foundation for all variants
@@ -78,6 +107,7 @@ export const ProjectPreviewCard = ({ project, onClick }) => {
 export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) => {
   const ecosystemConfig = getEcosystemConfig(project.ecosystem);
   const githubUrl = getGitHubUrl(project);
+  const tier = getEvolutionTier(project.stats?.healthScore || 0);
   
   const handleLinkClick = (e, url) => {
     e.stopPropagation();
@@ -85,13 +115,19 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
   };
   
   return (
-    <BaseProjectCard project={project} onClick={onClick} className="p-6">
+    <BaseProjectCard project={project} onClick={onClick} className={`p-6 relative overflow-hidden ${tier.class}`}>
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h4 className="font-semibold text-gray-900 mb-1">
-            {project.name || project.slug}
-          </h4>
+          <div className="flex items-center space-x-2 mb-1">
+            <h4 className="font-semibold text-gray-900">
+              {project.name || project.slug}
+            </h4>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+              {tier.icon}
+              <span className="ml-1">{tier.name}</span>
+            </span>
+          </div>
           {showEcosystem && ecosystemConfig && (
             <div className="flex items-center space-x-2">
               <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${ecosystemConfig.bgColor} ${ecosystemConfig.textColor}`}>
@@ -334,15 +370,19 @@ export const ProjectListItem = ({ project, onClick }) => {
  */
 export const ProjectGridCard = ({ project, onClick }) => {
   const ecosystemConfig = getEcosystemConfig(project.ecosystem);
+  const tier = getEvolutionTier(project.stats?.healthScore || 0);
   
   return (
-    <BaseProjectCard project={project} onClick={onClick} className="p-5 h-full flex flex-col">
+    <BaseProjectCard project={project} onClick={onClick} className={`p-5 h-full flex flex-col relative overflow-hidden ${tier.class}`}>
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-            {project.name || project.slug}
-          </h4>
+          <div className="flex items-center space-x-2 mb-2">
+            <h4 className="font-semibold text-gray-900 line-clamp-2">
+              {project.name || project.slug}
+            </h4>
+            <span title={tier.name}>{tier.icon}</span>
+          </div>
           {ecosystemConfig && (
             <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${ecosystemConfig.bgColor} ${ecosystemConfig.textColor}`}>
               <span>{ecosystemConfig.icon}</span>

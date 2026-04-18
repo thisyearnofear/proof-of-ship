@@ -115,10 +115,15 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
       // Find MilestoneApproved event
       const approvedEvent = receipt.events.find(e => e.event === "MilestoneApproved");
       
+      // Trigger Haptic Ship Ping
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate([100, 30, 100]);
+      }
+
       setSuccess({
         milestoneIndex,
         transactionHash: receipt.transactionHash,
-        message: "Milestone approved successfully!"
+        message: "🚢 Ship Ping! Milestone approved successfully!"
       });
 
       // Reload project details

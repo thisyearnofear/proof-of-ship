@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMetaMask } from "@/contexts/MetaMaskContext";
-import { useIdentity } from "@/contexts/IdentityContext";
 import Head from "next/head";
 
 export default function LoginPage() {
-  const { currentUser, signInWithGithub, loading: authLoading } = useAuth();
-  const { connected, account, connect, connecting } = useMetaMask();
-  const { isFullyAuthed, linkIdentity } = useIdentity();
+  const { currentUser, signInWithGithub, linkWallet, loading: authLoading } = useAuth();
+  const { connected, account, connect, connecting, provider } = useMetaMask();
   
   const router = useRouter();
   const { redirect } = router.query;
@@ -16,12 +14,15 @@ export default function LoginPage() {
   const [error, setError] = useState(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
+  const [linked, setLinked] = useState(false);
 
-  // Auto-redirect ONLY if fully authenticated (linked)
+  const isFullyAuthed = !!currentUser && !!connected && linked;
+
+  // Auto-redirect once fully linked
   useEffect(() => {
     if (isFullyAuthed) {
       const timer = setTimeout(() => {
-        router.push(redirect || "/dashboard");
+        router.push(redirect || "/build");
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -33,7 +34,6 @@ export default function LoginPage() {
       setIsSigningIn(true);
       await signInWithGithub();
     } catch (err) {
-      console.error("GitHub Login failed:", err);
       setError("Failed to sign in with GitHub.");
     } finally {
       setIsSigningIn(false);
@@ -41,12 +41,17 @@ export default function LoginPage() {
   };
 
   const handleLinkIdentity = async () => {
+    if (!currentUser || !connected || !account) return;
     try {
       setError(null);
       setIsLinking(true);
-      await linkIdentity();
+
+      const githubUsername = currentUser.providerData?.find(p => p.providerId === 'github.com')?.uid;
+      const message = `Proof of Ship - Link Identity\n\nGitHub: ${githubUsername}\nWallet: ${account}\nTimestamp: ${Date.now()}`;
+      const signature = await provider.request({ method: 'personal_sign', params: [message, account] });
+      await linkWallet(account, signature, message);
+      setLinked(true);
     } catch (err) {
-      console.error("Identity linking failed:", err);
       setError("Failed to verify wallet ownership.");
     } finally {
       setIsLinking(false);
@@ -95,11 +100,8 @@ export default function LoginPage() {
                   </div>
                 </div>
                 {!currentUser && (
-                  <button
-                    onClick={handleGithubLogin}
-                    disabled={isSigningIn}
-                    className="px-4 py-2 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-gray-800 disabled:opacity-50"
-                  >
+                  <button onClick={handleGithubLogin} disabled={isSigningIn}
+                    className="px-4 py-2 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-gray-800 disabled:opacity-50">
                     {isSigningIn ? '...' : 'Connect'}
                   </button>
                 )}
@@ -123,18 +125,15 @@ export default function LoginPage() {
                   </div>
                 </div>
                 {!connected && (
-                  <button
-                    onClick={connect}
-                    disabled={connecting}
-                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
+                  <button onClick={connect} disabled={connecting}
+                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-md hover:bg-blue-700 disabled:opacity-50">
                     {connecting ? '...' : 'Connect'}
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Step 3: Link (SIWE) */}
+            {/* Step 3: Link */}
             <div className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${isFullyAuthed ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
               {isFullyAuthed ? (
                 <div className="space-y-2">
@@ -144,11 +143,8 @@ export default function LoginPage() {
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-secondary">Once both are connected, sign a message to link them forever.</p>
-                  <button
-                    onClick={handleLinkIdentity}
-                    disabled={!currentUser || !connected || isLinking}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg shadow-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-30 disabled:grayscale transition-all"
-                  >
+                  <button onClick={handleLinkIdentity} disabled={!currentUser || !connected || isLinking}
+                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg shadow-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-30 disabled:grayscale transition-all">
                     {isLinking ? 'Verifying...' : 'Verify & Link Identity'}
                   </button>
                 </div>

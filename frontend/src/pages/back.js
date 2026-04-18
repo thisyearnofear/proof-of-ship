@@ -4,7 +4,6 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { useMetaMask } from "@/contexts/MetaMaskContext";
@@ -59,8 +58,15 @@ export default function BackPage() {
 /* ── Discover Tab (Expedition) ── */
 function DiscoverTab() {
   const { projects, loading, error, refresh } = useExpeditionData();
+  const { connected, connect } = useMetaMask();
+  const { backProject, contractLoading } = useBuilderCredit();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMultiplier, setFilterMultiplier] = useState("all");
+  const [backingProject, setBackingProject] = useState(null);
+  const [backingAmount, setBackingAmount] = useState("");
+  const [backingMultiplier, setBackingMultiplier] = useState("150");
+  const [backingStatus, setBackingStatus] = useState(null); // 'pending' | 'success' | 'error'
+  const [backingError, setBackingError] = useState(null);
 
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
@@ -72,7 +78,26 @@ function DiscoverTab() {
   }, [projects, searchQuery, filterMultiplier]);
 
   const handleBackProject = (project) => {
-    alert(`Initiating backing flow for ${project.name}. ROI Multiplier: ${project.activeMultiplier}x applied.`);
+    if (!connected) { connect(); return; }
+    setBackingProject(project);
+    setBackingAmount("");
+    setBackingMultiplier("150");
+    setBackingStatus(null);
+    setBackingError(null);
+  };
+
+  const submitBacking = async () => {
+    if (!backingProject || !backingAmount || parseFloat(backingAmount) <= 0) return;
+    try {
+      setBackingStatus("pending");
+      setBackingError(null);
+      await backProject(backingProject.id, parseInt(backingMultiplier), parseFloat(backingAmount));
+      setBackingStatus("success");
+      refresh();
+    } catch (err) {
+      setBackingStatus("error");
+      setBackingError(err.message || "Transaction failed");
+    }
   };
 
   if (loading) return <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>;
@@ -110,6 +135,66 @@ function DiscoverTab() {
           {filteredProjects.map((project) => (
             <ExpeditionCard key={project.id} project={project} onBack={handleBackProject} />
           ))}
+        </div>
+      )}
+
+      {/* Backing Modal */}
+      {backingProject && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !backingStatus && setBackingProject(null)}>
+          <Card className="w-full max-w-md p-6 bg-white" onClick={(e) => e.stopPropagation()}>
+            {backingStatus === "success" ? (
+              <div className="text-center py-4">
+                <p className="text-2xl mb-2">✅</p>
+                <p className="font-bold text-green-700">Backed successfully!</p>
+                <p className="text-sm text-gray-500 mt-1">{backingAmount} USDC at {parseInt(backingMultiplier) / 100}x on {backingProject.name}</p>
+                <button onClick={() => setBackingProject(null)} className="mt-4 text-sm text-blue-600 hover:underline">Close</button>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Back {backingProject.name}</h3>
+                <p className="text-sm text-gray-500 mb-4">Stake USDC with a multiplier. Returns paid when milestones complete.</p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USDC)</label>
+                    <input type="number" min="1" step="1" value={backingAmount} onChange={(e) => setBackingAmount(e.target.value)}
+                      placeholder="100" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Multiplier</label>
+                    <div className="flex gap-2">
+                      {[{ v: "150", l: "1.5x" }, { v: "200", l: "2x" }, { v: "300", l: "3x" }].map(({ v, l }) => (
+                        <button key={v} onClick={() => setBackingMultiplier(v)}
+                          className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${
+                            backingMultiplier === v ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {backingAmount && parseFloat(backingAmount) > 0 && (
+                    <div className="bg-green-50 rounded-lg p-3 text-sm">
+                      <span className="text-gray-600">Potential return: </span>
+                      <span className="font-bold text-green-700">
+                        ${(parseFloat(backingAmount) * parseInt(backingMultiplier) / 100).toFixed(2)} USDC
+                      </span>
+                    </div>
+                  )}
+
+                  {backingError && <p className="text-sm text-red-600">{backingError}</p>}
+
+                  <div className="flex gap-2">
+                    <button onClick={() => setBackingProject(null)} disabled={backingStatus === "pending"}
+                      className="flex-1 py-2 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50">Cancel</button>
+                    <button onClick={submitBacking} disabled={!backingAmount || parseFloat(backingAmount) <= 0 || backingStatus === "pending"}
+                      className="flex-1 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+                      {backingStatus === "pending" ? "Confirming..." : "Confirm Backing"}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </Card>
         </div>
       )}
     </>

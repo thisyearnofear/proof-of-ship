@@ -259,7 +259,7 @@ export const AuthProvider = ({ children }) => {
     signInWithGithub,
     logout,
     hasProjectPermission,
-    linkWallet
+    linkWallet,
   };
 
   return (

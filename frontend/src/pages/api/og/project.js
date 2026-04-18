@@ -1,5 +1,4 @@
 import { ImageResponse } from 'next/og';
-import admin, { db } from '@/lib/firebase/adminApp';
 
 export const config = {
   runtime: 'edge',

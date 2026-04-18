@@ -9,6 +9,17 @@ const nextConfig = {
   },
   // Enable skew protection (if supported by the deployment platform)
   deploymentId: process.env.NEXT_PUBLIC_DEPLOYMENT_ID || 'stable',
+  // Redirect old routes to consolidated pages
+  async redirects() {
+    return [
+      { source: '/shippers', destination: '/explore', permanent: true },
+      { source: '/hackathons', destination: '/explore?tab=hackathons', permanent: true },
+      { source: '/credit', destination: '/build', permanent: true },
+      { source: '/dashboard', destination: '/build?tab=projects', permanent: true },
+      { source: '/expedition', destination: '/back', permanent: true },
+      { source: '/backer-portfolio', destination: '/back?tab=portfolio', permanent: true },
+    ];
+  },
   // Common configuration for all environments
   images: {
     remotePatterns: [

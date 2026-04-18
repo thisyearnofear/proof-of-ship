@@ -16,53 +16,33 @@ import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
 
 const navigation = [
-  // Explore
   { 
-    name: "Projects", 
-    href: "/shippers", 
-    icon: ChartBarIcon,
-    group: "explore",
-  },
-  { 
-    name: "Hackathons", 
-    href: "/hackathons", 
+    name: "Explore", 
+    href: "/explore", 
     icon: GlobeAltIcon,
-    group: "explore",
   },
-  // Build — auth required
   { 
-    name: "Credit", 
-    href: "/credit", 
+    name: "Build", 
+    href: "/build", 
     icon: CreditCardIcon,
-    group: "build",
     auth: true,
   },
   { 
-    name: "Dashboard", 
-    href: "/dashboard", 
+    name: "Back", 
+    href: "/back", 
     icon: ChartBarIcon,
-    group: "build",
-    auth: true,
   },
-  // Back
-  { 
-    name: "Expedition", 
-    href: "/expedition", 
-    icon: GlobeAltIcon,
-    group: "back",
-  },
-  { 
-    name: "Portfolio", 
-    href: "/backer-portfolio", 
-    icon: UserCircleIcon,
-    group: "back",
-    auth: true,
-  },
-  // Utility — hidden from main nav
+  // Hidden — still accessible via URL
   { name: "About", href: "/about", hidden: true },
   { name: "Submit Project", href: "/projects/new", hidden: true, auth: true },
   { name: "Feedback", href: "/feedback", hidden: true },
   { name: "Fleet Map", href: "/fleet", hidden: true },
+  { name: "Projects", href: "/shippers", hidden: true },
+  { name: "Hackathons", href: "/hackathons", hidden: true },
+  { name: "Credit", href: "/credit", hidden: true },
+  { name: "Dashboard", href: "/dashboard", hidden: true },
+  { name: "Expedition", href: "/expedition", hidden: true },
+  { name: "Portfolio", href: "/backer-portfolio", hidden: true },
 ];
 
 function classNames(...classes) {
@@ -222,7 +202,7 @@ export default function Navbar() {
                           <Menu.Item>
                             {({ active }) => (
                               <a
-                                href="/credit"
+                                href="/build"
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
                                   "flex items-center px-4 py-2 text-sm text-gray-700"
@@ -304,7 +284,7 @@ export default function Navbar() {
                         Sign in
                       </a>
                       <a
-                        href="/credit"
+                        href="/build"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
                       >
                         Get Funded
@@ -317,7 +297,7 @@ export default function Navbar() {
                 <div className="flex sm:hidden items-center gap-1">
                   {!currentUser && (
                     <a
-                      href="/credit"
+                      href="/build"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
                     >
                       Get Funded

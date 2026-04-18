@@ -5,10 +5,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useBuilderCredit } from '../contexts/BuilderCreditContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
 import ProjectDetails from './ProjectDetails';
+import VelocityGauge from './github/VelocityGauge';
+import { getEvolutionTier } from './projects/ProjectCard';
 import {
   UserCircleIcon,
   StarIcon,
@@ -18,7 +21,10 @@ import {
   ArrowPathIcon,
   ShieldCheckIcon,
   ArrowTrendingUpIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  CpuChipIcon,
+  GlobeAltIcon,
+  SignalIcon
 } from '@heroicons/react/24/outline';
 
 export default function DeveloperDashboard() {
@@ -32,6 +38,22 @@ export default function DeveloperDashboard() {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showRepayModal, setShowRepayModal] = useState(false);
   const [prizeAmount, setPrizeAmount] = useState('1000');
+  const [githubStreak, setGithubStreak] = useState(12); // Default mock value
+
+  useEffect(() => {
+    // Try to load GitHub streak from local storage if available
+    const stored = localStorage.getItem('pos_user_profile');
+    if (stored) {
+      try {
+        const profile = JSON.parse(stored);
+        if (profile.profiles?.github?.activity?.contributionStreak) {
+          setGithubStreak(profile.profiles.github.activity.contributionStreak);
+        }
+      } catch (e) {
+        console.error("Failed to parse profile for streak", e);
+      }
+    }
+  }, []);
 
   const handleSimulatePrize = async () => {
     try {
@@ -152,305 +174,293 @@ export default function DeveloperDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Credit Profile Section */}
-      <section>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Developer Credit Profile</h2>
-        
-        {creditProfile ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">Credit Score</div>
-                  <div className={`text-2xl font-bold ${
-                    creditProfile.creditScore >= 700 ? 'text-green-600' :
-                    creditProfile.creditScore >= 500 ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
-                    {creditProfile.creditScore}
-                  </div>
-                </div>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  creditProfile.creditScore >= 700 ? 'bg-green-100' :
-                  creditProfile.creditScore >= 500 ? 'bg-yellow-100' :
-                  'bg-red-100'
-                }`}>
-                  <StarIcon className={`w-6 h-6 ${
-                    creditProfile.creditScore >= 700 ? 'text-green-600' :
-                    creditProfile.creditScore >= 500 ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`} />
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">Total Funded</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    ${formatUSDC(creditProfile.totalFunded)}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <CurrencyDollarIcon className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">Active Loan</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    ${formatUSDC(creditProfile.activeLoanAmount)}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                  <ClockIcon className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">Reputation</div>
-                  <div className="text-2xl font-bold text-indigo-600">
-                    {creditProfile.reputation}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <ShieldCheckIcon className="w-6 h-6 text-indigo-600" />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 bg-blue-50 border-blue-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-blue-600">Market Confidence</div>
-                  <div className="text-2xl font-bold text-blue-700">
-                    82%
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <ArrowTrendingUpIcon className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </Card>
+    <div className="space-y-8 wave-pattern p-4 sm:p-6 lg:p-8 rounded-3xl">
+      {/* Command Center Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 backdrop-blur-md p-6 rounded-2xl border border-white/50 shadow-sm">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <CpuChipIcon className="w-8 h-8 text-blue-600" />
+            COMMAND CENTER
+          </h1>
+          <p className="text-slate-500 font-medium">Fleet Operations & Engine Status</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">System Status</span>
+            <span className="flex items-center gap-1.5 text-green-600 font-bold">
+              <SignalIcon className="w-4 h-4 animate-pulse" />
+              OPERATIONAL
+            </span>
           </div>
-        ) : (
-          <Card className="p-6 bg-gray-50">
-            <div className="text-center text-gray-500">
-              No credit profile found. Request funding to create your profile.
-            </div>
-          </Card>
-        )}
-        
-        {/* Additional Credit Details */}
-        {creditProfile && (
-          <Card className="p-6 bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Credit Details</h3>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                creditProfile.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {creditProfile.isActive ? 'Active' : 'Inactive'}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Repaid:</span>
-                <span className="font-medium text-gray-900">${formatUSDC(creditProfile.totalRepaid)} USDC</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Active Loan:</span>
-                <span className="font-medium text-gray-900">${formatUSDC(creditProfile.activeLoanAmount)} USDC</span>
-              </div>
-              <div className="flex justify-between text-blue-700 font-semibold">
-                <span className="text-blue-600">Prize-Collateralized Limit:</span>
-                <span>$5,000.00 USDC</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Last Funding Date:</span>
-                <span className="font-medium text-gray-900">{formatDate(creditProfile.lastFundingTime)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">USDC Balance:</span>
-                <span className="font-medium text-gray-900">${formatUSDC(usdcBalance)} USDC</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Repayment Ratio:</span>
-                <span className="font-medium text-gray-900">
-                  {creditProfile.totalFunded > 0 
-                    ? `${((parseFloat(creditProfile.totalRepaid) / parseFloat(creditProfile.totalFunded)) * 100).toFixed(1)}%` 
-                    : 'N/A'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Projects:</span>
-                <span className="font-medium text-gray-900">{developerProjects?.length || 0}</span>
-              </div>
-            </div>
-            
-            {parseFloat(creditProfile.activeLoanAmount) > 0 && (
-              <div className="mt-6">
-                <Button
-                  onClick={() => setShowRepayModal(true)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-                >
-                  <ArrowPathIcon className="w-5 h-5 mr-2" />
-                  Repay Loan
-                </Button>
-              </div>
-            )}
-          </Card>
-        )}
-      </section>
+          <div className="h-10 w-px bg-slate-200 mx-2" />
+          <div className="text-right">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Wallet</div>
+            <div className="font-mono text-sm text-slate-700">{account.substring(0, 6)}...{account.substring(account.length - 4)}</div>
+          </div>
+        </div>
+      </div>
 
-      {/* Success Message */}
-      {success && (
-        <Card className="p-6 bg-green-50 border-green-200">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <ArrowTrendingUpIcon className="w-5 h-5 text-green-600" />
-              </div>
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left Column: Engine Status (Credit Profile) */}
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <SignalIcon className="w-5 h-5 text-blue-500" />
+                ENGINE STATUS
+              </h2>
             </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-green-900 mb-2">
-                {success.message || 'Loan Repayment Successful!'}
-              </h4>
-              <p className="text-green-800 mb-3">
-                Amount: ${parseFloat(success.amount).toFixed(2)} USDC
-              </p>
-              
-              {success.transactionHash && (
-                <div className="bg-white bg-opacity-50 rounded-lg p-3">
-                  <div className="text-sm">
-                    <div className="font-medium text-green-900">Transaction Hash:</div>
-                    <div className="font-mono text-xs text-green-700 break-all">
-                      {success.transactionHash}
+            
+            {creditProfile ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Credit Score</div>
+                      <div className={`text-3xl font-black ${
+                        creditProfile.creditScore >= 700 ? 'text-green-600' :
+                        creditProfile.creditScore >= 500 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {creditProfile.creditScore}
+                      </div>
+                    </div>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      creditProfile.creditScore >= 700 ? 'bg-green-100' :
+                      creditProfile.creditScore >= 500 ? 'bg-yellow-100' :
+                      'bg-red-100'
+                    }`}>
+                      <StarIcon className={`w-7 h-7 ${
+                        creditProfile.creditScore >= 700 ? 'text-green-600' :
+                        creditProfile.creditScore >= 500 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`} />
                     </div>
                   </div>
+                </Card>
+                
+                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Funded</div>
+                      <div className="text-3xl font-black text-blue-600">
+                        ${formatUSDC(creditProfile.totalFunded)}
+                      </div>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                      <CurrencyDollarIcon className="w-7 h-7 text-blue-600" />
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Loan</div>
+                      <div className="text-3xl font-black text-purple-600">
+                        ${formatUSDC(creditProfile.activeLoanAmount)}
+                      </div>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <ClockIcon className="w-7 h-7 text-purple-600" />
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reputation</div>
+                      <div className="text-3xl font-black text-indigo-600">
+                        {creditProfile.reputation}
+                      </div>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
+                      <ShieldCheckIcon className="w-7 h-7 text-indigo-600" />
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <Card className="p-6 bg-gray-50/50 backdrop-blur-sm border-dashed border-2">
+                <div className="text-center text-gray-500 font-medium">
+                  No credit profile found. Initialize engine by requesting funding.
+                </div>
+              </Card>
+            )}
+          </section>
+
+          {/* Fleet Operations Section */}
+          <section>
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <GlobeAltIcon className="w-5 h-5 text-blue-500" />
+              FLEET OPERATIONS
+            </h2>
+            
+            {developerProjects && developerProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Project List */}
+                <div className="md:col-span-1 space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                  {developerProjects.map((projectId) => {
+                    const project = projectDetails[projectId];
+                    if (!project) return null;
+                    const tier = getEvolutionTier(project.creditScore || 0);
+                    
+                    return (
+                      <Card 
+                        key={projectId}
+                        className={`p-4 cursor-pointer hover:shadow-lg transition-all border-2 ${
+                          selectedProjectId === projectId ? 'border-blue-500 bg-blue-50' : 'border-transparent bg-white/80'
+                        } ${tier.class}`}
+                        onClick={() => handleProjectSelect(projectId)}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0 mt-1">
+                            {tier.icon}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-slate-900 truncate">{project.name}</div>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-xs font-bold text-blue-600">${formatUSDC(project.fundingAmount)}</span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">{tier.name}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+                
+                {/* Project Details */}
+                <div className="md:col-span-2">
+                  {selectedProjectId ? (
+                    <div className="maritime-depth rounded-2xl overflow-hidden bg-white/90">
+                      <ProjectDetails 
+                        projectId={selectedProjectId}
+                        onMilestoneComplete={handleMilestoneComplete}
+                      />
+                    </div>
+                  ) : (
+                    <Card className="p-12 bg-white/50 border-dashed border-2 flex flex-col items-center justify-center text-center">
+                      <DocumentTextIcon className="w-16 h-16 text-slate-300 mb-4" />
+                      <h3 className="text-xl font-bold text-slate-800">No Vessel Selected</h3>
+                      <p className="text-slate-500 max-w-xs mt-2">
+                        Select a project from your fleet to view live telemetry and manage milestones.
+                      </p>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <Card className="p-12 bg-white/50 border-dashed border-2 text-center">
+                <DocumentTextIcon className="w-16 h-16 mx-auto text-slate-300" />
+                <h3 className="mt-4 text-xl font-bold text-slate-800">Fleet Empty</h3>
+                <p className="mt-2 text-slate-500 max-w-md mx-auto">
+                  You haven't commissioned any vessels yet. Start your journey by requesting funding for your first project.
+                </p>
+              </Card>
+            )}
+          </section>
+        </div>
+
+        {/* Right Column: Telemetry & Actions */}
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* Velocity Gauge */}
+          <Card className="p-6 maritime-depth bg-slate-900 text-white border-none overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <CpuChipIcon className="w-24 h-24" />
+            </div>
+            <h3 className="text-sm font-black tracking-widest uppercase text-blue-400 mb-4 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+              Live Telemetry
+            </h3>
+            <div className="flex justify-center py-4">
+              <VelocityGauge value={githubStreak} />
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Uptime</div>
+                <div className="text-lg font-black text-white">99.9%</div>
+              </div>
+              <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                <div className="text-[10px] font-bold text-slate-400 uppercase">Latency</div>
+                <div className="text-lg font-black text-white">24ms</div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Quick Actions */}
+          <section>
+            <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Quick Commands</h2>
+            <div className="space-y-3">
+              {creditProfile && parseFloat(creditProfile.activeLoanAmount) > 0 && (
+                <Button
+                  onClick={() => setShowRepayModal(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 py-4 rounded-xl font-bold text-lg"
+                >
+                  <ArrowPathIcon className="w-6 h-6 mr-2" />
+                  Repay Loan
+                </Button>
+              )}
+              
+              <Card className="p-4 bg-indigo-900 text-white border-none">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold">Prize Loop Sim</h3>
+                  <div className="px-2 py-0.5 bg-indigo-500 rounded text-[10px] font-bold">DEMO</div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={prizeAmount}
+                      onChange={(e) => setPrizeAmount(e.target.value)}
+                      className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-1 ring-blue-500 outline-none"
+                      placeholder="Amount"
+                    />
+                    <Button
+                      onClick={handleSimulatePrize}
+                      disabled={loading || !selectedProjectId}
+                      className="bg-white text-indigo-900 hover:bg-indigo-50 font-bold px-4 rounded-lg"
+                    >
+                      Fire
+                    </Button>
+                  </div>
+                  {!selectedProjectId && (
+                    <p className="text-[10px] text-indigo-300 italic">Select a vessel to simulate prize payout</p>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </section>
+
+          {/* System Logs / Status */}
+          <Card className="p-4 bg-slate-50 border-slate-200">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">System Logs</h3>
+            <div className="space-y-2 font-mono text-[10px]">
+              <div className="flex gap-2 text-slate-500">
+                <span className="text-blue-500">[SYS]</span>
+                <span>Fleet initialized...</span>
+              </div>
+              <div className="flex gap-2 text-slate-500">
+                <span className="text-blue-500">[SYS]</span>
+                <span>Telemetry link active</span>
+              </div>
+              {success && (
+                <div className="flex gap-2 text-green-600">
+                  <span className="font-bold">[SUCCESS]</span>
+                  <span>{success.message}</span>
+                </div>
+              )}
+              {error && (
+                <div className="flex gap-2 text-red-600">
+                  <span className="font-bold">[ERROR]</span>
+                  <span>{error}</span>
                 </div>
               )}
             </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Admin/Demo Controls */}
-      <section>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Backer Loop Simulation (Demo)</h2>
-        <Card className="p-6 bg-indigo-50 border-indigo-100">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-semibold text-indigo-900">Simulate Prize Payout</h3>
-              <p className="text-sm text-indigo-700">
-                Mock a prize win to trigger the automated backer repayment loop.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={prizeAmount}
-                onChange={(e) => setPrizeAmount(e.target.value)}
-                className="w-32 px-3 py-2 border border-indigo-200 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Prize Amount"
-              />
-              <Button
-                onClick={handleSimulatePrize}
-                disabled={loading || !selectedProjectId}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white min-h-touch"
-              >
-                Trigger Payout Loop
-              </Button>
-            </div>
-          </div>
-          {!selectedProjectId && (
-            <p className="mt-2 text-xs text-indigo-500 flex items-center">
-              <ExclamationCircleIcon className="w-4 h-4 mr-1" />
-              Select a project below to simulate its prize payout
-            </p>
-          )}
-        </Card>
-      </section>
-
-      {/* Project List and Details */}
-      <section>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Your Projects</h2>
-        
-        {developerProjects && developerProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Project List */}
-            <div className="md:col-span-1">
-              <div className="space-y-3">
-                {developerProjects.map((projectId) => {
-                  const project = projectDetails[projectId];
-                  if (!project) return null;
-                  
-                  return (
-                    <Card 
-                      key={projectId}
-                      className={`p-4 cursor-pointer hover:shadow-md transition-shadow ${
-                        selectedProjectId === projectId ? 'ring-2 ring-blue-500' : ''
-                      }`}
-                      onClick={() => handleProjectSelect(projectId)}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <DocumentTextIcon className="w-5 h-5 text-blue-600" />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{project.name}</div>
-                          <div className="text-sm text-gray-500">
-                            ${formatUSDC(project.fundingAmount)} USDC
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {formatDate(project.fundedAt)}
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-            
-            {/* Project Details */}
-            <div className="md:col-span-3">
-              {selectedProjectId ? (
-                <ProjectDetails 
-                  projectId={selectedProjectId}
-                  onMilestoneComplete={handleMilestoneComplete}
-                />
-              ) : (
-                <Card className="p-6 bg-gray-50 text-center">
-                  <DocumentTextIcon className="w-12 h-12 mx-auto text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">No Project Selected</h3>
-                  <p className="mt-2 text-gray-600">
-                    Select a project from the list to view details
-                  </p>
-                </Card>
-              )}
-            </div>
-          </div>
-        ) : (
-          <Card className="p-6 bg-gray-50 text-center">
-            <DocumentTextIcon className="w-12 h-12 mx-auto text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No Projects Found</h3>
-            <p className="mt-2 text-gray-600">
-              You haven't requested funding for any projects yet
-            </p>
           </Card>
-        )}
-      </section>
+        </div>
+      </div>
 
       {/* Repay Loan Modal */}
       {showRepayModal && (

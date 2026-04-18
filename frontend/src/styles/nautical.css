@@ -149,6 +149,56 @@
   transform: translateX(100%);
 }
 
+/* Evolution Tier Specific Styles */
+.tier-scout {
+  border: 1px solid #e2e8f0;
+}
+
+.tier-voyager {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.tier-captain {
+  border: 2px solid #8b5cf6;
+  background: linear-gradient(to bottom right, #ffffff, #f5f3ff);
+}
+
+.tier-captain::after {
+  content: "⚓";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 1.2rem;
+  opacity: 0.5;
+}
+
+.tier-admiral {
+  border: 3px solid #f59e0b;
+  background: linear-gradient(to bottom right, #ffffff, #fffbeb);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.tier-admiral::after {
+  content: "👑";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 1.5rem;
+  opacity: 0.6;
+  animation: float 3s ease-in-out infinite;
+}
+
+.rope-border-gold {
+  border-image: repeating-linear-gradient(
+    45deg,
+    #b45309,
+    #b45309 2px,
+    #f59e0b 2px,
+    #f59e0b 4px
+  ) 1;
+}
+
 /* Responsive nautical elements */
 @media (max-width: 768px) {
   .compass-rose::before,

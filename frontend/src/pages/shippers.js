@@ -105,11 +105,19 @@ export default function ProjectsPage() {
     return result;
   }, [projectData, ecosystem, chains, sectors]);
 
-  // Chains list from NETWORK_CONFIGS
+  // Chains list from NETWORK_CONFIGS — short labels only
   const chainOptions = useMemo(() => {
+    const shortNames = {
+      44787: 'Celo',
+      59141: 'Linea',
+      84532: 'Base',
+      421614: 'Arbitrum',
+      11155111: 'Ethereum',
+      11155420: 'Optimism',
+    };
     return Object.values(NETWORK_CONFIGS).map((c) => ({
       id: String(c.chainId),
-      name: `${c.name} (${c.chainId})`,
+      name: shortNames[c.chainId] || c.name,
     }));
   }, []);
 
@@ -130,70 +138,72 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Minimal Filter Bar */}
-        <Card className="p-4 mb-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Ecosystem</label>
-              <select
-                value={ecosystem}
-                onChange={(e) => setEcosystem(e.target.value)}
-                className="px-2 py-1 border border-gray-300 rounded text-sm"
+        {/* Filter Bar */}
+        <Card className="p-3 mb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={ecosystem}
+              onChange={(e) => setEcosystem(e.target.value)}
+              className="px-2 py-1 border border-gray-300 rounded text-xs font-medium"
+            >
+              <option value="all">All Ecosystems</option>
+              <option value="celo">Celo</option>
+              <option value="base">Base</option>
+              <option value="linea">Linea</option>
+            </select>
+
+            <span className="text-gray-300">|</span>
+
+            {chainOptions.map((opt) => {
+              const active = chains.includes(opt.id);
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() =>
+                    setChains((prev) =>
+                      active ? prev.filter((id) => id !== opt.id) : [...prev, opt.id]
+                    )
+                  }
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    active ? "bg-blue-100 text-blue-700" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {opt.name}
+                </button>
+              );
+            })}
+
+            <span className="text-gray-300">|</span>
+
+            {sectorOptions.map((opt) => {
+              const active = sectors.includes(opt.id);
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() =>
+                    setSectors((prev) =>
+                      active ? prev.filter((id) => id !== opt.id) : [...prev, opt.id]
+                    )
+                  }
+                  className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                    active ? "bg-green-100 text-green-700" : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {opt.name}
+                </button>
+              );
+            })}
+
+            {(chains.length > 0 || sectors.length > 0 || ecosystem !== 'all') && (
+              <button
+                onClick={() => { setEcosystem('all'); setChains([]); setSectors([]); }}
+                className="px-2 py-1 rounded text-xs font-medium text-red-500 hover:text-red-700"
               >
-                <option value="all">All</option>
-                <option value="celo">Celo</option>
-                <option value="base">Base</option>
-                <option value="linea">Linea</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Chains</label>
-              <div className="flex flex-wrap gap-2">
-                {chainOptions.map((opt) => {
-                  const active = chains.includes(opt.id);
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() =>
-                        setChains((prev) =>
-                          active ? prev.filter((id) => id !== opt.id) : [...prev, opt.id]
-                        )
-                      }
-                      className={`px-2 py-1 rounded border text-xs ${
-                        active ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-300 text-gray-700"
-                      }`}
-                    >
-                      {opt.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Sectors</label>
-              <div className="flex flex-wrap gap-2">
-                {sectorOptions.map((opt) => {
-                  const active = sectors.includes(opt.id);
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() =>
-                        setSectors((prev) =>
-                          active ? prev.filter((id) => id !== opt.id) : [...prev, opt.id]
-                        )
-                      }
-                      className={`px-2 py-1 rounded border text-xs ${
-                        active ? "bg-green-50 border-green-300 text-green-700" : "bg-white border-gray-300 text-gray-700"
-                      }`}
-                    >
-                      {opt.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            </div>
-            </Card>
+                ✕ Clear
+              </button>
+            )}
+          </div>
+        </Card>
 
         <HybridDashboard
           projects={filteredData}

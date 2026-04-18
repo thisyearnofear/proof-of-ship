@@ -21,6 +21,9 @@ export const TESTNET_USDC_ADDRESSES = {
 
   // Linea Sepolia
   59141: "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7",
+
+  // Arc Testnet (native USDC ERC-20 interface)
+  5042002: "0x3600000000000000000000000000000000000000",
 };
 
 export const MAINNET_USDC_ADDRESSES = {
@@ -109,6 +112,13 @@ export const TESTNET_CHAIN_INFO = {
     decimals: 18,
     rpcUrl: "https://rpc.sepolia.linea.build",
     explorer: "https://sepolia.lineascan.build",
+  },
+  5042002: {
+    name: "Arc Testnet",
+    symbol: "USDC",
+    decimals: 18,
+    rpcUrl: "https://rpc.testnet.arc.network",
+    explorer: "https://testnet.arcscan.app",
   },
 };
 

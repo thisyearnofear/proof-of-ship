@@ -98,7 +98,7 @@ function ProjectsTab() {
   }, [projectData, ecosystem, chains, sectors]);
 
   const chainOptions = useMemo(() => {
-    const shortNames = { 44787: "Celo", 59141: "Linea", 84532: "Base", 421614: "Arbitrum", 11155111: "Ethereum", 11155420: "Optimism" };
+    const shortNames = { 44787: "Celo", 59141: "Linea", 84532: "Base", 421614: "Arbitrum", 11155111: "Ethereum", 11155420: "Optimism", 5042002: "Arc" };
     return Object.values(NETWORK_CONFIGS).map((c) => ({ id: String(c.chainId), name: shortNames[c.chainId] || c.name }));
   }, []);
 

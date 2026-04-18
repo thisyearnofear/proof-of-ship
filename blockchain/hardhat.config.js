@@ -89,6 +89,12 @@ module.exports = {
       gas: 2100000,
       gasPrice: 8000000000,
     },
+    // Arc Testnet
+    arcTestnet: {
+      url: process.env.ARC_TESTNET_RPC || "https://rpc.testnet.arc.network",
+      accounts: [PRIVATE_KEY],
+      chainId: 5042002,
+    },
     // Mainnet
     ethereum: {
       url: INFURA_API_KEY

@@ -126,6 +126,11 @@ function ProjectsTab() {
             <option value="base">Base</option>
             <option value="linea">Linea</option>
           </select>
+          {ecosystem !== "all" && (
+            <Link href={`/ecosystems/${ecosystem}`} className="text-xs text-blue-600 hover:underline">
+              View port →
+            </Link>
+          )}
           <span className="text-gray-300">|</span>
           {chainOptions.map((opt) => {
             const active = chains.includes(opt.id);

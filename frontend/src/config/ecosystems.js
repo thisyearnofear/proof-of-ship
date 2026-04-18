@@ -36,6 +36,9 @@ export const ECOSYSTEM_CONFIGS = {
     dataSource: 'static', // static (repos.json) or dynamic (firestore)
     hasSeasons: true,
     seasons: [1, 2, 3],
+    tradeWinds: [
+      { category: 'mobile', boost: 1.2, label: 'Mobile-First Boost', description: '20% boost for mobile focus' }
+    ],
     
     // Display preferences
     defaultSort: 'season',
@@ -77,6 +80,9 @@ export const ECOSYSTEM_CONFIGS = {
     hasSeasons: false,
     hasCategories: true,
     categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
+    tradeWinds: [
+      { category: 'defi', boost: 1.5, label: 'DeFi Summer', description: '50% credit boost for DeFi projects' }
+    ],
     
     // Display preferences
     defaultSort: 'recent',

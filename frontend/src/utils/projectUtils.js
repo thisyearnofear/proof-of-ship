@@ -401,3 +401,23 @@ export const calculateScoutingFlags = (project) => {
     isScoutChoice: highVelocity && underBacked
   };
 };
+
+/**
+ * Calculate trade winds boost for a project
+ */
+export const calculateProjectBoost = (project, ecosystemConfig) => {
+  if (!project || !ecosystemConfig || !ecosystemConfig.tradeWinds) {
+    return 1.0;
+  }
+
+  const activeBoosts = ecosystemConfig.tradeWinds.filter(boost => 
+    boost.category === project.category || (project.tags && project.tags.includes(boost.category))
+  );
+
+  if (activeBoosts.length === 0) {
+    return 1.0;
+  }
+
+  // Use the highest boost if multiple apply
+  return Math.max(...activeBoosts.map(b => b.boost));
+};

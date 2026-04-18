@@ -43,7 +43,8 @@ export const DETECTION_ABI = [
 
 // BuilderCreditCore ABI
 export const BUILDER_CREDIT_CORE_ABI = [
-  "function requestFunding(uint256[] hackathonIds, uint256 creditScore, string githubUrl, string projectName, string[] milestoneDescriptions, uint256[] milestoneAmounts) external returns (uint256)",
+  "function requestFunding(uint256[] hackathonIds, string githubUrl, string projectName, string[] milestoneDescriptions, uint256[] milestoneAmounts) external returns (uint256)",
+  "function requestFundingWithTeam(uint256[] hackathonIds, string githubUrl, string projectName, string[] milestoneDescriptions, uint256[] milestoneAmounts, address[] teamMembers, uint256[] teamShares) external returns (uint256)",
   "function backProject(uint256 projectId, uint256 multiplier, uint256 amount) external",
   "function pledgePrize(uint256 projectId, uint256 amount) external",
   "function distributePrize(uint256 projectId, uint256 prizeAmount) external",

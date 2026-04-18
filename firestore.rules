@@ -140,6 +140,18 @@ service cloud.firestore {
       allow create, update, delete: if isAdminUser();
     }
     
+    // Ships Logs
+    match /ships_logs/{logId} {
+      allow read: if true;
+      allow write: if false; // Only written via API
+    }
+    
+    // Activities
+    match /activities/{activityId} {
+      allow read: if true;
+      allow write: if false; // Only written via API
+    }
+
     // Admins collection
     match /admins/{userId} {
       allow read: if isAuthenticated() && request.auth.uid == userId;

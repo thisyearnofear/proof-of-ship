@@ -33,6 +33,8 @@ const EngagementTicker = () => {
         return <CheckBadgeIcon className="w-5 h-5 text-green-500" />;
       case 'payout_processed':
         return <BanknotesIcon className="w-5 h-5 text-yellow-500" />;
+      case 'ships_log_update':
+        return <ChartBarIcon className="w-5 h-5 text-indigo-500" />;
       default:
         return <ChartBarIcon className="w-5 h-5 text-gray-500" />;
     }

@@ -9,6 +9,7 @@ import { LoadingSpinner } from '@/components/common/LoadingStates';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useMetaMask } from '@/contexts/MetaMaskContext';
 import { useBuilderCredit } from '@/contexts/BuilderCreditContext';
+import { calculateCompassScore, getCompassTier } from '@/utils/compassScore';
 
 import {
   BanknotesIcon,
@@ -26,6 +27,7 @@ export default function BackerPortfolioPage() {
   
   const [loading, setLoading] = useState(true);
   const [backedDetails, setBackedDetails] = useState([]);
+  const [compassScore, setCompassScore] = useState(400);
 
   useEffect(() => {
     async function loadPortfolio() {
@@ -39,11 +41,13 @@ export default function BackerPortfolioPage() {
         const projectIds = await getBackerProjects(account);
 
         const details = [];
+        const roiHistory = [];
+
         for (const id of projectIds) {
           try {
             const project = await coreContract.projects(id);
             
-            details.push({
+            const detail = {
               id: id.toString(),
               name: project.name,
               developer: project.developer,
@@ -56,12 +60,24 @@ export default function BackerPortfolioPage() {
               myMultiplier: (1.5 + Math.random() * 1.5).toFixed(1),
               potentialReturn: (1500 + Math.random() * 1000).toFixed(2),
               health: Math.floor(Math.random() * 40) + 60 // 60-100%
-            });
+            };
+            details.push(detail);
+
+            // Add to ROI history for score calculation
+            if (!project.isActive) {
+              roiHistory.push({
+                projectId: detail.id,
+                amountStaked: parseFloat(detail.myStake),
+                amountReturned: parseFloat(detail.potentialReturn), // Assume full return for demo
+                timestamp: new Date().toISOString()
+              });
+            }
           } catch (err) {
             console.error(`Failed to load details for project ${id}:`, err);
           }
         }
         setBackedDetails(details);
+        setCompassScore(calculateCompassScore(roiHistory));
       } catch (err) {
         console.error("Failed to load portfolio:", err);
       } finally {
@@ -71,6 +87,8 @@ export default function BackerPortfolioPage() {
 
     loadPortfolio();
   }, [coreContract, account, getBackerProjects]);
+
+  const compassTier = getCompassTier(compassScore);
 
   if (loading) {
     return (
@@ -89,9 +107,25 @@ export default function BackerPortfolioPage() {
 
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Backer Portfolio</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">Track your active bets and project health</p>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Backer Portfolio</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Track your active bets and project health</p>
+            </div>
+            {account && (
+              <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center gap-4">
+                <div className="bg-white p-2 rounded-lg shadow-sm text-2xl">
+                  {compassTier.icon}
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Compass Score</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black text-indigo-900">{compassScore}</span>
+                    <span className={`text-sm font-bold ${compassTier.color}`}>{compassTier.name}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

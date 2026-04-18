@@ -161,9 +161,35 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     }
     
     /**
+     * @dev Initializer for cloned instances
+     * @param _usdc Address of the USDC token contract
+     * @param _admin Address of the admin
+     * @param _oracles Array of oracle addresses
+     */
+    function initialize(
+        address _usdc,
+        address _admin,
+        address[] calldata _oracles
+    ) external {
+        // Only allow initialization if not already initialized
+        require(address(usdcToken) == address(0), "Already initialized");
+        require(_usdc != address(0), "Invalid token address");
+        require(_admin != address(0), "Invalid admin address");
+
+        usdcToken = IERC20(_usdc);
+        
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(PLATFORM_ADMIN_ROLE, _admin);
+        _setupRole(TREASURY_ROLE, _admin);
+        _setupRole(SCORER_ROLE, _admin);
+
+        for (uint256 i = 0; i < _oracles.length; i++) {
+            _setupRole(SCORER_ROLE, _oracles[i]);
+        }
+    }
+    /**
      * @dev Requests funding for a project
      * @param hackathonIds IDs of the hackathons
-     * @param creditScore Credit score of the developer
      * @param githubUrl GitHub URL of the project
      * @param projectName Name of the project
      * @param milestoneDescriptions Array of milestone descriptions
@@ -171,8 +197,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
      * @return projectId ID of the created project
      */
     function requestFunding(
-        uint256 hackathonId,
-        uint256 /* creditScore */,
+        uint256[] calldata hackathonIds,
         string calldata githubUrl,
         string calldata projectName,
         string[] calldata milestoneDescriptions,
@@ -330,7 +355,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     /**
      * @dev Updates a developer's credit line
      * @param developer Address of the developer
-     * @param creditScore Credit score of the developer
+     * @param reputation Reputation/Credit score of the developer
      * @param requestedAmount Amount requested for funding
      */
     function _updateCreditLine(

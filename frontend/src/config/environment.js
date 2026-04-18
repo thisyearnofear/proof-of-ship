@@ -6,7 +6,7 @@
 const isDevelopment = process.env.NODE_ENV === "development";
 const isProduction = process.env.NODE_ENV === "production";
 
-// Required environment variables
+// Required environment variables for all environments
 const requiredEnvVars = [
   "NEXT_PUBLIC_FIREBASE_API_KEY",
   "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
@@ -16,12 +16,25 @@ const requiredEnvVars = [
   "NEXT_PUBLIC_FIREBASE_APP_ID",
 ];
 
+// Production-only required environment variables
+const productionRequiredEnvVars = [
+  "CIRCLE_API_KEY",
+  "CIRCLE_WALLET_SET_ID",
+  "CIRCLE_ENTITY_SECRET",
+  "CIRCLE_PLATFORM_WALLET_ID",
+  "NEXT_PUBLIC_LIFI_API_KEY",
+  "GITHUB_TOKEN",
+  "PRIVATE_KEY",
+  "INFURA_API_KEY",
+];
+
 // API Service configurations
 const apiConfigs = {
   circle: {
     apiKey: process.env.CIRCLE_API_KEY,
     walletSetId: process.env.CIRCLE_WALLET_SET_ID,
     entitySecret: process.env.CIRCLE_ENTITY_SECRET,
+    platformWalletId: process.env.CIRCLE_PLATFORM_WALLET_ID,
     environment: process.env.CIRCLE_ENVIRONMENT || "sandbox",
     isProduction:
       (process.env.CIRCLE_ENVIRONMENT || "sandbox").toLowerCase() ===
@@ -50,11 +63,7 @@ const apiConfigs = {
 
 // Validate required environment variables
 const validateEnvironment = () => {
-  // Skip validation during build time
-  if (typeof window === "undefined") {
-    return;
-  }
-
+  // Check common required variables
   const missing = requiredEnvVars.filter(
     (variable) =>
       !process.env[variable] ||
@@ -66,10 +75,29 @@ const validateEnvironment = () => {
     console.warn(
       `Missing or dummy Firebase environment variables: ${missing.join(", ")}`
     );
-    console.warn(
-      "Firebase features may not work properly. Please configure environment variables."
+    if (isProduction) {
+      console.error("CRITICAL: Firebase variables missing in production!");
+    }
+  }
+
+  // Check production-only required variables
+  if (isProduction) {
+    const missingProduction = productionRequiredEnvVars.filter(
+      (variable) =>
+        !process.env[variable] ||
+        (typeof process.env[variable] === "string" &&
+          process.env[variable].includes("your_")) ||
+        process.env[variable] === "placeholder"
     );
-    // Don't throw error, just warn
+
+    if (missingProduction.length > 0) {
+      console.error(
+        `❌ CRITICAL PRODUCTION ERROR: Missing or placeholder environment variables: ${missingProduction.join(
+          ", "
+        )}`
+      );
+      // We don't throw here to avoid crashing the whole app, but the error is logged
+    }
   }
 };
 
@@ -146,7 +174,7 @@ const validateApiService = (serviceName) => {
 
   switch (serviceName) {
     case "circle":
-      return !!(config.apiKey && config.walletSetId);
+      return !!(config.apiKey && config.walletSetId && config.platformWalletId);
     case "lifi":
       return !!config.apiKey;
     case "github":

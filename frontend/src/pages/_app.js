@@ -17,6 +17,7 @@ import "@/styles/utils.css";
 
 import NoSSR from "@/providers/NoSSR/NoSSR";
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
+import { initObservability } from "@/lib/observability";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,6 +35,9 @@ export default function App({ Component, pageProps }) {
 
   // Initialize global error handling
   React.useEffect(() => {
+    // Initialize observability (PostHog/Sentry)
+    initObservability();
+
     const init = async () => {
       try {
         await sdk.actions.ready();
@@ -69,7 +73,7 @@ export default function App({ Component, pageProps }) {
                         <ReputationProvider>
                         <AuthProvider>
                             <div
-                               className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-w-[768px] font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
+                               className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
                             >
                               <ErrorBoundary
                                 name="Enhanced Github Provider"

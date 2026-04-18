@@ -1,72 +1,85 @@
-const { ethers } = require('hardhat');
+const { ethers, network } = require('hardhat');
+const fs = require('fs');
 
 async function main() {
-  console.log('Deploying BuilderCredit contract...');
+  const [deployer] = await ethers.getSigners();
+  console.log(`Deploying contracts with account: ${deployer.address}`);
 
   // USDC addresses for different networks
   const USDC_ADDRESSES = {
-    ethereum: '0xA0b86a33E6441b8435b662c8C1e8d2E1c4C8b4B2', // Ethereum mainnet
-    linea: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',     // Linea mainnet
-    sepolia: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',   // Sepolia testnet
-    lineaTestnet: '0xf56dc6695cF1f5c364eDEbC7Dc7077ac9B586068' // Linea testnet
+    1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // Ethereum mainnet
+    8453: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // Base mainnet
+    42220: "0x765DE816845861e75A25fCA122bb6898B8B1282a", // Celo mainnet
+    59144: "0x176211869cA2b568f2A7D4EE941E073a821EE1ff", // Linea mainnet
+    11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // Sepolia testnet
+    84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Base Sepolia
+    44787: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B", // Celo Alfajores
   };
 
-  const network = await ethers.provider.getNetwork();
-  console.log(`Deploying to network: ${network.name} (chainId: ${network.chainId})`);
+  const chainId = network.config.chainId;
+  console.log(`Deploying to network: ${network.name} (chainId: ${chainId})`);
 
-  let usdcAddress;
-  switch (network.chainId) {
-    case 1: // Ethereum mainnet
-      usdcAddress = USDC_ADDRESSES.ethereum;
-      break;
-    case 59144: // Linea mainnet
-      usdcAddress = USDC_ADDRESSES.linea;
-      break;
-    case 11155111: // Sepolia testnet
-      usdcAddress = USDC_ADDRESSES.sepolia;
-      break;
-    case 59140: // Linea testnet
-      usdcAddress = USDC_ADDRESSES.lineaTestnet;
-      break;
-    default:
-      throw new Error(`Unsupported network: ${network.chainId}`);
+  let usdcAddress = USDC_ADDRESSES[chainId];
+  if (!usdcAddress) {
+    console.error(`Unsupported network: ${chainId}. Please add USDC address to the script.`);
+    process.exit(1);
   }
 
   console.log(`Using USDC address: ${usdcAddress}`);
 
-  // Deploy BuilderCredit contract
-  const BuilderCredit = await ethers.getContractFactory('BuilderCredit');
-  const builderCredit = await BuilderCredit.deploy(usdcAddress);
+  // Deploy HackathonRegistry
+  const HackathonRegistry = await ethers.getContractFactory('HackathonRegistry');
+  const hackathonRegistry = await HackathonRegistry.deploy();
+  await hackathonRegistry.deployed();
+  console.log('HackathonRegistry deployed to:', hackathonRegistry.address);
 
-  await builderCredit.deployed();
-
-  console.log('BuilderCredit deployed to:', builderCredit.address);
+  // Deploy BuilderCreditCore
+  const BuilderCreditCore = await ethers.getContractFactory('BuilderCreditCore');
+  const builderCreditCore = await BuilderCreditCore.deploy(hackathonRegistry.address, usdcAddress);
+  await builderCreditCore.deployed();
+  console.log('BuilderCreditCore deployed to:', builderCreditCore.address);
 
   // Save deployment info
   const deploymentInfo = {
     network: network.name,
-    chainId: network.chainId,
-    builderCreditAddress: builderCredit.address,
+    chainId: chainId,
+    hackathonRegistryAddress: hackathonRegistry.address,
+    builderCreditCoreAddress: builderCreditCore.address,
     usdcAddress: usdcAddress,
     deployedAt: new Date().toISOString(),
-    deployer: await ethers.provider.getSigner().getAddress()
+    deployer: deployer.address
   };
 
-  console.log('Deployment info:', deploymentInfo);
+  const deploymentFile = `./deployments/${network.name}_deployment.json`;
+  if (!fs.existsSync('./deployments')) {
+    fs.mkdirSync('./deployments');
+  }
+  fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
+  console.log(`Deployment info saved to ${deploymentFile}`);
 
-  // Verify contract on Etherscan (if not local network)
-  if (network.chainId !== 31337) {
+  // Verify contracts if not on a local network
+  if (chainId !== 31337 && chainId !== 1337) {
     console.log('Waiting for block confirmations...');
-    await builderCredit.deployTransaction.wait(6);
+    await builderCreditCore.deployTransaction.wait(6);
 
     try {
       await hre.run('verify:verify', {
-        address: builderCredit.address,
-        constructorArguments: [usdcAddress],
+        address: hackathonRegistry.address,
+        constructorArguments: [],
       });
-      console.log('Contract verified on Etherscan');
-    } catch (error) {
-      console.log('Verification failed:', error.message);
+      console.log('HackathonRegistry verified');
+    } catch (e) {
+      console.log('HackathonRegistry verification failed:', e.message);
+    }
+
+    try {
+      await hre.run('verify:verify', {
+        address: builderCreditCore.address,
+        constructorArguments: [hackathonRegistry.address, usdcAddress],
+      });
+      console.log('BuilderCreditCore verified');
+    } catch (e) {
+      console.log('BuilderCreditCore verification failed:', e.message);
     }
   }
 

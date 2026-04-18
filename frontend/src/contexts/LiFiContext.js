@@ -315,15 +315,19 @@ export const LiFiProvider = ({ children }) => {
       const signer = ethersProvider.getSigner();
 
       // Execute the transfer using the LI.FI SDK
-      const result = await lifi.executeQuote(quote, {
+      const result = await lifi.executeRoute(quote, {
         signer,
         infiniteApproval: false, // Set to true to enable infinite approval
       });
 
+      // Get transaction hash from the last step
+      const lastStep = result.steps[result.steps.length - 1];
+      const txHash = lastStep.execution?.process.find(p => p.txHash)?.txHash || result.transactionHash;
+
       // Create transfer record
       const transfer = {
-        id: `${result.transactionHash}-${Date.now()}`,
-        txHash: result.transactionHash,
+        id: `${txHash || Date.now()}-${Date.now()}`,
+        txHash: txHash,
         fromChainId: quote.action.fromChainId,
         toChainId: quote.action.toChainId,
         fromToken: quote.action.fromToken,

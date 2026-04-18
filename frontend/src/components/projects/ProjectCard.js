@@ -266,7 +266,7 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
           className="w-full py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
           onClick={(e) => {
             e.stopPropagation();
-            alert('Betting mechanism implementation coming soon! You will be able to stake capital on this builder\'s milestones.');
+            window.location.href = '/back';
           }}
         >
           🎲 Back this Builder

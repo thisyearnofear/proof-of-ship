@@ -13,6 +13,7 @@ module.exports = {
   solidity: {
     version: "0.8.20",
     settings: {
+      viaIR: true,
       optimizer: {
         enabled: true,
         runs: 200,
@@ -103,9 +104,42 @@ module.exports = {
       accounts: [PRIVATE_KEY],
       chainId: 137,
     },
+    base: {
+      url: process.env.BASE_MAINNET_RPC || "https://mainnet.base.org",
+      accounts: [PRIVATE_KEY],
+      chainId: 8453,
+    },
+    celo: {
+      url: process.env.CELO_MAINNET_RPC || "https://forno.celo.org",
+      accounts: [PRIVATE_KEY],
+      chainId: 42220,
+    },
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: ETHERSCAN_API_KEY,
+      sepolia: ETHERSCAN_API_KEY,
+      base: process.env.BASESCAN_API_KEY || "",
+      celo: process.env.CELOSCAN_API_KEY || "",
+    },
+    customChains: [
+      {
+        network: "base",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://basescan.org",
+        },
+      },
+      {
+        network: "celo",
+        chainId: 42220,
+        urls: {
+          apiURL: "https://api.celoscan.io/api",
+          browserURL: "https://celoscan.io",
+        },
+      },
+    ],
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS ? true : false,

@@ -97,11 +97,19 @@ export class CrossChainUSDCService {
   async executeTransfer(route, signer) {
     try {
       // Execute the route using LiFi SDK
-      // The executeRoute function handles the entire execution process
+      // If it's a quote, we can use executeQuote, otherwise executeRoute
+      // The SDK handles the entire execution process
+      const execution = await this.lifi.executeRoute(route, {
+        signer,
+        updateCallback: (updatedRoute) => {
+          console.log("Transfer update:", updatedRoute);
+        },
+      });
+
       return {
         success: true,
         execution: execution,
-        finalTxHash: execution.txHash,
+        finalTxHash: execution.transactionHash,
       };
     } catch (error) {
       console.error("Error executing transfer:", error);

@@ -72,25 +72,26 @@ const MetaMaskContextProvider = ({ children }) => {
   };
 
   // Get account balance
-  const getBalance = async () => {
+  const getBalance = async (showLoading = true) => {
     if (!activeProvider || !account) return;
 
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const balance = await activeProvider.request({
         method: "eth_getBalance",
         params: [account, "latest"],
       });
       // Convert from wei to ETH
-      const balanceInEth = parseInt(balance, 16) / Math.pow(10, 18);
-      setBalance(balanceInEth.toFixed(4));
+      const balanceInEth = ethers.utils.formatEther(balance);
+      setBalance(parseFloat(balanceInEth).toFixed(4));
       return balanceInEth;
     } catch (err) {
       console.error("Failed to get balance:", err);
-      setError("Failed to get wallet balance. Please refresh and try again.");
+      if (showLoading)
+        setError("Failed to get wallet balance. Please refresh and try again.");
       return null;
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -332,8 +333,19 @@ const MetaMaskContextProvider = ({ children }) => {
       const networkName = getNetworkName();
       setNetworkName(networkName);
 
-      // Get balances
+      // Get initial balance
       getBalance();
+
+      // Set up real-time balance updates via block listener
+      const handleNewBlock = () => {
+        getBalance(false); // Update balance without showing loading state
+      };
+
+      ethProvider.on("block", handleNewBlock);
+
+      return () => {
+        ethProvider.off("block", handleNewBlock);
+      };
     } else {
       setEthersProvider(null);
       setSigner(null);

@@ -15,7 +15,7 @@ contract MockUSDC is ERC20, Ownable {
      * @dev Constructor
      * Initializes the contract with a name and symbol
      */
-    constructor() ERC20("USD Coin", "USDC") Ownable(msg.sender) {}
+    constructor() ERC20("USD Coin", "USDC") Ownable() {}
 
     /**
      * @dev Returns the number of decimals used for token

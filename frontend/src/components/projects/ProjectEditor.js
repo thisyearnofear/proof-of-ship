@@ -41,7 +41,7 @@ export default function ProjectEditor({ projectSlug }) {
     website: "",
     twitter: "",
     discord: "",
-    teamMembers: [""],
+    teamMembers: [{ address: "", share: 100 }],
     tags: "",
     isOpenSource: true,
     lookingForFunding: false,
@@ -103,8 +103,10 @@ export default function ProjectEditor({ projectSlug }) {
           discord: project.discord || "",
           teamMembers:
             Array.isArray(project.teamMembers) && project.teamMembers.length
-              ? project.teamMembers
-              : [""],
+              ? project.teamMembers.map(m => 
+                  typeof m === 'string' ? { address: m, share: 0 } : m
+                )
+              : [{ address: "", share: 100 }],
           tags: Array.isArray(project.tags) ? project.tags.join(", ") : project.tags || "",
           isOpenSource:
             project.isOpenSource === undefined ? true : Boolean(project.isOpenSource),
@@ -195,6 +197,12 @@ export default function ProjectEditor({ projectSlug }) {
     if (!form.contractAddress.trim().startsWith("0x")) {
       return "A valid contract address is required";
     }
+    
+    const totalShares = (form.teamMembers || []).reduce((sum, m) => sum + (parseInt(m.share) || 0), 0);
+    if (totalShares !== 100) {
+      return `Total team shares must equal 100% (currently ${totalShares}%)`;
+    }
+    
     return null;
   };
 
@@ -232,7 +240,12 @@ export default function ProjectEditor({ projectSlug }) {
       website: form.website.trim() || null,
       twitter: form.twitter.trim() || null,
       discord: form.discord.trim() || null,
-      teamMembers: (form.teamMembers || []).map((t) => String(t).trim()).filter(Boolean),
+      teamMembers: (form.teamMembers || [])
+        .filter((t) => t.address && t.address.trim())
+        .map((t) => ({
+          address: String(t.address).trim(),
+          share: parseInt(t.share) || 0
+        })),
       tags: String(form.tags || "")
         .split(",")
         .map((t) => t.trim())
@@ -545,41 +558,69 @@ export default function ProjectEditor({ projectSlug }) {
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-gray-900">Team members</div>
+            <div className="text-sm font-medium text-gray-900">Fleet Management (Team Members & Shares)</div>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => addArrayItem("teamMembers")}
+              onClick={() => addArrayItem("teamMembers", { address: "", share: 0 })}
               leftIcon={<PlusIcon className="w-4 h-4" />}
             >
-              Add
+              Add Member
             </Button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {form.teamMembers.map((member, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <Input
-                  value={member}
-                  onChange={(e) =>
-                    updateArrayItem("teamMembers", idx, e.target.value)
-                  }
-                  placeholder="Name / GitHub / Farcaster"
-                  className="flex-1"
-                />
-                {form.teamMembers.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => removeArrayItem("teamMembers", idx)}
-                    leftIcon={<TrashIcon className="w-4 h-4" />}
-                  >
-                    Remove
-                  </Button>
-                )}
+              <div key={idx} className="flex flex-col sm:flex-row items-start gap-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div className="flex-1 w-full">
+                  <Input
+                    label="Wallet Address / GitHub"
+                    value={member.address || ""}
+                    onChange={(e) =>
+                      updateArrayItem("teamMembers", idx, { ...member, address: e.target.value })
+                    }
+                    placeholder="0x... or username"
+                  />
+                </div>
+                <div className="w-full sm:w-32">
+                  <Input
+                    label="Share %"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={member.share || 0}
+                    onChange={(e) =>
+                      updateArrayItem("teamMembers", idx, { ...member, share: parseInt(e.target.value) || 0 })
+                    }
+                    placeholder="%"
+                  />
+                </div>
+                <div className="sm:pt-7">
+                  {form.teamMembers.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => removeArrayItem("teamMembers", idx)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
+          </div>
+          <div className="mt-3 flex justify-between items-center">
+            <p className="text-xs text-gray-500">
+              Set 100% for single developers. For teams, total must equal 100% for automated splits.
+            </p>
+            <div className={`text-sm font-bold ${
+              form.teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0) === 100 
+              ? 'text-green-600' : 'text-orange-600'
+            }`}>
+              Total Share: {form.teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0)}%
+            </div>
           </div>
         </div>
       </Card>

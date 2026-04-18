@@ -121,19 +121,35 @@ export const BuilderCreditProvider = ({ children }) => {
         }
     }, [coreContract, account, loadUserData]);
 
-    const requestFunding = async (score, githubUrl, projectName, milestoneDescriptions, milestoneRewards, hackathonIds = [1]) => {
+    const requestFunding = async (githubUrl, projectName, milestoneDescriptions, milestoneRewards, hackathonIds = [1], teamMembers = [], teamShares = []) => {
         if (!coreContract) throw new Error("Contract not initialized");
         
         const rewardsUnits = milestoneRewards.map(r => ethers.utils.parseUnits(r.toString(), 6));
         
-        const tx = await coreContract.requestFunding(
-            hackathonIds,
-            score,
-            githubUrl,
-            projectName,
-            milestoneDescriptions,
-            rewardsUnits
-        );
+        let tx;
+        if (teamMembers && teamMembers.length > 0) {
+            // Convert teamShares (e.g. 50%) to basis points (e.g. 5000)
+            const teamSharesBP = teamShares.map(s => Math.round(parseFloat(s) * 100));
+            
+            tx = await coreContract.requestFundingWithTeam(
+                hackathonIds,
+                githubUrl,
+                projectName,
+                milestoneDescriptions,
+                rewardsUnits,
+                teamMembers,
+                teamSharesBP
+            );
+        } else {
+            tx = await coreContract.requestFunding(
+                hackathonIds,
+                githubUrl,
+                projectName,
+                milestoneDescriptions,
+                rewardsUnits
+            );
+        }
+        
         const receipt = await tx.wait();
         
         // Find ProjectCreated event

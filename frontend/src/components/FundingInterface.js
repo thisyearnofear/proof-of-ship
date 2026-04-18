@@ -47,6 +47,9 @@ export default function FundingInterface({
   const [milestones, setMilestones] = useState([
     { description: '', reward: '' }
   ]);
+  const [teamMembers, setTeamMembers] = useState([
+    { address: account || '', share: 100 }
+  ]);
   const [showProjectForm, setShowProjectForm] = useState(false);
 
   const availableHackathons = [
@@ -138,6 +141,23 @@ export default function FundingInterface({
     setMilestones(updatedMilestones);
   };
   
+  // Team member functions
+  const addTeamMember = () => {
+    setTeamMembers([...teamMembers, { address: '', share: 0 }]);
+  };
+  
+  const removeTeamMember = (index) => {
+    const updated = [...teamMembers];
+    updated.splice(index, 1);
+    setTeamMembers(updated);
+  };
+  
+  const updateTeamMember = (index, field, value) => {
+    const updated = [...teamMembers];
+    updated[index][field] = value;
+    setTeamMembers(updated);
+  };
+  
   const validateProjectForm = () => {
     if (!githubUrl) {
       setError('GitHub URL is required');
@@ -160,6 +180,12 @@ export default function FundingInterface({
     const totalRewards = milestones.reduce((sum, m) => sum + Number(m.reward), 0);
     if (totalRewards > fundingAmount) {
       setError(`Total milestone rewards (${totalRewards}) cannot exceed funding amount (${fundingAmount})`);
+      return false;
+    }
+
+    const totalShares = teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0);
+    if (totalShares !== 100) {
+      setError(`Total team shares must equal 100% (currently ${totalShares}%)`);
       return false;
     }
     
@@ -195,14 +221,19 @@ export default function FundingInterface({
       const milestoneDescriptions = milestones.map(m => m.description);
       const milestoneRewards = milestones.map(m => m.reward);
       
+      const memberAddresses = teamMembers.map(m => m.address);
+      const memberShares = teamMembers.map(m => m.share);
+      
       // Request funding with all required parameters
       const result = await requestFunding(
-        creditScore,
+        null, // walletId (optional)
         githubUrl,
         projectName,
         milestoneDescriptions,
         milestoneRewards,
-        selectedHackathons
+        selectedHackathons,
+        memberAddresses,
+        memberShares
       );
       
       // Pledge prize if provided
@@ -468,6 +499,70 @@ export default function FundingInterface({
                 
                 <div className="mt-2 text-sm text-gray-600">
                   Total milestone rewards: ${milestones.reduce((sum, m) => sum + (Number(m.reward) || 0), 0)} / ${fundingAmount}
+                </div>
+              </div>
+
+              {/* Fleet Management (Team Members) */}
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Fleet Management (Team Shares)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addTeamMember}
+                    className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Add Member
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {teamMembers.map((member, index) => (
+                    <div key={index} className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <div className="flex-1">
+                        <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Wallet Address</label>
+                        <input
+                          type="text"
+                          value={member.address}
+                          onChange={(e) => updateTeamMember(index, 'address', e.target.value)}
+                          placeholder="0x..."
+                          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="w-1/4">
+                        <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Share %</label>
+                        <input
+                          type="number"
+                          value={member.share}
+                          onChange={(e) => updateTeamMember(index, 'share', e.target.value)}
+                          placeholder="%"
+                          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      {teamMembers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeTeamMember(index)}
+                          className="mt-5 inline-flex items-center p-1 text-red-500 hover:bg-red-50 rounded-full"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-2 flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Milestone payouts will be split automatically.</span>
+                  <div className={`text-xs font-bold ${
+                    teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0) === 100 
+                    ? 'text-green-600' : 'text-orange-600'
+                  }`}>
+                    Total: {teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0)}%
+                  </div>
                 </div>
               </div>
             </div>

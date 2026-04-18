@@ -65,6 +65,11 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 completedAt;
     }
     
+    struct TeamMember {
+        address member;
+        uint256 share; // in basis points, e.g., 5000 = 50%
+    }
+    
     struct MilestoneApproval {
         mapping(address => bool) hasApproved;
         uint8 approvalCount;
@@ -85,6 +90,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     mapping(uint256 => uint256) public totalProjectBacking;
     mapping(uint256 => uint256) public projectPledgedPrize;
     mapping(uint256 => Milestone[]) public projectMilestones;
+    mapping(uint256 => TeamMember[]) public projectTeams;
     mapping(uint256 => mapping(uint256 => MilestoneApproval)) public approvals;
     mapping(address => uint256[]) public developerProjects;
     mapping(address => uint256[]) public backerProjects;
@@ -208,6 +214,19 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         nonReentrant 
         returns (uint256) 
     {
+        return _requestFunding(hackathonIds, githubUrl, projectName, milestoneDescriptions, milestoneAmounts);
+    }
+
+    function _requestFunding(
+        uint256[] calldata hackathonIds,
+        string calldata githubUrl,
+        string calldata projectName,
+        string[] calldata milestoneDescriptions,
+        uint256[] calldata milestoneAmounts
+    ) 
+        internal 
+        returns (uint256) 
+    {
         require(bytes(githubUrl).length > 0, "GitHub URL cannot be empty");
         require(bytes(projectName).length > 0, "Project name cannot be empty");
         require(milestoneDescriptions.length == milestoneAmounts.length, "Mismatched milestone arrays");
@@ -263,6 +282,60 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         
         emit ProjectCreated(projectId, hackathonIds, msg.sender, totalAmount, projectName);
         
+        return projectId;
+    }
+
+    /**
+     * @dev Requests funding for a project with a team
+     * @param hackathonIds IDs of the hackathons
+     * @param githubUrl GitHub URL of the project
+     * @param projectName Name of the project
+     * @param milestoneDescriptions Array of milestone descriptions
+     * @param milestoneAmounts Array of milestone amounts
+     * @param teamMembers Array of team member addresses
+     * @param teamShares Array of team member shares in basis points
+     * @return projectId ID of the created project
+     */
+    function requestFundingWithTeam(
+        uint256[] calldata hackathonIds,
+        string calldata githubUrl,
+        string calldata projectName,
+        string[] calldata milestoneDescriptions,
+        uint256[] calldata milestoneAmounts,
+        address[] calldata teamMembers,
+        uint256[] calldata teamShares
+    ) 
+        external 
+        whenNotPaused 
+        nonReentrant 
+        returns (uint256) 
+    {
+        require(teamMembers.length == teamShares.length, "Mismatched team arrays");
+        require(teamMembers.length <= 10, "Too many team members");
+        
+        uint256 totalShares = 0;
+        for (uint i = 0; i < teamShares.length; i++) {
+            totalShares += teamShares[i];
+        }
+        require(totalShares == 10000, "Total shares must be 100%");
+
+        // Create the project using the internal logic
+        uint256 projectId = _requestFunding(
+            hackathonIds,
+            githubUrl,
+            projectName,
+            milestoneDescriptions,
+            milestoneAmounts
+        );
+
+        // Record the team
+        for (uint i = 0; i < teamMembers.length; i++) {
+            projectTeams[projectId].push(TeamMember({
+                member: teamMembers[i],
+                share: teamShares[i]
+            }));
+        }
+
         return projectId;
     }
     
@@ -341,8 +414,25 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
             project.isActive = false;
         }
         
-        // Transfer the milestone amount to the developer
-        usdcToken.safeTransfer(project.developer, milestone.amount);
+        // Split the milestone amount if a team is configured
+        TeamMember[] storage team = projectTeams[projectId];
+        if (team.length > 0) {
+            uint256 remainingAmount = milestone.amount;
+            for (uint i = 0; i < team.length; i++) {
+                uint256 memberAmount = (milestone.amount * team[i].share) / 10000;
+                if (memberAmount > 0) {
+                    usdcToken.safeTransfer(team[i].member, memberAmount);
+                    remainingAmount -= memberAmount;
+                }
+            }
+            // Dust/rounding handling: send remaining to developer
+            if (remainingAmount > 0) {
+                usdcToken.safeTransfer(project.developer, remainingAmount);
+            }
+        } else {
+            // Transfer the milestone amount to the developer
+            usdcToken.safeTransfer(project.developer, milestone.amount);
+        }
         
         // Update developer's reputation
         CreditLine storage creditLine = creditLines[project.developer];

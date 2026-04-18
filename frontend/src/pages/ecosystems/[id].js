@@ -7,6 +7,7 @@ import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 import { ProjectDetailCard, ProjectGridCard, ProjectListItem } from '@/components/projects/ProjectCard';
 import TrendingProjects from '@/components/projects/TrendingProjects';
+import PortLeaderboard from '@/components/ecosystems/PortLeaderboard';
 import { getEcosystemConfig } from '@/config/ecosystems';
 import { filterProjects, sortProjects, calculateProjectStats } from '@/utils/projectUtils';
 import {
@@ -110,6 +111,72 @@ export default function EcosystemPage() {
         <Card className="p-4 text-center"><div className="text-2xl font-bold text-blue-600">{stats.totalCommits}</div><div className="text-sm text-gray-600">Commits</div></Card>
         <Card className="p-4 text-center"><div className="text-2xl font-bold text-purple-600">{stats.averageHealth}%</div><div className="text-sm text-gray-600">Avg Health</div></Card>
         <Card className="p-4 text-center"><div className="text-2xl font-bold text-orange-600">{stats.totalStars}</div><div className="text-sm text-gray-600">Stars</div></Card>
+      </div>
+
+      {/* Port Details & Leaderboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Port Identity & Rules */}
+          <Card className="p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <span className="mr-2">📜</span> Port Rules & Requirements
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ul className="space-y-3">
+                {ecosystemConfig.submissionRequirements?.map((req, i) => (
+                  <li key={i} className="flex items-start text-sm text-gray-600">
+                    <span className="text-blue-500 mr-2 mt-0.5">•</span>
+                    {req}
+                  </li>
+                ))}
+              </ul>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">Ecosystem Benefits</h4>
+                <ul className="space-y-2">
+                  {ecosystemConfig.features?.map((f, i) => (
+                    <li key={i} className="text-xs text-blue-600 flex items-center">
+                      <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2"></span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          {/* Trade Winds (Boosts) */}
+          {ecosystemConfig.tradeWinds && ecosystemConfig.tradeWinds.length > 0 && (
+            <Card className="p-6 border-2 border-orange-100 bg-orange-50/30">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <span className="mr-2">🌬️</span> Active Trade Winds
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {ecosystemConfig.tradeWinds.map((boost, i) => (
+                  <div key={i} className="bg-white p-4 rounded-lg border border-orange-100 shadow-sm flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wider">
+                          {boost.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">{boost.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {boost.boost}x
+                      </div>
+                      <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Boost</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <div className="lg:col-span-1">
+          <PortLeaderboard projects={projects} ecosystem={id} />
+        </div>
       </div>
 
       {/* Controls */}

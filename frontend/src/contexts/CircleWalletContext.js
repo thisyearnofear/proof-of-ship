@@ -244,7 +244,7 @@ export const CircleWalletProvider = ({ children }) => {
     }
   };
 
-  const requestFunding = async (walletId, creditScore, githubUrl, projectName, milestoneDescriptions, milestoneRewards, hackathonIds) => {
+  const requestFunding = async (walletId, githubUrl, projectName, milestoneDescriptions, milestoneRewards, hackathonIds, teamMembers, teamShares) => {
     try {
       setLoading(true);
       
@@ -257,12 +257,13 @@ export const CircleWalletProvider = ({ children }) => {
       
       // Request funding through smart contract
       const result = await builderCredit.requestFunding(
-        creditScore,
         githubUrl,
         projectName,
         milestoneDescriptions,
         milestoneRewards,
-        hackathonIds
+        hackathonIds,
+        teamMembers,
+        teamShares
       );
       
       // Record the funding in Circle's system

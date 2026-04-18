@@ -14,7 +14,7 @@ const useBuilderCreditInternal = () => {
     const { useBuilderCredit } = require('./BuilderCreditContext');
     return useBuilderCredit();
   } catch (err) {
-    console.warn("BuilderCredit context not available yet", err);
+    // BuilderCredit context not ready yet
     return null;
   }
 };
@@ -59,7 +59,7 @@ export const CircleWalletProvider = ({ children }) => {
       const status = await statusResponse.json();
       
       if (!status.success) {
-        console.warn('Circle API status check failed:', status.error);
+        // Circle API not available
         setError(status.error || 'Circle API connection failed');
         return;
       }
@@ -75,13 +75,13 @@ export const CircleWalletProvider = ({ children }) => {
       try {
         await getWallets();
       } catch (err) {
-        console.warn('Failed to load existing wallets:', err);
+        // Wallets unavailable without Circle API
         // Don't block initialization for this error
       }
       
 
     } catch (err) {
-      console.error('Failed to initialize Circle Wallet SDK:', err);
+      // Circle features unavailable — API key not configured
       setError(err.message);
     } finally {
       setLoading(false);

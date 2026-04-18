@@ -42,7 +42,6 @@ export default function EcosystemSection({
   const ecosystemConfig = getEcosystemConfig(ecosystem);
   
   if (!ecosystemConfig) {
-    console.warn(`Unknown ecosystem: ${ecosystem}`);
     return null;
   }
 

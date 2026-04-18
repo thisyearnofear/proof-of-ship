@@ -66,7 +66,7 @@ class EnhancedDataService extends DataService {
 
       return projects;
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      // Firebase permissions may block unauthenticated reads
       throw error;
     }
   }
@@ -137,7 +137,7 @@ class EnhancedDataService extends DataService {
 
       return Array.from(merged.values());
     } catch (error) {
-      console.error("Failed to load Celo projects:", error);
+      // Firebase permissions may block unauthenticated reads
       return [];
     }
   }
@@ -187,7 +187,7 @@ class EnhancedDataService extends DataService {
 
       return projects;
     } catch (error) {
-      console.error('Failed to load Base projects:', error);
+      // Firebase permissions may block unauthenticated reads
       return [];
     }
   }
@@ -236,7 +236,7 @@ class EnhancedDataService extends DataService {
 
       return projects;
     } catch (error) {
-      console.error('Failed to load Linea projects:', error);
+      // Firebase permissions may block unauthenticated reads
       return [];
     }
   }

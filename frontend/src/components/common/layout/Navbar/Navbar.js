@@ -5,8 +5,6 @@ import {
   UserCircleIcon,
   CreditCardIcon,
   ChartBarIcon,
-  PlusIcon,
-  HomeIcon,
   GlobeAltIcon,
   CalculatorIcon,
   ShieldCheckIcon,
@@ -18,37 +16,26 @@ import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
 
 const navigation = [
-  // Explore — for everyone
+  // Explore
   { 
     name: "Projects", 
     href: "/shippers", 
     icon: ChartBarIcon,
     group: "explore",
-    description: "Explore ecosystem projects"
   },
   { 
     name: "Hackathons", 
     href: "/hackathons", 
     icon: GlobeAltIcon,
     group: "explore",
-    description: "Track hackathons across ecosystems"
   },
-  { 
-    name: "Fleet Map", 
-    href: "/fleet", 
-    icon: GlobeAltIcon,
-    group: "explore",
-    description: "Global fleet visualization",
-    highlight: true
-  },
-  // Build — for builders
+  // Build — auth required
   { 
     name: "Credit", 
     href: "/credit", 
     icon: CreditCardIcon,
     group: "build",
-    description: "Your credit score and funding",
-    highlight: true
+    auth: true,
   },
   { 
     name: "Dashboard", 
@@ -56,34 +43,26 @@ const navigation = [
     icon: ChartBarIcon,
     group: "build",
     auth: true,
-    description: "Your projects and funding"
   },
-  { 
-    name: "Feedback", 
-    href: "/feedback", 
-    icon: ChartBarIcon,
-    group: "build",
-    description: "Submit and review feedback"
-  },
-  // Back — for backers
+  // Back
   { 
     name: "Expedition", 
     href: "/expedition", 
     icon: GlobeAltIcon,
     group: "back",
-    description: "Scout and back projects",
-    highlight: true
   },
   { 
     name: "Portfolio", 
     href: "/backer-portfolio", 
     icon: UserCircleIcon,
     group: "back",
-    description: "Track your backed projects"
+    auth: true,
   },
   // Utility — hidden from main nav
   { name: "About", href: "/about", hidden: true },
   { name: "Submit Project", href: "/projects/new", hidden: true, auth: true },
+  { name: "Feedback", href: "/feedback", hidden: true },
+  { name: "Fleet Map", href: "/fleet", hidden: true },
 ];
 
 function classNames(...classes) {
@@ -136,7 +115,6 @@ export default function Navbar() {
                       />
                       <div className="hidden sm:block">
                         <div className="text-base sm:text-lg font-bold text-gray-900">Proof of Ship</div>
-                        <div className="text-xs text-gray-500">Predictive Credit Platform</div>
                       </div>
                     </a>
                   </div>
@@ -153,34 +131,24 @@ export default function Navbar() {
                           className={classNames(
                             pathname === item.href
                               ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : item.highlight
-                              ? "text-blue-600 hover:bg-blue-50 hover:text-blue-700 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50"
                               : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-transparent",
                             "group flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-all duration-200"
                           )}
                           aria-current={
                             pathname === item.href ? "page" : undefined
                           }
-                          title={item.description}
                         >
                           {item.icon && (
                             <item.icon 
                               className={classNames(
                                 pathname === item.href
                                   ? "text-blue-600"
-                                  : item.highlight
-                                  ? "text-blue-500"
                                   : "text-gray-400 group-hover:text-gray-600",
                                 "mr-2 h-4 w-4"
                               )}
                             />
                           )}
                           {item.name}
-                          {item.highlight && (
-                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              New
-                            </span>
-                          )}
                         </a>
                       ))}
                   </div>
@@ -188,7 +156,7 @@ export default function Navbar() {
 
                 <div className="hidden sm:ml-4 sm:flex sm:items-center gap-2 sm:gap-4">
                   <a
-                    href="https://github.com/thisyearnofear/POS-dashboard"
+                    href="https://github.com/thisyearnofear/proof-of-ship"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="rounded-full bg-white p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-w-touch min-h-touch flex items-center justify-center"
@@ -391,8 +359,6 @@ export default function Navbar() {
                       className={classNames(
                         pathname === item.href
                           ? "bg-blue-100 text-blue-700"
-                          : item.highlight
-                          ? "bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
                         "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium min-h-touch transition-colors"
                       )}
@@ -403,19 +369,12 @@ export default function Navbar() {
                           className={classNames(
                             pathname === item.href
                               ? "text-blue-600"
-                              : item.highlight
-                              ? "text-blue-500"
                               : "text-gray-400",
                             "mr-3 h-4 w-4 sm:h-5 sm:w-5"
                           )}
                         />
                       )}
                       <span className="flex-1">{item.name}</span>
-                      {item.highlight && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          New
-                        </span>
-                      )}
                     </Disclosure.Button>
                   ))}
                   

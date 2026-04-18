@@ -135,6 +135,27 @@ function PortfolioTab() {
         for (const id of projectIds) {
           try {
             const project = await coreContract.projects(id);
+            // Read this backer's actual backing from the contract
+            const backings = [];
+            let idx = 0;
+            try {
+              while (true) {
+                const b = await coreContract.projectBackings(id, idx);
+                backings.push(b);
+                idx++;
+              }
+            } catch (e) { /* end of array */ }
+
+            const myBacking = backings.find(
+              (b) => b.backer.toLowerCase() === account.toLowerCase()
+            );
+            const stakeAmount = myBacking
+              ? parseFloat(ethers.utils.formatUnits(myBacking.amount, 6))
+              : 0;
+            const multiplier = myBacking
+              ? myBacking.multiplier.toNumber() / 100
+              : 0;
+
             const detail = {
               id: id.toString(),
               name: project.name,
@@ -143,14 +164,14 @@ function PortfolioTab() {
               milestonesCompleted: project.milestonesCompleted.toNumber(),
               milestonesCount: project.milestonesCount.toNumber(),
               fundingAmount: ethers.utils.formatUnits(project.fundingAmount, 6),
-              myStake: (200 + Math.random() * 800).toFixed(2),
-              myMultiplier: (1.5 + Math.random() * 1.5).toFixed(1),
-              potentialReturn: (1500 + Math.random() * 1000).toFixed(2),
-              health: Math.floor(Math.random() * 40) + 60,
+              myStake: stakeAmount.toFixed(2),
+              myMultiplier: multiplier.toFixed(1),
+              potentialReturn: (stakeAmount * multiplier).toFixed(2),
+              claimed: myBacking?.claimed || false,
             };
             details.push(detail);
-            if (!project.isActive) {
-              roiHistory.push({ projectId: detail.id, amountStaked: parseFloat(detail.myStake), amountReturned: parseFloat(detail.potentialReturn), timestamp: new Date().toISOString() });
+            if (!project.isActive && stakeAmount > 0) {
+              roiHistory.push({ projectId: detail.id, amountStaked: stakeAmount, amountReturned: parseFloat(detail.potentialReturn), timestamp: new Date().toISOString() });
             }
           } catch (err) { /* skip failed project */ }
         }
@@ -256,10 +277,9 @@ function PortfolioTab() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <ShieldCheckIcon className={`w-4 h-4 ${project.health > 85 ? "text-green-500" : project.health > 70 ? "text-blue-500" : "text-yellow-500"}`} />
-                    Health: {project.health}%
-                  </div>
+                  <span className={`font-medium ${project.claimed ? "text-green-600" : "text-gray-500"}`}>
+                    {project.claimed ? "✓ Claimed" : "Pending"}
+                  </span>
                   <span className="font-medium text-indigo-600">{project.myMultiplier}x</span>
                 </div>
               </div>

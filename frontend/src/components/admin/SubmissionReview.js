@@ -12,6 +12,8 @@ import { useState } from 'react';
 import Button from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { StarIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { SparklesIcon } from '@heroicons/react/24/outline';
+import { useNanopayment } from '@/contexts/NanopaymentContext';
 
 export default function SubmissionReview({
   submission,
@@ -22,6 +24,8 @@ export default function SubmissionReview({
 }) {
   const [notes, setNotes] = useState(submission?.approvalNotes || '');
   const [showNotes, setShowNotes] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const { isInitialized, payForVerification, initializeWithDemo } = useNanopayment();
 
   const handleApprove = async () => {
     if (onApprove) {
@@ -32,6 +36,35 @@ export default function SubmissionReview({
   const handleReject = async () => {
     if (onReject) {
       await onReject(submission.id, notes);
+    }
+  };
+
+  const handleAIVerify = async () => {
+    if (!isInitialized) {
+      await initializeWithDemo();
+    }
+    
+    setIsVerifying(true);
+    try {
+      // Mocking 100 lines of code for the verification
+      const result = await payForVerification(submission.id, 100);
+      
+      if (result.success && result.data?.verification) {
+        const { approved, summary } = result.data.verification;
+        const aiNotes = `🤖 AI Verifier Agent: ${summary}`;
+        
+        setNotes(aiNotes);
+        
+        if (approved) {
+          if (onApprove) await onApprove(submission.id, aiNotes);
+        } else {
+          if (onReject) await onReject(submission.id, aiNotes);
+        }
+      }
+    } catch (error) {
+      console.error("AI Verification failed:", error);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -222,22 +255,39 @@ export default function SubmissionReview({
 
       {/* Action Buttons */}
       {submission.status === 'submitted' && (
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
           <Button
-            onClick={handleReject}
-            disabled={isLoading}
-            variant="outline"
-            className="flex-1 text-red-600 dark:text-red-400 border-red-600 dark:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+            onClick={handleAIVerify}
+            disabled={isLoading || isVerifying}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm border-indigo-600"
           >
-            {isLoading ? 'Processing...' : 'Reject'}
+            {isVerifying ? (
+              <span className="flex items-center gap-2">Streaming 0.01 USDC...</span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <SparklesIcon className="w-5 h-5" />
+                AI Auto-Verify (0.01 USDC)
+              </span>
+            )}
           </Button>
-          <Button
-            onClick={handleApprove}
-            disabled={isLoading}
-            className="flex-1"
-          >
-            {isLoading ? 'Processing...' : 'Approve & Reward'}
-          </Button>
+
+          <div className="flex gap-3">
+            <Button
+              onClick={handleReject}
+              disabled={isLoading || isVerifying}
+              variant="outline"
+              className="flex-1 text-red-600 dark:text-red-400 border-red-600 dark:border-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              {isLoading && !isVerifying ? 'Processing...' : 'Reject'}
+            </Button>
+            <Button
+              onClick={handleApprove}
+              disabled={isLoading || isVerifying}
+              className="flex-1"
+            >
+              {isLoading && !isVerifying ? 'Processing...' : 'Approve & Reward'}
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -1,12 +1,13 @@
 /**
  * Service Manager
  * Centralized service management and access
+ * Refactored to use BFF services (Phase 2A)
  */
 
-import { realCircleService } from "./RealCircleService";
+import { walletService } from "./walletService";
 import { realGitHubService } from "./RealGitHubService";
 import { realLiFiService } from "./RealLiFiService";
-import { apiConfigs, validateApiService } from "../config/environment";
+import { validateApiService } from "../config/environment";
 
 class ServiceManager {
   constructor() {
@@ -16,7 +17,9 @@ class ServiceManager {
 
   initializeServices() {
     // Register all services
-    this.services.set("circle", realCircleService);
+    // Note: realGitHubService already uses BFF route /api/github
+    // walletService uses BFF route /api/circle
+    this.services.set("circle", walletService);
     this.services.set("github", realGitHubService);
     this.services.set("lifi", realLiFiService);
   }
@@ -36,9 +39,13 @@ class ServiceManager {
    * Check if a service is available and configured
    */
   isServiceAvailable(name) {
+    // For BFF services, availability is usually true as long as the server handles tokens
     try {
       const service = this.getService(name);
-      return service.isConfigured();
+      if (typeof service.isConfigured === 'function') {
+          return service.isConfigured();
+      }
+      return true; 
     } catch (error) {
       return false;
     }
@@ -72,37 +79,6 @@ class ServiceManager {
   }
 
   /**
-   * Execute operation with service fallback
-   */
-  async withFallback(primaryService, fallbackService, operation) {
-    try {
-      const service = this.getService(primaryService);
-      if (service.isConfigured()) {
-        return await operation(service);
-      }
-    } catch (error) {
-      console.warn(`Primary service ${primaryService} failed:`, error.message);
-    }
-
-    // Try fallback service
-    if (fallbackService) {
-      try {
-        const fallback = this.getService(fallbackService);
-        if (fallback.isConfigured()) {
-          return await operation(fallback);
-        }
-      } catch (error) {
-        console.warn(
-          `Fallback service ${fallbackService} failed:`,
-          error.message
-        );
-      }
-    }
-
-    throw new Error(`No available service for operation`);
-  }
-
-  /**
    * Get Circle service
    */
   getCircleService() {
@@ -131,16 +107,17 @@ class ServiceManager {
 
     for (const [name, service] of this.services) {
       try {
+        const isConfigured = validateApiService(name);
         results[name] = {
-          configured: validateApiService(name),
-          available: service.isConfigured(),
+          configured: isConfigured,
+          available: this.isServiceAvailable(name),
           status: "healthy",
         };
 
-        // Try to ping service if it has a ping method
-        if (typeof service.ping === "function") {
-          await service.ping();
-          results[name].ping = "success";
+        // Try to ping service if it has a status/ping method
+        if (name === 'circle' && typeof service.getStatus === 'function') {
+            const status = await service.getStatus();
+            results[name].ping = status.success ? "success" : "failed";
         }
       } catch (error) {
         results[name] = {

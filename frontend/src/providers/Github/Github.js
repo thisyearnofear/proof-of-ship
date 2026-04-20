@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { useDataService } from "@/services/DataService";
-import repos from "../../../repos.json";
+import repos from "../../../../data/repos.json";
 
 // Load all repo JSON data from /data/github-data at runtime
 const emptyData = { issues: [], prs: [], releases: [], meta: {}, commits: [] };

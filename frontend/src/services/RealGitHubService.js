@@ -1,50 +1,78 @@
 /**
  * Real GitHub API Service
- * Actual implementation using GitHub's REST API
+ * Proxies all requests through the BFF route (/api/github/...)
+ * to keep GITHUB_TOKEN server-side only.
  */
 
 class RealGitHubService {
   constructor() {
-    this.apiKey = process.env.GITHUB_TOKEN;
-    this.baseUrl = "https://api.github.com";
+    // No API key stored client-side — all requests go through BFF
+    this.bffBaseUrl = "/api/github";
   }
 
   isConfigured() {
-    return !!this.apiKey;
+    // Always available — the BFF route handles the server-side token check
+    return true;
   }
 
+  /**
+   * Make a proxied GitHub API request through the BFF route
+   * @param {string} endpoint - GitHub API path (e.g. "/users/username")
+   * @param {Object} options - Fetch options (query params forwarded)
+   * @returns {Object} Parsed JSON data from GitHub
+   */
   async makeRequest(endpoint, options = {}) {
-    if (!this.isConfigured()) {
-      throw new Error("GitHub API token not configured");
+    // Parse query params out of the endpoint string (e.g. "/repos/o/r/pulls?state=all&per_page=10")
+    const parts = endpoint.replace(/^\//, "").split("?");
+    const pathOnly = parts[0];
+    const queryString = parts.length > 1 ? parts.slice(1).join("?") : null;
+
+    // Merge params from endpoint string and options.params
+    const allowedParams = ["state", "per_page", "page", "sort", "q", "since", "author"];
+    const params = new URLSearchParams();
+
+    // Parse params from the endpoint query string
+    if (queryString) {
+      const endpointParams = new URLSearchParams(queryString);
+      for (const [key, value] of endpointParams.entries()) {
+        if (allowedParams.includes(key)) {
+          params.set(key, value);
+        }
+      }
     }
 
-    const url = `${this.baseUrl}${endpoint}`;
-    const headers = {
-      Authorization: `token ${this.apiKey}`,
-      Accept: "application/vnd.github.v3+json",
-      "User-Agent": "Builder-Credit-Platform",
-      ...options.headers,
-    };
+    // Merge options.params (takes precedence)
+    if (options.params) {
+      for (const [key, value] of Object.entries(options.params)) {
+        if (allowedParams.includes(key)) {
+          params.set(key, value);
+        }
+      }
+    }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    const url = `${this.bffBaseUrl}/${pathOnly}`;
+    const finalQueryString = params.toString();
+    const fullUrl = finalQueryString ? `${url}?${finalQueryString}` : url;
+
+    const response = await fetch(fullUrl);
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
+      const errorBody = await response.json().catch(() => ({}));
       throw new Error(
-        `GitHub API error: ${response.status} ${response.statusText} - ${
-          error.message || "Unknown error"
-        }`
+        errorBody.error || `GitHub proxy error: ${response.status} ${response.statusText}`
       );
     }
 
-    return response.json();
+    const result = await response.json();
+    return result.data;
   }
 
+  /**
+   * Make a user-scoped request using the user's own GitHub token
+   * This bypasses the BFF since it uses the user's token, not the server's.
+   */
   async makeUserRequest(endpoint, userToken, options = {}) {
-    const url = `${this.baseUrl}${endpoint}`;
+    const url = `https://api.github.com${endpoint}`;
     const headers = {
       Authorization: `token ${userToken}`,
       Accept: "application/vnd.github.v3+json",
@@ -63,7 +91,6 @@ class RealGitHubService {
     if (!userToken) return false;
     try {
       const repoData = await this.makeUserRequest(`/repos/${owner}/${repo}`, userToken);
-      // repoData.permissions exists for the authenticated user
       const perms = repoData.permissions || {};
       return Boolean(perms.push || perms.admin || perms.maintain);
     } catch (e) {

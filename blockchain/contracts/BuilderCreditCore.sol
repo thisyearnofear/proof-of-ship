@@ -145,6 +145,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     );
     
     event ReputationUpdated(address indexed developer, uint256 oldReputation, uint256 newReputation);
+    event LoanRepaid(address indexed developer, uint256 amount);
     event FundsWithdrawn(address token, address to, uint256 amount);
     event CreditParametersUpdated(uint256 base, uint256 multiplier, uint256 max);
     
@@ -191,6 +192,45 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
 
         for (uint256 i = 0; i < _oracles.length; i++) {
             _setupRole(SCORER_ROLE, _oracles[i]);
+        }
+    }
+
+    /**
+     * @dev Repays a loan for a developer
+     * @param amount Amount of USDC to repay
+     */
+    function repayLoan(uint256 amount) external whenNotPaused nonReentrant {
+        require(amount > 0, "Amount must be greater than 0");
+        CreditLine storage creditLine = creditLines[msg.sender];
+        require(creditLine.active, "No active credit line");
+        require(amount <= creditLine.usedAmount, "Repayment exceeds used amount");
+
+        usdcToken.safeTransferFrom(msg.sender, address(this), amount);
+        
+        uint256 oldReputation = creditLine.reputation;
+        creditLine.usedAmount -= amount;
+        
+        // Reputation incentive: +1 rep for every 100 USDC repaid (rounded down)
+        uint256 repGain = amount / 100e6; 
+        if (repGain > 0) {
+            creditLine.reputation += repGain;
+            if (creditLine.reputation > MAX_CREDIT_SCORE) {
+                creditLine.reputation = MAX_CREDIT_SCORE;
+            }
+        }
+        
+        creditLine.lastUpdated = block.timestamp;
+
+        emit LoanRepaid(msg.sender, amount);
+        emit CreditLineUpdated(
+            msg.sender,
+            creditLine.totalAmount,
+            creditLine.usedAmount,
+            creditLine.reputation
+        );
+        
+        if (creditLine.reputation > oldReputation) {
+            emit ReputationUpdated(msg.sender, oldReputation, creditLine.reputation);
         }
     }
     /**

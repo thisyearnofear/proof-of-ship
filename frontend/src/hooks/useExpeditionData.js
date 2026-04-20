@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '@/lib/firebase/clientApp';
 
 export function useExpeditionData() {
   const [projects, setProjects] = useState([]);

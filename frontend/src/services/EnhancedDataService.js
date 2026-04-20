@@ -6,14 +6,13 @@
 import DataService from './DataService';
 import { db } from '../lib/firebase/clientApp';
 import { collection, getDocs, doc, getDoc, query, where, orderBy } from 'firebase/firestore';
-import repos from '../../repos.json';
 
 class EnhancedDataService extends DataService {
   constructor() {
     super();
     this.projectCache = new Map();
     this.ecosystemData = {
-      celo: { projects: repos, source: 'static' },
+      celo: { projects: [], source: 'dynamic' },
       base: { projects: [], source: 'dynamic' },
       linea: { projects: [], source: 'dynamic' }
     };
@@ -43,7 +42,7 @@ class EnhancedDataService extends DataService {
       let projects = {};
 
       if (ecosystem === 'all' || ecosystem === 'celo') {
-        // Load Celo projects with specified data types
+        // Load Celo projects from Firestore
         const celoProjects = await this.loadCeloProjects(celoDataTypes);
         projects.celo = celoProjects;
       }
@@ -72,38 +71,19 @@ class EnhancedDataService extends DataService {
   }
 
   /**
-   * Load Celo projects using existing infrastructure with configurable data types
+   * Load Celo projects from Firestore (projects_celo)
    */
   async loadCeloProjects(dataTypes = ["meta", "commits"]) {
     try {
-      // Use existing GitHub data loading with specified data types
-      const githubData = await this.loadAllGitHubData(repos, dataTypes);
-
-      // Enhance with ecosystem metadata
-      const enhancedProjects = repos.map((repo) => ({
-        ...repo,
-        ecosystem: "celo",
-        source: "static",
-        githubData: githubData[repo.slug] || {},
-        stats: this.calculateProjectStats(githubData[repo.slug] || {}),
-        lastUpdated: new Date().toISOString(),
-        dataTypes, // Track what data was loaded
-      }));
-
-      // Merge in any approved user submissions for Celo
-      const submittedRef = collection(db, "projects_celo");
-      const submittedQuery = query(
-        submittedRef,
-        where("status", "==", "approved"),
-        orderBy("createdAt", "desc")
-      );
-
-      const submittedSnap = await getDocs(submittedQuery);
-      const submittedProjects = [];
-
-      for (const docSnap of submittedSnap.docs) {
+      const celoRef = collection(db, "projects_celo");
+      // Load all projects from Firestore (not just approved ones, or filter by status if preferred)
+      const q = query(celoRef, orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      
+      const projects = [];
+      for (const docSnap of snapshot.docs) {
         const projectData = { id: docSnap.id, ...docSnap.data() };
-
+        
         if (projectData.owner && projectData.repo) {
           try {
             const gh = await this.fetchGitHubDataForProject(
@@ -114,16 +94,12 @@ class EnhancedDataService extends DataService {
             projectData.githubData = gh;
             projectData.stats = this.calculateProjectStats(gh);
           } catch (error) {
-            console.warn(
-              `Failed to fetch GitHub data for submitted Celo project ${projectData.slug}:`,
-              error
-            );
             projectData.githubData = {};
             projectData.stats = this.getDefaultStats();
           }
         }
 
-        submittedProjects.push({
+        projects.push({
           ...projectData,
           ecosystem: "celo",
           source: "dynamic",
@@ -131,13 +107,9 @@ class EnhancedDataService extends DataService {
         });
       }
 
-      const merged = new Map();
-      for (const p of enhancedProjects) merged.set(p.slug, p);
-      for (const p of submittedProjects) merged.set(p.slug, p);
-
-      return Array.from(merged.values());
+      return projects;
     } catch (error) {
-      // Firebase permissions may block unauthenticated reads
+      console.error("Failed to load Celo projects from Firestore:", error);
       return [];
     }
   }

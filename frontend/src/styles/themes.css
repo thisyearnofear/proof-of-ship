@@ -9,26 +9,41 @@
   --color-primary-hover: #2563eb;
   --color-primary-light: #dbeafe;
   --color-primary-dark: #1d4ed8;
+  --color-primary-rgb: 59 130 246;
+  --color-primary-hover-rgb: 37 99 235;
+  --color-primary-dark-rgb: 29 78 216;
   
   --color-secondary: #a855f7;
   --color-secondary-hover: #9333ea;
   --color-secondary-light: #e9d5ff;
   --color-secondary-dark: #7c3aed;
+  --color-secondary-rgb: 168 85 247;
+  --color-secondary-hover-rgb: 147 51 234;
+  --color-secondary-dark-rgb: 124 58 237;
   
   --color-success: #22c55e;
   --color-success-hover: #16a34a;
   --color-success-light: #dcfce7;
   --color-success-dark: #15803d;
+  --color-success-rgb: 34 197 94;
+  --color-success-hover-rgb: 22 163 74;
+  --color-success-dark-rgb: 21 128 61;
   
   --color-warning: #f59e0b;
   --color-warning-hover: #d97706;
   --color-warning-light: #fef3c7;
   --color-warning-dark: #b45309;
+  --color-warning-rgb: 245 158 11;
+  --color-warning-hover-rgb: 217 119 6;
+  --color-warning-dark-rgb: 180 83 9;
   
   --color-error: #ef4444;
   --color-error-hover: #dc2626;
   --color-error-light: #fee2e2;
   --color-error-dark: #b91c1c;
+  --color-error-rgb: 239 68 68;
+  --color-error-hover-rgb: 220 38 38;
+  --color-error-dark-rgb: 185 28 28;
   
   /* Semantic Colors */
   --color-background: #ffffff;

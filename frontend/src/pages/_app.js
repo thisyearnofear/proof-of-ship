@@ -1,21 +1,13 @@
 import React from "react";
 import localFont from "next/font/local";
 import sdk from "@farcaster/frame-sdk";
-import { EnhancedGithubProvider } from "@/providers/Github/EnhancedGithubProvider";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { MetaMaskProviderWrapper as MetaMaskProvider } from "@/contexts/MetaMaskContext";
-import { BuilderCreditProvider } from "@/contexts/BuilderCreditContext";
-import { ReputationProvider } from "@/contexts/ReputationContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { ToastProvider } from "@/components/common/Toast";
+import AppProviders from "@/providers/AppProviders";
 import { Navbar, Footer } from "@/components/common/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "@/styles/globals.css";
 import "@/styles/nautical.css";
 import "@/styles/themes.css";
-import "@/styles/utils.css";
 
-import NoSSR from "@/providers/NoSSR/NoSSR";
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
 import { initObservability } from "@/lib/observability";
 
@@ -49,57 +41,18 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <ErrorBoundary
-      name="App Root"
-      errorMessage="The application failed to load. Please refresh the page."
-    >
-      <NoSSR>
-        <ErrorBoundary
-          name="Theme Provider"
-          errorMessage="Theme system is unavailable."
-        >
-          <ThemeProvider>
-            <ErrorBoundary
-              name="Toast Provider"
-              errorMessage="Notification system is unavailable."
-            >
-              <ToastProvider position="top-right" maxToasts={5}>
-                <ErrorBoundary
-                  name="Auth Provider"
-                  errorMessage="Authentication service is unavailable."
-                >
-                  <MetaMaskProvider demand={false}>
-                    <BuilderCreditProvider>
-                        <ReputationProvider>
-                        <AuthProvider>
-                            <div
-                               className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
-                            >
-                              <ErrorBoundary
-                                name="Enhanced Github Provider"
-                                errorMessage="GitHub data service is unavailable."
-                            >
-                              <EnhancedGithubProvider>
-                                <Navbar />
-                                <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
-                                  <ErrorBoundary name="Page Component">
-                                    <Component {...pageProps} />
-                                  </ErrorBoundary>
-                              </main>
-                              <Footer />
-                            </EnhancedGithubProvider>
-                           </ErrorBoundary>
-                         </div>
-                       </AuthProvider>
-                     </ReputationProvider>
-                  </BuilderCreditProvider>
-                  </MetaMaskProvider>
-            </ErrorBoundary>
-            </ToastProvider>
+    <AppProviders>
+      <div
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
+      >
+        <Navbar />
+        <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
+          <ErrorBoundary name="Page Component">
+            <Component {...pageProps} />
           </ErrorBoundary>
-          </ThemeProvider>
-        </ErrorBoundary>
-      </NoSSR>
-    </ErrorBoundary>
+        </main>
+        <Footer />
+      </div>
+    </AppProviders>
   );
 }

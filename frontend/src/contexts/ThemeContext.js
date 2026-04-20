@@ -28,6 +28,8 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     if (mounted) {
       document.documentElement.setAttribute('data-theme', theme);
+      // Toggle 'dark' class for Tailwind dark: variant support
+      document.documentElement.classList.toggle('dark', theme === 'dark');
       localStorage.setItem('pos-dashboard-theme', theme);
     }
   }, [theme, mounted]);

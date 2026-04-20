@@ -6,6 +6,9 @@
 // Layout Components
 export { default as ThemeToggle } from './ThemeToggle';
 
+// Navigation Components
+export { default as TabBar } from './TabBar';
+
 // Form Components
 export { 
   default as Input,
@@ -115,9 +118,6 @@ export {
   IllustrationProvider,
   useIllustration
 } from './illustrations';
-
-// Re-export design tokens for component usage
-export { default as tokens } from '../../styles/tokens';
 
 // Component variants and utilities
 export const componentVariants = {

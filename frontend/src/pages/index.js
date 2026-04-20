@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
+import ScoreBar from "@/components/common/ScoreBar";
 import {
   ChartBarIcon,
   CreditCardIcon,
@@ -182,7 +183,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-primary mb-4 sm:mb-6 leading-tight">
               Predictive Credit:
               <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                 {" "}
@@ -191,7 +192,7 @@ export default function LandingPage() {
               <br /> Prize-Collateralized
             </h1>
 
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
               The first liquidity loop where market confidence in your ability to ship 
               directly determines your credit limit. Borrow against your future prizes.
             </p>
@@ -214,7 +215,7 @@ export default function LandingPage() {
               </Button>
             </div>
 
-            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-gray-500 px-4 sm:px-0">
+            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-secondary px-4 sm:px-0">
               <div className="flex items-center gap-2">
                 <span className="text-green-500">🌐</span>
                 <span>Subdomain portfolio</span>
@@ -235,10 +236,10 @@ export default function LandingPage() {
       {/* User Journey Tabs */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-12 sm:py-16">
         <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
             🚢 All Hands on Deck
           </h2>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
+          <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
             Whether you're sailing solo, commanding a fleet, or funding
             expeditions - every role has a place when you prove you ship.
           </p>
@@ -253,8 +254,8 @@ export default function LandingPage() {
                 onClick={() => setActiveTab(key)}
                 className={`px-3 sm:px-6 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-touch ${
                   activeTab === key
-                    ? "bg-white text-blue-600 shadow-sm border border-blue-200"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "bg-surface text-blue-600 shadow-sm border border-blue-200"
+                    : "text-secondary hover:text-primary"
                 }`}
               >
                 {userJourneys[key].title}
@@ -265,10 +266,10 @@ export default function LandingPage() {
 
         {/* Active Tab Content */}
         <div className="text-center mb-6 sm:mb-8">
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 px-4 sm:px-0">
+          <h3 className="text-xl sm:text-2xl font-bold text-primary mb-2 px-4 sm:px-0">
             {userJourneys[activeTab].title}
           </h3>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
+          <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
             {userJourneys[activeTab].subtitle}
           </p>
         </div>
@@ -282,21 +283,21 @@ export default function LandingPage() {
               <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4 shadow-lg">
                 {index + 1}
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{step.title}</h4>
-              <p className="text-gray-600 text-xs sm:text-sm">{step.desc}</p>
+              <h4 className="font-semibold text-primary mb-2 text-sm sm:text-base">{step.title}</h4>
+              <p className="text-secondary text-xs sm:text-sm">{step.desc}</p>
             </Card>
           ))}
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-white py-12 sm:py-16 border-t border-slate-200">
+      <div className="bg-surface py-12 sm:py-16 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
               ⚡ Why Hackathons Need This
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
+            <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
               Solving the three biggest problems that sink great hackathon
               projects
             </p>
@@ -309,10 +310,10 @@ export default function LandingPage() {
                 className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-blue-300 border border-slate-200 nautical-card lighthouse-beam"
               >
                 <feature.icon className="w-10 sm:w-12 h-10 sm:h-12 text-blue-600 mx-auto mb-3 sm:mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
+                <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-xs sm:text-sm">{feature.description}</p>
+                <p className="text-secondary text-xs sm:text-sm">{feature.description}</p>
               </Card>
             ))}
           </div>
@@ -323,10 +324,10 @@ export default function LandingPage() {
       <div className="py-12 sm:py-16 bg-slate-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
               🗺️ Chart Your Course
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-gray-600 px-4 sm:px-0">
+            <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
               Navigate through different blockchain territories and track your
               expedition's progress
             </p>
@@ -336,7 +337,7 @@ export default function LandingPage() {
             {ecosystems.map((ecosystem) => (
               <Card
                 key={ecosystem.id}
-                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-slate-200 hover:border-blue-300 bg-white nautical-card anchor-accent"
+                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-slate-200 hover:border-blue-300 bg-surface nautical-card anchor-accent"
                 onClick={() => router.push("/shippers") }
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
@@ -346,13 +347,13 @@ export default function LandingPage() {
                     {ecosystem.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base break-words">
+                    <h3 className="font-semibold text-primary text-sm sm:text-base break-words">
                       {ecosystem.name}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-500">{ecosystem.count}</p>
+                    <p className="text-xs sm:text-sm text-secondary">{ecosystem.count}</p>
                   </div>
                 </div>
-                <p className="text-gray-600 text-xs sm:text-sm mb-4">
+                <p className="text-secondary text-xs sm:text-sm mb-4">
                   {ecosystem.description}
                 </p>
                 <div className="flex items-center text-blue-600 text-xs sm:text-sm font-medium min-h-touch">
@@ -388,7 +389,7 @@ export default function LandingPage() {
           <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
             <Button
               onClick={handleGetStarted}
-              className="bg-white text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
+              className="bg-surface text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
             >
               🚢 Launch Your Expedition
             </Button>
@@ -396,7 +397,7 @@ export default function LandingPage() {
             <Button
               onClick={() => router.push("/about")}
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
+              className="border-white text-white hover:bg-surface hover:text-blue-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
             >
               📖 Read the Captain's Log
             </Button>

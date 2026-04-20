@@ -18,7 +18,7 @@ import {
   limit,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase'; // Adjust path as needed
+import { db } from '@/lib/firebase/clientApp';
 import { sanitizeCampaign, validateCampaign } from '@/schemas/campaign';
 
 export default function useCampaigns() {

@@ -16,7 +16,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '@/lib/firebase/clientApp';
 import { sanitizePayout, validatePayout } from '@/schemas/tokenAllocation';
 
 export default function usePayouts() {

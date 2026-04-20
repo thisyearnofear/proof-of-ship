@@ -17,7 +17,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase'; // Adjust path as needed
+import { db } from '@/lib/firebase/clientApp';
 import { sanitizeSubmission, validateCampaignSubmission } from '@/schemas/campaign';
 
 export default function useCampaignSubmissions() {

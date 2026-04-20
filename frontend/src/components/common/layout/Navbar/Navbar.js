@@ -32,17 +32,6 @@ const navigation = [
     href: "/back", 
     icon: ChartBarIcon,
   },
-  // Hidden — still accessible via URL
-  { name: "About", href: "/about", hidden: true },
-  { name: "Submit Project", href: "/projects/new", hidden: true, auth: true },
-  { name: "Feedback", href: "/feedback", hidden: true },
-  { name: "Fleet Map", href: "/fleet", hidden: true },
-  { name: "Projects", href: "/shippers", hidden: true },
-  { name: "Hackathons", href: "/hackathons", hidden: true },
-  { name: "Credit", href: "/credit", hidden: true },
-  { name: "Dashboard", href: "/dashboard", hidden: true },
-  { name: "Expedition", href: "/expedition", hidden: true },
-  { name: "Portfolio", href: "/backer-portfolio", hidden: true },
 ];
 
 function classNames(...classes) {
@@ -68,7 +57,7 @@ export default function Navbar() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="icon-md"
+        className="w-6 h-6"
       >
         <path stroke="none" d="M0 0h24v24H0z" fill="none" />
         <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
@@ -100,7 +89,6 @@ export default function Navbar() {
                   </div>
                   <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
                     {navigation
-                      .filter((item) => !item.hidden)
                       .filter(
                         (item) => !item.auth || (item.auth && currentUser)
                       )
@@ -327,7 +315,6 @@ export default function Navbar() {
               <Disclosure.Panel className="sm:hidden bg-white border-t border-gray-200">
                 <div className="space-y-1 px-2 py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
                   {navigation
-                    .filter((item) => !item.hidden)
                     .filter(
                       (item) => !item.auth || (item.auth && currentUser)
                     )

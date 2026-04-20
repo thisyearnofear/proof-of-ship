@@ -17,7 +17,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '@/lib/firebase/clientApp';
 import { sanitizeTokenAllocation, validateTokenAllocation } from '@/schemas/tokenAllocation';
 
 export default function useTokenAllocations() {

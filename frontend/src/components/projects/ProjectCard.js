@@ -232,8 +232,8 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
         </div>
       </div>
 
-      {/* Health Score */}
-      {project.stats?.healthScore && (
+      {/* Health Score - Nanopayment Powered */}
+      {project.stats?.healthScore ? (
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm mb-1">
             <span className="text-gray-600">Health Score</span>
@@ -248,6 +248,31 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
               }`}
               style={{ width: `${project.stats.healthScore}%` }}
             />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-gray-400">
+            <span className="flex items-center gap-1">
+              🤖 AI Underwriter
+            </span>
+            <span className="text-indigo-600 font-medium">0.05 USDC</span>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-indigo-900">🤖 AI Health Analysis</p>
+              <p className="text-xs text-indigo-600">Get AI-powered insights via nanopayment</p>
+            </div>
+            <Button
+              size="sm"
+              className="text-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent('requestAIAnalysis', { detail: { project } }));
+              }}
+            >
+              Analyze · $0.05
+            </Button>
           </div>
         </div>
       )}

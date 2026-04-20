@@ -13,6 +13,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { MetaMaskProviderWrapper as MetaMaskProvider } from '@/contexts/MetaMaskContext';
 import { BuilderCreditProvider } from '@/contexts/BuilderCreditContext';
 import { ReputationProvider } from '@/contexts/ReputationContext';
+import { NanopaymentProvider } from '@/contexts/NanopaymentContext';
 import { EnhancedGithubProvider } from '@/providers/Github/EnhancedGithubProvider';
 
 // Helper: wrap a provider with an error boundary
@@ -33,11 +34,13 @@ export default function AppProviders({ children }) {
             <AuthProvider>
               <MetaMaskProvider demand={false}>
                 <BuilderCreditProvider>
-                  <ReputationProvider>
-                    <EnhancedGithubProvider>
+                  <NanopaymentProvider>
+                    <ReputationProvider>
+                      <EnhancedGithubProvider>
                       {children}
                     </EnhancedGithubProvider>
                   </ReputationProvider>
+                  </NanopaymentProvider>
                 </BuilderCreditProvider>
               </MetaMaskProvider>
             </AuthProvider>

@@ -61,6 +61,15 @@ export {
   MultiSegmentCircular
 } from './CircularProgress';
 
+// Nanopayment Components
+export {
+  default as NanopaymentWidget
+} from './NanopaymentWidget';
+export {
+  NanopaymentLedger,
+  AgentEarningsCard
+} from './NanopaymentLedger';
+
 // Illustration System
 export {
   // Icons

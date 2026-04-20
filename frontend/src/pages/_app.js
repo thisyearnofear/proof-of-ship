@@ -10,6 +10,7 @@ import "@/styles/themes.css";
 
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
 import { initObservability } from "@/lib/observability";
+import AIAnalysisModal from "@/components/common/AIAnalysisModal";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -52,6 +53,7 @@ export default function App({ Component, pageProps }) {
           </ErrorBoundary>
         </main>
         <Footer />
+        <AIAnalysisModal />
       </div>
     </AppProviders>
   );

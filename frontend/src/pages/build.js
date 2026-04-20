@@ -33,6 +33,32 @@ export default function BuildPage() {
   const { connected, connect, loading: metaMaskLoading } = useMetaMask();
   const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = useBuilderCredit();
   const [activeTab, setActiveTab] = useState("credit");
+  const [previewUsername, setPreviewUsername] = useState('');
+  const [previewResult, setPreviewResult] = useState(null);
+  const [previewError, setPreviewError] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  const handlePreviewScore = async (e) => {
+    e.preventDefault();
+    const username = previewUsername.trim();
+    if (!username) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewResult(null);
+    try {
+      const res = await fetch(`/api/score/preview?username=${encodeURIComponent(username)}`);
+      const data = await res.json();
+      if (!data.success) {
+        setPreviewError(data.error || 'Could not fetch score');
+        return;
+      }
+      setPreviewResult(data.data);
+    } catch (err) {
+      setPreviewError('Failed to connect. Please try again.');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const loading = metaMaskLoading || contractLoading;
 
@@ -40,15 +66,76 @@ export default function BuildPage() {
     return (
       <>
         <Head><title>Build | Builder Credit</title></Head>
-        <div className="py-16 text-center">
-          <ShieldCheckIcon className="w-16 h-16 mx-auto text-gray-400" />
-          <h1 className="mt-4 text-2xl font-bold text-primary">Builder Hub</h1>
-          <p className="mt-2 text-secondary max-w-md mx-auto">
-            Connect your wallet to view your credit score, request funding, and manage projects.
-          </p>
-          <Button onClick={connect} className="mt-6 bg-blue-600 text-white px-6 py-3">
-            Connect Wallet
-          </Button>
+        <div className="py-12 max-w-xl mx-auto px-4 text-center space-y-8">
+          <div>
+            <ShieldCheckIcon className="w-16 h-16 mx-auto text-gray-400" />
+            <h1 className="mt-4 text-2xl font-bold text-primary">Builder Hub</h1>
+            <p className="mt-2 text-secondary">
+              Connect your wallet to view your credit score, request funding, and manage projects.
+            </p>
+            <Button onClick={connect} className="mt-6 bg-blue-600 text-white px-6 py-3">
+              Connect Wallet
+            </Button>
+          </div>
+
+          <div className="border-t border-slate-200 pt-8">
+            <h2 className="text-lg font-semibold text-primary mb-2">🔍 Preview Your Score</h2>
+            <p className="text-sm text-secondary mb-4">
+              Enter your GitHub username to see an estimated credit score — no login required.
+            </p>
+            <form onSubmit={handlePreviewScore} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="GitHub username"
+                value={previewUsername}
+                onChange={(e) => setPreviewUsername(e.target.value)}
+                className="flex-1 px-4 py-3 rounded-lg border border-slate-300 bg-white text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                disabled={previewLoading}
+              />
+              <Button
+                type="submit"
+                disabled={!previewUsername.trim() || previewLoading}
+                className="bg-blue-600 text-white px-5 py-3 text-sm font-semibold whitespace-nowrap"
+              >
+                {previewLoading ? '...' : 'Preview'}
+              </Button>
+            </form>
+
+            {previewResult && (
+              <Card className="mt-4 p-5 text-left">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-secondary">Estimated Credit Score</p>
+                    <p className="text-3xl font-bold text-primary">{previewResult.estimatedScore}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    previewResult.estimatedScore >= 700 ? 'bg-green-100 text-green-700' :
+                    previewResult.estimatedScore >= 550 ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {previewResult.tier}
+                  </span>
+                </div>
+                <ScoreBar score={previewResult.estimatedScore} />
+                <div className="flex justify-between text-xs text-gray-400 mt-1 mb-3">
+                  <span>400</span><span>550</span><span>700</span><span>850</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm text-secondary">
+                  <span>📦 {previewResult.stats.publicRepos} repos</span>
+                  <span>⭐ {previewResult.stats.totalStars} stars</span>
+                  <span>👥 {previewResult.stats.followers} followers</span>
+                  <span>📅 {Math.floor(previewResult.stats.accountAgeDays / 365)}y on GitHub</span>
+                </div>
+                <p className="mt-4 text-xs text-secondary italic">
+                  This is an estimate based on public data. Connect your wallet to unlock your full credit profile with activity and community scores.
+                </p>
+              </Card>
+            )}
+
+            {previewError && (
+              <p className="mt-2 text-sm text-red-600">{previewError}</p>
+            )}
+          </div>
         </div>
       </>
     );

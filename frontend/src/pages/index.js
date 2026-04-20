@@ -22,6 +22,10 @@ export default function LandingPage() {
   const router = useRouter();
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("developers");
+  const [previewUsername, setPreviewUsername] = useState('');
+  const [previewResult, setPreviewResult] = useState(null);
+  const [previewError, setPreviewError] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const features = [
     {
@@ -161,6 +165,30 @@ export default function LandingPage() {
     router.push("/shippers");
   };
 
+  const handlePreviewScore = async (e) => {
+    e.preventDefault();
+    const username = previewUsername.trim();
+    if (!username) return;
+
+    setPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewResult(null);
+
+    try {
+      const res = await fetch(`/api/score/preview?username=${encodeURIComponent(username)}`);
+      const data = await res.json();
+      if (!data.success) {
+        setPreviewError(data.error || 'Could not fetch score');
+        return;
+      }
+      setPreviewResult(data.data);
+    } catch (err) {
+      setPreviewError('Failed to connect. Please try again.');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50 wave-pattern">
       {/* Hero Section */}
@@ -213,6 +241,64 @@ export default function LandingPage() {
               >
                 🔎 Explore projects
               </Button>
+            </div>
+
+            {/* Score Preview */}
+            <div className="mt-8 sm:mt-10 max-w-md mx-auto px-4 sm:px-0">
+              <form onSubmit={handlePreviewScore} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter GitHub username"
+                  value={previewUsername}
+                  onChange={(e) => setPreviewUsername(e.target.value)}
+                  className="flex-1 px-4 py-3 rounded-lg border border-slate-300 bg-white text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  disabled={previewLoading}
+                />
+                <Button
+                  type="submit"
+                  disabled={!previewUsername.trim() || previewLoading}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-5 py-3 text-sm font-semibold whitespace-nowrap"
+                >
+                  {previewLoading ? '...' : '🔍 Preview'}
+                </Button>
+              </form>
+
+              {/* Score Result */}
+              {previewResult && (
+                <Card className="mt-4 p-4 text-left border border-blue-200 bg-white/80 backdrop-blur-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-xs text-secondary">Estimated Credit Score</p>
+                      <p className="text-2xl font-bold text-primary">{previewResult.estimatedScore}</p>
+                    </div>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      previewResult.estimatedScore >= 700 ? 'bg-green-100 text-green-700' :
+                      previewResult.estimatedScore >= 550 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {previewResult.tier}
+                    </span>
+                  </div>
+                  <ScoreBar score={previewResult.estimatedScore} />
+                  <div className="flex justify-between text-xs text-gray-400 mt-1 mb-3">
+                    <span>400</span><span>550</span><span>700</span><span>850</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-secondary">
+                    <span>📦 {previewResult.stats.publicRepos} repos</span>
+                    <span>⭐ {previewResult.stats.totalStars} stars</span>
+                  </div>
+                  <button
+                    onClick={handleGetStarted}
+                    className="mt-3 w-full text-center text-sm font-semibold text-blue-600 hover:text-blue-800"
+                  >
+                    Connect to unlock your full credit profile →
+                  </button>
+                </Card>
+              )}
+
+              {previewError && (
+                <p className="mt-2 text-sm text-red-600">{previewError}</p>
+              )}
             </div>
 
             <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-secondary px-4 sm:px-0">

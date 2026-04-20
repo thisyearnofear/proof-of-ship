@@ -171,7 +171,7 @@ export default function AboutPage() {
       <section className="text-center py-12 border-t border-default">
         <h2 className="text-2xl font-bold text-primary mb-6 italic">Built in public. Verified onchain.</h2>
         <div className="flex flex-wrap justify-center gap-6">
-          <a href="https://github.com/thisyearnofear/POS-dashboard" className="flex items-center gap-2 text-secondary hover:text-primary transition-colors">
+          <a href="https://github.com/thisyearnofear/proof-of-ship" className="flex items-center gap-2 text-secondary hover:text-primary transition-colors">
             <CodeBracketIcon className="w-5 h-5" />
             GitHub Repository
           </a>
@@ -179,7 +179,7 @@ export default function AboutPage() {
             <DocumentMagnifyingGlassIcon className="w-5 h-5" />
             Project Explorer
           </Link>
-          <a href="#" className="flex items-center gap-2 text-secondary hover:text-primary transition-colors">
+          <a href="https://alfajores.celoscan.io/address/0x7890123456789012345678901234567890123456" className="flex items-center gap-2 text-secondary hover:text-primary transition-colors">
             <ShieldCheckIcon className="w-5 h-5" />
             Onchain Registry
           </a>

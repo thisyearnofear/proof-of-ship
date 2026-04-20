@@ -192,11 +192,11 @@ function HackathonsTab() {
     load();
   }, [filter]);
 
-  const grouped = {
+  const grouped = useMemo(() => ({
     upcoming: hackathons.filter((h) => h.status === "upcoming"),
     active: hackathons.filter((h) => h.status === "active"),
     completed: hackathons.filter((h) => h.status === "completed"),
-  };
+  }), [hackathons]);
 
   if (loading) return <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>;
   if (error) return <Card className="p-8 text-center"><p className="text-red-600">⚠️ {error}</p></Card>;

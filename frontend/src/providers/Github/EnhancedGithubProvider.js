@@ -38,6 +38,27 @@ export function EnhancedGithubProvider({ children }) {
     loadEcosystemStats();
   }, [activeEcosystem]);
 
+  // Helper to build unified data map
+  const buildUnifiedDataMap = (allProjects) => {
+    const unifiedDataMap = {};
+    Object.entries(allProjects).forEach(([ecosystem, projects]) => {
+      projects.forEach(project => {
+        unifiedDataMap[project.slug] = {
+          ...project.githubData,
+          stats: project.stats,
+          ecosystem,
+          meta: {
+            ...project.githubData?.meta,
+            ecosystem,
+            healthScore: project.stats?.healthScore,
+            isActive: project.stats?.isActive
+          }
+        };
+      });
+    });
+    return unifiedDataMap;
+  };
+
   // Load only essential data on initial mount (meta + commits)
   const loadEssentialProjectData = async () => {
     try {
@@ -54,25 +75,7 @@ export function EnhancedGithubProvider({ children }) {
         setProjectData(allProjects);
         
         // Create unified data map for backward compatibility
-        const unifiedDataMap = {};
-        
-        Object.entries(allProjects).forEach(([ecosystem, projects]) => {
-          projects.forEach(project => {
-            unifiedDataMap[project.slug] = {
-              ...project.githubData,
-              stats: project.stats,
-              ecosystem,
-              meta: {
-                ...project.githubData?.meta,
-                ecosystem,
-                healthScore: project.stats?.healthScore,
-                isActive: project.stats?.isActive
-              }
-            };
-          });
-        });
-        
-        setDataMap(unifiedDataMap);
+        setDataMap(buildUnifiedDataMap(allProjects));
       }
     } catch (error) {
       console.error('Failed to load essential project data:', error);
@@ -103,25 +106,7 @@ export function EnhancedGithubProvider({ children }) {
         setProjectData(allProjects);
         
         // Create unified data map for backward compatibility
-        const unifiedDataMap = {};
-        
-        Object.entries(allProjects).forEach(([ecosystem, projects]) => {
-          projects.forEach(project => {
-            unifiedDataMap[project.slug] = {
-              ...project.githubData,
-              stats: project.stats,
-              ecosystem,
-              meta: {
-                ...project.githubData?.meta,
-                ecosystem,
-                healthScore: project.stats?.healthScore,
-                isActive: project.stats?.isActive
-              }
-            };
-          });
-        });
-        
-        setDataMap(unifiedDataMap);
+        setDataMap(buildUnifiedDataMap(allProjects));
       }
     } catch (error) {
       console.error('Failed to load project data:', error);

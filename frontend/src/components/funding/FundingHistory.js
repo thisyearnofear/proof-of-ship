@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/common';
 import {
   ClockIcon,
@@ -329,22 +329,24 @@ export const FundingHistory = ({
   const allFunding = fundingData || generateMockFundingHistory();
 
   // Filter and sort funding records
-  const filteredFunding = allFunding
-    .filter(funding => statusFilter === 'all' || funding.status === statusFilter)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'date-desc':
-          return new Date(b.requestDate) - new Date(a.requestDate);
-        case 'date-asc':
-          return new Date(a.requestDate) - new Date(b.requestDate);
-        case 'amount-desc':
-          return b.amount - a.amount;
-        case 'amount-asc':
-          return a.amount - b.amount;
-        default:
-          return 0;
-      }
-    });
+  const filteredFunding = useMemo(() => {
+    return [...allFunding]
+      .filter(funding => statusFilter === 'all' || funding.status === statusFilter)
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'date-desc':
+            return new Date(b.requestDate) - new Date(a.requestDate);
+          case 'date-asc':
+            return new Date(a.requestDate) - new Date(b.requestDate);
+          case 'amount-desc':
+            return b.amount - a.amount;
+          case 'amount-asc':
+            return a.amount - b.amount;
+          default:
+            return 0;
+        }
+      });
+  }, [allFunding, statusFilter, sortBy]);
 
   const handleToggleExpand = (fundingId) => {
     setExpandedRecords(prev => {
@@ -359,10 +361,12 @@ export const FundingHistory = ({
   };
 
   // Calculate summary statistics
-  const totalFunded = allFunding.reduce((sum, funding) => sum + funding.amount, 0);
-  const activeFunding = allFunding.filter(f => f.status === 'active').length;
-  const completedFunding = allFunding.filter(f => f.status === 'completed').length;
-  const overdueCount = allFunding.filter(f => f.status === 'overdue').length;
+  const stats = useMemo(() => ({
+    totalFunded: allFunding.reduce((sum, funding) => sum + funding.amount, 0),
+    activeFunding: allFunding.filter(f => f.status === 'active').length,
+    completedFunding: allFunding.filter(f => f.status === 'completed').length,
+    overdueCount: allFunding.filter(f => f.status === 'overdue').length
+  }), [allFunding]);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -370,28 +374,28 @@ export const FundingHistory = ({
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">${totalFunded.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-primary">${stats.totalFunded.toLocaleString()}</div>
             <div className="text-sm text-secondary">Total Funded</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">{activeFunding}</div>
+            <div className="text-2xl font-bold text-primary">{stats.activeFunding}</div>
             <div className="text-sm text-secondary">Active Projects</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-success-600">{completedFunding}</div>
+            <div className="text-2xl font-bold text-success-600">{stats.completedFunding}</div>
             <div className="text-sm text-secondary">Completed</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-error-600">{overdueCount}</div>
+            <div className="text-2xl font-bold text-error-600">{stats.overdueCount}</div>
             <div className="text-sm text-secondary">Overdue</div>
           </CardContent>
         </Card>

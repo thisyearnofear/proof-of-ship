@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "export": "EXPORT_MODE=true next build",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@circle-fin/circle-sdk": "^1.3.0",

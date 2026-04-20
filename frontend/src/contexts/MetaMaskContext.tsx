@@ -6,10 +6,38 @@ import React, {
   useCallback,
 } from "react";
 import { MetaMaskProvider, useSDK } from "@metamask/sdk-react";
-import { ethers } from "ethers";
+import { ethers, providers, Signer } from "ethers";
 import { getUSDCAddress } from "../config/networks";
 
-const MetaMaskContext = createContext();
+interface NetworkConfig {
+  chainId: string;
+  chainName: string;
+  nativeCurrency: { name: string; symbol: string; decimals: number };
+  rpcUrls: string[];
+  blockExplorerUrls: string[];
+}
+
+interface MetaMaskContextType {
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  account: string | null;
+  chainId: number | null;
+  balance: string | null;
+  networkName: string;
+  ethersProvider: providers.Web3Provider | null;
+  signer: Signer | null;
+  connected: boolean;
+  connecting: boolean;
+  loading: boolean;
+  error: string | null;
+  activeProvider: any;
+  getBalance: (showLoading?: boolean) => Promise<string | null>;
+  getTokenBalance: (tokenAddress: string, decimals?: number) => Promise<string>;
+  switchNetwork: (chainId: number) => Promise<void>;
+  addToken: (tokenAddress: string, symbol: string, decimals?: number) => Promise<void>;
+}
+
+const MetaMaskContext = createContext<MetaMaskContextType | undefined>(undefined);
 
 export const useMetaMask = () => {
   const context = useContext(MetaMaskContext);
@@ -19,15 +47,15 @@ export const useMetaMask = () => {
   return context;
 };
 
-const MetaMaskContextProvider = ({ children }) => {
+const MetaMaskContextProvider = ({ children }: { children: React.ReactNode }) => {
   const { sdk, connected, connecting, provider, chainId, account } = useSDK();
-  const [activeProvider, setActiveProvider] = useState(null);
-  const [balance, setBalance] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [networkName, setNetworkName] = useState("");
-  const [ethersProvider, setEthersProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
+  const [activeProvider, setActiveProvider] = useState<any>(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [networkName, setNetworkName] = useState<string>("");
+  const [ethersProvider, setEthersProvider] = useState<providers.Web3Provider | null>(null);
+  const [signer, setSigner] = useState<Signer | null>(null);
 
   // Sync active provider from SDK
   useEffect(() => {

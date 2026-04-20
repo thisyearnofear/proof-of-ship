@@ -2,7 +2,17 @@
  * Real GitHub API Service
  * Proxies all requests through the BFF route (/api/github/...)
  * to keep GITHUB_TOKEN server-side only.
+ * Scoring logic consolidated to @/lib/scoring (DRY)
  */
+
+import {
+  calculateFullGitHubScore,
+  calculateProfileScore,
+  calculateActivityScore,
+  calculateCommunityScore,
+  calculateRepositoryScore,
+  calculateConsistencyScore,
+} from '@/lib/scoring';
 
 class RealGitHubService {
   constructor() {
@@ -228,7 +238,6 @@ class RealGitHubService {
    */
   async calculateGitHubScore(username) {
     try {
-      // Get all data
       const [userData, commits, pullRequests, issues, organizations] =
         await Promise.all([
           this.getUserStats(username),
@@ -241,34 +250,17 @@ class RealGitHubService {
           this.getUserOrganizations(username),
         ]);
 
-      // Calculate different scoring aspects
-      const scores = {
-        profile: this.calculateProfileScore(userData.profile),
-        activity: this.calculateActivityScore(commits, userData.stats),
-        community: this.calculateCommunityScore(
-          pullRequests,
-          issues,
-          organizations
-        ),
-        repositories: this.calculateRepositoryScore(
-          userData.repos,
-          userData.stats
-        ),
-        consistency: this.calculateConsistencyScore(commits, userData.repos),
-      };
-
-      // Calculate weighted total
-      const totalScore = Math.round(
-        scores.profile * 0.15 +
-          scores.activity * 0.25 +
-          scores.community * 0.25 +
-          scores.repositories * 0.2 +
-          scores.consistency * 0.15
+      const result = calculateFullGitHubScore(
+        userData,
+        commits,
+        pullRequests,
+        issues,
+        organizations
       );
 
       return {
-        totalScore: Math.min(totalScore, 100),
-        breakdown: scores,
+        totalScore: result.totalScore,
+        breakdown: result.breakdown,
         data: {
           profile: userData.profile,
           stats: userData.stats,
@@ -285,103 +277,23 @@ class RealGitHubService {
   }
 
   calculateProfileScore(profile) {
-    let score = 0;
-
-    // Account age (max 20 points)
-    const accountAge =
-      (Date.now() - new Date(profile.created_at)) / (1000 * 60 * 60 * 24 * 365);
-    score += Math.min(accountAge * 5, 20);
-
-    // Profile completeness (max 30 points)
-    if (profile.bio && profile.bio.length > 10) score += 10;
-    if (profile.blog && profile.blog.length > 0) score += 5;
-    if (profile.location && profile.location.length > 0) score += 5;
-    if (profile.company && profile.company.length > 0) score += 5;
-    if (profile.email && profile.email.length > 0) score += 5;
-
-    // Social proof (max 30 points)
-    score += Math.min(profile.followers / 10, 20);
-    score += Math.min(profile.public_repos / 5, 10);
-
-    // Verification (max 20 points)
-    if (profile.verified) score += 20;
-
-    return Math.min(score, 100);
+    return calculateProfileScore(profile);
   }
 
   calculateActivityScore(commits, stats) {
-    let score = 0;
-
-    // Recent commits (max 40 points)
-    const recentCommits = commits.filter((commit) => {
-      const commitDate = new Date(commit.commit.author.date);
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      return commitDate > thirtyDaysAgo;
-    });
-
-    score += Math.min(recentCommits.length * 2, 40);
-
-    // Repository activity (max 30 points)
-    score += Math.min(stats.recentRepos * 5, 30);
-
-    // Commit frequency (max 30 points)
-    score += Math.min(commits.length, 30);
-
-    return Math.min(score, 100);
+    return calculateActivityScore(commits, stats);
   }
 
   calculateCommunityScore(pullRequests, issues, organizations) {
-    let score = 0;
-
-    // Pull requests (max 40 points)
-    score += Math.min(pullRequests.length * 2, 40);
-
-    // Issues (max 30 points)
-    score += Math.min(issues.length * 1.5, 30);
-
-    // Organizations (max 30 points)
-    score += Math.min(organizations.length * 10, 30);
-
-    return Math.min(score, 100);
+    return calculateCommunityScore(pullRequests, issues, organizations);
   }
 
   calculateRepositoryScore(repos, stats) {
-    let score = 0;
-
-    // Repository count (max 25 points)
-    score += Math.min(stats.publicRepos * 2, 25);
-
-    // Stars received (max 25 points)
-    score += Math.min(stats.totalStars / 2, 25);
-
-    // Forks received (max 20 points)
-    score += Math.min(stats.totalForks * 2, 20);
-
-    // Repository quality (max 30 points)
-    score += Math.min(stats.hasReadme * 2, 20);
-    score += Math.min(stats.hasLicense * 2, 10);
-
-    return Math.min(score, 100);
+    return calculateRepositoryScore(repos, stats);
   }
 
   calculateConsistencyScore(commits, repos) {
-    let score = 0;
-
-    // Commit regularity (max 50 points)
-    const commitDates = commits.map((c) => new Date(c.commit.author.date));
-    const uniqueDays = new Set(commitDates.map((d) => d.toDateString())).size;
-    score += Math.min(uniqueDays * 2, 50);
-
-    // Repository maintenance (max 50 points)
-    const recentlyUpdated = repos.filter((repo) => {
-      const lastUpdate = new Date(repo.updated_at);
-      const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
-      return lastUpdate > sixMonthsAgo;
-    });
-
-    score += Math.min(recentlyUpdated.length * 5, 50);
-
-    return Math.min(score, 100);
+    return calculateConsistencyScore(commits, repos);
   }
 }
 

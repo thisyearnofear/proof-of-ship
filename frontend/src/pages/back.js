@@ -13,6 +13,7 @@ import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
 import ExpeditionCard from "@/components/expedition/ExpeditionCard";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import TabBar from "@/components/common/TabBar";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import {
@@ -32,21 +33,23 @@ export default function BackPage() {
     router.replace({ pathname: router.pathname, query: t === "discover" ? {} : { tab: t } }, undefined, { shallow: true });
   };
 
+  const tabs = [
+    { id: 'discover', label: 'Discover' },
+    { id: 'portfolio', label: 'My Positions' },
+  ];
+
   return (
     <ErrorBoundary name="BackPage" errorMessage="Failed to load. Please refresh.">
       <Head><title>Back | Builder Credit</title></Head>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex gap-1 mb-6 bg-white rounded-lg p-1 border w-fit">
-            {["discover", "portfolio"].map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  tab === t ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
-                }`}>
-                {t === "discover" ? "Discover" : "My Positions"}
-              </button>
-            ))}
-          </div>
+          <TabBar
+            tabs={tabs}
+            activeTab={tab}
+            onChange={setTab}
+            variant="pill"
+            className="mb-6"
+          />
 
           {tab === "discover" ? <DiscoverTab /> : <PortfolioTab />}
         </div>

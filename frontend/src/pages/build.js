@@ -68,17 +68,17 @@ export default function BuildPage() {
         <Head><title>Build | Builder Credit</title></Head>
         <div className="py-12 max-w-xl mx-auto px-4 text-center space-y-8">
           <div>
-            <ShieldCheckIcon className="w-16 h-16 mx-auto text-gray-400" />
+            <ShieldCheckIcon className="w-16 h-16 mx-auto text-tertiary" />
             <h1 className="mt-4 text-2xl font-bold text-primary">Builder Hub</h1>
             <p className="mt-2 text-secondary">
               Connect your wallet to view your credit score, request funding, and manage projects.
             </p>
-            <Button onClick={connect} className="mt-6 bg-blue-600 text-white px-6 py-3">
+            <Button onClick={connect} className="mt-6">
               Connect Wallet
             </Button>
           </div>
 
-          <div className="border-t border-slate-200 pt-8">
+          <div className="border-t border-default pt-8">
             <h2 className="text-lg font-semibold text-primary mb-2">🔍 Preview Your Score</h2>
             <p className="text-sm text-secondary mb-4">
               Enter your GitHub username to see an estimated credit score — no login required.
@@ -89,13 +89,13 @@ export default function BuildPage() {
                 placeholder="GitHub username"
                 value={previewUsername}
                 onChange={(e) => setPreviewUsername(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-lg border border-slate-300 bg-white text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="flex-1 px-4 py-3 rounded-lg border border-default bg-surface text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                 disabled={previewLoading}
               />
               <Button
                 type="submit"
                 disabled={!previewUsername.trim() || previewLoading}
-                className="bg-blue-600 text-white px-5 py-3 text-sm font-semibold whitespace-nowrap"
+                className="whitespace-nowrap"
               >
                 {previewLoading ? '...' : 'Preview'}
               </Button>
@@ -109,15 +109,15 @@ export default function BuildPage() {
                     <p className="text-3xl font-bold text-primary">{previewResult.estimatedScore}</p>
                   </div>
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    previewResult.estimatedScore >= 700 ? 'bg-green-100 text-green-700' :
-                    previewResult.estimatedScore >= 550 ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-gray-100 text-gray-600'
+                    previewResult.estimatedScore >= 700 ? 'bg-success-50 text-success-700' :
+                    previewResult.estimatedScore >= 550 ? 'bg-warning-50 text-warning-700' :
+                    'bg-surface-secondary text-secondary'
                   }`}>
                     {previewResult.tier}
                   </span>
                 </div>
                 <ScoreBar score={previewResult.estimatedScore} />
-                <div className="flex justify-between text-xs text-gray-400 mt-1 mb-3">
+                <div className="flex justify-between text-xs text-secondary mt-1 mb-3">
                   <span>400</span><span>550</span><span>700</span><span>850</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm text-secondary">
@@ -133,7 +133,7 @@ export default function BuildPage() {
             )}
 
             {previewError && (
-              <p className="mt-2 text-sm text-red-600">{previewError}</p>
+              <p className="mt-2 text-sm text-error-600">{previewError}</p>
             )}
           </div>
         </div>
@@ -178,16 +178,16 @@ export default function BuildPage() {
                     <p className="text-sm text-secondary">Credit Score</p>
                     <p className="text-4xl font-bold text-primary">{score || "—"}</p>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      tier === "Elite" ? "bg-purple-100 text-purple-700" :
-                      tier === "Proven" ? "bg-green-100 text-green-700" :
-                      tier === "Rising" ? "bg-yellow-100 text-yellow-700" :
-                      "bg-gray-100 text-secondary"
+                      tier === "Elite" ? "bg-secondary-50 text-secondary-700" :
+                      tier === "Proven" ? "bg-success-50 text-success-700" :
+                      tier === "Rising" ? "bg-warning-50 text-warning-700" :
+                      "bg-surface-secondary text-secondary"
                     }`}>{tier} Builder</span>
                   </div>
-                  <ChartBarIcon className="w-12 h-12 text-blue-500" />
+                  <ChartBarIcon className="w-12 h-12 text-primary-500" />
                 </div>
                 <ScoreBar score={score} />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <div className="flex justify-between text-xs text-secondary mt-1">
                   <span>400</span><span>550</span><span>700</span><span>850</span>
                 </div>
               </Card>
@@ -204,26 +204,26 @@ export default function BuildPage() {
             {/* Credit Line */}
             <Card className="p-6">
               <h2 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                <CurrencyDollarIcon className="w-5 h-5 text-green-600" /> Credit Line
+                <CurrencyDollarIcon className="w-5 h-5 text-success-600" /> Credit Line
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-sm text-secondary">Total Available</p>
-                  <p className="text-xl font-bold text-green-700">${totalCredit}</p>
+                  <p className="text-xl font-bold text-success-700">${totalCredit}</p>
                 </div>
                 <div>
                   <p className="text-sm text-secondary">Used</p>
-                  <p className="text-xl font-bold text-orange-600">${usedCredit}</p>
+                  <p className="text-xl font-bold text-warning-600">${usedCredit}</p>
                 </div>
                 <div>
                   <p className="text-sm text-secondary">Remaining</p>
-                  <p className="text-xl font-bold text-blue-700">
+                  <p className="text-xl font-bold text-primary-700">
                     ${(parseFloat(totalCredit) - parseFloat(usedCredit)).toFixed(2)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-secondary">Max Multiplier</p>
-                  <p className="text-xl font-bold text-purple-700">
+                  <p className="text-xl font-bold text-secondary-700">
                     {score >= 800 ? "1.5x" : score >= 700 ? "2.0x" : score >= 600 ? "2.5x" : "3.0x"}
                   </p>
                 </div>
@@ -234,17 +234,17 @@ export default function BuildPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
-                  <RocketLaunchIcon className="w-5 h-5 text-blue-600" />
+                  <RocketLaunchIcon className="w-5 h-5 text-primary-500" />
                   Your Projects ({developerProjects?.length || 0})
                 </h2>
-                <button onClick={() => setActiveTab("projects")} className="text-sm text-blue-600 hover:underline">
+                <button onClick={() => setActiveTab("projects")} className="text-sm text-primary-500 hover:underline">
                   View all →
                 </button>
               </div>
               {(!projectDetails || projectDetails.length === 0) ? (
                 <div className="text-center py-6 text-secondary">
                   <p>No projects yet.</p>
-                  <Link href="/projects/new" className="text-blue-600 hover:underline text-sm mt-2 inline-block">
+                  <Link href="/projects/new" className="text-primary-500 hover:underline text-sm mt-2 inline-block">
                     Submit your first project →
                   </Link>
                 </div>
@@ -259,7 +259,7 @@ export default function BuildPage() {
                         </p>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full ${
-                        p.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-secondary"
+                        p.isActive ? "bg-success-50 text-success-700" : "bg-surface-secondary text-secondary"
                       }`}>
                         {p.isActive ? "Active" : "Done"}
                       </span>
@@ -270,11 +270,11 @@ export default function BuildPage() {
             </Card>
 
             {/* How to improve */}
-            <Card className="p-6 bg-blue-50 border-blue-200">
+            <Card className="p-6 bg-primary-50 border-primary-200">
               <h2 className="text-lg font-semibold text-primary mb-3 flex items-center gap-2">
-                <ArrowTrendingUpIcon className="w-5 h-5 text-blue-600" /> How to Improve Your Credit
+                <ArrowTrendingUpIcon className="w-5 h-5 text-primary-500" /> How to Improve Your Credit
               </h2>
-              <ul className="space-y-2 text-sm text-gray-700">
+              <ul className="space-y-2 text-sm text-secondary">
                 <li>✅ Complete project milestones to increase reputation</li>
                 <li>✅ Get backers to stake on your projects</li>
                 <li>✅ Pledge expected prizes as collateral</li>

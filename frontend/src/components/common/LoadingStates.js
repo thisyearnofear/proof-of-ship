@@ -1,20 +1,21 @@
 /**
  * Optimized loading state components with nautical-themed skeleton screens (Phase 4D)
+ * Uses semantic tokens for dark mode and the custom skeleton animation from globals.css
  */
 
 import React from 'react';
 
-// Basic skeleton animation with theme-aware colors
-const SkeletonBase = ({ className, ...props }) => (
+// Basic skeleton with theme-aware colors using semantic tokens + custom skeleton animation
+const SkeletonBase = ({ className = '', ...props }) => (
   <div 
-    className={`animate-pulse bg-surface-secondary dark:bg-gray-700 rounded ${className}`} 
+    className={`skeleton bg-surface-secondary rounded ${className}`}
     {...props} 
   />
 );
 
-// Card wrapper with nautical styling
-const NauticalSkeletonCard = ({ children, className = "" }) => (
-  <div className={`bg-surface dark:bg-gray-800 rounded-card shadow-card nautical-card p-6 space-y-4 ${className}`}>
+// Card wrapper with nautical styling (uses nautical-card class from nautical.css)
+const NauticalSkeletonCard = ({ children, className = '' }) => (
+  <div className={`bg-surface border border-default rounded-card shadow-card nautical-card p-6 space-y-4 ${className}`}>
     {children}
   </div>
 );
@@ -39,7 +40,7 @@ export const ProjectCardSkeleton = () => (
       <SkeletonBase className="h-6 w-14" />
     </div>
     
-    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-default dark:border-gray-700">
+    <div className="grid grid-cols-3 gap-4 pt-4 border-t border-default">
       {[...Array(3)].map((_, i) => (
         <div key={i} className="text-center">
           <SkeletonBase className="h-6 w-8 mx-auto mb-1" />
@@ -113,7 +114,7 @@ export const DashboardSkeleton = () => (
         <NauticalSkeletonCard className="h-full">
           <SkeletonBase className="h-6 w-32 mb-4" />
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center space-x-3 py-3 border-b border-default dark:border-gray-700 last:border-0">
+            <div key={i} className="flex items-center space-x-3 py-3 border-b border-default last:border-0">
               <SkeletonBase className="h-8 w-8 rounded" />
               <div className="flex-1 space-y-1">
                 <SkeletonBase className="h-3 w-3/4" />
@@ -123,6 +124,95 @@ export const DashboardSkeleton = () => (
           ))}
         </NauticalSkeletonCard>
       </div>
+    </div>
+  </div>
+);
+
+// Credit Dashboard skeleton (Phase 4D)
+export const CreditDashboardSkeleton = () => (
+  <div className="space-y-6">
+    {/* Header with score */}
+    <NauticalSkeletonCard>
+      <div className="flex flex-col md:flex-row md:items-center gap-6">
+        <SkeletonBase className="h-24 w-24 rounded-full" />
+        <div className="flex-1 space-y-3">
+          <SkeletonBase className="h-8 w-48" />
+          <SkeletonBase className="h-4 w-64" />
+          <SkeletonBase className="h-4 w-32" />
+        </div>
+      </div>
+    </NauticalSkeletonCard>
+
+    {/* Stats Row */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <StatCardSkeleton />
+      <StatCardSkeleton />
+      <StatCardSkeleton />
+    </div>
+
+    {/* Funding & Projects */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <NauticalSkeletonCard>
+        <SkeletonBase className="h-6 w-40 mb-4" />
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex justify-between items-center">
+              <SkeletonBase className="h-4 w-24" />
+              <SkeletonBase className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+      </NauticalSkeletonCard>
+      <NauticalSkeletonCard>
+        <SkeletonBase className="h-6 w-40 mb-4" />
+        <div className="space-y-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center space-x-3">
+              <SkeletonBase className="h-8 w-8 rounded" />
+              <div className="flex-1 space-y-1">
+                <SkeletonBase className="h-3 w-3/4" />
+                <SkeletonBase className="h-2 w-1/2" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </NauticalSkeletonCard>
+    </div>
+  </div>
+);
+
+// Explore Page skeleton (Phase 4D)
+export const ExplorePageSkeleton = () => (
+  <div className="space-y-6">
+    {/* Search & Filters */}
+    <div className="flex flex-col md:flex-row gap-4">
+      <SkeletonBase className="h-12 flex-1" />
+      <div className="flex gap-2">
+        <SkeletonBase className="h-12 w-24" />
+        <SkeletonBase className="h-12 w-24" />
+        <SkeletonBase className="h-12 w-24" />
+      </div>
+    </div>
+
+    {/* Tabs */}
+    <div className="flex gap-2">
+      {[...Array(4)].map((_, i) => (
+        <SkeletonBase key={i} className="h-10 w-20 rounded-md" />
+      ))}
+    </div>
+
+    {/* Project Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <ProjectCardSkeleton key={i} />
+      ))}
+    </div>
+
+    {/* Pagination */}
+    <div className="flex justify-center gap-2">
+      {[...Array(5)].map((_, i) => (
+        <SkeletonBase key={i} className="h-10 w-10 rounded-md" />
+      ))}
     </div>
   </div>
 );
@@ -147,7 +237,7 @@ export const ErrorState = ({
   title = "Something went wrong",
   description = "We encountered an error while loading the data." 
 }) => (
-  <div className="bg-surface dark:bg-gray-800 rounded-card shadow-card p-8 text-center border-t-4 border-error-500">
+  <div className="bg-surface border border-default rounded-card shadow-card p-8 text-center border-t-4 border-error-500">
     <div className="text-error-500 mb-4">
       <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -162,7 +252,7 @@ export const ErrorState = ({
         <summary className="cursor-pointer text-sm text-secondary hover:text-primary">
           Error Details (Development)
         </summary>
-        <pre className="mt-2 text-xs text-error-600 bg-error-50 dark:bg-red-900/20 p-3 rounded overflow-auto">
+        <pre className="mt-2 text-xs text-error-600 bg-error-50 p-3 rounded overflow-auto">
           {error.message}
           {error.stack && `\n\n${error.stack}`}
         </pre>
@@ -172,7 +262,7 @@ export const ErrorState = ({
     {onRetry && (
       <button
         onClick={onRetry}
-        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-button text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+        className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-button text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
       >
         Try Again
       </button>

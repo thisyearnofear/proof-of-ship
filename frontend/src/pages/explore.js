@@ -11,6 +11,7 @@ import { useReputation } from "@/contexts/ReputationContext";
 import HybridDashboard from "@/components/dashboard/HybridDashboard";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import TabBar from "@/components/common/TabBar";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NETWORK_CONFIGS } from "@/config/networks";
@@ -28,27 +29,26 @@ export default function ExplorePage() {
     router.replace({ pathname: router.pathname, query: t === "projects" ? {} : { tab: t } }, undefined, { shallow: true });
   };
 
+  const tabs = [
+    { id: 'projects', label: 'Projects' },
+    { id: 'hackathons', label: 'Hackathons' },
+  ];
+
   return (
     <ErrorBoundary name="ExplorePage" errorMessage="Failed to load. Please refresh.">
       <Head>
         <title>Explore | Builder Credit</title>
       </Head>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Tab switcher */}
-          <div className="flex gap-1 mb-6 bg-white rounded-lg p-1 border w-fit">
-            {["projects", "hackathons"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  tab === t ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
+          <TabBar
+            tabs={tabs}
+            activeTab={tab}
+            onChange={setTab}
+            variant="pill"
+            className="mb-6"
+          />
 
           {tab === "projects" ? <ProjectsTab /> : <HackathonsTab />}
         </div>

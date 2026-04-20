@@ -190,7 +190,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50 wave-pattern">
+    <div className="min-h-screen bg-surface-secondary wave-pattern">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Nautical background elements */}
@@ -228,7 +228,7 @@ export default function LandingPage() {
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
               <Button
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-blue-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
+                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-primary-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
               >
                 ✨ Create your portfolio
                 <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
@@ -237,7 +237,7 @@ export default function LandingPage() {
               <Button
                 onClick={handleExploreFleet}
                 variant="outline"
-                className="px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold border-2 border-blue-300 text-blue-700 hover:bg-blue-50 min-h-touch w-full sm:w-auto"
+                className="px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
               >
                 🔎 Explore projects
               </Button>
@@ -251,13 +251,13 @@ export default function LandingPage() {
                   placeholder="Enter GitHub username"
                   value={previewUsername}
                   onChange={(e) => setPreviewUsername(e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-lg border border-slate-300 bg-white text-primary placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="flex-1 px-4 py-3 rounded-lg border border-default bg-surface text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                   disabled={previewLoading}
                 />
                 <Button
                   type="submit"
                   disabled={!previewUsername.trim() || previewLoading}
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-5 py-3 text-sm font-semibold whitespace-nowrap"
+                  className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-5 py-3 text-sm font-semibold whitespace-nowrap"
                 >
                   {previewLoading ? '...' : '🔍 Preview'}
                 </Button>
@@ -265,22 +265,22 @@ export default function LandingPage() {
 
               {/* Score Result */}
               {previewResult && (
-                <Card className="mt-4 p-4 text-left border border-blue-200 bg-white/80 backdrop-blur-sm">
+                <Card className="mt-4 p-4 text-left border border-default bg-surface/80 backdrop-blur-sm">
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <p className="text-xs text-secondary">Estimated Credit Score</p>
                       <p className="text-2xl font-bold text-primary">{previewResult.estimatedScore}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      previewResult.estimatedScore >= 700 ? 'bg-green-100 text-green-700' :
-                      previewResult.estimatedScore >= 550 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-600'
+                      previewResult.estimatedScore >= 700 ? 'bg-success-50 text-success-700' :
+                      previewResult.estimatedScore >= 550 ? 'bg-warning-50 text-warning-700' :
+                      'bg-surface-secondary text-secondary'
                     }`}>
                       {previewResult.tier}
                     </span>
                   </div>
                   <ScoreBar score={previewResult.estimatedScore} />
-                  <div className="flex justify-between text-xs text-gray-400 mt-1 mb-3">
+                  <div className="flex justify-between text-xs text-secondary mt-1 mb-3">
                     <span>400</span><span>550</span><span>700</span><span>850</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-secondary">
@@ -289,7 +289,7 @@ export default function LandingPage() {
                   </div>
                   <button
                     onClick={handleGetStarted}
-                    className="mt-3 w-full text-center text-sm font-semibold text-blue-600 hover:text-blue-800"
+                    className="mt-3 w-full text-center text-sm font-semibold text-primary hover:text-primary-600"
                   >
                     Connect to unlock your full credit profile →
                   </button>
@@ -333,14 +333,14 @@ export default function LandingPage() {
 
         {/* Tab Navigation */}
         <div className="flex justify-center mb-8 sm:mb-12 overflow-x-auto">
-          <div className="bg-slate-100 p-1 rounded-lg border border-slate-200 inline-flex gap-1">
+          <div className="bg-surface-secondary p-1 rounded-lg border border-default inline-flex gap-1">
             {Object.keys(userJourneys).map((key) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
                 className={`px-3 sm:px-6 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-touch ${
                   activeTab === key
-                    ? "bg-surface text-blue-600 shadow-sm border border-blue-200"
+                    ? "bg-surface text-primary shadow-sm border border-default"
                     : "text-secondary hover:text-primary"
                 }`}
               >
@@ -364,9 +364,9 @@ export default function LandingPage() {
           {userJourneys[activeTab].steps.map((step, index) => (
             <Card
               key={index}
-              className="p-4 sm:p-6 text-center border border-slate-200 hover:border-blue-300 transition-colors nautical-card compass-rose"
+              className="p-4 sm:p-6 text-center border border-default hover:border-primary-300 transition-colors nautical-card compass-rose"
             >
-              <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4 shadow-lg">
+              <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4 shadow-lg">
                 {index + 1}
               </div>
               <h4 className="font-semibold text-primary mb-2 text-sm sm:text-base">{step.title}</h4>
@@ -377,7 +377,7 @@ export default function LandingPage() {
       </div>
 
       {/* Features Section */}
-      <div className="bg-surface py-12 sm:py-16 border-t border-slate-200">
+      <div className="bg-surface py-12 sm:py-16 border-t border-default">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
@@ -393,9 +393,9 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-blue-300 border border-slate-200 nautical-card lighthouse-beam"
+                className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-primary-300 border border-default nautical-card lighthouse-beam"
               >
-                <feature.icon className="w-10 sm:w-12 h-10 sm:h-12 text-blue-600 mx-auto mb-3 sm:mb-4" />
+                <feature.icon className="w-10 sm:w-12 h-10 sm:h-12 text-primary-500 mx-auto mb-3 sm:mb-4" />
                 <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">
                   {feature.title}
                 </h3>
@@ -407,7 +407,7 @@ export default function LandingPage() {
       </div>
 
       {/* Ecosystems Section */}
-      <div className="py-12 sm:py-16 bg-slate-50">
+      <div className="py-12 sm:py-16 bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
@@ -423,7 +423,7 @@ export default function LandingPage() {
             {ecosystems.map((ecosystem) => (
               <Card
                 key={ecosystem.id}
-                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-slate-200 hover:border-blue-300 bg-surface nautical-card anchor-accent"
+                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-default hover:border-primary-300 bg-surface nautical-card anchor-accent"
                 onClick={() => router.push("/shippers") }
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">

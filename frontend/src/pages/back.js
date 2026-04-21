@@ -9,11 +9,13 @@ import { ethers } from "ethers";
 import { useMetaMask } from "@/contexts/MetaMaskContext";
 import { useBuilderCredit } from "@/contexts/BuilderCreditContext";
 import { useExpeditionData } from "@/hooks/useExpeditionData";
+import { useNanopayment } from "@/contexts/NanopaymentContext";
 import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
 import ExpeditionCard from "@/components/expedition/ExpeditionCard";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import TabBar from "@/components/common/TabBar";
+import { NanopaymentWidget } from "@/components/common/NanopaymentWidget";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import {
@@ -24,6 +26,8 @@ import {
   ShieldCheckIcon,
   TrophyIcon,
   ArrowTopRightOnSquareIcon,
+  SparklesIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 export default function BackPage() {
@@ -36,6 +40,7 @@ export default function BackPage() {
   const tabs = [
     { id: 'discover', label: 'Discover' },
     { id: 'portfolio', label: 'My Positions' },
+    { id: 'economy', label: 'Economy' },
   ];
 
   return (
@@ -51,7 +56,7 @@ export default function BackPage() {
             className="mb-6"
           />
 
-          {tab === "discover" ? <DiscoverTab /> : <PortfolioTab />}
+          {tab === "discover" ? <DiscoverTab /> : tab === "portfolio" ? <PortfolioTab /> : <EconomyTab />}
         </div>
       </div>
     </ErrorBoundary>
@@ -63,18 +68,35 @@ function DiscoverTab() {
   const { projects, loading, error, refresh } = useExpeditionData();
   const { connected, connect } = useMetaMask();
   const { backProject, contractLoading } = useBuilderCredit();
+  const { payForScout, agentPrices, loading: nanopaymentLoading } = useNanopayment();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMultiplier, setFilterMultiplier] = useState("all");
   const [backingProject, setBackingProject] = useState(null);
   const [backingAmount, setBackingAmount] = useState("");
   const [backingMultiplier, setBackingMultiplier] = useState("150");
-  const [backingStatus, setBackingStatus] = useState(null); // 'pending' | 'success' | 'error'
+  const [backingStatus, setBackingStatus] = useState(null);
   const [backingError, setBackingError] = useState(null);
   const [scoutData, setScoutData] = useState(null);
+  const [scouting, setScouting] = useState(false);
 
-  // Fetch latest scout run
+  const runAIScout = async () => {
+    setScouting(true);
+    try {
+      const result = await payForScout();
+      if (result.success) {
+        setScoutData(result.data);
+      }
+    } catch (err) {
+      console.error("Scout failed:", err);
+    } finally {
+      setScouting(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("/api/agent/scout")
+    fetch("/api/agent/scout", {
+      headers: { "x-demo-key": "demo" }
+    })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => data?.success && setScoutData(data))
       .catch(() => {});
@@ -123,20 +145,49 @@ function DiscoverTab() {
 
   return (
     <>
-      {/* AI Scout Banner */}
-      {scoutData && (
-        <Card className="p-3 mb-4 bg-indigo-50 border-indigo-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span>🤖</span>
-              <span className="font-medium text-indigo-900">AI Scout</span>
-              <span className="text-indigo-600">
-                evaluated {scoutData.summary.evaluated} projects · recommended {scoutData.summary.recommended} · {scoutData.summary.totalStake}
+      {/* AI Scout Banner with Nanopayment */}
+      <Card className="p-3 mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🔭</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-indigo-900">AI Scout</span>
+                {scoutData && (
+                  <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                    {scoutData.summary.recommended} recommended
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-indigo-600">
+                {scoutData 
+                  ? `evaluated ${scoutData.summary.evaluated} projects · ${scoutData.summary.totalStake}`
+                  : `0.01 USDC per scan · powered by Circle Nanopayments`
+                }
               </span>
             </div>
           </div>
-        </Card>
-      )}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={runAIScout}
+            disabled={scouting}
+            className="flex items-center gap-2"
+          >
+            {scouting ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Scanning...
+              </>
+            ) : (
+              <>
+                <SparklesIcon className="w-4 h-4" />
+                Run Scout · $0.01
+              </>
+            )}
+          </Button>
+        </div>
+      </Card>
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-3 mb-8 items-center">
@@ -404,6 +455,30 @@ function PortfolioTab() {
             </Card>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Economy Tab (Agentic Economy) ── */
+function EconomyTab() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">AI Agents</h2>
+        <NanopaymentWidget compact={false} />
+      </div>
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Transaction History</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500 text-center py-8">
+            Access the AI Agents tab to run scout, get health scores, and verify code.
+            Transactions will appear here.
+          </p>
+          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+            <p className="text-xs text-gray-400">Powered by Circle Gateway on Arc</p>
+          </div>
+        </div>
       </div>
     </div>
   );

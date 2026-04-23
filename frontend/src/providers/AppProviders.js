@@ -15,6 +15,7 @@ import { BuilderCreditProvider } from '@/contexts/BuilderCreditContext';
 import { ReputationProvider } from '@/contexts/ReputationContext';
 import { NanopaymentProvider } from '@/contexts/NanopaymentContext';
 import { EnhancedGithubProvider } from '@/providers/Github/EnhancedGithubProvider';
+import { UserBehaviorProvider } from '@/contexts/UserBehaviorContext';
 
 // Helper: wrap a provider with an error boundary
 function BoundProvider({ name, children }) {
@@ -37,8 +38,10 @@ export default function AppProviders({ children }) {
                   <NanopaymentProvider>
                     <ReputationProvider>
                       <EnhancedGithubProvider>
-                      {children}
-                    </EnhancedGithubProvider>
+                        <UserBehaviorProvider>
+                          {children}
+                        </UserBehaviorProvider>
+                      </EnhancedGithubProvider>
                   </ReputationProvider>
                   </NanopaymentProvider>
                 </BuilderCreditProvider>

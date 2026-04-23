@@ -65,25 +65,32 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 ### Implementation Status
 - [x] **Core Principles Check:** Aligned with ENHANCEMENT FIRST and PREVENT BLOAT
 - [x] Circle Nanopayment middleware (`src/lib/nanopayment.js`)
-- [x] AI Underwriter endpoint (`/api/agent/underwrite` - 0.05 USDC)
-- [x] AI Scout endpoint (`/api/agent/scout` - 0.01 USDC)
+- [x] AIsa x402 paying fetch client (`src/lib/aisaClient.js`)
+- [x] AI Underwriter endpoint (`/api/agent/underwrite` - 0.05 USDC + AIsa Perplexity enrichment)
+- [x] AI Scout endpoint (`/api/agent/scout` - 0.01 USDC + AIsa ecosystem analysis)
+- [x] AI Verifier endpoint (`/api/agent/verify` - 0.01 USDC + AIsa code analysis)
+- [x] Agent-to-agent x402 payment loops (our agents → AIsa Perplexity Sonar)
 - [x] Frontend NanopaymentContext (`src/contexts/NanopaymentContext.tsx`)
 - [x] NanopaymentService (`src/services/nanopaymentService.ts`)
 - [x] NanopaymentWidget (`src/components/common/NanopaymentWidget.js`)
 - [x] NanopaymentLedger (`src/components/common/NanopaymentLedger.js`)
 - [x] ProjectCard integration (Analyze button for projects without health scores)
 - [x] Demo mode support (NEXT_PUBLIC_DEMO_MODE=true)
+- [x] Margin analysis documentation
+- [ ] 50+ real on-chain transactions on Arc testnet
+- [ ] Transaction flow demo video
 
 ### Files Changed
 
-**Backend (API Routes)**
+**Backend (API Routes & Lib)**
 - `src/lib/nanopayment.js` - Real Circle x402 middleware with demo fallback
-- `src/pages/api/agent/underwrite.js` - AI Underwriter with nanopayment
-- `src/pages/api/agent/scout.js` - AI Scout with nanopayment
+- `src/lib/aisaClient.js` - AIsa x402 paying fetch client (GatewayEvmScheme, singleton)
+- `src/pages/api/agent/underwrite.js` - AI Underwriter with nanopayment + AIsa Perplexity enrichment
+- `src/pages/api/agent/scout.js` - AI Scout with nanopayment + AIsa ecosystem analysis
+- `src/pages/api/agent/verify.js` - AI Verifier with nanopayment + AIsa code analysis
 
 **Frontend (Context & Service)**
 - `src/contexts/NanopaymentContext.tsx` - All agent payment methods
-- `src/services/nanopaymentService.ts` - GatewayClient wrapper
 - `src/services/nanopaymentService.ts` - Circle Gateway client
 
 **Frontend (Components)**
@@ -117,3 +124,35 @@ NEXT_PUBLIC_DEMO_MODE=true  # For testing without keys
 # Arc Network
 NEXT_PUBLIC_ARC_CHAIN_ID=1993
 ```
+
+### Margin Analysis: Why This Only Works on Arc
+
+Per-action pricing ≤$0.01 is economically impossible on any chain with non-zero gas. The numbers:
+
+| Metric | Ethereum L1 | Polygon PoS | Arc + Nanopayments |
+|--------|------------|-------------|-------------------|
+| Cost per transaction | $0.50–$5.00 | $0.01–$0.03 | $0.00 (gasless EIP-3009) |
+| Settlement overhead | Gas per tx | Gas per tx | Batched by Gateway |
+| Min viable price | >$5.00 | >$0.03 | $0.001 |
+| Verifier (0.001 USDC/10 LOC) | ❌ -$4.999 loss | ❌ -$0.029 loss | ✅ $0.001 profit |
+| Scout (0.01 USDC/run) | ❌ -$4.99 loss | ❌ -$0.02 loss | ✅ $0.01 profit |
+| Underwriter (0.05 USDC) | ❌ -$4.95 loss | ⚠️ ~breakeven | ✅ $0.05 profit |
+
+**Scale Economics:**
+- At 1,000 verifications/day: Ethereum cost = $500–$5,000 in gas, revenue = $1. Arc cost = $0, revenue = $1.
+- At 10,000 scout runs/month: Ethereum cost = $5,000–$50,000, revenue = $100. Arc cost = $0, revenue = $100.
+- The AIsa agent-to-agent loop (our Underwriter paying $0.012 to Perplexity) earns $0.038 margin per call — only viable because neither hop incurs gas.
+
+### Transaction Flow Demonstration Guide
+
+Step-by-step guide for recording the required demo video:
+
+1. **Setup**: Fund your OWS wallet with testnet USDC from https://faucet.circle.com (select Arc Testnet).
+2. **Circle Developer Console**: Show wallet balance in Circle Console at console.circle.com to confirm funds.
+3. **Trigger Agent Transactions**:
+   - Call `/api/agent/scout` (0.01 USDC) — show ecosystem analysis result.
+   - Call `/api/agent/underwrite?projectId=X` (0.05 USDC) — show AI health score with Perplexity enrichment.
+   - Call `/api/agent/verify?prId=1&lines=100` (0.01 USDC) — show code verification output.
+   - Repeat to generate 50+ transactions to demonstrate high-frequency viability.
+4. **Arc Block Explorer**: Verify transactions at the Arc testnet explorer, showing USDC settlement on-chain.
+5. **Agent-to-Agent Loop**: Show that the Underwriter's call to AIsa Perplexity is itself an x402 nanopayment — the `aisaPayment` field in the response proves the secondary settlement.

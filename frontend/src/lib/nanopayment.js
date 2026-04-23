@@ -12,6 +12,8 @@
  * Part of "Agentic Economy on Arc" hackathon submission.
  */
 
+import crypto from 'crypto';
+
 const PRICE_PER_REQUEST = 0.05;
 const CURRENCY = "USDC";
 

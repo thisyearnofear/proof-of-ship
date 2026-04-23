@@ -61,13 +61,15 @@ export const NanopaymentProvider = ({ children }) => {
 
   const initializeWithDemo = useCallback(async () => {
     if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
-      const demoKey = `0x${"01".repeat(32)}`;
-      await initializeWithKey(demoKey);
+      setIsInitialized(true);
+      setWalletAddress("0xDEMO");
+      setBalance({ available: "10.00", locked: "0.00" });
     }
-  }, [initializeWithKey]);
+  }, []);
 
   const fetchBalance = useCallback(async () => {
     if (!isInitialized) return;
+    if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") return;
     try {
       const bal = await nanopaymentService.getBalance();
       setBalance(bal);
@@ -149,7 +151,16 @@ export const NanopaymentProvider = ({ children }) => {
       }
 
       const baseUrl = params.baseUrl || "";
-      result = await nanopaymentService.pay(`${baseUrl}${endpoint}`);
+      const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+      if (isDemo) {
+        const resp = await fetch(`${baseUrl}${endpoint}`, {
+          headers: { "x-demo-key": "demo" },
+        });
+        const data = resp.ok ? await resp.json() : null;
+        result = { success: resp.ok, data, txHash: `0xdemo${Date.now().toString(16)}` };
+      } else {
+        result = await nanopaymentService.pay(`${baseUrl}${endpoint}`);
+      }
 
       const tx = {
         id: Date.now().toString(),
@@ -166,7 +177,14 @@ export const NanopaymentProvider = ({ children }) => {
       setStreamingPayment(null);
 
       if (result.success) {
-        await fetchBalance();
+        if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+          setBalance((prev) => ({
+            ...prev,
+            available: (parseFloat(prev.available) - requiredAmount).toFixed(2),
+          }));
+        } else {
+          await fetchBalance();
+        }
       }
 
       return { ...result, transaction: tx };

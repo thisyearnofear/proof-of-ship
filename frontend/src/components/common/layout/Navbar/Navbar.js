@@ -264,7 +264,7 @@ export default function Navbar() {
                       </Transition>
                     </Menu>
                   ) : (
-                    <div className="hidden xs:flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <a
                         href="/login"
                         className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium"

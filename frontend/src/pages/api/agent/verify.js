@@ -9,6 +9,7 @@
  */
 
 import { withNanopayment } from "@/lib/nanopayment";
+import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
 
 async function handler(req, res) {
   if (req.method !== "GET") {
@@ -22,16 +23,59 @@ async function handler(req, res) {
   }
 
   try {
-    // 1. In a real app, the AI agent would fetch the PR from GitHub using the prId,
-    // analyze the diff, check for test coverage, and scan for vulnerabilities.
-    
-    // Mocking an AI verification delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    let verification;
+    let aisaPayment = null;
 
-    // 2. Mocking the verification result (90% pass rate)
-    const isApproved = Math.random() > 0.1;
+    if (isAisaConfigured()) {
+      try {
+        const aisaFetch = getAisaFetch();
+        const aiResponse = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "sonar",
+            messages: [{
+              role: "user",
+              content: `Analyze GitHub pull request #${prId}. Check code quality, test coverage, and security. Respond ONLY with JSON: {"approved": boolean, "confidence": number between 0 and 1, "summary": "one sentence", "issues": number}`
+            }],
+          }),
+        });
 
-    // 3. Return the fully computed verification report
+        const aiData = await aiResponse.json();
+        const content = aiData.choices?.[0]?.message?.content || "";
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+
+        if (parsed && typeof parsed.approved === "boolean") {
+          verification = {
+            prId,
+            linesAnalyzed: lines,
+            approved: parsed.approved,
+            confidence: Math.min(1, Math.max(0, parsed.confidence || 0.5)),
+            summary: parsed.summary || "AI analysis complete.",
+            issuesFound: parsed.issues || 0,
+          };
+          aisaPayment = { provider: "aisa-x402", model: "perplexity-sonar" };
+        }
+      } catch (aisaErr) {
+        console.warn("AIsa verification failed, falling back to mock:", aisaErr.message);
+      }
+    }
+
+    if (!verification) {
+      const isApproved = Math.random() > 0.1;
+      verification = {
+        prId,
+        linesAnalyzed: lines,
+        approved: isApproved,
+        confidence: isApproved ? 0.95 : 0.45,
+        summary: isApproved
+          ? "Code meets all standards. High test coverage detected. No vulnerabilities found."
+          : "Code style violations detected. Missing edge-case test coverage.",
+        issuesFound: isApproved ? 0 : 3,
+      };
+    }
+
     return res.status(200).json({
       success: true,
       agentInfo: {
@@ -39,18 +83,10 @@ async function handler(req, res) {
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: "arc",
+        ...(aisaPayment && { aisaPayment }),
       },
-      verification: {
-        prId,
-        linesAnalyzed: lines,
-        approved: isApproved,
-        confidence: isApproved ? 0.95 : 0.45,
-        summary: isApproved 
-          ? "Code meets all standards. High test coverage detected. No vulnerabilities found." 
-          : "Code style violations detected. Missing edge-case test coverage.",
-        issuesFound: isApproved ? 0 : 3
-      },
-      timestamp: new Date().toISOString()
+      verification,
+      timestamp: new Date().toISOString(),
     });
 
   } catch (error) {

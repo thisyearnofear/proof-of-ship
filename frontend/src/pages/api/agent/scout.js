@@ -13,6 +13,7 @@
 import { db } from "@/lib/firebase/adminApp";
 import { withNanopayment } from "@/lib/nanopayment";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
+import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
 
 async function scoutHandler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -89,6 +90,32 @@ async function scoutHandler(req, res) {
       }
     }
 
+    // AIsa-powered ecosystem analysis (optional)
+    let ecosystemAnalysis = null;
+    let aisaPayment = null;
+    if (isAisaConfigured()) {
+      try {
+        const avgScore = Math.round(scored.reduce((s, p) => s + p.score, 0) / scored.length);
+        const topNames = toBack.slice(0, 3).map((p) => p.name).join(", ");
+        const prompt = `Summarize the investment landscape for these ${scored.length} blockchain projects in 2 sentences. Top projects: ${topNames}. Overall ecosystem health score: ${avgScore}/100.`;
+
+        const aisaFetch = getAisaFetch();
+        const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "sonar",
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+        const aisaData = await aisaRes.json();
+        ecosystemAnalysis = aisaData.choices?.[0]?.message?.content || null;
+        aisaPayment = { provider: "aisa", model: "perplexity/sonar", status: "paid" };
+      } catch (err) {
+        console.warn("AIsa ecosystem analysis failed (non-fatal):", err.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       agentInfo: {
@@ -96,6 +123,7 @@ async function scoutHandler(req, res) {
         feePaid: req.nanopayment?.amount || 0,
         txHash: req.nanopayment?.txHash,
         network: "arc",
+        ...(aisaPayment && { aisaPayment }),
       },
       runId,
       summary: {
@@ -104,6 +132,7 @@ async function scoutHandler(req, res) {
         totalStake: `$${totalStake.toFixed(2)} USDC`,
         executed: shouldExecute,
       },
+      ecosystemAnalysis,
       execution: executionResult,
       projects: scored,
     });

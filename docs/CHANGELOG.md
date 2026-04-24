@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-04-24 — AI Chat Widget + Featherless AI + Docs Update
+
+- Added floating AI Chat Assistant widget (`AIChatWidget.js`) accessible from every page
+- Widget is collapsible (minimize button), dismissable (X with sessionStorage persistence), and reopenable (tiny pill)
+- Chat API (`/api/agent/chat`) uses cascading AI providers: Featherless AI (DeepSeek-V3-0324) → AIsa Perplexity Sonar → contextual fallback
+- Added `FEATHERLESS_API_KEY` env var for primary AI provider
+- Updated README with features overview, AI provider chain docs, and env var reference
+- Updated HACKATHON_ARC.md with all new features, files, and dual AI provider chain
+
+## 2026-04-23 — UI Polish, Search, Onboarding, Project Flow
+
+- Added search & filtering on explore page (real-time by name/description/category)
+- Added onboarding banner (dismissible 3-step walkthrough for first-time visitors)
+- Added SEO meta tags (Open Graph, Twitter Card) in `_document.js`
+- Added IP-based rate limiting (30 req/min) to all agent API routes
+- Added X/Farcaster share buttons on project detail pages
+- Redesigned `/back` page Economy tab with agent explainer cards and cost breakdown
+- Added TransactionFeed component showing live x402 nanopayment activity
+- Added navbar balance indicator (⚡ $X.XX) linking to `/back` page
+- Enriched profile page with My Projects section, nanopayment stats, transaction feed
+- Fixed dead `/shippers` link → `/explore`, added Arc hero section on landing page
+- Added all 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism) to explore page
+- Improved project add/edit/delete flow: optional contract address, GitHub auto-populate, collapsible sections, localStorage drafts, delete with confirmation
+- Toned down nautical theme on key pages, improved dark mode support
+- Visual x402 flow diagram on landing page showing payment chain
+
+## 2026-04-22 — AIsa x402 Integration + Nanopayment Fixes
+
+- Wired AIsa Perplexity Sonar into all 3 agent endpoints (underwrite, scout, verify)
+- Added `aisaClient.js` singleton x402-paying fetch client for AIsa endpoints on Arc Testnet
+- Fixed missing `crypto` import in `nanopayment.js` that crashed all agent API routes
+- Fixed `NanopaymentContext.tsx` demo mode (direct state init, demo-mode fetch with `x-demo-key` header)
+- Added `NanopaymentProvider` and `UserBehaviorProvider` to `AppProviders.js`
+- Fixed navbar Sign In button visibility (removed broken `hidden xs:flex` class)
+- Updated `package-lock.json` to include `@x402/evm`, `@x402/fetch`, `zod` dependencies
+
 ## 2026-04-18 — Docs consolidation & mock data cleanup
 
 - Removed 12 dead pages (`issues/*`, `pulls/*`, `releases/*`, `nebula-test`, `components`)

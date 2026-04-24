@@ -17,11 +17,33 @@ const QUICK_ACTIONS = [
 
 export default function AIChatWidget() {
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Check if user previously dismissed the widget
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const wasDismissed = sessionStorage.getItem("ai-chat-dismissed");
+      if (wasDismissed) setDismissed(true);
+    }
+  }, []);
+
+  const handleDismiss = () => {
+    setOpen(false);
+    setDismissed(true);
+    sessionStorage.setItem("ai-chat-dismissed", "true");
+  };
+
+  const handleReopen = () => {
+    setDismissed(false);
+    setOpen(true);
+    sessionStorage.removeItem("ai-chat-dismissed");
+  };
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -89,18 +111,64 @@ export default function AIChatWidget() {
     }
   };
 
-  // Floating button
-  if (!open) {
+  // Fully dismissed — show tiny re-open pill
+  if (dismissed && !open) {
     return (
       <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group"
-        aria-label="Open AI Assistant"
+        onClick={handleReopen}
+        className="fixed bottom-6 right-6 z-50 w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-indigo-600 hover:text-white text-gray-500 dark:text-gray-400 rounded-full shadow-md transition-all hover:scale-110 opacity-60 hover:opacity-100"
+        aria-label="Reopen AI Assistant"
+        title="Reopen AI Assistant"
       >
-        <ChatBubbleLeftRightIcon className="w-5 h-5" />
-        <span className="text-sm font-medium hidden sm:inline">Ask AI</span>
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+        <ChatBubbleLeftRightIcon className="w-4 h-4" />
       </button>
+    );
+  }
+
+  // Floating button (not dismissed, not open)
+  if (!open) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group"
+          aria-label="Open AI Assistant"
+        >
+          <ChatBubbleLeftRightIcon className="w-5 h-5" />
+          <span className="text-sm font-medium hidden sm:inline">Ask AI</span>
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+        </button>
+        <button
+          onClick={handleDismiss}
+          className="p-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-full shadow transition-colors"
+          aria-label="Dismiss AI Assistant"
+          title="Dismiss"
+        >
+          <XMarkIcon className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  // Minimized state — compact bar
+  if (minimized) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-colors"
+        onClick={() => setMinimized(false)}
+      >
+        <SparklesIcon className="w-4 h-4" />
+        <span className="text-sm font-medium">AI Assistant</span>
+        {messages.length > 0 && (
+          <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">{messages.length}</span>
+        )}
+        <button
+          onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
+          className="ml-1 p-0.5 hover:bg-white/20 rounded-full transition-colors"
+          aria-label="Dismiss"
+        >
+          <XMarkIcon className="w-3.5 h-3.5" />
+        </button>
+      </div>
     );
   }
 
@@ -115,13 +183,24 @@ export default function AIChatWidget() {
             <div className="text-xs opacity-80">$0.005/msg · x402 on Arc</div>
           </div>
         </div>
-        <button
-          onClick={() => setOpen(false)}
-          className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-          aria-label="Close chat"
-        >
-          <XMarkIcon className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setMinimized(true)}
+            className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            aria-label="Minimize chat"
+            title="Minimize"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" /></svg>
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            aria-label="Close chat"
+            title="Close"
+          >
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Messages */}

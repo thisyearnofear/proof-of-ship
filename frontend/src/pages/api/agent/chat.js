@@ -4,12 +4,16 @@
  * Helps users navigate the platform, understand projects,
  * and learn about x402 nanopayments. Costs 0.005 USDC per message.
  * 
- * Uses AIsa Perplexity Sonar when configured, falls back to
- * context-aware responses in demo mode.
+ * Tries Featherless AI (DeepSeek-V3) first, falls back to AIsa Perplexity Sonar,
+ * then to context-aware responses if neither is configured.
  */
 
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+
+const FEATHERLESS_API_KEY = process.env.FEATHERLESS_API_KEY || "";
+const FEATHERLESS_MODEL = "deepseek-ai/DeepSeek-V3-0324";
+const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
 
 const SYSTEM_PROMPT = `You are the Proof of Ship AI Assistant — a helpful guide for a platform that tracks and funds blockchain projects using x402 nanopayments on Circle's Arc network.
 
@@ -39,11 +43,10 @@ async function chatHandler(req, res) {
 
   try {
     let reply;
-    let aisaPayment = null;
+    let aiPayment = null;
 
-    if (isAisaConfigured()) {
+    if (FEATHERLESS_API_KEY) {
       try {
-        const aisaFetch = getAisaFetch();
         const messages = [
           { role: "system", content: SYSTEM_PROMPT },
           ...history.slice(-6).map(m => ({
@@ -53,27 +56,54 @@ async function chatHandler(req, res) {
           { role: "user", content: message },
         ];
 
-        const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+        const featherlessRes = await fetch(`${FEATHERLESS_BASE_URL}/chat/completions`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${FEATHERLESS_API_KEY}`,
+          },
           body: JSON.stringify({
-            model: "sonar",
+            model: FEATHERLESS_MODEL,
             messages,
             max_tokens: 300,
           }),
         });
 
-        if (aisaRes.ok) {
-          const data = await aisaRes.json();
+        if (featherlessRes.ok) {
+          const data = await featherlessRes.json();
           reply = data.choices?.[0]?.message?.content || null;
-          aisaPayment = { provider: "aisa-x402", model: "perplexity/sonar", status: "paid" };
+          aiPayment = { provider: "featherless", model: FEATHERLESS_MODEL, status: "ok" };
         }
       } catch (err) {
-        console.warn("AIsa chat failed, using fallback:", err.message);
+        console.warn("Featherless AI chat failed, trying AIsa:", err.message);
       }
     }
 
-    // Fallback: context-aware responses
+    // Fallback 1: AIsa Perplexity Sonar
+    if (!reply && isAisaConfigured()) {
+      try {
+        const aisaFetch = getAisaFetch();
+        const msgs = [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...history.slice(-6).map(m => ({ role: m.role, content: m.content.slice(0, 300) })),
+          { role: "user", content: message },
+        ];
+        const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "sonar", messages: msgs, max_tokens: 300 }),
+        });
+        if (aisaRes.ok) {
+          const data = await aisaRes.json();
+          reply = data.choices?.[0]?.message?.content || null;
+          aiPayment = { provider: "aisa-x402", model: "perplexity/sonar", status: "paid" };
+        }
+      } catch (err) {
+        console.warn("AIsa chat also failed, using contextual fallback:", err.message);
+      }
+    }
+
+    // Fallback 2: context-aware responses
     if (!reply) {
       reply = getContextualReply(message);
     }
@@ -86,7 +116,7 @@ async function chatHandler(req, res) {
         cost: "0.005 USDC",
         txHash: req.nanopayment?.txHash,
         network: "arc",
-        ...(aisaPayment && { aisaPayment }),
+        ...(aiPayment && { aiPayment }),
       },
     });
   } catch (error) {

@@ -50,8 +50,8 @@ API returns result + agentInfo (feePaid, txHash, network: "arc")
 |------|-------|---------|---------|
 | AI Underwriter | 0.05 USDC | `/api/agent/underwrite` | Project health scoring |
 | AI Scout | 0.01 USDC | `/api/agent/scout` | Portfolio recommendations |
-| Verifier Agent | 0.001 USDC/10 LOC | `/api/agent/verify` | Code verification |
-| AI Portfolio Manager | 0.01 USDC | `/api/agent/rebalance` | Auto-rebalancing |
+| Verifier Agent | 0.01 USDC | `/api/agent/verify` | Code verification |
+| AI Chat Assistant | 0.005 USDC | `/api/agent/chat` | Platform help & guidance |
 
 ### Why Arc & Circle Nanopayments?
 Traditional verification/underwriting platforms rely on high monthly subscriptions because processing credit card micro-transactions ($0.05) is economically unviable due to flat payment processing fees.
@@ -64,30 +64,38 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 
 ### Implementation Status
 - [x] **Core Principles Check:** Aligned with ENHANCEMENT FIRST and PREVENT BLOAT
-- [x] Circle Nanopayment middleware (`src/lib/nanopayment.js`)
+- [x] Circle Nanopayment middleware (`src/lib/nanopayment.js`) with IP-based rate limiting
 - [x] AIsa x402 paying fetch client (`src/lib/aisaClient.js`)
-- [x] AI Underwriter endpoint (`/api/agent/underwrite` - 0.05 USDC + AIsa Perplexity enrichment)
-- [x] AI Scout endpoint (`/api/agent/scout` - 0.01 USDC + AIsa ecosystem analysis)
-- [x] AI Verifier endpoint (`/api/agent/verify` - 0.01 USDC + AIsa code analysis)
+- [x] AI Underwriter endpoint (`/api/agent/underwrite` - 0.05 USDC + AI enrichment)
+- [x] AI Scout endpoint (`/api/agent/scout` - 0.01 USDC + AI ecosystem analysis)
+- [x] AI Verifier endpoint (`/api/agent/verify` - 0.01 USDC + AI code analysis)
+- [x] AI Chat Assistant (`/api/agent/chat` - 0.005 USDC, Featherless → AIsa → contextual fallback)
 - [x] Agent-to-agent x402 payment loops (our agents → AIsa Perplexity Sonar)
+- [x] Dual AI provider chain: Featherless AI (DeepSeek-V3) primary, AIsa x402 fallback
 - [x] Frontend NanopaymentContext (`src/contexts/NanopaymentContext.tsx`)
 - [x] NanopaymentService (`src/services/nanopaymentService.ts`)
 - [x] NanopaymentWidget (`src/components/common/NanopaymentWidget.js`)
 - [x] NanopaymentLedger (`src/components/common/NanopaymentLedger.js`)
+- [x] Floating AI Chat Widget — collapsible, dismissable, minimizable
 - [x] ProjectCard integration (Analyze button for projects without health scores)
 - [x] Demo mode support (NEXT_PUBLIC_DEMO_MODE=true)
 - [x] Margin analysis documentation
+- [x] 7 ecosystems on explore page with search & filtering
+- [x] Onboarding banner, SEO meta tags, share buttons
+- [x] Project add/edit/delete flow with GitHub auto-populate
+- [x] Transaction activity feed and navbar balance indicator
 - [ ] 50+ real on-chain transactions on Arc testnet
 - [ ] Transaction flow demo video
 
 ### Files Changed
 
 **Backend (API Routes & Lib)**
-- `src/lib/nanopayment.js` - Real Circle x402 middleware with demo fallback
+- `src/lib/nanopayment.js` - Circle x402 middleware with demo fallback + IP rate limiting
 - `src/lib/aisaClient.js` - AIsa x402 paying fetch client (GatewayEvmScheme, singleton)
-- `src/pages/api/agent/underwrite.js` - AI Underwriter with nanopayment + AIsa Perplexity enrichment
-- `src/pages/api/agent/scout.js` - AI Scout with nanopayment + AIsa ecosystem analysis
-- `src/pages/api/agent/verify.js` - AI Verifier with nanopayment + AIsa code analysis
+- `src/pages/api/agent/underwrite.js` - AI Underwriter with nanopayment + AI enrichment
+- `src/pages/api/agent/scout.js` - AI Scout with nanopayment + AI ecosystem analysis
+- `src/pages/api/agent/verify.js` - AI Verifier with nanopayment + AI code analysis
+- `src/pages/api/agent/chat.js` - AI Chat Assistant (Featherless → AIsa → contextual fallback)
 
 **Frontend (Context & Service)**
 - `src/contexts/NanopaymentContext.tsx` - All agent payment methods
@@ -96,10 +104,22 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 **Frontend (Components)**
 - `src/components/common/NanopaymentWidget.js` - Mobile-responsive widget
 - `src/components/common/NanopaymentLedger.js` - Transaction history
+- `src/components/common/AIChatWidget.js` - Floating chat (collapsible/dismissable/minimizable)
+- `src/components/common/TransactionFeed.js` - Live transaction activity feed
+- `src/components/common/OnboardingBanner.js` - First-time visitor walkthrough
+- `src/components/common/ShareButtons.js` - X/Farcaster share buttons
 - `src/components/projects/ProjectCard.js` - Analyze button integration
+- `src/components/dashboard/EcosystemSection.js` - Improved empty states
+
+**Frontend (Pages)**
+- `src/pages/index.js` - Arc hero section, x402 flow diagram, all 7 ecosystems
+- `src/pages/explore.js` - Search/filtering, 7 ecosystems, hackathon tab
+- `src/pages/back.js` - Redesigned Economy tab with agent explainers
+- `src/pages/profile.js` - My Projects, nanopayment stats, transaction feed
+- `src/pages/_document.js` - SEO meta tags
 
 **Frontend (Providers)**
-- `src/providers/AppProviders.js` - NanopaymentProvider added
+- `src/providers/AppProviders.js` - NanopaymentProvider + UserBehaviorProvider added
 - `src/components/common/index.js` - Exports added
 
 ### Demo Mode
@@ -116,6 +136,10 @@ The app will work with mock nanopayments, showing the full UX flow.
 ### Environment Variables
 
 ```env
+# AI Providers (cascading: Featherless → AIsa → contextual fallback)
+FEATHERLESS_API_KEY=your_featherless_key    # Primary: DeepSeek-V3-0324
+OWS_MNEMONIC=your_mnemonic                  # Fallback: AIsa x402 Perplexity Sonar
+
 # Circle x402 Nanopayments
 CIRCLE_GATEWAY_WALLET_ADDRESS=0x...
 PRIVATE_KEY=0x...  # Buyer's wallet private key

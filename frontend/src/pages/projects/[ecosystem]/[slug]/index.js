@@ -14,6 +14,7 @@ import { getGitHubUrl } from "@/utils/projectUtils";
 import ethosService from "@/services/EthosService";
 import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
 import ShipsLog from "@/components/projects/ShipsLog";
+import ShareButtons from "@/components/common/ShareButtons";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -146,7 +147,7 @@ export default function ProjectDetailPage() {
             Couldn’t load project
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
-          <Button variant="outline" onClick={() => router.push("/shippers")}>
+          <Button variant="outline" onClick={() => router.push("/explore")}>
             Back to projects
           </Button>
         </Card>
@@ -211,6 +212,8 @@ export default function ProjectDetailPage() {
                     <span>{project.category}</span>
                   </div>
                 )}
+
+                <ShareButtons title={title} className="mt-2" />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

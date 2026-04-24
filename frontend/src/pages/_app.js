@@ -11,6 +11,7 @@ import "@/styles/themes.css";
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
 import { initObservability } from "@/lib/observability";
 import AIAnalysisModal from "@/components/common/AIAnalysisModal";
+import OnboardingBanner from "@/components/common/OnboardingBanner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -47,6 +48,7 @@ export default function App({ Component, pageProps }) {
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
       >
         <Navbar />
+        <OnboardingBanner />
         <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
           <ErrorBoundary name="Page Component">
             <Component {...pageProps} />

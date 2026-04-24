@@ -13,9 +13,13 @@
  */
 
 import crypto from 'crypto';
+import rateLimit from '@/utils/rateLimit';
 
 const PRICE_PER_REQUEST = 0.05;
 const CURRENCY = "USDC";
+
+// Rate limiter: 30 agent requests per minute per IP
+const limiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
 
 function createPaymentRequirement(amountUSDC = PRICE_PER_REQUEST) {
   return {
@@ -36,6 +40,13 @@ function isDemoMode() {
 
 export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUEST) {
   return async (req, res) => {
+    // Rate limiting
+    try {
+      await limiter.check(res, 30, 'AGENT_API');
+    } catch {
+      return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
+    }
+
     if (isDemoMode()) {
       return demoModeFlow(handler, requiredAmount)(req, res);
     }

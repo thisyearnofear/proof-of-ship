@@ -20,6 +20,8 @@ import {
   CalendarIcon,
   TrophyIcon,
   UsersIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 export default function ExplorePage() {
@@ -67,6 +69,7 @@ function ProjectsTab() {
   const [ecosystem, setEcosystem] = useState("all");
   const [chains, setChains] = useState([]);
   const [sectors, setSectors] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const { ecosystem: ecoQ, chains: chainsQ, sectors: sectorsQ } = router.query || {};
@@ -87,16 +90,18 @@ function ProjectsTab() {
     const result = {};
     if (!projectData) return result;
     const ecos = ecosystem === "all" ? Object.keys(projectData) : [ecosystem];
+    const q = searchQuery.toLowerCase().trim();
     ecos.forEach((eco) => {
       const list = projectData[eco] || [];
       result[eco] = list.filter((p) => {
+        if (q && !(p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q))) return false;
         if (chains.length > 0 && (!p.chains || !p.chains.some((c) => chains.includes(c)))) return false;
         if (sectors.length > 0 && (!p.sectors || !p.sectors.some((s) => sectors.includes(s)))) return false;
         return true;
       });
     });
     return result;
-  }, [projectData, ecosystem, chains, sectors]);
+  }, [projectData, ecosystem, chains, sectors, searchQuery]);
 
   const chainOptions = useMemo(() => {
     const shortNames = { 44787: "Celo", 59141: "Linea", 84532: "Base", 421614: "Arbitrum", 11155111: "Ethereum", 11155420: "Optimism", 5042002: "Arc" };
@@ -117,8 +122,36 @@ function ProjectsTab() {
     );
   }
 
+  const totalProjects = useMemo(() => {
+    return Object.values(filteredData).reduce((sum, list) => sum + list.length, 0);
+  }, [filteredData]);
+
   return (
     <>
+      {/* Search bar */}
+      <div className="relative mb-4">
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search projects by name, description, or category..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100"
+        />
+        {searchQuery && (
+          <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Results count */}
+      {searchQuery && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+          {totalProjects} result{totalProjects !== 1 ? 's' : ''} for &ldquo;{searchQuery}&rdquo;
+        </p>
+      )}
+
       <Card className="p-3 mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <select value={ecosystem} onChange={(e) => setEcosystem(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-xs font-medium">
@@ -216,7 +249,17 @@ function HackathonsTab() {
       </div>
 
       {empty ? (
-        <div className="text-center py-16 text-gray-500">No hackathons found.</div>
+        <div className="text-center py-16">
+          <TrophyIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No hackathons found</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-md mx-auto">
+            Hackathon data is loaded from the platform database. Check back soon or submit your hackathon project!
+          </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 rounded-lg text-sm">
+            <span>🏆</span>
+            <span className="text-teal-700 dark:text-teal-300 font-medium">Currently building for: Arc Nano Payments Hackathon</span>
+          </div>
+        </div>
       ) : (
         <div className="space-y-8">
           {[

@@ -1,4 +1,4 @@
-import { db, auth } from "../../../lib/firebase/adminApp";
+import { db, auth } from "../../../lib/firebase/serverOnly";
 import { verifyAuth, withApiMiddleware } from "../../../utils/apiMiddleware";
 import { logActivity } from "../../../utils/activityLogger";
 

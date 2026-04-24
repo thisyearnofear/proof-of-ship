@@ -1,4 +1,4 @@
-import { db } from "../../../lib/firebase/adminApp";
+import { db } from "../../../lib/firebase/serverOnly";
 
 /**
  * Individual Hackathon API Endpoint

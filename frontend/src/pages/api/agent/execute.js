@@ -15,7 +15,7 @@
  *   BUILDER_CREDIT_ARC_ADDRESS — deployed BuilderCreditCore on Arc Testnet
  */
 
-import { db } from "@/lib/firebase/adminApp";
+import { db } from "@/lib/firebase/serverOnly";
 import { ethers } from "ethers";
 
 // Arc Testnet config

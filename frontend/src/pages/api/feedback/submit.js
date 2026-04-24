@@ -1,4 +1,4 @@
-import { db, auth } from "../../../lib/firebase/adminApp";
+import { db, auth } from "../../../lib/firebase/serverOnly";
 import { verifyAuth, isAdmin } from "../../../utils/apiMiddleware";
 import { withApiMiddleware } from "../../../utils/apiMiddleware";
 

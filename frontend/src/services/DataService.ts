@@ -1,19 +1,49 @@
 /**
- * Centralized data service for GitHub and Firebase operations
- * Reads GitHub data from Firestore cache (populated by scripts/sync-github.js)
- * No runtime GitHub API calls - eliminates rate limit issues
+ * Canonical Data Service
+ * 
+ * Single source of truth for all data operations:
+ * - GitHub data fetching with caching
+ * - Multi-ecosystem project loading from Firestore
+ * - Project submission
+ * - React hook for context integration
+ * 
+ * Previously split across:
+ * - DataService.ts (base caching)
+ * - EnhancedDataService.js (multi-ecosystem)
+ * - ClientProjectService.js (submission)
+ * 
+ * @deprecated EnhancedDataService.js and ClientProjectService.js - use this instead
  */
 
-import { validateGitHubData, validateProject } from "@/schemas/project";
-import { db } from "../lib/firebase/clientApp";
-import { doc, getDoc, DocumentData } from "firebase/firestore";
 
-interface CacheEntry<T> {
+import { db } from '@/lib/firebase/clientApp';
+import { collection, getDocs, doc, getDoc, query, where, orderBy, setDoc, addDoc } from 'firebase/firestore';
+
+// Static repos for Celo fallback (imported lazily to avoid bundling in server contexts)
+let staticRepos: any[] | null = null;
+async function getStaticRepos() {
+  if (!staticRepos) {
+    try {
+      // From src/services/ -> project root's data/ directory
+      const module = await import('../../../data/repos.json');
+      staticRepos = module.default || module;
+    } catch {
+      staticRepos = [];
+    }
+  }
+  return staticRepos;
+}
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface CacheEntry<T> {
   data: T;
   timestamp: number;
 }
 
-interface FetchOptions<T> {
+export interface FetchOptions<T> {
   ttl?: number;
   validate?: (data: any) => boolean;
   transform?: (data: any) => T;
@@ -21,41 +51,92 @@ interface FetchOptions<T> {
   timeout?: number;
 }
 
+export interface ProjectStats {
+  commits: number;
+  issues: number;
+  pulls: number;
+  stars: number;
+  forks: number;
+  watchers: number;
+  lastCommit: string | null;
+  languages: string[];
+  isActive: boolean;
+  healthScore: number;
+}
+
+export interface Project {
+  id?: string;
+  slug: string;
+  name: string;
+  description?: string;
+  owner: string;
+  repo: string;
+  ecosystem: string;
+  githubData?: {
+    meta?: any;
+    commits?: any[];
+    issues?: any[];
+    pulls?: any[];
+  };
+  stats?: ProjectStats;
+  [key: string]: any;
+}
+
+export interface EcosystemProjects {
+  celo: Project[];
+  arc: Project[];
+  base: Project[];
+  linea: Project[];
+  arbitrum: Project[];
+  ethereum: Project[];
+  optimism: Project[];
+}
+
+export interface EcosystemStats {
+  totalProjects: number;
+  activeProjects: number;
+  totalCommits: number;
+  totalStars: number;
+  averageHealthScore: number;
+  lastUpdated: string;
+}
+
+// ============================================================================
+// DataService Class
+// ============================================================================
+
 class DataService {
   private cache: Map<string, CacheEntry<any>>;
   private abortControllers: Map<string, AbortController>;
   private requestQueue: Map<string, Promise<any>>;
-  private cacheTTLByType: Record<string, number>;
   private cacheTTL: Record<string, number>;
 
   constructor() {
     this.cache = new Map();
     this.abortControllers = new Map();
     this.requestQueue = new Map();
-
-    this.cacheTTLByType = {
+    this.cacheTTL = {
+      contracts: 60 * 1000,
+      projects: 10 * 60 * 1000,
+      github: 60 * 60 * 1000,
       meta: 24 * 60 * 60 * 1000,
       commits: 24 * 60 * 60 * 1000,
       issues: 60 * 60 * 1000,
       prs: 60 * 60 * 1000,
     };
-    
-    this.cacheTTL = {
-      contracts: 60 * 1000,
-      projects: 10 * 60 * 1000,
-      github: 60 * 60 * 1000
-    };
   }
 
+  // --------------------------------------------------------------------------
+  // Caching utilities
+  // --------------------------------------------------------------------------
+
   async fetchWithCache<T>(
-    key: string, 
-    fetcher: (signal: AbortSignal) => Promise<T>, 
+    key: string,
+    fetcher: (signal: AbortSignal) => Promise<T>,
     options: FetchOptions<T> = {}
   ): Promise<T> {
     const {
       ttl = this.cacheTTL.github,
-      validate = null,
-      transform = null,
       retries = 3,
       timeout = 30000,
     } = options;
@@ -71,12 +152,7 @@ class DataService {
       return this.requestQueue.get(key)!;
     }
 
-    const requestPromise = this._executeRequest(key, fetcher, {
-      validate,
-      transform,
-      retries,
-      timeout,
-    });
+    const requestPromise = this._executeRequest(key, fetcher, { retries, timeout });
     this.requestQueue.set(key, requestPromise);
 
     try {
@@ -91,9 +167,9 @@ class DataService {
   private async _executeRequest<T>(
     key: string,
     fetcher: (signal: AbortSignal) => Promise<T>,
-    options: FetchOptions<T>
+    options: { retries?: number; timeout?: number }
   ): Promise<T> {
-    const { retries = 3, timeout = 30000, transform } = options;
+    const { retries = 3, timeout = 30000 } = options;
     let lastError: any;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -104,10 +180,7 @@ class DataService {
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         try {
-          let data = await fetcher(controller.signal);
-          if (transform) {
-            data = transform(data);
-          }
+          const data = await fetcher(controller.signal);
           clearTimeout(timeoutId);
           return data;
         } finally {
@@ -124,6 +197,527 @@ class DataService {
     }
     throw lastError;
   }
+
+  clearCache(prefix?: string): void {
+    if (!prefix) {
+      this.cache.clear();
+      return;
+    }
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  cancelAllRequests(): void {
+    for (const controller of this.abortControllers.values()) {
+      controller.abort();
+    }
+    this.abortControllers.clear();
+    this.requestQueue.clear();
+  }
+
+  // --------------------------------------------------------------------------
+  // GitHub Data (Legacy - for Celo/static repos)
+  // --------------------------------------------------------------------------
+
+  async loadAllGitHubData(repos: { slug: string; owner: string; repo: string }[]): Promise<Record<string, any>> {
+    const results: Record<string, any> = {};
+    
+    for (const repo of repos) {
+      try {
+        const data = await this.loadGitHubRepoData(repo.owner, repo.repo);
+        results[repo.slug] = data;
+      } catch (error) {
+        results[repo.slug] = { hasErrors: true, errors: error };
+      }
+    }
+    
+    return results;
+  }
+
+  async loadGitHubRepoData(owner: string, repo: string): Promise<any> {
+    const cacheKey = `github_${owner}_${repo}`;
+    return this.fetchWithCache(cacheKey, async () => {
+      const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+      const headers = {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+      };
+
+      const [meta, commits, issues, prs] = await Promise.all([
+        fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers }).then(r => r.json()),
+        fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`, { headers }).then(r => r.json()),
+        fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=50`, { headers }).then(r => r.json()),
+        fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=50`, { headers }).then(r => r.json()),
+      ]);
+
+      return { meta, commits, issues: issues.filter((i: any) => !i.pull_request), prs };
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // Multi-Ecosystem Project Loading (from Firestore)
+  // --------------------------------------------------------------------------
+
+  private projectCache: Map<string, CacheEntry<any>> = new Map();
+
+  async loadAllProjects(ecosystem = 'all', options: { 
+    celoDataTypes?: string[];
+    baseDataTypes?: string[];
+    forceRefresh?: boolean;
+  } = {}): Promise<EcosystemProjects> {
+    const { 
+      celoDataTypes = ['meta', 'commits'],
+      baseDataTypes = ['meta', 'commits'],
+      forceRefresh = false 
+    } = options;
+    
+    const cacheKey = `projects_${ecosystem}_${celoDataTypes.join(',')}_${baseDataTypes.join(',')}`;
+    
+    if (!forceRefresh && this.projectCache.has(cacheKey)) {
+      const { data, timestamp } = this.projectCache.get(cacheKey)!;
+      if (Date.now() - timestamp < this.cacheTTL.projects) {
+        return data;
+      }
+    }
+
+    const projects: EcosystemProjects = {
+      celo: [], arc: [], base: [], linea: [], arbitrum: [], ethereum: [], optimism: []
+    };
+
+    const ecosystems = ecosystem === 'all' 
+      ? ['celo', 'arc', 'base', 'linea', 'arbitrum', 'ethereum', 'optimism']
+      : [ecosystem];
+
+    await Promise.all(ecosystems.map(async (eco) => {
+      try {
+        const ecoProjects = await this.loadEcosystemProjects(eco, eco === 'celo' ? celoDataTypes : baseDataTypes);
+        projects[eco as keyof EcosystemProjects] = ecoProjects;
+      } catch (error) {
+        console.error(`Failed to load ${eco} projects:`, error);
+      }
+    }));
+
+    this.projectCache.set(cacheKey, { data: projects, timestamp: Date.now() });
+    return projects;
+  }
+
+  async loadEcosystemProjects(ecosystemId: string, dataTypes: string[] = ['meta', 'commits']): Promise<Project[]> {
+    try {
+      const ref = collection(db, `projects_${ecosystemId}`);
+      const q = ecosystemId === 'base' 
+        ? query(ref, where('status', '==', 'approved'), orderBy('createdAt', 'desc'))
+        : query(ref, orderBy('createdAt', 'desc'));
+      
+      const snapshot = await getDocs(q);
+      const projects: Project[] = [];
+
+      await Promise.all(snapshot.docs.map(async (docSnap) => {
+        const projectData: Project = { id: docSnap.id, ...docSnap.data() };
+        
+        if (projectData.owner && projectData.repo) {
+          try {
+            const githubData = await this.fetchGitHubDataForProject(
+              projectData.owner,
+              projectData.repo,
+              dataTypes
+            );
+            projectData.githubData = githubData;
+            projectData.stats = this.calculateProjectStats(githubData);
+          } catch (error) {
+            projectData.githubData = {};
+            projectData.stats = this.getDefaultStats();
+          }
+        }
+
+        projects.push({
+          ...projectData,
+          ecosystem: ecosystemId,
+        });
+      }));
+
+      return projects;
+    } catch (error) {
+      console.error(`Failed to load ${ecosystemId} projects:`, error);
+      return [];
+    }
+  }
+
+  async fetchGitHubDataForProject(owner: string, repo: string, dataTypes: string[] = ['meta', 'commits']): Promise<any> {
+    const cacheKey = `github_${owner}_${repo}_${dataTypes.join(',')}`;
+    
+    return this.fetchWithCache(cacheKey, async () => {
+      const data: any = {};
+      const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+      const headers = {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+      };
+
+      for (const dataType of dataTypes) {
+        try {
+          if (dataType === 'meta') {
+            data.meta = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers }).then(r => r.json());
+          } else if (dataType === 'commits') {
+            data.commits = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`, { headers }).then(r => r.json());
+          } else if (dataType === 'issues') {
+            data.issues = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=50`, { headers }).then(r => r.json());
+          } else if (dataType === 'prs') {
+            data.pulls = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=50`, { headers }).then(r => r.json());
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch ${dataType} for ${owner}/${repo}:`, error);
+          data[dataType === 'prs' ? 'pulls' : dataType] = dataType === 'meta' ? {} : [];
+        }
+      }
+
+      return data;
+    }, { ttl: this.cacheTTL.projects });
+  }
+
+  calculateProjectStats(githubData: any): ProjectStats {
+    if (!githubData || typeof githubData !== 'object') {
+      return this.getDefaultStats();
+    }
+
+    return {
+      commits: githubData.commits?.length || 0,
+      issues: githubData.issues?.length || 0,
+      pulls: githubData.pulls?.length || 0,
+      stars: githubData.meta?.stargazers_count || 0,
+      forks: githubData.meta?.forks_count || 0,
+      watchers: githubData.meta?.watchers_count || 0,
+      lastCommit: this.getLastCommitDate(githubData.commits),
+      languages: githubData.meta?.language ? [githubData.meta.language] : [],
+      isActive: this.isProjectActive(githubData),
+      healthScore: this.calculateHealthScore(githubData)
+    };
+  }
+
+  getDefaultStats(): ProjectStats {
+    return {
+      commits: 0,
+      issues: 0,
+      pulls: 0,
+      stars: 0,
+      forks: 0,
+      watchers: 0,
+      lastCommit: null,
+      languages: [],
+      isActive: false,
+      healthScore: 0
+    };
+  }
+
+  calculateHealthScore(githubData: any): number {
+    if (!githubData || !githubData.commits) return 0;
+
+    let score = 0;
+    const recentCommits = this.getRecentCommits(githubData.commits, 30);
+    score += Math.min(recentCommits.length * 2, 40);
+    
+    const stars = githubData.meta?.stargazers_count || 0;
+    const forks = githubData.meta?.forks_count || 0;
+    score += Math.min((stars + forks) * 0.5, 30);
+    
+    const openIssues = githubData.issues?.filter((issue: any) => issue.state === 'open').length || 0;
+    const closedIssues = githubData.issues?.filter((issue: any) => issue.state === 'closed').length || 0;
+    const issueRatio = closedIssues / (openIssues + closedIssues + 1);
+    score += issueRatio * 20;
+    
+    const hasReadme = githubData.meta?.has_readme || false;
+    const hasDescription = githubData.meta?.description?.length > 0 || false;
+    score += (hasReadme ? 5 : 0) + (hasDescription ? 5 : 0);
+    
+    return Math.round(Math.min(score, 100));
+  }
+
+  isProjectActive(githubData: any): boolean {
+    if (!githubData.commits || githubData.commits.length === 0) return false;
+    
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    
+    return githubData.commits.some((commit: any) => 
+      new Date(commit.commit?.author?.date || commit.commit?.committer?.date) > ninetyDaysAgo
+    );
+  }
+
+  getRecentCommits(commits: any[], days = 30): any[] {
+    if (!commits || commits.length === 0) return [];
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return commits.filter((commit: any) => 
+      new Date(commit.commit?.author?.date || commit.commit?.committer?.date) > cutoffDate
+    );
+  }
+
+  getLastCommitDate(commits: any[]): string | null {
+    if (!commits || commits.length === 0) return null;
+    
+    const dates = commits
+      .map((commit: any) => commit.commit?.author?.date || commit.commit?.committer?.date)
+      .filter(Boolean)
+      .map((date: string) => new Date(date))
+      .sort((a: Date, b: Date) => b.getTime() - a.getTime());
+    
+    return dates.length > 0 ? dates[0].toISOString() : null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Project Details
+  // --------------------------------------------------------------------------
+
+  async getProject(slug: string, ecosystem: string | null = null): Promise<Project | null> {
+    const dataTypes = ['meta', 'commits', 'issues', 'prs'];
+
+    if (ecosystem && ecosystem !== 'celo') {
+      try {
+        const ref = doc(db, `projects_${ecosystem}`, slug);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return null;
+
+        const projectData: Project = { id: snap.id, ...snap.data(), ecosystem };
+        if (projectData.owner && projectData.repo) {
+          const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
+          projectData.githubData = githubData;
+          projectData.stats = this.calculateProjectStats(githubData);
+        }
+        return projectData;
+      } catch (error) {
+        console.error(`Failed to load project ${slug} from ${ecosystem}:`, error);
+        return null;
+      }
+    }
+
+    // Try Celo (dynamic first, then static fallback)
+    try {
+      const dynamicRef = doc(db, 'projects_celo', slug);
+      const dynamicSnap = await getDoc(dynamicRef);
+      if (dynamicSnap.exists()) {
+        const projectData: Project = { id: dynamicSnap.id, ...dynamicSnap.data(), ecosystem: 'celo' };
+        if (projectData.owner && projectData.repo) {
+          const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
+          projectData.githubData = githubData;
+          projectData.stats = this.calculateProjectStats(githubData);
+        }
+        return projectData;
+      }
+
+      // Static fallback for Celo projects not in Firestore
+      const repos = await getStaticRepos();
+      const repoEntry = repos.find((r: any) => r.slug === slug);
+      if (repoEntry) {
+        const githubData = await this.fetchGitHubDataForProject(repoEntry.owner, repoEntry.repo, dataTypes);
+        return {
+          ...repoEntry,
+          ecosystem: 'celo',
+          source: 'static',
+          githubData,
+          stats: this.calculateProjectStats(githubData),
+          lastUpdated: new Date().toISOString(),
+        };
+      }
+    } catch (error) {
+      console.error(`Failed to load Celo project ${slug}:`, error);
+    }
+
+    return null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Search
+  // --------------------------------------------------------------------------
+
+  async searchProjects(query: string, ecosystem = 'all'): Promise<Project[]> {
+    const allProjects = await this.loadAllProjects(ecosystem);
+    const searchTerm = query.toLowerCase();
+    const results: Project[] = [];
+
+    Object.values(allProjects).forEach((projects) => {
+      const filtered = projects.filter((project: Project) => 
+        project.name?.toLowerCase().includes(searchTerm) ||
+        project.slug?.toLowerCase().includes(searchTerm) ||
+        project.description?.toLowerCase().includes(searchTerm) ||
+        project.owner?.toLowerCase().includes(searchTerm)
+      );
+      results.push(...filtered);
+    });
+
+    return results;
+  }
+
+  // --------------------------------------------------------------------------
+  // Project Submission
+  // --------------------------------------------------------------------------
+
+  async submitProject(projectData: any): Promise<{ success: boolean; projectSlug?: string; error?: string }> {
+    const { auth: firebaseAuth } = await import('@/lib/firebase/clientApp');
+    const user = firebaseAuth.currentUser;
+    
+    if (!user) {
+      return { success: false, error: 'You must be logged in to submit a project' };
+    }
+
+    try {
+      const requiredFields = ['name', 'description', 'githubUrl', 'ecosystem', 'category'];
+      const missingFields = requiredFields.filter(field => !projectData[field]);
+      
+      if (missingFields.length > 0) {
+        return { success: false, error: `Missing required fields: ${missingFields.join(', ')}` };
+      }
+
+      if (!projectData.githubUrl.includes('github.com')) {
+        return { success: false, error: 'Invalid GitHub URL' };
+      }
+
+      const slug = this.generateSlug(projectData.name);
+      const existingProject = await getDoc(doc(db, 'projects', slug));
+      if (existingProject.exists()) {
+        return { success: false, error: 'Project with this name already exists' };
+      }
+
+      const githubMatch = projectData.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+      if (!githubMatch) {
+        return { success: false, error: 'Could not parse GitHub URL' };
+      }
+
+      const [, owner, repo] = githubMatch;
+      const now = new Date().toISOString();
+
+      const projectDoc = {
+        slug,
+        name: projectData.name,
+        description: projectData.description,
+        owner,
+        repo: repo.replace('.git', ''),
+        ecosystem: projectData.ecosystem,
+        category: projectData.category,
+        contractAddress: projectData.contractAddress || null,
+        deploymentTxHash: projectData.deploymentTxHash || null,
+        website: projectData.website || null,
+        twitter: projectData.twitter || null,
+        discord: projectData.discord || null,
+        teamMembers: Array.isArray(projectData.teamMembers) ? projectData.teamMembers.filter(Boolean) : [],
+        hackathons: Array.isArray(projectData.hackathons) ? projectData.hackathons : [],
+        isOpenSource: Boolean(projectData.isOpenSource),
+        lookingForFunding: Boolean(projectData.lookingForFunding),
+        fundingAmount: projectData.fundingAmount || null,
+        milestones: Array.isArray(projectData.milestones) ? projectData.milestones.filter(Boolean) : [],
+        submittedBy: user.uid,
+        owners: [user.uid],
+        submittedAt: now,
+        status: 'pending_review',
+        createdAt: now,
+        updatedAt: now,
+        verified: false,
+        featured: false,
+        stats: { views: 0, stars: 0, forks: 0, commits: 0, issues: 0, pulls: 0 },
+      };
+
+      await setDoc(doc(db, 'projects', slug), projectDoc);
+      await setDoc(doc(db, `projects_${projectData.ecosystem}`, slug), projectDoc);
+
+      await addDoc(collection(db, 'admin_queue'), {
+        type: 'project_submission',
+        projectSlug: slug,
+        ecosystem: projectData.ecosystem,
+        submittedBy: user.uid,
+        submittedAt: now,
+        status: 'pending',
+        priority: projectData.ecosystem === 'base' ? 'high' : 'normal',
+      });
+
+      // Clear project cache to include new project
+      this.projectCache.clear();
+
+      return { success: true, projectSlug: slug };
+    } catch (error: any) {
+      console.error('Error submitting project:', error);
+      
+      if (error.code === 'permission-denied') {
+        return { success: false, error: 'Permission denied. Please make sure you are logged in.' };
+      }
+      
+      return { success: false, error: error.message || 'Failed to submit project' };
+    }
+  }
+
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 50);
+  }
+
+  // --------------------------------------------------------------------------
+  // Stats
+  // --------------------------------------------------------------------------
+
+  async getEcosystemStats(ecosystem = 'all'): Promise<Record<string, EcosystemStats>> {
+    const projects = await this.loadAllProjects(ecosystem);
+    const stats: Record<string, EcosystemStats> = {};
+
+    Object.entries(projects).forEach(([eco, projectList]) => {
+      stats[eco] = {
+        totalProjects: projectList.length,
+        activeProjects: projectList.filter(p => p.stats?.isActive).length,
+        totalCommits: projectList.reduce((sum, p) => sum + (p.stats?.commits || 0), 0),
+        totalStars: projectList.reduce((sum, p) => sum + (p.stats?.stars || 0), 0),
+        averageHealthScore: projectList.length > 0 
+          ? Math.round(projectList.reduce((sum, p) => sum + (p.stats?.healthScore || 0), 0) / projectList.length)
+          : 0,
+        lastUpdated: new Date().toISOString()
+      };
+    });
+
+    return ecosystem === 'all' ? stats : { [ecosystem]: stats[ecosystem] } as Record<string, EcosystemStats>;
+  }
+
+  clearAllCaches(): void {
+    this.cache.clear();
+    this.projectCache.clear();
+    this.abortControllers.clear();
+    this.requestQueue.clear();
+  }
 }
 
-export default DataService;
+// ============================================================================
+// Singleton Instance
+// ============================================================================
+
+export const dataService = new DataService();
+
+// ============================================================================
+// React Hook
+// ============================================================================
+
+interface UseDataServiceReturn {
+  dataService: DataService;
+  clearCache: (prefix?: string) => void;
+  cancelAllRequests: () => void;
+}
+
+export function useDataService(): UseDataServiceReturn {
+  return {
+    dataService,
+    clearCache: (prefix?: string) => dataService.clearCache(prefix),
+    cancelAllRequests: () => dataService.cancelAllRequests(),
+  };
+}
+
+// ============================================================================
+// Legacy Exports for Backward Compatibility
+// ============================================================================
+
+// Re-export for EnhancedDataService compatibility
+export { DataService };
+
+// Export singleton method aliases
+export const enhancedDataService = dataService;
+export const submitProject = (data: any) => dataService.submitProject(data);

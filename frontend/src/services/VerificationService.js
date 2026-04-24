@@ -7,7 +7,7 @@
  * Implements MODULAR design for different verification types
  */
 
-import { db } from '@/lib/firebase/adminApp';
+import { db } from '@/lib/firebase/serverOnly';
 
 class VerificationService {
   /**

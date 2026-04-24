@@ -5,7 +5,7 @@
  * Shows "Last analyzed: X ago" with a "Re-analyze" option.
  * Cache TTL: 1 hour for underwrite/verify, 30 min for scout.
  */
-import { db } from "@/lib/firebase/adminApp";
+import { db } from "@/lib/firebase/serverOnly";
 
 const CACHE_TTL = {
   underwrite: 60 * 60 * 1000,  // 1 hour

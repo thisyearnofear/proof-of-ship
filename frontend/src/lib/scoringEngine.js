@@ -1,4 +1,23 @@
-// Scoring weights
+/**
+ * Project-focused scoring wrapper
+ * Combines GitHub scoring (from scoring.js) with project-specific metrics.
+ * 
+ * @see scoring.js - Canonical GitHub scoring implementation
+ */
+
+// Re-export GitHub scoring for backward compatibility
+export {
+  calculateProfileScore,
+  calculateActivityScore,
+  calculateCommunityScore,
+  calculateRepositoryScore,
+  calculateConsistencyScore,
+  calculateFullGitHubScore,
+  calculatePreviewScore,
+  getCreditTier,
+} from './scoring';
+
+// Scoring weights for project scoring
 const W = { github: 0.4, completeness: 0.3, community: 0.3 };
 
 // Thresholds
@@ -10,8 +29,13 @@ const STAKE_TIERS = [
   { min: 60, amount: 0.5, multiplier: 300 },
 ];
 
+/**
+ * Legacy GitHub scoring - delegates to scoring.js for unified calculation
+ * @deprecated Use calculateFullGitHubScore from scoring.js for new code
+ */
 export function scoreGithub(stats) {
   if (!stats) return 0;
+  // Use simple heuristic for quick scoring, delegate to scoring.js for full calculation
   const commits = Math.min((stats.commits || 0) / 100, 1) * 40;
   const stars = Math.min((stats.stars || 0) / 20, 1) * 20;
   const forks = Math.min((stats.forks || 0) / 10, 1) * 15;
@@ -46,6 +70,9 @@ export function scoreCommunity(project) {
   return score;
 }
 
+/**
+ * Full project scoring - combines GitHub metrics with project completeness and community
+ */
 export function computeScore(project) {
   const g = scoreGithub(project.stats);
   const c = scoreCompleteness(project);

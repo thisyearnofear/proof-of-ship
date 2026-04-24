@@ -2,36 +2,12 @@
  * API Endpoint: Circle USDC Transfer
  * Handles payout transfers to testers
  * Requires admin authentication and valid payout record
+ * 
+ * Works on: Vercel serverless functions, Firebase Cloud Functions
+ * Does NOT work on: Firebase Hosting static export (requires Cloud Functions)
  */
 
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
-
-// Initialize Firebase Admin
-let adminApp;
-let db;
-let auth;
-
-if (!getApps().length) {
-  try {
-    adminApp = initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-      databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
-    });
-    db = getFirestore(adminApp);
-    auth = getAuth(adminApp);
-  } catch (error) {
-    console.error('Firebase admin initialization error:', error);
-  }
-} else {
-  db = getFirestore(getApps()[0]);
-  auth = getAuth(getApps()[0]);
-}
+import { db, auth } from '@/lib/firebase/serverOnly';
 
 // Circle API base
 const CIRCLE_API_BASE = process.env.CIRCLE_ENVIRONMENT === 'production'

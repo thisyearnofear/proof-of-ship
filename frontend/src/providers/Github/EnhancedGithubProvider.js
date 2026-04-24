@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { enhancedDataService } from "@/services/EnhancedDataService";
+import { enhancedDataService } from "@/services/DataService";
 
 const EnhancedGithubContext = createContext({});
 

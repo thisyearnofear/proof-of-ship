@@ -1,4 +1,4 @@
-import { db, auth } from "../../../lib/firebase/adminApp";
+import { db, auth } from "../../../lib/firebase/serverOnly";
 import { withApiMiddleware, verifyAuth, requireProjectPermission } from "../../../utils/apiMiddleware";
 
 export default withApiMiddleware(handler, { allowedMethods: ["GET", "PUT", "DELETE"], rateLimit: 30, rateLimitKey: "PROJECT_DETAIL" });

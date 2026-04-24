@@ -32,7 +32,6 @@
     "crypto-js": "^4.2.0",
     "ethers": "^5.7.2",
     "firebase": "^9.23.0",
-    "firebase-admin": "^13.4.0",
     "http-proxy-middleware": "^3.0.5",
     "next": "14.2.35",
     "posthog-js": "^1.369.3",

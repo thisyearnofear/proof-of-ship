@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { useDataService } from "@/services/DataService";
+import { useDataService, dataService } from "@/services/DataService";
 import repos from "../../../../data/repos.json";
 
 // Load all repo JSON data from /data/github-data at runtime

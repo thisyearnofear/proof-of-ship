@@ -6,7 +6,7 @@ import Button from "@/components/common/Button";
 import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
-import { submitProject as submitProjectClient } from "@/services/ClientProjectService";
+import { submitProject } from "@/services/DataService";
 
 import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 
@@ -410,7 +410,7 @@ export default function ProjectEditor({ projectSlug }) {
         }
 
         if (useClientSide) {
-          const clientResult = await submitProjectClient(cleaned);
+          const clientResult = await submitProject(cleaned);
           if (!clientResult.success) {
             throw new Error(clientResult.error || "Failed to submit project");
           }

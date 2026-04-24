@@ -1,14 +1,16 @@
 /**
- * GitHub Scoring Library — DRY consolidation
+ * GitHub Scoring Library — CANONICAL IMPLEMENTATION
  * Single source of truth for all GitHub-based credit scoring.
  * Used by both BFF routes and client services.
  *
- * Weights (per original implementation):
+ * Weights:
  * - Profile: 15%
  * - Activity: 25%
  * - Community: 25%
  * - Repositories: 20%
  * - Consistency: 15%
+ *
+ * @see scoringEngine.js - Project-focused scoring wrapper (uses this internally)
  */
 
 export function calculateProfileScore(profile) {

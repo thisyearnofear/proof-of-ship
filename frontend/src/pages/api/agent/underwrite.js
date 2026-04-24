@@ -7,7 +7,7 @@
  * It requires a nanopayment of 0.05 USDC to run the AI scoring models.
  */
 
-import { db } from "@/lib/firebase/adminApp";
+import { db } from "@/lib/firebase/serverOnly";
 import { computeScore, getRecommendation } from "@/lib/scoringEngine";
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";

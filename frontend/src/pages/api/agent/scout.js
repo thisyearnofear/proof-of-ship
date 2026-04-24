@@ -10,7 +10,7 @@
  *   → score 0–100 → multiplier + stake recommendation
  */
 
-import { db } from "@/lib/firebase/adminApp";
+import { db } from "@/lib/firebase/serverOnly";
 import { withNanopayment } from "@/lib/nanopayment";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";

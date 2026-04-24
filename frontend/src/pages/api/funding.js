@@ -1,7 +1,7 @@
 import { usdcPaymentService, getFundingTier } from '../../lib/usdcPayments';
 
 import { withApiMiddleware, isAdmin } from '../../utils/apiMiddleware';
-import { db } from '../../lib/firebase/adminApp';
+import { db } from '@/lib/firebase/serverOnly';
 import { logActivity } from '../../utils/activityLogger';
 import { socialSharingService } from '../../services/SocialSharingService';
 
@@ -18,7 +18,7 @@ async function handler(req, res) {
     const adminActions = new Set(['approveTesterReward']);
     let userId = null;
     if (adminActions.has(action)) {
-      const { uid, isAdmin: admin } = await isAdmin(req, (await import('../../lib/firebase/adminApp')).auth, db);
+      const { uid, isAdmin: admin } = await isAdmin(req, (await import('@/lib/firebase/serverOnly')).auth, db);
       if (!admin) {
         return res.status(403).json({ error: 'Forbidden' });
       }

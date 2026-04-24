@@ -1,4 +1,4 @@
-import { db } from "../../../lib/firebase/adminApp";
+import { db } from "../../../lib/firebase/serverOnly";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {

@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase/adminApp";
+import { db } from "@/lib/firebase/serverOnly";
 import { withApiMiddleware } from "@/utils/apiMiddleware";
 
 async function handler(req, res) {

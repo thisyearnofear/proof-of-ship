@@ -12,6 +12,7 @@ import useNoSSR from "@/providers/NoSSR/useNoSSR";
 import { initObservability } from "@/lib/observability";
 import AIAnalysisModal from "@/components/common/AIAnalysisModal";
 import OnboardingBanner from "@/components/common/OnboardingBanner";
+import AIChatWidget from "@/components/common/AIChatWidget";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -56,6 +57,7 @@ export default function App({ Component, pageProps }) {
         </main>
         <Footer />
         <AIAnalysisModal />
+        <AIChatWidget />
       </div>
     </AppProviders>
   );

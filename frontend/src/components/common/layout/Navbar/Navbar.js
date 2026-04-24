@@ -8,9 +8,11 @@ import {
   GlobeAltIcon,
   CalculatorIcon,
   ShieldCheckIcon,
+  BoltIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNanopayment } from "@/contexts/NanopaymentContext";
 import { Fragment } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
@@ -42,6 +44,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = router.asPath;
   const { currentUser, logout } = useAuth();
+  const { isInitialized: nanopayReady, balance } = useNanopayment();
 
   const githubUsername =
     currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid ||
@@ -67,7 +70,7 @@ export default function Navbar() {
 
   return (
     <div>
-      <Disclosure as="nav" className="bg-white shadow-lg border-b border-gray-200">
+      <Disclosure as="nav" className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700">
         {({ open }) => (
           <>
             <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
@@ -83,7 +86,7 @@ export default function Navbar() {
                         className="rounded w-8 h-8 sm:w-10 sm:h-10"
                       />
                       <div className="hidden sm:block">
-                        <div className="text-base sm:text-lg font-bold text-gray-900">Proof of Ship</div>
+                        <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100">Proof of Ship</div>
                       </div>
                     </a>
                   </div>
@@ -123,11 +126,24 @@ export default function Navbar() {
                 </div>
 
                 <div className="hidden sm:ml-4 sm:flex sm:items-center gap-2 sm:gap-4">
+                  {/* Mini balance indicator */}
+                  {nanopayReady && (
+                    <a
+                      href="/back"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors text-xs"
+                      title="Nanopayment balance"
+                    >
+                      <BoltIcon className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                      <span className="font-semibold text-teal-700 dark:text-teal-300">
+                        ${parseFloat(balance?.available || 0).toFixed(2)}
+                      </span>
+                    </a>
+                  )}
                   <a
                     href="https://github.com/thisyearnofear/proof-of-ship"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-full bg-white p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-w-touch min-h-touch flex items-center justify-center"
+                    className="rounded-full bg-white dark:bg-gray-800 p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-w-touch min-h-touch flex items-center justify-center"
                     title="View on GitHub"
                   >
                     <span className="sr-only">View GitHub repository</span>
@@ -312,7 +328,7 @@ export default function Navbar() {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Disclosure.Panel className="sm:hidden bg-white border-t border-gray-200">
+              <Disclosure.Panel className="sm:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
                 <div className="space-y-1 px-2 py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
                   {navigation
                     .filter(
@@ -325,8 +341,8 @@ export default function Navbar() {
                       href={item.href}
                       className={classNames(
                         pathname === item.href
-                          ? "bg-blue-100 text-blue-700"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-800",
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                          : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800",
                         "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium min-h-touch transition-colors"
                       )}
                       aria-current={pathname === item.href ? "page" : undefined}
@@ -335,8 +351,8 @@ export default function Navbar() {
                         <item.icon 
                           className={classNames(
                             pathname === item.href
-                              ? "text-blue-600"
-                              : "text-gray-400",
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-400 dark:text-gray-500",
                             "mr-3 h-4 w-4 sm:h-5 sm:w-5"
                           )}
                         />
@@ -344,12 +360,30 @@ export default function Navbar() {
                       <span className="flex-1">{item.name}</span>
                     </Disclosure.Button>
                   ))}
+
+                  {/* Mobile balance + AI agents button */}
+                  {nanopayReady && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                      <a
+                        href="/back"
+                        className="flex items-center justify-between rounded-md px-3 py-2.5 bg-teal-50 dark:bg-teal-900/20 text-sm font-medium min-h-touch"
+                      >
+                        <span className="flex items-center gap-2 text-teal-700 dark:text-teal-300">
+                          <BoltIcon className="w-4 h-4" />
+                          AI Agents
+                        </span>
+                        <span className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                          ${parseFloat(balance?.available || 0).toFixed(2)}
+                        </span>
+                      </a>
+                    </div>
+                  )}
                   
                   {!currentUser && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                       <a
                         href="/login"
-                        className="block bg-gray-100 text-gray-900 px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
+                        className="block bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
                         Sign in
                       </a>
@@ -361,7 +395,7 @@ export default function Navbar() {
           </>
         )}
       </Disclosure>
-      <div className="bg-white shadow-sm hidden sm:block">
+      <div className="bg-white dark:bg-gray-900 shadow-sm hidden sm:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2">
           <Breadcrumbs />
         </div>

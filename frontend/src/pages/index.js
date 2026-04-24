@@ -68,8 +68,8 @@ export default function LandingPage() {
 
   const userJourneys = {
     developers: {
-      title: "🏴‍☠️ For Builders",
-      subtitle: "Chart your course, secure provisions, ship with confidence",
+      title: "For Builders",
+      subtitle: "Build your portfolio, get feedback, and grow your reputation",
       steps: [
         {
           title: "🎨 Showcase Your Portfolio",
@@ -90,8 +90,8 @@ export default function LandingPage() {
       ],
     },
     organizers: {
-      title: "🏛️ For Organizers",
-      subtitle: "Command your fleet, track all vessels, ensure safe passage",
+      title: "For Organizers",
+      subtitle: "Track builders, manage hackathons, and recognize achievements",
       steps: [
         {
           title: "📡 Track Builder Progress",
@@ -112,8 +112,8 @@ export default function LandingPage() {
       ],
     },
     sponsors: {
-      title: "💎 For Backers",
-      subtitle: "Bet on top builders, earn from their success",
+      title: "For Backers",
+      subtitle: "Scout talent, back builders, and earn from their success",
       steps: [
         {
           title: "🔍 Scout Talent",
@@ -144,7 +144,7 @@ export default function LandingPage() {
   };
 
   const handleExploreFleet = () => {
-    router.push("/shippers");
+    router.push("/explore");
   };
 
   const handlePreviewScore = async (e) => {
@@ -175,14 +175,6 @@ export default function LandingPage() {
     <div className="min-h-screen bg-surface-secondary wave-pattern">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        {/* Nautical background elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-10 text-6xl">⚓</div>
-          <div className="absolute top-40 right-20 text-4xl">🧭</div>
-          <div className="absolute bottom-20 left-1/4 text-5xl">⛵</div>
-          <div className="absolute top-60 left-1/3 text-3xl">🌊</div>
-          <div className="absolute bottom-40 right-1/3 text-4xl">🗺️</div>
-        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 relative">
           <div className="text-center">
@@ -305,11 +297,11 @@ export default function LandingPage() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-12 sm:py-16">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
-            🚢 All Hands on Deck
+            How It Works
           </h2>
           <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
-            Whether you're sailing solo, commanding a fleet, or funding
-            expeditions - every role has a place when you prove you ship.
+            Whether you&apos;re building, organizing, or backing &mdash; every role
+            contributes to the proof-of-ship ecosystem.
           </p>
         </div>
 
@@ -346,7 +338,7 @@ export default function LandingPage() {
           {userJourneys[activeTab].steps.map((step, index) => (
             <Card
               key={index}
-              className="p-4 sm:p-6 text-center border border-default hover:border-primary-300 transition-colors nautical-card compass-rose"
+              className="p-4 sm:p-6 text-center border border-default hover:border-primary-300 transition-colors"
             >
               <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4 shadow-lg">
                 {index + 1}
@@ -375,7 +367,7 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-primary-300 border border-default nautical-card lighthouse-beam"
+              className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-primary-300 border border-default"
               >
                 <feature.icon className="w-10 sm:w-12 h-10 sm:h-12 text-primary-500 mx-auto mb-3 sm:mb-4" />
                 <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">
@@ -388,52 +380,90 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Arc Hero Section */}
-      <div className="py-10 sm:py-14 bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 border-t border-teal-100">
+      {/* How x402 Nanopayments Work — Visual Flow Diagram */}
+      <div className="py-12 sm:py-16 bg-gradient-to-b from-teal-50 to-white border-t border-teal-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold mb-4">
-                <BoltIcon className="w-3.5 h-3.5" /> Powered by Arc & x402
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-                AI Agents, Paid Per Query
-              </h2>
-              <p className="text-gray-600 mb-4 text-sm sm:text-base">
-                Our AI Underwriter, Scout, and Verifier agents analyze projects in real-time.
-                Each call costs fractions of a cent, settled instantly on Circle's Arc L2 via the x402 nanopayment protocol.
-              </p>
-              <div className="flex flex-wrap gap-3 mb-4">
-                <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🤖 AI Underwriter — $0.05</span>
-                <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🔍 AI Scout — $0.01</span>
-                <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">✅ Verifier — $0.001/10 LOC</span>
-              </div>
-              <Button
-                onClick={() => router.push('/back')}
-                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 text-sm font-semibold"
-              >
-                ⚡ Try AI Agents
-              </Button>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold mb-4">
+              <BoltIcon className="w-3.5 h-3.5" /> Powered by Arc & x402
             </div>
-            <div className="flex-shrink-0 w-full md:w-80">
-              <div className="bg-white rounded-xl border border-teal-200 shadow-sm p-5">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">How x402 Works</h4>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
-                    <p className="text-xs text-gray-600">Click "Analyze Project" — agent returns <code className="text-teal-700">402 Payment Required</code></p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+              AI Agents, Paid Per Query
+            </h2>
+            <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
+              Each AI call costs fractions of a cent, settled instantly on Circle&apos;s Arc L2 via the x402 nanopayment protocol.
+            </p>
+          </div>
+
+          {/* Visual Flow Diagram */}
+          <div className="relative max-w-4xl mx-auto mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+              {/* Step 1: User */}
+              <div className="bg-white rounded-xl border-2 border-blue-200 shadow-sm p-4 text-center">
+                <div className="text-3xl mb-2">👤</div>
+                <p className="text-xs font-semibold text-gray-900">You</p>
+                <p className="text-[10px] text-gray-500">Click &ldquo;Analyze&rdquo;</p>
+              </div>
+              {/* Arrow */}
+              <div className="hidden md:flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-gray-400 mb-1">402</span>
+                  <div className="w-full h-0.5 bg-gradient-to-r from-blue-300 to-teal-300 relative">
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-transparent border-l-teal-400" />
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                    <p className="text-xs text-gray-600">Gateway auto-signs USDC payment on Arc (gasless, instant)</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
-                    <p className="text-xs text-gray-600">Agent delivers AI analysis — our agent pays AIsa for LLM inference</p>
-                  </div>
+                  <span className="text-xs text-gray-400 mt-1">USDC</span>
                 </div>
               </div>
+              <div className="md:hidden flex justify-center"><span className="text-gray-300 text-xl">↓</span></div>
+              {/* Step 2: Gateway */}
+              <div className="bg-white rounded-xl border-2 border-teal-200 shadow-sm p-4 text-center">
+                <div className="text-3xl mb-2">🔐</div>
+                <p className="text-xs font-semibold text-gray-900">Circle Gateway</p>
+                <p className="text-[10px] text-gray-500">Signs USDC on Arc</p>
+              </div>
+              {/* Arrow */}
+              <div className="hidden md:flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-gray-400 mb-1">settle</span>
+                  <div className="w-full h-0.5 bg-gradient-to-r from-teal-300 to-purple-300 relative">
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-transparent border-l-purple-400" />
+                  </div>
+                  <span className="text-xs text-gray-400 mt-1">result</span>
+                </div>
+              </div>
+              <div className="md:hidden flex justify-center"><span className="text-gray-300 text-xl">↓</span></div>
+              {/* Step 3: AI Agent */}
+              <div className="bg-white rounded-xl border-2 border-purple-200 shadow-sm p-4 text-center">
+                <div className="text-3xl mb-2">🤖</div>
+                <p className="text-xs font-semibold text-gray-900">AI Agent</p>
+                <p className="text-[10px] text-gray-500">Returns analysis</p>
+              </div>
             </div>
+            {/* Secondary payment: Agent → AIsa */}
+            <div className="mt-4 flex justify-center">
+              <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2 inline-flex items-center gap-3 text-xs text-gray-500">
+                <span>🤖 Our Agent</span>
+                <span className="text-gray-300">→ pays →</span>
+                <span>🧠 AIsa (LLM)</span>
+                <span className="text-gray-300">→ settled on</span>
+                <span className="font-semibold text-teal-600">Arc L2</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Agent Pricing + CTA */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-wrap gap-3">
+              <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🤖 Underwriter — $0.05</span>
+              <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🔍 Scout — $0.01</span>
+              <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">✅ Verifier — $0.001</span>
+            </div>
+            <Button
+              onClick={() => router.push('/back')}
+              className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 text-sm font-semibold"
+            >
+              ⚡ Try AI Agents
+            </Button>
           </div>
         </div>
       </div>
@@ -454,7 +484,7 @@ export default function LandingPage() {
             {ecosystems.map((ecosystem) => (
               <Card
                 key={ecosystem.id}
-                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-default hover:border-primary-300 bg-surface nautical-card anchor-accent"
+                className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-default hover:border-primary-300 bg-surface"
                 onClick={() => router.push(`/explore?ecosystem=${ecosystem.id}`) }
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
@@ -485,22 +515,13 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-12 sm:py-16 relative overflow-hidden">
-        {/* Nautical background elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-8 left-4 sm:top-10 sm:left-10 text-2xl sm:text-4xl">⚓</div>
-          <div className="absolute bottom-8 right-4 sm:bottom-10 sm:right-10 text-2xl sm:text-4xl">🌊</div>
-          <div className="absolute top-1/2 left-1/4 text-2xl sm:text-3xl">⛵</div>
-          <div className="absolute top-1/3 right-1/4 text-2xl sm:text-3xl">🧭</div>
-        </div>
-
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 text-center relative">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
-            ⚓ Ready to Set Sail?
+            Ready to Start Building?
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
-            Join the growing fleet of builders who are securing funding,
-            tracking progress, and shipping successful projects through
-            hackathons.
+            Join builders who are securing funding, tracking progress, and
+            shipping successful projects through hackathons.
           </p>
 
           <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
@@ -508,7 +529,7 @@ export default function LandingPage() {
               onClick={handleGetStarted}
               className="bg-surface text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
             >
-              🚢 Launch Your Expedition
+              ✨ Create Your Portfolio
             </Button>
 
             <Button
@@ -516,7 +537,7 @@ export default function LandingPage() {
               variant="outline"
               className="border-white text-white hover:bg-surface hover:text-blue-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
             >
-              📖 Read the Captain's Log
+              📖 Learn More
             </Button>
           </div>
         </div>

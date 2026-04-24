@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/common/Card";
@@ -8,7 +8,7 @@ import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
 import { submitProject as submitProjectClient } from "@/services/ClientProjectService";
 
-import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 
 const DEFAULT_CATEGORIES = [
   { id: "defi", name: "DeFi" },
@@ -30,25 +30,60 @@ export default function ProjectEditor({ projectSlug }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+  const DRAFT_KEY = "project-editor-draft";
+
+  const loadDraft = () => {
+    if (isEditMode) return null;
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  };
+
+  const draft = loadDraft();
+
   const [form, setForm] = useState({
-    name: "",
-    description: "",
-    githubUrl: "",
-    ecosystem: "base",
-    category: "",
-    contractAddress: "",
-    deploymentTxHash: "",
-    website: "",
-    twitter: "",
-    discord: "",
-    teamMembers: [{ address: "", share: 100 }],
-    tags: "",
-    isOpenSource: true,
-    lookingForFunding: false,
-    fundingAmount: "",
-    milestones: [""],
-    hackathons: [],
+    name: draft?.name || "",
+    description: draft?.description || "",
+    githubUrl: draft?.githubUrl || "",
+    ecosystem: draft?.ecosystem || "base",
+    category: draft?.category || "",
+    contractAddress: draft?.contractAddress || "",
+    deploymentTxHash: draft?.deploymentTxHash || "",
+    website: draft?.website || "",
+    twitter: draft?.twitter || "",
+    discord: draft?.discord || "",
+    teamMembers: draft?.teamMembers || [{ address: "", share: 100 }],
+    tags: draft?.tags || "",
+    isOpenSource: draft?.isOpenSource ?? true,
+    lookingForFunding: draft?.lookingForFunding || false,
+    fundingAmount: draft?.fundingAmount || "",
+    milestones: draft?.milestones || [""],
+    hackathons: draft?.hackathons || [],
   });
+
+  const [showOptional, setShowOptional] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [fetchingGithub, setFetchingGithub] = useState(false);
+  const [hasDraft, setHasDraft] = useState(Boolean(draft));
+
+  // Auto-save draft to localStorage (new projects only)
+  useEffect(() => {
+    if (isEditMode) return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+        setHasDraft(true);
+      } catch {}
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [form, isEditMode]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    setHasDraft(false);
+  };
 
   const ecosystemOptions = useMemo(() => {
     return getAllEcosystems().filter((e) => e.dataSource !== 'special');
@@ -186,6 +221,37 @@ export default function ProjectEditor({ projectSlug }) {
     }));
   };
 
+  // Auto-populate from GitHub URL
+  const fetchGithubInfo = useCallback(async (url) => {
+    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) return;
+    const [, owner, repo] = match;
+    setFetchingGithub(true);
+    try {
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo.replace(".git", "")}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || data.name || "",
+        description: prev.description || data.description || "",
+        tags: prev.tags || (data.topics || []).join(", "),
+        isOpenSource: !data.private,
+      }));
+    } catch {} finally {
+      setFetchingGithub(false);
+    }
+  }, []);
+
+  const githubUrlRef = useRef(form.githubUrl);
+  useEffect(() => {
+    const prev = githubUrlRef.current;
+    githubUrlRef.current = form.githubUrl;
+    if (form.githubUrl && form.githubUrl !== prev && form.githubUrl.includes("github.com/")) {
+      fetchGithubInfo(form.githubUrl);
+    }
+  }, [form.githubUrl, fetchGithubInfo]);
+
   const validate = () => {
     if (!form.name.trim()) return "Project name is required";
     if (!form.description.trim()) return "Description is required";
@@ -194,16 +260,41 @@ export default function ProjectEditor({ projectSlug }) {
     }
     if (!form.ecosystem) return "Chain / ecosystem is required";
     if (!form.category) return "Category is required";
-    if (!form.contractAddress.trim().startsWith("0x")) {
-      return "A valid contract address is required";
+    if (form.contractAddress.trim() && !form.contractAddress.trim().startsWith("0x")) {
+      return "Contract address must start with 0x";
     }
     
-    const totalShares = (form.teamMembers || []).reduce((sum, m) => sum + (parseInt(m.share) || 0), 0);
-    if (totalShares !== 100) {
-      return `Total team shares must equal 100% (currently ${totalShares}%)`;
+    const filledMembers = (form.teamMembers || []).filter(m => m.address && m.address.trim());
+    if (filledMembers.length > 0) {
+      const totalShares = filledMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0);
+      if (totalShares !== 100) {
+        return `Total team shares must equal 100% (currently ${totalShares}%)`;
+      }
     }
     
     return null;
+  };
+
+  const handleDelete = async () => {
+    if (!isEditMode || !projectSlug) return;
+    if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`/api/projects/${projectSlug}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to delete project");
+      }
+      window.location.href = "/profile";
+    } catch (e) {
+      setError(e.message || "Failed to delete project");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleSave = async (e) => {
@@ -326,6 +417,7 @@ export default function ProjectEditor({ projectSlug }) {
           result = clientResult;
         }
 
+        clearDraft();
         setSuccess("Project submitted");
 
         const createdSlug = result.projectSlug;
@@ -441,14 +533,7 @@ export default function ProjectEditor({ projectSlug }) {
             required
           />
           <div className="text-xs text-gray-600">
-            Verify repo ownership to speed up review. If not connected, submission may be marked pending review.
-          </div>
-          <div className="mt-2">
-            <Button type="button" variant="outline" onClick={async ()=>{
-              try {
-                await (await import('@/contexts/AuthContext')).useAuth().signInWithGithub();
-              } catch (e) { console.warn('GitHub connect failed'); }
-            }}>Connect GitHub</Button>
+            {fetchingGithub ? "⏳ Auto-populating from GitHub..." : "Paste a GitHub URL to auto-fill project details."}
           </div>
 
           <Select
@@ -483,16 +568,26 @@ export default function ProjectEditor({ projectSlug }) {
           )}
       </Card>
 
+      {/* Collapsible optional sections */}
+      <button
+        type="button"
+        className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        onClick={() => setShowOptional(!showOptional)}
+      >
+        <span>{showOptional ? "Hide" : "Show"} optional details (onchain, links, team, milestones, hackathons)</span>
+        {showOptional ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+      </button>
+
+      {showOptional && (<>
       <Card className="p-6 space-y-5">
-        <h3 className="text-lg font-semibold text-gray-900">Onchain</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Onchain</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="Contract address"
+            label="Contract address (optional)"
             value={form.contractAddress}
             onChange={(e) => setField("contractAddress", e.target.value)}
-            placeholder="0x..."
-            required
+            placeholder="0x... (leave blank if not deployed yet)"
           />
           <Input
             label="Deployment tx (optional)"
@@ -504,7 +599,7 @@ export default function ProjectEditor({ projectSlug }) {
       </Card>
 
       <Card className="p-6 space-y-5">
-        <h3 className="text-lg font-semibold text-gray-900">Links & team</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Links & Team</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
@@ -558,7 +653,7 @@ export default function ProjectEditor({ projectSlug }) {
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-gray-900">Fleet Management (Team Members & Shares)</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">Team Members & Shares</div>
             <Button
               type="button"
               variant="outline"
@@ -744,8 +839,21 @@ export default function ProjectEditor({ projectSlug }) {
           </div>
         )}
       </Card>
+      </>)}
 
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {isEditMode && (
+            <Button type="button" variant="outline" onClick={handleDelete} loading={deleting} className="text-red-600 border-red-300 hover:bg-red-50">
+              Delete Project
+            </Button>
+          )}
+          {hasDraft && !isEditMode && (
+            <button type="button" onClick={() => { clearDraft(); window.location.reload(); }} className="text-xs text-gray-500 hover:text-red-500 underline">
+              Clear saved draft
+            </button>
+          )}
+        </div>
         <Button type="submit" loading={saving}>
           {isEditMode ? "Save changes" : "Submit project"}
         </Button>

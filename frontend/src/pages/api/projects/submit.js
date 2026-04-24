@@ -20,7 +20,6 @@ async function handler(req, res) {
       "githubUrl",
       "ecosystem",
       "category",
-      "contractAddress",
     ];
     const missingFields = requiredFields.filter((field) => !projectData[field]);
 
@@ -38,8 +37,8 @@ async function handler(req, res) {
       });
     }
 
-    // Validate contract address
-    if (!projectData.contractAddress.startsWith("0x")) {
+    // Validate contract address (optional)
+    if (projectData.contractAddress && !projectData.contractAddress.startsWith("0x")) {
       return res.status(400).json({
         error: "Invalid contract address format",
       });
@@ -100,7 +99,7 @@ async function handler(req, res) {
       repo: repo.replace(".git", ""), // Remove .git suffix if present
       ecosystem: projectData.ecosystem,
       category: projectData.category,
-      contractAddress: projectData.contractAddress,
+      contractAddress: projectData.contractAddress || null,
       deploymentTxHash: projectData.deploymentTxHash || null,
       website: projectData.website || null,
       twitter: projectData.twitter || null,

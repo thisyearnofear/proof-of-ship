@@ -1,7 +1,7 @@
 import { db, auth } from "../../../lib/firebase/adminApp";
 import { withApiMiddleware, verifyAuth, requireProjectPermission } from "../../../utils/apiMiddleware";
 
-export default withApiMiddleware(handler, { allowedMethods: ["GET", "PUT"], rateLimit: 30, rateLimitKey: "PROJECT_DETAIL" });
+export default withApiMiddleware(handler, { allowedMethods: ["GET", "PUT", "DELETE"], rateLimit: 30, rateLimitKey: "PROJECT_DETAIL" });
 
 const ALLOWED_UPDATE_FIELDS = new Set([
   "name",
@@ -49,6 +49,40 @@ async function handler(req, res) {
       res.status(500).json({ error: "Internal server error" });
     }
     return;
+  }
+
+  if (req.method === "DELETE") {
+    try {
+      const authHeader = req.headers.authorization || req.headers.Authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const userId = await verifyAuth(req, auth);
+
+      const existingSnap = await projectRef.get();
+      if (!existingSnap.exists) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      const existing = existingSnap.data();
+      const hasPermission = await requireProjectPermission(db, userId, slug, ['editor', 'admin']);
+      if (!hasPermission && existing.submittedBy !== userId) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+
+      // Delete from main collection
+      await projectRef.delete();
+
+      // Delete from ecosystem sub-collection
+      if (existing.ecosystem) {
+        await db.collection(`projects_${existing.ecosystem}`).doc(slug).delete().catch(() => {});
+      }
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
   }
 
   if (req.method !== "PUT") {

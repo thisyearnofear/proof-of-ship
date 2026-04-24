@@ -232,26 +232,35 @@ export default function EcosystemSection({
  */
 function EmptyState({ ecosystem }) {
   return (
-    <div className="text-center py-12">
-      <div className="text-6xl mb-4">{ecosystem.icon}</div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">
-        No {ecosystem.shortName} projects found
+    <div className="text-center py-10">
+      <div className="text-5xl mb-3">{ecosystem.icon}</div>
+      <h3 className="text-lg font-medium text-gray-900 mb-1">
+        No {ecosystem.shortName} projects yet
       </h3>
-      <p className="text-gray-600 mb-6">
+      <p className="text-gray-500 mb-5 text-sm max-w-md mx-auto">
         {ecosystem.dataSource === 'dynamic' 
-          ? `Be the first to submit a project to the ${ecosystem.name}!`
-          : `Projects will appear here once they're added to the ${ecosystem.name}.`
+          ? `Submit a project to the ${ecosystem.shortName} ecosystem, or try our AI agents to analyze any GitHub repo.`
+          : `Projects will appear here once they're added. In the meantime, try our AI agents!`
         }
       </p>
       
-      {ecosystem.dataSource === 'dynamic' && (
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {ecosystem.dataSource === 'dynamic' && (
+          <Button
+            onClick={() => window.location.href = '/projects/new'}
+            variant="outline"
+            className="text-sm"
+          >
+            Submit Project
+          </Button>
+        )}
         <Button
-          onClick={() => window.location.href = '/projects/new'}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+          onClick={() => window.location.href = '/back'}
+          className="bg-teal-600 hover:bg-teal-700 text-white text-sm"
         >
-          Submit First Project
+          ⚡ Try AI Agents
         </Button>
-      )}
+      </div>
     </div>
   );
 }

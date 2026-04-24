@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import ScoreBar from "@/components/common/ScoreBar";
+import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import {
   ChartBarIcon,
   CreditCardIcon,
@@ -16,6 +17,7 @@ import {
   ClockIcon,
   EyeIcon,
   RocketLaunchIcon,
+  BoltIcon,
 } from "@heroicons/react/24/outline";
 
 export default function LandingPage() {
@@ -54,35 +56,15 @@ export default function LandingPage() {
     },
   ];
 
-  const ecosystems = [
-    {
-      id: "celo",
-      name: "⛵ Celo Fleet",
-      description:
-        "Navigate through three seasons of Celo's Proof of Ship program. Track the voyage of 50+ projects from idea to deployment.",
-      count: "3 Seasons Sailed",
-      color: "bg-emerald-500",
-      icon: "🌊",
-    },
-    {
-      id: "base",
-      name: "🏴‍☠️ Base Expeditions",
-      description:
-        "Chart new territories on Coinbase's Base network. Join the growing armada of builders exploring uncharted waters.",
-      count: "Setting Sail",
-      color: "bg-blue-600",
-      icon: "⚓",
-    },
-    {
-      id: "linea",
-      name: "🌊 Linea Frontiers",
-      description:
-        "Navigate the deep waters of the Linea ecosystem. Discover the innovative fleet of builders scaling new horizons on this zkEVM voyage.",
-      count: "First Venture",
-      color: "bg-indigo-600",
-      icon: "🔭",
-    },
-  ];
+  const ecosystems = Object.values(ECOSYSTEM_CONFIGS).map((eco) => ({
+    id: eco.id,
+    name: `${eco.icon} ${eco.shortName}`,
+    description: eco.description,
+    count: eco.hasSeasons ? `${eco.seasons?.length || 0} Seasons` : eco.category,
+    color: `bg-[${eco.color}]`,
+    rawColor: eco.color,
+    icon: eco.icon,
+  }));
 
   const userJourneys = {
     developers: {
@@ -406,29 +388,79 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* Arc Hero Section */}
+      <div className="py-10 sm:py-14 bg-gradient-to-r from-teal-50 via-cyan-50 to-blue-50 border-t border-teal-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold mb-4">
+                <BoltIcon className="w-3.5 h-3.5" /> Powered by Arc & x402
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+                AI Agents, Paid Per Query
+              </h2>
+              <p className="text-gray-600 mb-4 text-sm sm:text-base">
+                Our AI Underwriter, Scout, and Verifier agents analyze projects in real-time.
+                Each call costs fractions of a cent, settled instantly on Circle's Arc L2 via the x402 nanopayment protocol.
+              </p>
+              <div className="flex flex-wrap gap-3 mb-4">
+                <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🤖 AI Underwriter — $0.05</span>
+                <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🔍 AI Scout — $0.01</span>
+                <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">✅ Verifier — $0.001/10 LOC</span>
+              </div>
+              <Button
+                onClick={() => router.push('/back')}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 text-sm font-semibold"
+              >
+                ⚡ Try AI Agents
+              </Button>
+            </div>
+            <div className="flex-shrink-0 w-full md:w-80">
+              <div className="bg-white rounded-xl border border-teal-200 shadow-sm p-5">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">How x402 Works</h4>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+                    <p className="text-xs text-gray-600">Click "Analyze Project" — agent returns <code className="text-teal-700">402 Payment Required</code></p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+                    <p className="text-xs text-gray-600">Gateway auto-signs USDC payment on Arc (gasless, instant)</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
+                    <p className="text-xs text-gray-600">Agent delivers AI analysis — our agent pays AIsa for LLM inference</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Ecosystems Section */}
       <div className="py-12 sm:py-16 bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
-              🗺️ Chart Your Course
+              🗺️ Explore Ecosystems
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
-              Navigate through different blockchain territories and track your
-              expedition's progress
+              Track builder activity across {Object.keys(ECOSYSTEM_CONFIGS).length} blockchain ecosystems
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
             {ecosystems.map((ecosystem) => (
               <Card
                 key={ecosystem.id}
                 className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-default hover:border-primary-300 bg-surface nautical-card anchor-accent"
-                onClick={() => router.push("/shippers") }
+                onClick={() => router.push(`/explore?ecosystem=${ecosystem.id}`) }
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
                   <div
-                    className={`w-10 sm:w-12 h-10 sm:h-12 ${ecosystem.color} rounded-lg flex items-center justify-center text-white text-lg sm:text-xl flex-shrink-0 shadow-md`}
+                    className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg flex items-center justify-center text-white text-lg sm:text-xl flex-shrink-0 shadow-md"
+                    style={{ backgroundColor: ecosystem.rawColor || ecosystem.color }}
                   >
                     {ecosystem.icon}
                   </div>
@@ -443,8 +475,7 @@ export default function LandingPage() {
                   {ecosystem.description}
                 </p>
                 <div className="flex items-center text-blue-600 text-xs sm:text-sm font-medium min-h-touch">
-                  🧭 Explore Territory
-                  <ArrowRightIcon className="w-3 sm:w-4 h-3 sm:h-4 ml-1 flex-shrink-0" />
+                  Explore →
                 </div>
               </Card>
             ))}

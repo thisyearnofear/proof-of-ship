@@ -13,7 +13,12 @@ export function EnhancedGithubProvider({ children }) {
   // Multi-ecosystem state management
   const [projectData, setProjectData] = useState({
     celo: [],
-    base: []
+    arc: [],
+    base: [],
+    linea: [],
+    arbitrum: [],
+    ethereum: [],
+    optimism: []
   });
   const [dataMap, setDataMap] = useState({});
   const [loading, setLoading] = useState(true);

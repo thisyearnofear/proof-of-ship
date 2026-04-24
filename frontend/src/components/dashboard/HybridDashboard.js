@@ -59,7 +59,7 @@ export default function HybridDashboard({
   );
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedSections, setExpandedSections] = useState(() => {
-    const favoriteEcosystems = getPreference('favoriteEcosystems', ['celo', 'base']);
+    const favoriteEcosystems = getPreference('favoriteEcosystems', ['arc', 'celo', 'base']);
     const initial = {};
     getAllEcosystems().forEach((eco) => {
       initial[eco.id] = favoriteEcosystems.includes(eco.id);

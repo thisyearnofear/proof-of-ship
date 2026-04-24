@@ -47,26 +47,56 @@ export const ECOSYSTEM_CONFIGS = {
     previewLimit: 4
   },
 
+  arc: {
+    id: 'arc',
+    name: 'Arc Ecosystem',
+    shortName: 'Arc',
+    description: 'Circle\'s L2 with native USDC and x402 nanopayments',
+    longDescription: 'Projects building on Arc, Circle\'s EVM L2 with native USDC, gasless transactions, and the x402 nanopayment protocol for agentic economies.',
+    icon: '⚡',
+    color: '#00D395',
+    bgGradient: 'from-teal-50 to-cyan-50',
+    borderColor: 'border-teal-200',
+    textColor: 'text-teal-800',
+    bgColor: 'bg-teal-50',
+    route: '/ecosystems/arc',
+    apiEndpoint: '/api/projects/arc',
+    features: ['x402 nanopayments', 'Native USDC', 'Gasless transactions', 'Agentic economy'],
+    submissionRequirements: [
+      'Project must use Arc Testnet or Mainnet',
+      'Demonstrate x402 or USDC payment integration',
+      'Provide a GitHub repo for reviewers'
+    ],
+    category: 'Agentic Economy',
+    dataSource: 'dynamic',
+    hasSeasons: false,
+    hasCategories: true,
+    categories: ['defi', 'ai-agents', 'payments', 'infrastructure', 'social', 'dao', 'other'],
+    tradeWinds: [
+      { category: 'ai-agents', boost: 1.5, label: 'Agentic Boost', description: '50% credit boost for AI agent projects' },
+      { category: 'payments', boost: 1.3, label: 'Payments Boost', description: '30% credit boost for payment innovations' }
+    ],
+    defaultSort: 'recent',
+    showHealthScore: true,
+    showActivity: true,
+    showFunding: true,
+    previewLimit: 4
+  },
+
   base: {
     id: 'base',
     name: 'Base Ecosystem',
     shortName: 'Base',
     description: 'Coinbase\'s L2 network enabling fast, low-cost applications',
     longDescription: 'Projects building on Coinbase\'s Base network, leveraging low fees and fast transactions for innovative decentralized applications.',
-    
-    // Visual identity
     icon: '🔵',
     color: '#0052FF',
     bgGradient: 'from-blue-50 to-indigo-50',
     borderColor: 'border-blue-200',
     textColor: 'text-blue-800',
     bgColor: 'bg-blue-50',
-    
-    // Routing
     route: '/ecosystems/base',
     apiEndpoint: '/api/projects/base',
-    
-    // Features & metadata
     features: ['Developer funding', 'L2 benefits', 'Coinbase integration'],
     submissionRequirements: [
       'Project must be deployed on Base',
@@ -74,21 +104,145 @@ export const ECOSYSTEM_CONFIGS = {
       'Add at least one contract address for your onchain surface area'
     ],
     category: 'L2 Innovation',
-    
-    // Data source configuration
-    dataSource: 'dynamic', // firestore
+    dataSource: 'dynamic',
     hasSeasons: false,
     hasCategories: true,
     categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
     tradeWinds: [
       { category: 'defi', boost: 1.5, label: 'DeFi Summer', description: '50% credit boost for DeFi projects' }
     ],
-    
-    // Display preferences
     defaultSort: 'recent',
     showHealthScore: true,
     showActivity: true,
     showFunding: true,
+    previewLimit: 4
+  },
+
+  linea: {
+    id: 'linea',
+    name: 'Linea Ecosystem',
+    shortName: 'Linea',
+    description: 'Consensys zkEVM L2 with low fees and Ethereum security',
+    longDescription: 'Projects building on Linea, a zkEVM Layer 2 by Consensys offering Ethereum-level security with significantly lower transaction costs.',
+    icon: '🟣',
+    color: '#61DFFF',
+    bgGradient: 'from-purple-50 to-blue-50',
+    borderColor: 'border-purple-200',
+    textColor: 'text-purple-800',
+    bgColor: 'bg-purple-50',
+    route: '/ecosystems/linea',
+    apiEndpoint: '/api/projects/linea',
+    features: ['zkEVM security', 'Low gas fees', 'Consensys ecosystem'],
+    submissionRequirements: [
+      'Project must be deployed on Linea',
+      'Provide a GitHub repo for reviewers and users'
+    ],
+    category: 'zkEVM L2',
+    dataSource: 'dynamic',
+    hasSeasons: false,
+    hasCategories: true,
+    categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
+    tradeWinds: [],
+    defaultSort: 'recent',
+    showHealthScore: true,
+    showActivity: true,
+    previewLimit: 4
+  },
+
+  arbitrum: {
+    id: 'arbitrum',
+    name: 'Arbitrum Ecosystem',
+    shortName: 'Arbitrum',
+    description: 'Leading Optimistic Rollup L2 with deep DeFi liquidity',
+    longDescription: 'Projects building on Arbitrum, the largest Optimistic Rollup Layer 2 by TVL, known for its thriving DeFi ecosystem and developer tooling.',
+    icon: '🔷',
+    color: '#28A0F0',
+    bgGradient: 'from-sky-50 to-blue-50',
+    borderColor: 'border-sky-200',
+    textColor: 'text-sky-800',
+    bgColor: 'bg-sky-50',
+    route: '/ecosystems/arbitrum',
+    apiEndpoint: '/api/projects/arbitrum',
+    features: ['Deep DeFi liquidity', 'Optimistic rollup', 'Stylus smart contracts'],
+    submissionRequirements: [
+      'Project must be deployed on Arbitrum',
+      'Provide a GitHub repo for reviewers and users'
+    ],
+    category: 'Optimistic Rollup',
+    dataSource: 'dynamic',
+    hasSeasons: false,
+    hasCategories: true,
+    categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
+    tradeWinds: [
+      { category: 'defi', boost: 1.3, label: 'DeFi Hub', description: '30% credit boost for DeFi projects' }
+    ],
+    defaultSort: 'recent',
+    showHealthScore: true,
+    showActivity: true,
+    previewLimit: 4
+  },
+
+  ethereum: {
+    id: 'ethereum',
+    name: 'Ethereum Ecosystem',
+    shortName: 'Ethereum',
+    description: 'The original smart contract platform and settlement layer',
+    longDescription: 'Projects building on Ethereum mainnet and Sepolia testnet, the foundational layer for decentralized applications and DeFi.',
+    icon: '💎',
+    color: '#627EEA',
+    bgGradient: 'from-indigo-50 to-violet-50',
+    borderColor: 'border-indigo-200',
+    textColor: 'text-indigo-800',
+    bgColor: 'bg-indigo-50',
+    route: '/ecosystems/ethereum',
+    apiEndpoint: '/api/projects/ethereum',
+    features: ['Maximum decentralization', 'Largest developer community', 'Settlement layer'],
+    submissionRequirements: [
+      'Project must be deployed on Ethereum',
+      'Provide a GitHub repo for reviewers and users'
+    ],
+    category: 'Layer 1',
+    dataSource: 'dynamic',
+    hasSeasons: false,
+    hasCategories: true,
+    categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
+    tradeWinds: [],
+    defaultSort: 'recent',
+    showHealthScore: true,
+    showActivity: true,
+    previewLimit: 4
+  },
+
+  optimism: {
+    id: 'optimism',
+    name: 'Optimism Ecosystem',
+    shortName: 'Optimism',
+    description: 'OP Stack L2 powering the Superchain vision',
+    longDescription: 'Projects building on Optimism, the OP Stack Layer 2 driving the Superchain ecosystem with retroactive public goods funding.',
+    icon: '🔴',
+    color: '#FF0420',
+    bgGradient: 'from-red-50 to-orange-50',
+    borderColor: 'border-red-200',
+    textColor: 'text-red-800',
+    bgColor: 'bg-red-50',
+    route: '/ecosystems/optimism',
+    apiEndpoint: '/api/projects/optimism',
+    features: ['Superchain ecosystem', 'RetroPGF funding', 'OP Stack'],
+    submissionRequirements: [
+      'Project must be deployed on Optimism',
+      'Provide a GitHub repo for reviewers and users'
+    ],
+    category: 'Superchain',
+    dataSource: 'dynamic',
+    hasSeasons: false,
+    hasCategories: true,
+    categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
+    tradeWinds: [
+      { category: 'infrastructure', boost: 1.2, label: 'Public Goods', description: '20% credit boost for public goods' }
+    ],
+    defaultSort: 'recent',
+    showHealthScore: true,
+    showActivity: true,
     previewLimit: 4
   }
 };

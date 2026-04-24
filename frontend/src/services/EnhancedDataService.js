@@ -13,8 +13,12 @@ class EnhancedDataService extends DataService {
     this.projectCache = new Map();
     this.ecosystemData = {
       celo: { projects: [], source: 'dynamic' },
+      arc: { projects: [], source: 'dynamic' },
       base: { projects: [], source: 'dynamic' },
-      linea: { projects: [], source: 'dynamic' }
+      linea: { projects: [], source: 'dynamic' },
+      arbitrum: { projects: [], source: 'dynamic' },
+      ethereum: { projects: [], source: 'dynamic' },
+      optimism: { projects: [], source: 'dynamic' }
     };
   }
 
@@ -55,6 +59,22 @@ class EnhancedDataService extends DataService {
       if (ecosystem === 'all' || ecosystem === 'linea') {
         const lineaProjects = await this.loadLineaProjects(baseDataTypes);
         projects.linea = lineaProjects;
+      }
+
+      if (ecosystem === 'all' || ecosystem === 'arc') {
+        projects.arc = await this.loadEcosystemProjects('arc', baseDataTypes);
+      }
+
+      if (ecosystem === 'all' || ecosystem === 'arbitrum') {
+        projects.arbitrum = await this.loadEcosystemProjects('arbitrum', baseDataTypes);
+      }
+
+      if (ecosystem === 'all' || ecosystem === 'ethereum') {
+        projects.ethereum = await this.loadEcosystemProjects('ethereum', baseDataTypes);
+      }
+
+      if (ecosystem === 'all' || ecosystem === 'optimism') {
+        projects.optimism = await this.loadEcosystemProjects('optimism', baseDataTypes);
       }
 
       // Cache the results
@@ -209,6 +229,48 @@ class EnhancedDataService extends DataService {
       return projects;
     } catch (error) {
       // Firebase permissions may block unauthenticated reads
+      return [];
+    }
+  }
+
+  /**
+   * Generic loader for any ecosystem from Firestore (projects_{ecosystem})
+   */
+  async loadEcosystemProjects(ecosystemId, dataTypes = ["meta", "commits"]) {
+    try {
+      const ref = collection(db, `projects_${ecosystemId}`);
+      const q = query(ref, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      const projects = [];
+
+      for (const docSnap of snapshot.docs) {
+        const projectData = { id: docSnap.id, ...docSnap.data() };
+
+        if (projectData.owner && projectData.repo) {
+          try {
+            const githubData = await this.fetchGitHubDataForProject(
+              projectData.owner,
+              projectData.repo,
+              dataTypes
+            );
+            projectData.githubData = githubData;
+            projectData.stats = this.calculateProjectStats(githubData);
+          } catch (error) {
+            projectData.githubData = {};
+            projectData.stats = this.getDefaultStats();
+          }
+        }
+
+        projects.push({
+          ...projectData,
+          ecosystem: ecosystemId,
+          source: 'dynamic',
+          dataTypes
+        });
+      }
+
+      return projects;
+    } catch (error) {
       return [];
     }
   }

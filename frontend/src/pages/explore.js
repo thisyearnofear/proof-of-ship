@@ -15,6 +15,7 @@ import TabBar from "@/components/common/TabBar";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NETWORK_CONFIGS } from "@/config/networks";
+import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import {
   CalendarIcon,
   TrophyIcon,
@@ -69,7 +70,7 @@ function ProjectsTab() {
 
   useEffect(() => {
     const { ecosystem: ecoQ, chains: chainsQ, sectors: sectorsQ } = router.query || {};
-    if (ecoQ && ["celo", "base", "linea", "all"].includes(ecoQ)) setEcosystem(String(ecoQ));
+    if (ecoQ && (ecoQ === "all" || ecoQ in ECOSYSTEM_CONFIGS)) setEcosystem(String(ecoQ));
     if (chainsQ) setChains(String(chainsQ).split(",").filter(Boolean));
     if (sectorsQ) setSectors(String(sectorsQ).split(",").filter(Boolean));
   }, [router.query]);
@@ -122,9 +123,9 @@ function ProjectsTab() {
         <div className="flex flex-wrap items-center gap-2">
           <select value={ecosystem} onChange={(e) => setEcosystem(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-xs font-medium">
             <option value="all">All Ecosystems</option>
-            <option value="celo">Celo</option>
-            <option value="base">Base</option>
-            <option value="linea">Linea</option>
+            {Object.values(ECOSYSTEM_CONFIGS).map((eco) => (
+              <option key={eco.id} value={eco.id}>{eco.icon} {eco.shortName}</option>
+            ))}
           </select>
           {ecosystem !== "all" && (
             <Link href={`/ecosystems/${ecosystem}`} className="text-xs text-blue-600 hover:underline">

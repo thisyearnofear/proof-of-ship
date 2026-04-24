@@ -14,6 +14,7 @@ import { db } from "@/lib/firebase/adminApp";
 import { withNanopayment } from "@/lib/nanopayment";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 
 async function scoutHandler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -21,6 +22,14 @@ async function scoutHandler(req, res) {
   }
 
   try {
+    // Check cache for GET requests (skip for POST/execute)
+    if (req.method === "GET" && req.query.fresh !== "1") {
+      const cached = await getCachedResult("scout", { ecosystem: req.query.ecosystem || "all" });
+      if (cached) {
+        return res.status(200).json({ ...cached.data, cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+      }
+    }
+
     // Fetch all projects from Firestore
     const snapshot = await db.collection("projects").get();
     const projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -116,7 +125,7 @@ async function scoutHandler(req, res) {
       }
     }
 
-    return res.status(200).json({
+    const result = {
       success: true,
       agentInfo: {
         name: "AI Scout",
@@ -135,7 +144,14 @@ async function scoutHandler(req, res) {
       ecosystemAnalysis,
       execution: executionResult,
       projects: scored,
-    });
+    };
+
+    // Cache GET results
+    if (req.method === "GET") {
+      await setCachedResult("scout", { ecosystem: req.query.ecosystem || "all" }, result);
+    }
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Scout agent error:", error);
     return res.status(500).json({ error: "Scout agent failed", details: error.message });

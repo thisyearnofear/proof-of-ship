@@ -1,50 +1,62 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ChevronRightIcon } from "@heroicons/react/24/solid";
+import { ChevronRightIcon, HomeIcon } from "@heroicons/react/24/solid";
 
-const Breadcrumbs = () => {
+/**
+ * Breadcrumbs — auto-generates from URL path, or accepts custom items prop.
+ * @param {{ items?: Array<{label: string, href?: string}> }} props
+ */
+const Breadcrumbs = ({ items }) => {
   const router = useRouter();
-  const pathSegments = router.asPath.split("/").filter((segment) => segment);
 
-  const breadcrumbs = pathSegments.map((segment, index) => {
-    const href = "/" + pathSegments.slice(0, index + 1).join("/");
-    const isLast = index === pathSegments.length - 1;
-    const name =
-      segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+  const crumbs = items
+    ? items
+    : router.asPath
+        .split("?")[0]
+        .split("/")
+        .filter(Boolean)
+        .map((seg, i, arr) => ({
+          label: decodeURIComponent(seg).charAt(0).toUpperCase() + decodeURIComponent(seg).slice(1).replace(/-/g, " "),
+          href: "/" + arr.slice(0, i + 1).join("/"),
+        }));
 
-    return { href, name, isLast };
-  });
+  if (!crumbs.length) return null;
 
   return (
-    <nav className="flex" aria-label="Breadcrumb">
-      <ol className="inline-flex items-center space-x-1 md:space-x-3">
+    <nav className="flex mb-4" aria-label="Breadcrumb">
+      <ol className="inline-flex items-center gap-1 text-sm flex-wrap">
         <li className="inline-flex items-center">
           <Link
             href="/"
-            className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600"
+            className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
           >
-            Home
+            <HomeIcon className="h-4 w-4" />
           </Link>
         </li>
-        {breadcrumbs.map((breadcrumb) => (
-          <li key={breadcrumb.href}>
-            <div className="flex items-center">
-              <ChevronRightIcon className="h-5 w-5 text-gray-400" />
-              <Link
-                href={breadcrumb.href}
-                className={`ml-1 text-sm font-medium ${
-                  breadcrumb.isLast
-                    ? "text-gray-500"
-                    : "text-gray-700 hover:text-blue-600"
-                }`}
-                aria-current={breadcrumb.isLast ? "page" : undefined}
-              >
-                {breadcrumb.name}
-              </Link>
-            </div>
-          </li>
-        ))}
+        {crumbs.map((crumb, i) => {
+          const isLast = i === crumbs.length - 1;
+          return (
+            <li key={i} className="flex items-center gap-1">
+              <ChevronRightIcon className="h-3 w-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+              {!isLast && crumb.href ? (
+                <Link
+                  href={crumb.href}
+                  className="text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                >
+                  {crumb.label}
+                </Link>
+              ) : (
+                <span
+                  className="text-gray-900 dark:text-gray-100 font-medium truncate max-w-[200px]"
+                  aria-current="page"
+                >
+                  {crumb.label}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );

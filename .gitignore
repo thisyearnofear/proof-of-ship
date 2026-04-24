@@ -139,3 +139,4 @@ wallet-credentials.json
 EFFICIENCY_REPORT.md
 .blackboxcli/
 frontend/tsconfig.tsbuildinfo
+.output.txt

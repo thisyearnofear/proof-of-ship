@@ -13,6 +13,7 @@ import { initObservability } from "@/lib/observability";
 import AIAnalysisModal from "@/components/common/AIAnalysisModal";
 import OnboardingBanner from "@/components/common/OnboardingBanner";
 import AIChatWidget from "@/components/common/AIChatWidget";
+import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,6 +28,7 @@ const geistMono = localFont({
 
 export default function App({ Component, pageProps }) {
   useNoSSR(() => {});
+  useKeyboardShortcuts();
 
   // Initialize global error handling
   React.useEffect(() => {

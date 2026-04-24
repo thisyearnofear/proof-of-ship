@@ -116,9 +116,10 @@ export default function AIChatWidget() {
     return (
       <button
         onClick={handleReopen}
+        data-chat-toggle
         className="fixed bottom-6 right-6 z-50 w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-indigo-600 hover:text-white text-gray-500 dark:text-gray-400 rounded-full shadow-md transition-all hover:scale-110 opacity-60 hover:opacity-100"
         aria-label="Reopen AI Assistant"
-        title="Reopen AI Assistant"
+        title="Reopen AI Assistant (⌘J)"
       >
         <ChatBubbleLeftRightIcon className="w-4 h-4" />
       </button>
@@ -131,8 +132,9 @@ export default function AIChatWidget() {
       <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
         <button
           onClick={() => setOpen(true)}
+          data-chat-toggle
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 group"
-          aria-label="Open AI Assistant"
+          aria-label="Open AI Assistant (⌘J)"
         >
           <ChatBubbleLeftRightIcon className="w-5 h-5" />
           <span className="text-sm font-medium hidden sm:inline">Ask AI</span>
@@ -194,9 +196,10 @@ export default function AIChatWidget() {
           </button>
           <button
             onClick={() => setOpen(false)}
+            data-chat-close
             className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-            aria-label="Close chat"
-            title="Close"
+            aria-label="Close chat (Esc)"
+            title="Close (Esc)"
           >
             <XMarkIcon className="w-5 h-5" />
           </button>

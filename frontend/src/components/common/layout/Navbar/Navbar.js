@@ -24,6 +24,11 @@ const navigation = [
     icon: GlobeAltIcon,
   },
   { 
+    name: "Compare", 
+    href: "/compare", 
+    icon: CalculatorIcon,
+  },
+  { 
     name: "Build", 
     href: "/build", 
     icon: CreditCardIcon,
@@ -33,6 +38,11 @@ const navigation = [
     name: "Back", 
     href: "/back", 
     icon: ChartBarIcon,
+  },
+  { 
+    name: "Transactions", 
+    href: "/transactions", 
+    icon: BoltIcon,
   },
 ];
 

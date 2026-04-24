@@ -13,6 +13,8 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import TabBar from "@/components/common/TabBar";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
+import { SkeletonProjectGrid } from "@/components/common/SkeletonLoader";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NETWORK_CONFIGS } from "@/config/networks";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
@@ -44,6 +46,7 @@ export default function ExplorePage() {
       </Head>
       <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <Breadcrumbs items={[{ label: "Explore" }]} />
           {/* Tab switcher */}
           <TabBar
             tabs={tabs}
@@ -133,9 +136,10 @@ function ProjectsTab() {
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <input
           type="text"
-          placeholder="Search projects by name, description, or category..."
+          placeholder="Search projects by name, description, or category... (⌘K)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          data-search-input
           className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100"
         />
         {searchQuery && (

@@ -11,19 +11,33 @@ import { db } from "@/lib/firebase/adminApp";
 import { computeScore, getRecommendation } from "@/lib/scoringEngine";
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 
 async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { projectId } = req.query;
+  const { projectId, fresh } = req.query;
 
   if (!projectId) {
     return res.status(400).json({ error: "projectId query parameter is required" });
   }
 
   try {
+    // 0. Check cache (skip if ?fresh=1)
+    if (fresh !== "1") {
+      const cached = await getCachedResult("underwrite", { projectId });
+      if (cached) {
+        return res.status(200).json({
+          ...cached.data,
+          cached: true,
+          cachedAt: cached.cachedAt,
+          cachedAge: cached.ageHuman,
+        });
+      }
+    }
+
     // 1. Fetch project data from Firestore
     const docRef = db.collection("projects").doc(projectId);
     const snapshot = await docRef.get();
@@ -76,8 +90,8 @@ async function handler(req, res) {
       }
     }
 
-    // 4. Return the fully computed underwriting report
-    return res.status(200).json({
+    // 4. Build result
+    const result = {
       success: true,
       agentInfo: {
         name: "AI Underwriter",
@@ -95,7 +109,12 @@ async function handler(req, res) {
       recommendation,
       aiAnalysis,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    // 5. Cache the result for future requests
+    await setCachedResult("underwrite", { projectId }, result);
+
+    return res.status(200).json(result);
 
   } catch (error) {
     console.error("Underwriter agent error:", error);

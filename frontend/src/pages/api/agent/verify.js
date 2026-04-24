@@ -10,19 +10,27 @@
 
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 
 async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { prId, lines = 100 } = req.query;
+  const { prId, lines = 100, fresh } = req.query;
 
   if (!prId) {
     return res.status(400).json({ error: "prId query parameter is required" });
   }
 
   try {
+    // Check cache
+    if (fresh !== "1") {
+      const cached = await getCachedResult("verify", { prId });
+      if (cached) {
+        return res.status(200).json({ ...cached.data, cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+      }
+    }
     let verification;
     let aisaPayment = null;
 
@@ -76,7 +84,7 @@ async function handler(req, res) {
       };
     }
 
-    return res.status(200).json({
+    const result = {
       success: true,
       agentInfo: {
         name: "Verifier Agent",
@@ -87,7 +95,11 @@ async function handler(req, res) {
       },
       verification,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    await setCachedResult("verify", { prId }, result);
+
+    return res.status(200).json(result);
 
   } catch (error) {
     console.error("Verification agent error:", error);

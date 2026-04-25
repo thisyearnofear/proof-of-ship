@@ -1,4 +1,5 @@
 import { Circle, CircleEnvironments } from '@circle-fin/circle-sdk';
+import { ARC_CIRCLE_BLOCKCHAIN } from '../config/tokens';
 
 // Initialize Circle SDK with proper environment configuration
 const getCircleEnvironment = () => {
@@ -97,7 +98,7 @@ export class USDCPaymentService {
         destination: {
           type: 'blockchain',
           address: destinationAddress,
-          chain: this.environment === 'sandbox' ? 'ETH-SEPOLIA' : 'ETH'
+          chain: ARC_CIRCLE_BLOCKCHAIN,
         },
         amount: {
           amount: amount,
@@ -252,13 +253,15 @@ export class USDCPaymentService {
   getSupportedChains() {
     if (this.environment === 'sandbox') {
       return [
+        { id: 'ARC', name: 'Arc Testnet', testnet: true },
         { id: 'ETH-SEPOLIA', name: 'Ethereum Sepolia', testnet: true },
-        { id: 'MATIC-MUMBAI', name: 'Polygon Mumbai', testnet: true }
+        { id: 'MATIC-MUMBAI', name: 'Polygon Mumbai', testnet: true },
       ];
     } else {
       return [
+        { id: 'ARC', name: 'Arc', testnet: false },
         { id: 'ETH', name: 'Ethereum Mainnet', testnet: false },
-        { id: 'MATIC', name: 'Polygon Mainnet', testnet: false }
+        { id: 'MATIC', name: 'Polygon Mainnet', testnet: false },
       ];
     }
   }
@@ -339,7 +342,7 @@ export class USDCPaymentService {
         destination: {
           type: 'blockchain',
           address: destinationAddress,
-          chain: this.environment === 'sandbox' ? 'ETH-SEPOLIA' : 'ETH'
+          chain: ARC_CIRCLE_BLOCKCHAIN,
         },
         amount: {
           amount: amount.toString(),

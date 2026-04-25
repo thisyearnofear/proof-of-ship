@@ -2,6 +2,7 @@ const { ethers, network } = require("hardhat");
 const fs = require("fs");
 
 // USDC addresses for different testnets (shared configuration)
+// Keep in sync with frontend/src/config/tokens.js TESTNET_USDC_ADDRESSES
 const TESTNET_USDC_ADDRESSES = {
   11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // Ethereum Sepolia
   421614: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d", // Arbitrum Sepolia
@@ -9,6 +10,7 @@ const TESTNET_USDC_ADDRESSES = {
   11155420: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7", // OP Sepolia
   44787: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B", // Celo Alfajores
   59141: "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7", // Linea Sepolia
+  5042002: "0x3600000000000000000000000000000000000000", // Arc Testnet (native USDC)
 };
 
 async function main() {
@@ -63,20 +65,18 @@ async function main() {
   // Setup initial configuration
   console.log("\n⚙️ Setting up initial configuration...");
 
-  // Create a test hackathon
+  // Create a test hackathon with all 6 required args
+  const now = Math.floor(Date.now() / 1000);
   const tx1 = await hackathonRegistry.createHackathon(
-    "MetaMask Card Hackathon",
-    "Test hackathon for MetaMask Card integration",
-    Math.floor(Date.now() / 1000) + 86400, // 24 hours from now
-    1 // Required signatures
+    "Agentic Economy on Arc",        // name
+    deployer.address,                 // host
+    [deployer.address],               // initialVerifiers
+    1,                                // requiredSignatures
+    now,                              // startDate
+    now + 7 * 24 * 60 * 60           // endDate (1 week)
   );
   await tx1.wait();
   console.log("✅ Test hackathon created");
-
-  // Add deployer as verifier
-  const tx2 = await hackathonRegistry.addVerifier(0, deployer.address);
-  await tx2.wait();
-  console.log("✅ Deployer added as verifier");
 
   // Save deployment info
   const deploymentInfo = {
@@ -114,16 +114,22 @@ async function main() {
 
   // Environment variables for frontend
   console.log("\n📝 Add these to your .env file:");
-  console.log(
-    `NEXT_PUBLIC_BUILDER_CREDIT_ADDRESS_${networkName
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "_")}=${builderCreditCore.address}`
-  );
-  console.log(
-    `NEXT_PUBLIC_HACKATHON_REGISTRY_ADDRESS_${networkName
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "_")}=${hackathonRegistry.address}`
-  );
+  if (chainId === 5042002) {
+    // Arc Testnet — matches execute.js env var name (server-only)
+    console.log(`BUILDER_CREDIT_ARC_ADDRESS=${builderCreditCore.address}`);
+    console.log(`HACKATHON_REGISTRY_ARC_ADDRESS=${hackathonRegistry.address}`);
+  } else {
+    console.log(
+      `NEXT_PUBLIC_BUILDER_CREDIT_ADDRESS_${networkName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "_")}=${builderCreditCore.address}`
+    );
+    console.log(
+      `NEXT_PUBLIC_HACKATHON_REGISTRY_ADDRESS_${networkName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "_")}=${hackathonRegistry.address}`
+    );
+  }
 
   return {
     hackathonRegistry: hackathonRegistry.address,

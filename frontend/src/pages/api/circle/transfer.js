@@ -59,7 +59,7 @@ async function createCircleTransfer(amount, destinationAddress) {
         destination: {
           type: 'blockchain',
           address: destinationAddress,
-          chain: 'USDC', // Or specific chain (POLYGON, ETHEREUM, etc.)
+          chain: 'ARC',
         },
         amount: {
           amount: amount.toString(),

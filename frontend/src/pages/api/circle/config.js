@@ -44,8 +44,8 @@ async function configHandler(req, res) {
     
   const supportedBlockchains = process.env.CIRCLE_SUPPORTED_BLOCKCHAINS
     ? process.env.CIRCLE_SUPPORTED_BLOCKCHAINS.split(',')
-    : ['ETH', 'MATIC', 'AVAX', 'ARB'];
-  
+    : ['ARC', 'ETH', 'MATIC', 'AVAX', 'ARB'];
+
   // Prepare configuration for frontend
   // Note: We don't send API keys to the frontend
   const config = {
@@ -58,7 +58,7 @@ async function configHandler(req, res) {
       USDC: {
         name: 'USD Coin',
         decimals: 6,
-        chains: ['ETH', 'MATIC', 'AVAX', 'ARB'],
+        chains: ['ARC', 'ETH', 'MATIC', 'AVAX', 'ARB'],
         isStablecoin: true
       },
       ETH: {

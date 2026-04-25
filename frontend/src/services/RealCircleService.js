@@ -4,7 +4,7 @@
  */
 
 import { Circle, CircleEnvironments } from "@circle-fin/circle-sdk";
-import { TESTNET_USDC_ADDRESSES } from "../config/tokens";
+import { TESTNET_USDC_ADDRESSES, ARC_TESTNET_CHAIN_ID } from "../config/tokens";
 
 class RealCircleService {
   constructor() {
@@ -56,7 +56,7 @@ class RealCircleService {
         idempotencyKey,
         entitySecretCiphertext: this.entitySecret,
         walletSetId: this.walletSetId,
-        blockchains: ["ETH", "MATIC", "ARB", "BASE", "OP"],
+        blockchains: ["ETH", "MATIC", "ARB", "BASE", "OP", "ARC"],
         count: 1,
         metadata: {
           name: config.name || "Developer Wallet",
@@ -157,8 +157,8 @@ class RealCircleService {
       const response = await this.circle.transactions.create({
         idempotencyKey,
         walletId: config.walletId,
-        blockchain: config.blockchain || "ETH",
-        tokenId: config.tokenId || TESTNET_USDC_ADDRESSES[11155111], // Default to Sepolia USDC
+        blockchain: config.blockchain || "ARC",
+        tokenId: config.tokenId || TESTNET_USDC_ADDRESSES[ARC_TESTNET_CHAIN_ID], // Default to Arc Testnet USDC
         amount: config.amount,
         destinationAddress: config.destinationAddress,
         feeLevel: config.feeLevel || "HIGH",

@@ -3,6 +3,12 @@
  * Updated with official Circle testnet addresses
  */
 
+// Single source of truth for Arc Testnet chain ID
+export const ARC_TESTNET_CHAIN_ID = 5042002;
+
+// Circle SDK blockchain identifier for Arc (matches SDK enum pattern)
+export const ARC_CIRCLE_BLOCKCHAIN = "ARC";
+
 export const TESTNET_USDC_ADDRESSES = {
   // Ethereum Sepolia
   11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
@@ -77,7 +83,7 @@ export const BUILDER_CREDIT_CORE_ADDRESSES = {
   // Linea Sepolia
   59141: "0x7890123456789012345678901234567890123456",
   // Arc Testnet
-  5042002: "0x7890123456789012345678901234567890123456",
+  5042002: "0xC93Cf6034Bb2193bDA8B942eE91B244aa7DC7942",
 };
 
 export const HACKATHON_REGISTRY_ADDRESSES = {
@@ -106,7 +112,7 @@ export const HACKATHON_REGISTRY_ADDRESSES = {
   // Linea Sepolia
   59141: "0x9012345678901234567890123456789012345678",
   // Arc Testnet
-  5042002: "0x9012345678901234567890123456789012345678",
+  5042002: "0x78077d311e06A05720f50AeD6E42A0D5116D14c1",
 };
 
 export const TESTNET_CHAIN_INFO = {

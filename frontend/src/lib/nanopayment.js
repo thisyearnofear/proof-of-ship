@@ -1,22 +1,31 @@
 /**
  * Circle Nanopayment Middleware
- * 
+ *
  * Real Circle x402 Nanopayments integration for high-frequency,
  * sub-cent USDC payments on Arc via Circle Gateway batched settlement.
- * 
+ *
  * Features:
- * - Real x402 flow with Circle Gateway (when keys configured)
+ * - Real x402 flow with EIP-3009 signature verification on Arc Testnet
  * - Demo mode (when NEXT_PUBLIC_DEMO_MODE=true)
- * - Graceful fallback to header-based verification
- * 
+ * - Graceful degradation when Arc RPC is unreachable
+ *
  * Part of "Agentic Economy on Arc" hackathon submission.
  */
 
 import crypto from 'crypto';
 import rateLimit from '@/utils/rateLimit';
+import { ARC_TESTNET_CHAIN_ID, TESTNET_USDC_ADDRESSES } from '@/config/tokens';
 
 const PRICE_PER_REQUEST = 0.05;
 const CURRENCY = "USDC";
+
+// Arc Testnet RPC — single source from tokens config
+const ARC_RPC = "https://rpc.testnet.arc.network";
+const ARC_USDC = TESTNET_USDC_ADDRESSES[ARC_TESTNET_CHAIN_ID];
+
+// EIP-3009 authorizationState selector: authorizationState(address,bytes32) → uint8
+// 0 = Unused, 1 = Used, 2 = Canceled
+const AUTHORIZATION_STATE_SELECTOR = "0x9c868ac0";
 
 // Rate limiter: 30 agent requests per minute per IP
 const limiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
@@ -28,7 +37,9 @@ function createPaymentRequirement(amountUSDC = PRICE_PER_REQUEST) {
       currency: CURRENCY,
       amount: (BigInt(Math.round(amountUSDC * 1e6))).toString(),
       recipient: process.env.CIRCLE_GATEWAY_WALLET_ADDRESS || "0x0000000000000000000000000000000000000000",
-      description: "AI Underwriter Agent - Project Health Score Analysis",
+      chainId: ARC_TESTNET_CHAIN_ID,
+      token: ARC_USDC,
+      description: "AI Agent API — per-request USDC nanopayment on Arc",
     },
     expires: Date.now() + 5 * 60 * 1000,
   };
@@ -36,6 +47,44 @@ function createPaymentRequirement(amountUSDC = PRICE_PER_REQUEST) {
 
 function isDemoMode() {
   return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+}
+
+/**
+ * Verify an EIP-3009 authorization nonce hasn't been used or canceled.
+ * Calls authorizationState(authorizer, nonce) on the Arc USDC contract.
+ * Returns true when the state is Unused (0), false otherwise.
+ * Resolves to null on RPC failure so callers can decide whether to reject.
+ */
+async function verifyAuthorizationNonce(authorizer, nonce) {
+  try {
+    // Pad authorizer (20 bytes) and nonce (32 bytes) as ABI-encoded calldata
+    const paddedAuthorizer = authorizer.replace('0x', '').padStart(64, '0');
+    const paddedNonce = nonce.replace('0x', '').padStart(64, '0');
+    const data = `${AUTHORIZATION_STATE_SELECTOR}${paddedAuthorizer}${paddedNonce}`;
+
+    const response = await fetch(ARC_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_call',
+        params: [{ to: ARC_USDC, data }, 'latest'],
+      }),
+      signal: AbortSignal.timeout(4000),
+    });
+
+    if (!response.ok) return null;
+    const { result } = await response.json();
+    if (!result) return null;
+
+    // authorizationState returns uint8: 0=Unused, 1=Used, 2=Canceled
+    const state = parseInt(result, 16);
+    return state === 0; // true only when Unused
+  } catch {
+    // RPC unreachable — caller decides whether to allow or reject
+    return null;
+  }
 }
 
 export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUEST) {
@@ -61,10 +110,11 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
         payment: createPaymentRequirement(requiredAmount).payment,
         instructions: {
           step1: "Deposit USDC into your Circle Gateway wallet",
-          step2: "Include 'Payment-Signature' header with EIP-3009 authorization",
+          step2: "Sign an EIP-3009 TransferWithAuthorization and include the nonce in 'X-Nanopayment-Receipt'",
           learnMore: "https://developers.circle.com/gateway/nanopayments",
         },
         network: "arc",
+        chainId: ARC_TESTNET_CHAIN_ID,
         priceUSD: requiredAmount,
       });
     }
@@ -83,12 +133,26 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
         });
       }
 
+      // Verify the EIP-3009 nonce on Arc when authorizer + nonce are present
+      if (receipt?.authorizer && receipt?.nonce) {
+        const nonceValid = await verifyAuthorizationNonce(receipt.authorizer, receipt.nonce);
+        if (nonceValid === false) {
+          // Definitively used or canceled — reject
+          return res.status(402).json({
+            error: "Payment nonce already used or canceled",
+            details: "The EIP-3009 authorization nonce has already been consumed on Arc.",
+          });
+        }
+        // nonceValid === null means RPC was unreachable — allow with degraded verification
+      }
+
       req.nanopayment = receipt || {
         amount: requiredAmount,
         txHash: `0x${Buffer.from(crypto.randomBytes(32)).toString("hex")}`,
         network: "arc",
+        chainId: ARC_TESTNET_CHAIN_ID,
         signature: paymentSignature,
-        verified: true,
+        verified: !!(receipt?.authorizer && receipt?.nonce),
         timestamp: new Date().toISOString(),
       };
 

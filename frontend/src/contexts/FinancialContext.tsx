@@ -131,6 +131,39 @@ export const useFinancial = () => {
 };
 
 // ============================================================================
+// Backward Compatibility Exports
+// ============================================================================
+
+// useLiFi - maps to FinancialContext LiFi functionality
+export const useLiFi = () => {
+  const financial = useFinancial();
+  return {
+    lifiInitialized: financial.lifiInitialized,
+    availableChains: financial.availableChains,
+    availableTokens: financial.availableTokens,
+    transferHistory: financial.transferHistory,
+    loading: financial.lifiLoading,
+    error: financial.lifiError,
+    getQuote: financial.getQuote,
+    executeTransfer: financial.executeTransfer,
+    getTransferStatus: financial.getTransferStatus,
+    getRoutes: financial.getRoutes,
+    subscribeToStatus: financial.subscribeToStatus,
+    updateTransferStatuses: financial.updateTransferStatuses,
+    // Helper methods
+    getChainIcon: financial.getChainIcon,
+    getChainLogoURI: financial.getChainLogoURI,
+    getTokenLogoURI: financial.getTokenLogoURI,
+    usdcAddresses: financial.usdcAddresses,
+  };
+};
+
+// LiFiProvider - alias for FinancialProvider
+export const LiFiProvider = FinancialProvider;
+
+// Note: CircleWalletProvider is now integrated into WalletContext as circleWallets/circleConfig
+
+// ============================================================================
 // Provider
 // ============================================================================
 

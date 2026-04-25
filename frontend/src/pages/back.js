@@ -15,7 +15,7 @@ import ExpeditionCard from "@/components/expedition/ExpeditionCard";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import TabBar from "@/components/common/TabBar";
-import { NanopaymentWidget } from "@/components/common/NanopaymentWidget";
+import NanopaymentWidget from "@/components/common/NanopaymentWidget";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TransactionFeed from "@/components/common/TransactionFeed";

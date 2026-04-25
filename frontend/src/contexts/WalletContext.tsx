@@ -127,7 +127,8 @@ export const useWallet = () => {
   if (!context) {
     throw new Error('useWallet must be used within a WalletProvider');
   }
-  return context;
+  // Add address as alias for account (backward compatibility)
+  return { ...context, address: context?.account };
 };
 
 // ============================================================================
@@ -579,6 +580,118 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   };
   
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
+};
+
+// ============================================================================
+// Backward Compatibility Hooks
+// ============================================================================
+
+// useBuilderCredit - maps to WalletContext functionality
+export const useBuilderCredit = () => {
+  const wallet = useWallet();
+  
+  // Helper to get USDC balance asynchronously
+  const getUSDCBalanceAsync = async () => {
+    try {
+      return await wallet.getUSDCBalance();
+    } catch {
+      return '0.00';
+    }
+  };
+  
+  return {
+    // Builder Credit from WalletContext
+    creditProfile: wallet.creditProfile,
+    repayLoan: wallet.repayLoan,
+    loadCreditProfile: wallet.loadCreditProfile,
+    // Circle Wallet for contract interactions
+    circleWallets: wallet.circleWallets,
+    circleConfig: wallet.circleConfig,
+    // Contract access via creditService (lazy loaded)
+    coreContract: null, // Use creditService.getContracts() directly
+    hackathonRegistryContract: null,
+    account: wallet.account,
+    address: wallet.account, // Legacy alias
+    chainId: wallet.chainId,
+    signer: wallet.signer,
+    ethersProvider: wallet.ethersProvider,
+    connected: wallet.connected,
+    // Legacy helpers
+    getBackerProjects: async (backerAddress) => {
+      // Access via creditService
+      const { creditService } = await import('@/services/creditService');
+      if (!wallet.chainId || !wallet.signer) return [];
+      const contracts = creditService.getContracts(wallet.chainId, wallet.signer);
+      try {
+        const count = await contracts.core.getBackerProjectCount(backerAddress);
+        const projectIds = [];
+        for (let i = 0; i < count.toNumber(); i++) {
+          const projectId = await contracts.core.backerProjects(backerAddress, i);
+          projectIds.push(projectId);
+        }
+        return projectIds;
+      } catch {
+        return [];
+      }
+    },
+    backProject: async (projectId, multiplier, amount) => {
+      const { creditService } = await import('@/services/creditService');
+      if (!wallet.chainId || !wallet.signer) throw new Error('Not connected');
+      await creditService.backProject(wallet.chainId, wallet.signer, projectId, multiplier, amount);
+    },
+    contractLoading: wallet.loading,
+    // usdcBalance is async - consumers should call getUSDCBalanceAsync()
+    getUSDCBalanceAsync,
+    usdcBalance: '0.00', // Sync access returns 0 - use async version
+  };
+};
+
+// useNanopayment - maps to WalletContext nanopayment functionality
+export const useNanopayment = () => {
+  const wallet = useWallet();
+  const [streamingPayment, setStreamingPayment] = useState(null);
+  
+  // Wrap payForAgent to track streaming state
+  const payForAgentWithStreaming = async (agentType, params = {}) => {
+    setStreamingPayment({ agentType, amount: AGENT_PRICES[agentType] || 0.01 });
+    try {
+      const result = await wallet.payForAgent(agentType, params);
+      setStreamingPayment(null);
+      return result;
+    } catch (err) {
+      setStreamingPayment(null);
+      throw err;
+    }
+  };
+  
+  return {
+    // Nanopayment state
+    isInitialized: wallet.nanopaymentInitialized,
+    loading: wallet.loading,
+    error: wallet.error,
+    balance: wallet.nanopaymentBalance,
+    walletAddress: wallet.nanopaymentAddress,
+    transactions: wallet.nanopaymentTransactions,
+    nanopaymentAddress: wallet.nanopaymentAddress,
+    streamingPayment,
+    // Nanopayment methods
+    initialize: wallet.initializeNanopayment,
+    initializeWithDemo: wallet.initializeNanopaymentDemo,
+    deposit: wallet.depositNanopayment,
+    pay: (endpoint, options) => payForAgentWithStreaming('chat', { endpoint, ...options }),
+    payForAgent: payForAgentWithStreaming,
+    payForVerification: wallet.payForVerification,
+    payForScout: wallet.payForScout,
+    payForUnderwrite: wallet.payForHealthScore,
+    payForRebalance: wallet.payForRebalance,
+    // Agent pricing (for display)
+    agentPrices: {
+      underwrite: 0.05,
+      scout: 0.01,
+      verify: 0.001,
+      rebalance: 0.01,
+    },
+  };
 };
 
 // ============================================================================

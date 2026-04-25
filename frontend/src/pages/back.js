@@ -372,7 +372,7 @@ function PortfolioTab() {
       <Card className="p-8 text-center">
         <RocketLaunchIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900">No Positions Yet</h3>
-        <p className="text-gray-500 mt-2">You haven't backed any projects yet.</p>
+        <p className="text-gray-500 mt-2">You haven&apos;t backed any projects yet.</p>
         <button onClick={() => {}} className="mt-4 text-blue-600 hover:underline text-sm">
           Switch to Discover tab to find projects →
         </button>

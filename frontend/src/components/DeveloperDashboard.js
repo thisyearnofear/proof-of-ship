@@ -356,7 +356,7 @@ export default function DeveloperDashboard() {
                 <DocumentTextIcon className="w-16 h-16 mx-auto text-slate-300" />
                 <h3 className="mt-4 text-xl font-bold text-slate-800">Fleet Empty</h3>
                 <p className="mt-2 text-slate-500 max-w-md mx-auto">
-                  You haven't commissioned any vessels yet. Start your journey by requesting funding for your first project.
+                  You haven&apos;t commissioned any vessels yet. Start your journey by requesting funding for your first project.
                 </p>
               </Card>
             )}

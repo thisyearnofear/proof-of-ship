@@ -66,7 +66,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
         <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-600" />
-        <h2 className="text-xl font-bold text-gray-900">The Ship's Log</h2>
+        <h2 className="text-xl font-bold text-gray-900">The Ship&apos;s Log</h2>
       </div>
 
       {canEdit && (

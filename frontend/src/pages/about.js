@@ -93,7 +93,7 @@ export default function AboutPage() {
             Security First
           </h2>
           <p className="text-lg text-secondary">
-            Building financial infrastructure requires unwavering trust. We've built Builder Credit
+            Building financial infrastructure requires unwavering trust. We&apos;ve built Builder Credit
             on the principles of transparency and security.
           </p>
           <div className="grid grid-cols-1 gap-6">
@@ -150,10 +150,10 @@ export default function AboutPage() {
             <ChatBubbleLeftRightIcon className="w-10 h-10 text-secondary-600 flex-shrink-0" />
             <div>
               <h3 className="text-xl font-bold text-primary mb-2">Join the Fleet</h3>
-              <p className="text-secondary mb-4">
-                Connect with us on Warpcast and Farcaster to discuss features, 
-                get help, and find collaborators.
-              </p>
+          <p className="text-secondary mb-4">
+            Connect with us on Warpcast and Farcaster to discuss features, 
+            get help, and find collaborators.
+          </p>
               <a 
                 href="https://warpcast.com/papa" 
                 target="_blank" 

@@ -246,7 +246,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
         <Card className="p-6">
           <h4 className="text-lg font-semibold mb-4">Direct USDC Transfer</h4>
           <p className="text-gray-600 mb-4">
-            Receive funding directly to your wallet using Circle's infrastructure.
+            Receive funding directly to your wallet using Circle&apos;s infrastructure.
           </p>
           
           <Button

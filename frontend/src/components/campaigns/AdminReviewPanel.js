@@ -70,7 +70,7 @@ export default function AdminReviewPanel({ submission, campaign, onReview, loadi
       {/* Submission Details */}
       <div className="space-y-3">
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Tester's Message</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Tester&apos;s Message</h3>
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p className="text-sm text-gray-700 whitespace-pre-wrap">
               {submission.message}

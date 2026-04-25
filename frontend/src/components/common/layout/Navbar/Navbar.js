@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import {
   Bars3Icon,
@@ -87,7 +88,7 @@ export default function Navbar() {
               <div className="flex h-14 sm:h-16 justify-between items-center">
                 <div className="flex items-center flex-shrink-0">
                   <div className="flex shrink-0 items-center">
-                    <a href="/" className="flex items-center space-x-2 sm:space-x-3">
+                    <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
                       <img
                         src="/POS.png"
                         alt="Proof Of Ship Logo"
@@ -98,7 +99,7 @@ export default function Navbar() {
                       <div className="hidden sm:block">
                         <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100">Proof of Ship</div>
                       </div>
-                    </a>
+                    </Link>
                   </div>
                   <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
                     {navigation
@@ -106,7 +107,7 @@ export default function Navbar() {
                         (item) => !item.auth || (item.auth && currentUser)
                       )
                       .map((item) => (
-                        <a
+                        <Link
                           key={item.name}
                           href={item.href}
                           className={classNames(
@@ -130,7 +131,7 @@ export default function Navbar() {
                             />
                           )}
                           {item.name}
-                        </a>
+                        </Link>
                       ))}
                   </div>
                 </div>
@@ -138,7 +139,7 @@ export default function Navbar() {
                 <div className="hidden sm:ml-4 sm:flex sm:items-center gap-2 sm:gap-4">
                   {/* Mini balance indicator */}
                   {nanopayReady && (
-                    <a
+                    <Link
                       href="/back"
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors text-xs"
                       title="Nanopayment balance"
@@ -147,7 +148,7 @@ export default function Navbar() {
                       <span className="font-semibold text-teal-700 dark:text-teal-300">
                         ${parseFloat(balance?.available || 0).toFixed(2)}
                       </span>
-                    </a>
+                    </Link>
                   )}
                   <a
                     href="https://github.com/thisyearnofear/proof-of-ship"
@@ -199,7 +200,7 @@ export default function Navbar() {
                           {githubUsername && (
                             <Menu.Item>
                               {({ active }) => (
-                                <a
+                                <Link
                                   href={`/u/${githubUsername}`}
                                   className={classNames(
                                     active ? "bg-gray-100" : "",
@@ -208,14 +209,14 @@ export default function Navbar() {
                                 >
                                   <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400" />
                                   My Portfolio
-                                </a>
+                                </Link>
                               )}
                             </Menu.Item>
                           )}
 
                           <Menu.Item>
                             {({ active }) => (
-                              <a
+                              <Link
                                 href="/build"
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
@@ -224,12 +225,12 @@ export default function Navbar() {
                               >
                                 <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400" />
                                 Credit Dashboard
-                              </a>
+                              </Link>
                             )}
                           </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
-                              <a
+                              <Link
                                 href="/profile"
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
@@ -238,12 +239,12 @@ export default function Navbar() {
                               >
                                 <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400" />
                                 Your Profile
-                              </a>
+                              </Link>
                             )}
                           </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
-                              <a
+                              <Link
                                 href="/admin/war-room"
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
@@ -252,12 +253,12 @@ export default function Navbar() {
                               >
                                 <ShieldCheckIcon className="mr-3 h-4 w-4 text-orange-500" />
                                 Verification War Room
-                              </a>
+                              </Link>
                             )}
                           </Menu.Item>
                           <Menu.Item>
                             {({ active }) => (
-                              <a
+                              <Link
                                 href="/admin/payout-simulation"
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
@@ -266,7 +267,7 @@ export default function Navbar() {
                               >
                                 <CalculatorIcon className="mr-3 h-4 w-4 text-blue-500" />
                                 Payout Simulator
-                              </a>
+                              </Link>
                             )}
                           </Menu.Item>
                           <Menu.Item>
@@ -291,18 +292,18 @@ export default function Navbar() {
                     </Menu>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <a
+                      <Link
                         href="/login"
                         className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium"
                       >
                         Sign in
-                      </a>
-                      <a
+                      </Link>
+                      <Link
                         href="/build"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
                       >
                         Get Funded
-                      </a>
+                      </Link>
                     </div>
                   )}
                   <ThemeToggle />
@@ -310,12 +311,12 @@ export default function Navbar() {
 
                 <div className="flex sm:hidden items-center gap-1">
                   {!currentUser && (
-                    <a
+                    <Link
                       href="/build"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
                     >
                       Get Funded
-                    </a>
+                    </Link>
                   )}
                   <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-touch min-h-touch">
                     <span className="sr-only">Open main menu</span>
@@ -347,7 +348,7 @@ export default function Navbar() {
                     .map((item) => (
                     <Disclosure.Button
                       key={item.name}
-                      as="a"
+                      as={Link}
                       href={item.href}
                       className={classNames(
                         pathname === item.href
@@ -374,7 +375,7 @@ export default function Navbar() {
                   {/* Mobile balance + AI agents button */}
                   {nanopayReady && (
                     <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                      <a
+                      <Link
                         href="/back"
                         className="flex items-center justify-between rounded-md px-3 py-2.5 bg-teal-50 dark:bg-teal-900/20 text-sm font-medium min-h-touch"
                       >
@@ -385,18 +386,18 @@ export default function Navbar() {
                         <span className="text-xs font-semibold text-teal-600 dark:text-teal-400">
                           ${parseFloat(balance?.available || 0).toFixed(2)}
                         </span>
-                      </a>
+                      </Link>
                     </div>
                   )}
                   
                   {!currentUser && (
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <a
+                      <Link
                         href="/login"
                         className="block bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
                         Sign in
-                      </a>
+                      </Link>
                     </div>
                   )}
                 </div>

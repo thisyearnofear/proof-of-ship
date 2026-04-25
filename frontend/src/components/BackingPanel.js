@@ -34,11 +34,14 @@ export default function BackingPanel({ projectId, developerAddress }) {
     if (account) {
       loadUserBalance();
     }
+  }, [account]);
+
+  useEffect(() => {
     if (projectId && coreContract) {
       loadProjectBacking();
       loadMaxMultiplier();
     }
-  }, [account, projectId, coreContract]);
+  }, [projectId, coreContract, loadProjectBacking, loadMaxMultiplier]);
 
   const loadUserBalance = async () => {
     try {
@@ -132,7 +135,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
       </div>
 
       <p className="text-sm text-gray-600 mb-6">
-        Boost this builder's credit limit and earn rewards. Your stake is repaid with interest when the builder wins prizes.
+        Boost this builder&apos;s credit limit and earn rewards. Your stake is repaid with interest when the builder wins prizes.
       </p>
 
       <div className="mb-6">
@@ -163,7 +166,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
         </div>
         {maxAllowedMultiplier < 300 && (
           <p className="mt-2 text-xs text-amber-600">
-            Higher multipliers are restricted based on this builder's current reputation.
+            Higher multipliers are restricted based on this builder&apos;s current reputation.
           </p>
         )}
       </div>

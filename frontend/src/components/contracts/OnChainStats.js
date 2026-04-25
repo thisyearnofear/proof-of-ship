@@ -16,6 +16,9 @@ export default function OnChainStats({ contract, prs, releases }) {
     contract?.network || "mainnet"
   );
 
+  // Hook must be called at the top level, before any early returns
+  const [activeTab, setActiveTab] = useState("overview");
+
   if (!contract?.address) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
@@ -53,8 +56,6 @@ export default function OnChainStats({ contract, prs, releases }) {
       </div>
     );
   }
-
-  const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">

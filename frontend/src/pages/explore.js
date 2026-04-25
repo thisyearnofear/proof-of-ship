@@ -74,21 +74,7 @@ function ProjectsTab() {
   const [sectors, setSectors] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const { ecosystem: ecoQ, chains: chainsQ, sectors: sectorsQ } = router.query || {};
-    if (ecoQ && (ecoQ === "all" || ecoQ in ECOSYSTEM_CONFIGS)) setEcosystem(String(ecoQ));
-    if (chainsQ) setChains(String(chainsQ).split(",").filter(Boolean));
-    if (sectorsQ) setSectors(String(sectorsQ).split(",").filter(Boolean));
-  }, [router.query]);
-
-  useEffect(() => {
-    const q = { ...(router.query.tab ? { tab: router.query.tab } : {}) };
-    if (ecosystem !== "all") q.ecosystem = ecosystem;
-    if (chains.length > 0) q.chains = chains.join(",");
-    if (sectors.length > 0) q.sectors = sectors.join(",");
-    router.replace({ pathname: router.pathname, query: q }, undefined, { shallow: true });
-  }, [ecosystem, chains, sectors]);
-
+  // Hooks must come before early returns
   const filteredData = useMemo(() => {
     const result = {};
     if (!projectData) return result;
@@ -106,6 +92,10 @@ function ProjectsTab() {
     return result;
   }, [projectData, ecosystem, chains, sectors, searchQuery]);
 
+  const totalProjects = useMemo(() => {
+    return Object.values(filteredData).reduce((sum, list) => sum + list.length, 0);
+  }, [filteredData]);
+
   const chainOptions = useMemo(() => {
     const shortNames = { 44787: "Celo", 59141: "Linea", 84532: "Base", 421614: "Arbitrum", 11155111: "Ethereum", 11155420: "Optimism", 5042002: "Arc" };
     return Object.values(NETWORK_CONFIGS).map((c) => ({ id: String(c.chainId), name: shortNames[c.chainId] || c.name }));
@@ -117,6 +107,22 @@ function ProjectsTab() {
     { id: "nft", name: "🖼️ NFT" }, { id: "dao", name: "🗳️ DAO" }, { id: "marketplace", name: "🛍️ Market" }, { id: "bridge", name: "🌉 Bridge" },
   ];
 
+  // Effects after hooks
+  useEffect(() => {
+    const { ecosystem: ecoQ, chains: chainsQ, sectors: sectorsQ } = router.query || {};
+    if (ecoQ && (ecoQ === "all" || ecoQ in ECOSYSTEM_CONFIGS)) setEcosystem(String(ecoQ));
+    if (chainsQ) setChains(String(chainsQ).split(",").filter(Boolean));
+    if (sectorsQ) setSectors(String(sectorsQ).split(",").filter(Boolean));
+  }, [router.query]);
+
+  useEffect(() => {
+    const q = { ...(router.query.tab ? { tab: router.query.tab } : {}) };
+    if (ecosystem !== "all") q.ecosystem = ecosystem;
+    if (chains.length > 0) q.chains = chains.join(",");
+    if (sectors.length > 0) q.sectors = sectors.join(",");
+    router.replace({ pathname: router.pathname, query: q }, undefined, { shallow: true });
+  }, [ecosystem, chains, sectors]);
+
   if (Object.keys(errors).length > 0) {
     return (
       <Card className="p-8 text-center">
@@ -124,10 +130,6 @@ function ProjectsTab() {
       </Card>
     );
   }
-
-  const totalProjects = useMemo(() => {
-    return Object.values(filteredData).reduce((sum, list) => sum + list.length, 0);
-  }, [filteredData]);
 
   return (
     <>

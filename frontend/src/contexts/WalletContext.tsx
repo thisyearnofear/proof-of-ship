@@ -690,13 +690,51 @@ export const useBuilderCredit = () => {
         return [];
       }
     },
-    backProject: async (projectId: string, multiplier: number, amount: string | number): Promise<void> => {
+    backProject: async (projectId: string, multiplier: number, amount: string | number): Promise<string> => {
       const { creditService } = await import('@/services/creditService');
+      
+      // Input validation
+      if (!projectId || typeof projectId !== 'string') {
+        throw new Error('Invalid project ID');
+      }
+      if (typeof multiplier !== 'number' || multiplier < 100 || multiplier > 500) {
+        throw new Error('Invalid multiplier: must be between 100 (1x) and 500 (5x)');
+      }
+      const parsedAmount = parseFloat(amount.toString());
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error('Invalid amount: must be a positive number');
+      }
+      if (parsedAmount < 1) {
+        throw new Error('Minimum backing amount is 1 USDC');
+      }
+      
       if (!wallet.chainId || !wallet.signer) throw new Error('Not connected');
       if (typeof wallet.chainId !== 'number') throw new Error('Invalid chain ID');
       const contracts = creditService.getContracts(wallet.chainId, wallet.signer);
       if (!contracts) throw new Error('Contracts not available');
-      await contracts.core.backProject(projectId, multiplier, { value: ethers.utils.parseUnits(amount.toString(), 6) } as any);
+      
+      // Parse amount in USDC decimals (6)
+      const amountInUnits = ethers.utils.parseUnits(parsedAmount.toString(), 6);
+      const signerAddress = await wallet.signer.getAddress();
+      
+      // Check USDC balance
+      const balance = await contracts.usdc.balanceOf(signerAddress);
+      if (balance.lt(amountInUnits)) {
+        throw new Error(`Insufficient USDC balance. Need: ${parsedAmount}, Available: ${ethers.utils.formatUnits(balance, 6)}`);
+      }
+      
+      // Check and set USDC allowance if needed
+      const currentAllowance = await contracts.usdc.allowance(signerAddress, contracts.core.address);
+      if (currentAllowance.lt(amountInUnits)) {
+        const approveTx = await contracts.usdc.approve(contracts.core.address, ethers.constants.MaxUint256);
+        await approveTx.wait();
+      }
+      
+      // Call backProject with amount as uint256 (not value field - this is ERC20 transfer, not ETH)
+      const tx = await contracts.core.backProject(projectId, multiplier, amountInUnits);
+      await tx.wait();
+      
+      return tx.hash;
     },
     contractLoading: wallet.loading,
     // usdcBalance is async - consumers should call getUSDCBalanceAsync()

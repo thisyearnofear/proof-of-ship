@@ -122,7 +122,7 @@ export default function AIChatWidget() {
       } else {
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: data.error || "Sorry, I couldn't process that. Try again!" },
+          { role: "assistant", content: data.error || "Sorry, I couldn&apos;t process that. Try again!" },
         ]);
       }
     } catch {
@@ -303,7 +303,7 @@ export default function AIChatWidget() {
 
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">How it works:</span> Payments are settled on Circle's Arc L2 with zero gas fees. Each AI message costs less than a penny!
+                    <span className="font-medium">How it works:</span> Payments are settled on Circle&apos;s Arc L2 with zero gas fees. Each AI message costs less than a penny!
                   </p>
                 </div>
 

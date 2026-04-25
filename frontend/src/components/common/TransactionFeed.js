@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { useNanopayment } from "@/contexts/WalletContext";
 
 const AGENT_LABELS = {
@@ -28,9 +29,9 @@ export default function TransactionFeed({ maxItems = 8, compact = false }) {
         <div className="text-center py-6">
           <p className="text-xs text-gray-400 dark:text-gray-500">
             No transactions yet. Try an AI agent on the{" "}
-            <a href="/back" className="text-teal-600 hover:underline">
+            <Link href="/back" className="text-teal-600 hover:underline">
               Back
-            </a>{" "}
+            </Link>{" "}
             page to see payments here.
           </p>
         </div>
@@ -92,12 +93,12 @@ export default function TransactionFeed({ maxItems = 8, compact = false }) {
         })}
       </div>
       {transactions.length > maxItems && (
-        <a
+        <Link
           href="/back"
           className="block text-center text-xs text-teal-600 hover:underline mt-3 pt-2 border-t border-gray-100 dark:border-gray-700"
         >
           View all {transactions.length} transactions →
-        </a>
+        </Link>
       )}
     </div>
   );

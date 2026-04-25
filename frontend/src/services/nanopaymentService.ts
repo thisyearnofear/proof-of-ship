@@ -13,7 +13,7 @@
 import { GatewayClient } from "@circle-fin/x402-batching/client";
 
 interface NanopaymentConfig {
-  chain: "arc" | "arcTestnet";
+  chain: string;
   privateKey: `0x${string}`;
   gatewayWalletAddress?: string;
 }
@@ -46,7 +46,8 @@ class NanopaymentService {
     if (!this.client) {
       throw new Error("NanopaymentClient not initialized");
     }
-    return this.client.getBalance();
+    const balance = await this.client.getBalance();
+    return { available: balance.available, locked: balance.locked || '0' };
   }
 
   async deposit(amountUSDC: number): Promise<{ txHash: string }> {
@@ -54,7 +55,8 @@ class NanopaymentService {
       throw new Error("NanopaymentClient not initialized");
     }
     const amountWei = (BigInt(amountUSDC) * BigInt(1e6)).toString();
-    return this.client.deposit(amountWei);
+    const result = await this.client.deposit(amountWei);
+    return { txHash: result.txHash || result.hash || '' };
   }
 
   async withdraw(amountUSDC: number): Promise<{ txHash: string }> {
@@ -62,7 +64,8 @@ class NanopaymentService {
       throw new Error("NanopaymentClient not initialized");
     }
     const amountWei = (BigInt(amountUSDC) * BigInt(1e6)).toString();
-    return this.client.withdraw(amountWei);
+    const result = await this.client.withdraw(amountWei);
+    return { txHash: result.txHash || result.hash || '' };
   }
 
   async pay(url: string, fallbackHeaders?: Record<string, string>): Promise<PaymentResult> {

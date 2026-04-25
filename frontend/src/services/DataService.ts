@@ -25,8 +25,8 @@ async function getStaticRepos() {
   if (!staticRepos) {
     try {
       // From src/services/ -> project root's data/ directory
-      const module = await import('../../../data/repos.json');
-      staticRepos = module.default || module;
+      const reposModule = await import('../../../data/repos.json');
+      staticRepos = reposModule.default || reposModule;
     } catch {
       staticRepos = [];
     }
@@ -211,7 +211,7 @@ class DataService {
   }
 
   cancelAllRequests(): void {
-    for (const controller of this.abortControllers.values()) {
+    for (const controller of Array.from(this.abortControllers.values())) {
       controller.abort();
     }
     this.abortControllers.clear();
@@ -481,7 +481,16 @@ class DataService {
         const snap = await getDoc(ref);
         if (!snap.exists()) return null;
 
-        const projectData: Project = { id: snap.id, ...snap.data(), ecosystem };
+        const snapData = snap.data();
+        const projectData: Project = { 
+          id: snap.id, 
+          slug: snapData.slug || slug,
+          name: snapData.name || '',
+          owner: snapData.owner || '',
+          repo: snapData.repo || '',
+          ecosystem, 
+          ...snapData 
+        };
         if (projectData.owner && projectData.repo) {
           const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
           projectData.githubData = githubData;
@@ -499,7 +508,16 @@ class DataService {
       const dynamicRef = doc(db, 'projects_celo', slug);
       const dynamicSnap = await getDoc(dynamicRef);
       if (dynamicSnap.exists()) {
-        const projectData: Project = { id: dynamicSnap.id, ...dynamicSnap.data(), ecosystem: 'celo' };
+        const snapData = dynamicSnap.data();
+        const projectData: Project = { 
+          id: dynamicSnap.id, 
+          slug: snapData.slug || slug,
+          name: snapData.name || '',
+          owner: snapData.owner || '',
+          repo: snapData.repo || '',
+          ecosystem: 'celo', 
+          ...snapData 
+        };
         if (projectData.owner && projectData.repo) {
           const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
           projectData.githubData = githubData;
@@ -555,7 +573,14 @@ class DataService {
   // Project Submission
   // --------------------------------------------------------------------------
 
-  async submitProject(projectData: any): Promise<{ success: boolean; projectSlug?: string; error?: string }> {
+  async submitProject(inputData: {
+    name: string;
+    description: string;
+    githubUrl: string;
+    ecosystem: string;
+    category?: string;
+    [key: string]: any;
+  }): Promise<{ success: boolean; projectSlug?: string; error?: string }> {
     const { auth: firebaseAuth } = await import('@/lib/firebase/clientApp');
     const user = firebaseAuth.currentUser;
     
@@ -565,23 +590,23 @@ class DataService {
 
     try {
       const requiredFields = ['name', 'description', 'githubUrl', 'ecosystem', 'category'];
-      const missingFields = requiredFields.filter(field => !projectData[field]);
+      const missingFields = requiredFields.filter(field => !inputData[field]);
       
       if (missingFields.length > 0) {
         return { success: false, error: `Missing required fields: ${missingFields.join(', ')}` };
       }
 
-      if (!projectData.githubUrl.includes('github.com')) {
+      if (!inputData.githubUrl.includes('github.com')) {
         return { success: false, error: 'Invalid GitHub URL' };
       }
 
-      const slug = this.generateSlug(projectData.name);
+      const slug = this.generateSlug(inputData.name);
       const existingProject = await getDoc(doc(db, 'projects', slug));
       if (existingProject.exists()) {
         return { success: false, error: 'Project with this name already exists' };
       }
 
-      const githubMatch = projectData.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+      const githubMatch = inputData.githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
       if (!githubMatch) {
         return { success: false, error: 'Could not parse GitHub URL' };
       }
@@ -589,25 +614,25 @@ class DataService {
       const [, owner, repo] = githubMatch;
       const now = new Date().toISOString();
 
-      const projectDoc = {
+      const projectDoc: Project = {
         slug,
-        name: projectData.name,
-        description: projectData.description,
+        name: inputData.name,
+        description: inputData.description,
         owner,
         repo: repo.replace('.git', ''),
-        ecosystem: projectData.ecosystem,
-        category: projectData.category,
-        contractAddress: projectData.contractAddress || null,
-        deploymentTxHash: projectData.deploymentTxHash || null,
-        website: projectData.website || null,
-        twitter: projectData.twitter || null,
-        discord: projectData.discord || null,
-        teamMembers: Array.isArray(projectData.teamMembers) ? projectData.teamMembers.filter(Boolean) : [],
-        hackathons: Array.isArray(projectData.hackathons) ? projectData.hackathons : [],
-        isOpenSource: Boolean(projectData.isOpenSource),
-        lookingForFunding: Boolean(projectData.lookingForFunding),
-        fundingAmount: projectData.fundingAmount || null,
-        milestones: Array.isArray(projectData.milestones) ? projectData.milestones.filter(Boolean) : [],
+        ecosystem: inputData.ecosystem,
+        category: inputData.category || '',
+        contractAddress: inputData.contractAddress || null,
+        deploymentTxHash: inputData.deploymentTxHash || null,
+        website: inputData.website || null,
+        twitter: inputData.twitter || null,
+        discord: inputData.discord || null,
+        teamMembers: Array.isArray(inputData.teamMembers) ? inputData.teamMembers.filter(Boolean) : [],
+        hackathons: Array.isArray(inputData.hackathons) ? inputData.hackathons : [],
+        isOpenSource: Boolean(inputData.isOpenSource),
+        lookingForFunding: Boolean(inputData.lookingForFunding),
+        fundingAmount: inputData.fundingAmount || null,
+        milestones: Array.isArray(inputData.milestones) ? inputData.milestones.filter(Boolean) : [],
         submittedBy: user.uid,
         owners: [user.uid],
         submittedAt: now,
@@ -616,11 +641,11 @@ class DataService {
         updatedAt: now,
         verified: false,
         featured: false,
-        stats: { views: 0, stars: 0, forks: 0, commits: 0, issues: 0, pulls: 0 },
+        stats: { commits: 0, issues: 0, pulls: 0, stars: 0, forks: 0, watchers: 0, lastCommit: null, languages: [], isActive: false, healthScore: 0 },
       };
 
-      await setDoc(doc(db, 'projects', slug), projectDoc);
-      await setDoc(doc(db, `projects_${projectData.ecosystem}`, slug), projectDoc);
+      await setDoc(doc(db, 'projects', slug), projectDoc as any);
+      await setDoc(doc(db, `projects_${inputData.ecosystem}`, slug), projectDoc as any);
 
       await addDoc(collection(db, 'admin_queue'), {
         type: 'project_submission',
@@ -682,6 +707,9 @@ class DataService {
   clearAllCaches(): void {
     this.cache.clear();
     this.projectCache.clear();
+    for (const controller of Array.from(this.abortControllers.values())) {
+      controller.abort();
+    }
     this.abortControllers.clear();
     this.requestQueue.clear();
   }

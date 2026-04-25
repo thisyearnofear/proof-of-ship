@@ -21,11 +21,11 @@ interface Contracts {
 }
 
 class CreditService {
-    getContracts(chainId: number, signerOrProvider: Signer | providers.Provider): Contracts | null {
+    getContracts(chainId: number | undefined, signerOrProvider: Signer | providers.Provider): Contracts | null {
         if (!chainId || !signerOrProvider) return null;
-        const coreAddress = BUILDER_CREDIT_CORE_ADDRESSES[chainId];
-        const usdcAddress = TESTNET_USDC_ADDRESSES[chainId];
-        const registryAddress = HACKATHON_REGISTRY_ADDRESSES[chainId];
+        const coreAddress = (BUILDER_CREDIT_CORE_ADDRESSES as Record<number, string>)[chainId];
+        const usdcAddress = (TESTNET_USDC_ADDRESSES as Record<number, string>)[chainId];
+        const registryAddress = (HACKATHON_REGISTRY_ADDRESSES as Record<number, string>)[chainId];
         if (!coreAddress || !usdcAddress || !registryAddress) {
             throw new Error(`Platform not supported on network ${chainId}`);
         }

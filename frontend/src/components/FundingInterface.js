@@ -83,30 +83,25 @@ export default function FundingInterface({
     }
   }, [account]);
 
-  const calculateFundingAmount = async (score) => {
-    try {
-      // Try to get the amount from the contract
-      const result = await contractCalculateFunding(score);
-      setFundingAmount(result ? result.amount : 0);
-    } catch (err) {
-      console.error('Failed to calculate funding from contract:', err);
+  const calculateFundingAmount = (score) => {
+    // Calculate funding amount based on credit score
+    // Formula: linear interpolation between 400 (min score) and 800 (max score)
+    let amount = 0;
+    if (score < 400) {
+      amount = 0; // Not eligible
+    } else if (score >= 800) {
+      amount = 5000; // Maximum funding
+    } else {
+      // Linear interpolation: score 400 = $500, score 800 = $5000
+      const minFunding = 500;
+      const maxFunding = 5000;
+      const scoreRange = 800 - 400;
+      const adjustedScore = score - 400;
       
-      // Fallback calculation if contract call fails
-      let amount = 0;
-      if (score < 400) amount = 0;
-      else if (score >= 800) amount = 5000;
-      else {
-        const minFunding = 500;
-        const maxFunding = 5000;
-        const range = maxFunding - minFunding;
-        const scoreRange = 800 - 400;
-        const adjustedScore = score - 400;
-        
-        amount = Math.floor(minFunding + (range * adjustedScore) / scoreRange);
-      }
-      
-      setFundingAmount(amount);
+      amount = Math.floor(minFunding + ((maxFunding - minFunding) * adjustedScore) / scoreRange);
     }
+    
+    setFundingAmount(amount);
   };
 
   const loadFundingHistory = async () => {

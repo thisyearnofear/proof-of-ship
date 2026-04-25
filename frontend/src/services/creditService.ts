@@ -20,6 +20,21 @@ interface Contracts {
     registry: ethers.Contract;
 }
 
+interface ProjectBackingData {
+    totalBacking: string;
+    backerCount: number;
+    maxMultiplier: number;
+    creditScore: number;
+}
+
+interface ProjectDetails {
+    isActive: boolean;
+    creditScore: number;
+    fundingAmount: string;
+    milestonesCompleted: number;
+    milestonesCount: number;
+}
+
 class CreditService {
     getContracts(chainId: number | undefined, signerOrProvider: Signer | providers.Provider): Contracts | null {
         if (!chainId || !signerOrProvider) return null;
@@ -59,6 +74,84 @@ class CreditService {
         }
         const tx = await core.repayLoan(amountUnits);
         return await tx.wait();
+    }
+
+    async getProjectBackingData(chainId: number, signer: Signer, projectId: string | number): Promise<ProjectBackingData> {
+        const contracts = this.getContracts(chainId, signer);
+        if (!contracts) throw new Error("Contracts not found");
+        
+        const projectIdNum = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+        
+        try {
+            // Get total backing from contract
+            const totalBacking = await contracts.core.totalProjectBacking(projectIdNum);
+            
+            // Get project details for credit score and max multiplier
+            const project = await contracts.core.projects(projectIdNum);
+            const creditScore = project.creditScore?.toNumber() || 400;
+            
+            // Get max allowed multiplier based on credit score
+            const maxMultiplier = this.calculateMaxMultiplier(creditScore);
+            
+            // Get backing count from projectBackings array
+            const backerCount = await this.getBackerCount(chainId, signer, projectIdNum);
+            
+            return {
+                totalBacking: ethers.utils.formatUnits(totalBacking || 0, 6),
+                backerCount,
+                maxMultiplier,
+                creditScore
+            };
+        } catch (err) {
+            console.warn('Failed to load project backing data:', err);
+            return {
+                totalBacking: '0',
+                backerCount: 0,
+                maxMultiplier: 300,
+                creditScore: 400
+            };
+        }
+    }
+
+    async getBackerCount(chainId: number, signer: Signer, projectId: number): Promise<number> {
+        // Note: Contract doesn't expose backer count directly.
+        // This would require either: 
+        // 1. A getProjectBackerCount() view function on the contract
+        // 2. Indexing ProjectBacked events from blockchain
+        // For now, return 0 and display based on total backing if needed
+        return 0;
+    }
+
+    calculateMaxMultiplier(creditScore: number): number {
+        if (creditScore >= 800) return 150; // 1.5x
+        if (creditScore >= 700) return 200; // 2.0x
+        if (creditScore >= 600) return 250; // 2.5x
+        return 300; // 3.0x
+    }
+
+    async getProjectDetails(chainId: number, signer: Signer, projectId: string | number): Promise<ProjectDetails | null> {
+        const contracts = this.getContracts(chainId, signer);
+        if (!contracts) return null;
+        
+        try {
+            const projectIdNum = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+            const project = await contracts.core.projects(projectIdNum);
+            
+            if (!project.developer || project.developer === '0x0000000000000000000000000000000000000000') {
+                return null;
+            }
+            
+            return {
+                isActive: project.isActive,
+                creditScore: project.creditScore?.toNumber() || 400,
+                fundingAmount: ethers.utils.formatUnits(project.fundingAmount || 0, 6),
+                milestonesCompleted: project.milestonesCompleted?.toNumber() || 0,
+                milestonesCount: project.milestonesCount?.toNumber() || 0
+            };
+        } catch (err) {
+            console.warn('Failed to load project details:', err);
+            return null;
+        }
     }
 }
 export const creditService = new CreditService();

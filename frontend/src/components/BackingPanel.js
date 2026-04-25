@@ -11,20 +11,23 @@ import { LoadingSpinner } from './common/LoadingStates';
 import {
   BanknotesIcon,
   RocketLaunchIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  UsersIcon
 } from '@heroicons/react/24/outline';
 
 export default function BackingPanel({ projectId, developerAddress }) {
-  const { account } = useWallet();
+  const wallet = useWallet();
   const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
 
   const [amount, setAmount] = useState('');
   const [multiplier, setMultiplier] = useState(200); // Default 2x (200)
   const [loading, setLoading] = useState(false);
+  const [backingLoading, setBackingLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [userBalance, setUserBalance] = useState('0');
   const [totalBacking, setTotalBacking] = useState('0');
+  const [backerCount, setBackerCount] = useState(0);
   const [maxAllowedMultiplier, setMaxAllowedMultiplier] = useState(300);
 
   const loadUserBalance = async () => {
@@ -38,22 +41,65 @@ export default function BackingPanel({ projectId, developerAddress }) {
   };
 
   useEffect(() => {
-    if (account) {
+    if (wallet.account) {
       loadUserBalance();
     }
-  }, [account, getUSDCBalanceAsync]);
+  }, [wallet.account, getUSDCBalanceAsync]);
 
-  // Load project backing info when projectId changes
+  // Load project backing data from contracts with proper cleanup
   useEffect(() => {
-    if (projectId && account) {
-      // For now, just show a placeholder until we have proper project data loading
-      // TODO: Load actual backing from contract or props
-      setTotalBacking('0');
+    if (!projectId || !wallet.account || typeof wallet.chainId !== 'number' || !wallet.signer) {
+      return;
     }
-  }, [projectId, account]);
+
+    let cancelled = false;
+    setBackingLoading(true);
+
+    async function loadProjectData() {
+      try {
+        const { creditService } = await import('@/services/creditService');
+        const backingData = await creditService.getProjectBackingData(
+          wallet.chainId,
+          wallet.signer,
+          projectId
+        );
+
+        if (cancelled) return;
+
+        setTotalBacking(backingData.totalBacking);
+        setMaxAllowedMultiplier(backingData.maxMultiplier);
+        setBackerCount(backingData.backerCount);
+
+        // Update multiplier if currently selected exceeds new max
+        setMultiplier(prev => {
+          if (backingData.maxMultiplier && backingData.maxMultiplier < prev) {
+            return backingData.maxMultiplier;
+          }
+          return prev;
+        });
+      } catch (err) {
+        console.warn('Failed to load project backing data:', err);
+        if (!cancelled) {
+          // Set defaults on error
+          setTotalBacking('0');
+          setMaxAllowedMultiplier(300);
+          setBackerCount(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setBackingLoading(false);
+        }
+      }
+    }
+
+    loadProjectData();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => { cancelled = true; };
+  }, [projectId, wallet.account, wallet.chainId, wallet.signer]);
 
   const handleBackProject = async () => {
-    if (!account) {
+    if (!wallet.account) {
       setError("Please connect your wallet");
       return;
     }
@@ -79,8 +125,8 @@ export default function BackingPanel({ projectId, developerAddress }) {
       setSuccess(`Successfully backed project! Transaction: ${txHash.slice(0, 10)}...`);
       setAmount('');
       loadUserBalance();
-      // Reload project data
-      setTotalBacking(prev => (parseFloat(prev) + parseFloat(amount)).toString());
+      // Reload project backing data after successful backing
+      loadProjectBackingData();
     } catch (err) {
       console.error("Backing failed:", err);
       setError(err.message || "Failed to back project");
@@ -198,21 +244,36 @@ export default function BackingPanel({ projectId, developerAddress }) {
       </Button>
 
       <div className="mt-6 pt-6 border-t border-gray-100">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center text-sm text-gray-500">
-            <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500" />
-            Market Confidence
+        {backingLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <LoadingSpinner size="sm" className="mr-2" />
+            <span className="text-sm text-gray-500">Loading market data...</span>
           </div>
-          <div className="text-sm font-bold text-gray-900">
-            ${parseFloat(totalBacking).toFixed(2)} USDC
-          </div>
-        </div>
-        <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
-          <div 
-            className="bg-indigo-500 h-2 rounded-full" 
-            style={{ width: `${Math.min(100, (parseFloat(totalBacking) / 5000) * 100)}%` }}
-          ></div>
-        </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center text-sm text-gray-500">
+                <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500" />
+                Market Confidence
+              </div>
+              <div className="text-sm font-bold text-gray-900">
+                ${parseFloat(totalBacking || 0).toFixed(2)} USDC
+              </div>
+            </div>
+            <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
+              <div 
+                className="bg-indigo-500 h-2 rounded-full transition-all duration-500" 
+                style={{ width: `${Math.min(100, (parseFloat(totalBacking || 0) / 5000) * 100)}%` }}
+              ></div>
+            </div>
+            {backerCount > 0 && (
+              <div className="mt-3 flex items-center text-xs text-gray-500">
+                <UsersIcon className="w-3 h-3 mr-1" />
+                {backerCount} backer{backerCount !== 1 ? 's' : ''} supporting this project
+              </div>
+            )}
+          </>
+        )}
       </div>
     </Card>
   );

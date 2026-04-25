@@ -13,7 +13,7 @@ import Button from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { StarIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { SparklesIcon } from '@heroicons/react/24/outline';
-import { useNanopayment } from '@/contexts/NanopaymentContext';
+import { useNanopayment } from '@/contexts/WalletContext';
 
 export default function SubmissionReview({
   submission,

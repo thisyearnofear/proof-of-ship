@@ -11,8 +11,8 @@ import {
   BoltIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
-import { useAuth } from "@/contexts/AuthContext";
-import { useNanopayment } from "@/contexts/NanopaymentContext";
+import { useUser } from "@/contexts/UserContext";
+import { useNanopayment } from "@/contexts/WalletContext";
 import { Fragment } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
@@ -53,7 +53,7 @@ function classNames(...classes) {
 export default function Navbar() {
   const router = useRouter();
   const pathname = router.asPath;
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout } = useUser();
   const { isInitialized: nanopayReady, balance } = useNanopayment();
 
   const githubUsername =

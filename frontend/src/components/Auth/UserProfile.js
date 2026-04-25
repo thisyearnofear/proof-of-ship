@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { db } from '@/lib/firebase/clientApp';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -7,7 +7,7 @@ import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 
 export default function UserProfile() {
-  const { currentUser, logout, userPermissions } = useAuth();
+  const { currentUser, logout, userPermissions } = useUser();
 
   const [githubUsername, setGithubUsername] = useState('');
   const [walletAddress, setWalletAddress] = useState('');

@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useLiFi } from '../contexts/LiFiContext';
-import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useFinancial } from '../contexts/FinancialContext';
+import { useWallet } from '../contexts/WalletContext';
 import { ethers } from 'ethers';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';
@@ -20,8 +20,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function TransferHistory() {
-  const { transferHistory, updateTransferStatus, availableChains, loading } = useLiFi();
-  const { account } = useMetaMask();
+  const { transferHistory, updateTransferStatus, availableChains, loading } = useFinancial();
+  const { address } = useWallet();
   const [expandedTransfer, setExpandedTransfer] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'pending', 'completed', 'failed'

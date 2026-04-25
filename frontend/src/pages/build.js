@@ -6,11 +6,11 @@ import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMetaMask } from "@/contexts/MetaMaskContext";
-import { useBuilderCredit } from "@/contexts/BuilderCreditContext";
-import { LiFiProvider } from "@/contexts/LiFiContext";
-import { CircleWalletProvider } from "@/contexts/CircleWalletContext";
-import { UserBehaviorProvider } from "@/contexts/UserBehaviorContext";
+import { useWallet } from "@/contexts/WalletContext";
+import { useBuilderCredit } from "@/contexts/WalletContext";
+import { FinancialProvider } from "@/contexts/FinancialContext";
+
+
 import FundingInterface from "@/components/FundingInterface";
 import DeveloperDashboard from "@/components/DeveloperDashboard";
 import CrossChainTransfer from "@/components/CrossChainTransfer";
@@ -30,7 +30,7 @@ import TabBar from "@/components/common/TabBar";
 import ScoreBar from "@/components/common/ScoreBar";
 
 export default function BuildPage() {
-  const { connected, connect, loading: metaMaskLoading } = useMetaMask();
+  const { connected, connect, loading: metaMaskLoading } = useWallet();
   const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = useBuilderCredit();
   const [activeTab, setActiveTab] = useState("credit");
   const [previewUsername, setPreviewUsername] = useState('');
@@ -159,9 +159,7 @@ export default function BuildPage() {
   ];
 
   return (
-    <LiFiProvider>
-    <CircleWalletProvider>
-    <UserBehaviorProvider>
+    <FinancialProvider>
     <>
       <Head><title>Build | Builder Credit</title></Head>
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -306,8 +304,6 @@ export default function BuildPage() {
         )}
       </div>
     </>
-    </UserBehaviorProvider>
-    </CircleWalletProvider>
-    </LiFiProvider>
+    </FinancialProvider>
   );
 }

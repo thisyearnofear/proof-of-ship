@@ -7,7 +7,7 @@ import React, { useState, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useActiveCampaigns } from '@/hooks/useActiveCampaigns';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
@@ -20,7 +20,7 @@ import {
 
 export default function CampaignsPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { campaigns, loading, error, refresh } = useActiveCampaigns();
 
   const [searchQuery, setSearchQuery] = useState('');

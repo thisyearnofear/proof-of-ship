@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -28,7 +28,7 @@ import {
 
 export default function HackathonDetailPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { id } = router.query;
   const [hackathon, setHackathon] = useState(null);
   const [loading, setLoading] = useState(true);

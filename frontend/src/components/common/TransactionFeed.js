@@ -1,5 +1,5 @@
 import React from "react";
-import { useNanopayment } from "@/contexts/NanopaymentContext";
+import { useNanopayment } from "@/contexts/WalletContext";
 
 const AGENT_LABELS = {
   underwrite: { icon: "🤖", name: "AI Underwriter", color: "text-blue-600" },

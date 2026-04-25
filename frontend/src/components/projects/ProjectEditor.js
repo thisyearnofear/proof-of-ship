@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
@@ -21,7 +21,7 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export default function ProjectEditor({ projectSlug }) {
-  const { currentUser, hasProjectPermission } = useAuth();
+  const { currentUser, hasProjectPermission } = useUser();
 
   const isEditMode = Boolean(projectSlug);
 

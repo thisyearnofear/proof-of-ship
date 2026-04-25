@@ -6,12 +6,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/clientApp';
-import { useAuth } from '@/contexts/AuthContext';
-import { useBuilderCredit } from '@/contexts/BuilderCreditContext';
+import { useUser } from '@/contexts/UserContext';
+import { useBuilderCredit } from '@/contexts/WalletContext';
 import { realGitHubService } from '@/services/RealGitHubService';
 
 export function useWarRoomData() {
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { hackathonRegistryContract, coreContract, account } = useBuilderCredit();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

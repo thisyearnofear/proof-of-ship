@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { crossChainUSDCService } from '../lib/lifiIntegration';
 import { usdcPaymentService } from '../lib/usdcPayments';
-import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useWallet } from '../contexts/WalletContext';
 import { useCircleWallet } from '../contexts/CircleWalletContext';
 import Button from './common/Button';
 import { Card } from './common/Card';

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNanopayment } from '@/contexts/NanopaymentContext';
+import { useUser } from '@/contexts/UserContext';
+import { useNanopayment } from '@/contexts/WalletContext';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
 
 export default function ProfilePage() {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, loading } = useUser();
   const { isInitialized, balance, transactions } = useNanopayment();
   const router = useRouter();
   const [myProjects, setMyProjects] = useState([]);

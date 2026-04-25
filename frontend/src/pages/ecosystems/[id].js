@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useEnhancedGithub } from '@/providers/Github/EnhancedGithubProvider';
-import { useReputation } from '@/contexts/ReputationContext';
+import { useUser } from '@/contexts/UserContext';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
@@ -29,7 +29,7 @@ export default function EcosystemPage() {
   const router = useRouter();
   const { id } = router.query;
   const { projectData, loading } = useEnhancedGithub();
-  const { userProfile } = useReputation();
+  const { userProfile } = useUser();
 
   const [viewMode, setViewMode] = useState('grid');
   const [filters, setFilters] = useState({

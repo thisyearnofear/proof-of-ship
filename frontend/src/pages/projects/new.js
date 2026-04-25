@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 import { Card } from "@/components/common/Card";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ProjectEditor from "@/components/projects/ProjectEditor";
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const { currentUser, loading } = useAuth();
+  const { currentUser, loading } = useUser();
 
   useEffect(() => {
     if (!loading && !currentUser) {

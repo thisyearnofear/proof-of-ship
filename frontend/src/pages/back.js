@@ -6,10 +6,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { ethers } from "ethers";
-import { useMetaMask } from "@/contexts/MetaMaskContext";
-import { useBuilderCredit } from "@/contexts/BuilderCreditContext";
+import { useWallet } from "@/contexts/WalletContext";
+import { useBuilderCredit } from "@/contexts/WalletContext";
 import { useExpeditionData } from "@/hooks/useExpeditionData";
-import { useNanopayment } from "@/contexts/NanopaymentContext";
+import { useNanopayment } from "@/contexts/WalletContext";
 import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
 import ExpeditionCard from "@/components/expedition/ExpeditionCard";
 import { Card } from "@/components/common/Card";
@@ -67,7 +67,7 @@ export default function BackPage() {
 /* ── Discover Tab (Expedition) ── */
 function DiscoverTab() {
   const { projects, loading, error, refresh } = useExpeditionData();
-  const { connected, connect } = useMetaMask();
+  const { connected, connect } = useWallet();
   const { backProject, contractLoading } = useBuilderCredit();
   const { payForScout, agentPrices, loading: nanopaymentLoading } = useNanopayment();
   const [searchQuery, setSearchQuery] = useState("");
@@ -288,7 +288,7 @@ function DiscoverTab() {
 
 /* ── Portfolio Tab ── */
 function PortfolioTab() {
-  const { account } = useMetaMask();
+  const { address } = useWallet();
   const { coreContract, getBackerProjects } = useBuilderCredit();
   const [loading, setLoading] = useState(true);
   const [backedDetails, setBackedDetails] = useState([]);
@@ -296,10 +296,10 @@ function PortfolioTab() {
 
   useEffect(() => {
     async function load() {
-      if (!coreContract || !account) { setLoading(false); return; }
+      if (!coreContract || !address) { setLoading(false); return; }
       try {
         setLoading(true);
-        const projectIds = await getBackerProjects(account);
+        const projectIds = await getBackerProjects(address);
         const details = [];
         const roiHistory = [];
         for (const id of projectIds) {
@@ -317,7 +317,7 @@ function PortfolioTab() {
             } catch (e) { /* end of array */ }
 
             const myBacking = backings.find(
-              (b) => b.backer.toLowerCase() === account.toLowerCase()
+              (b) => b.backer.toLowerCase() === address?.toLowerCase()
             );
             const stakeAmount = myBacking
               ? parseFloat(ethers.utils.formatUnits(myBacking.amount, 6))

@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import useCampaigns from '@/hooks/useCampaigns';
 import useCampaignSubmissions from '@/hooks/useCampaignSubmissions';
 import { Card } from '@/components/common/Card';
@@ -24,7 +24,7 @@ import {
 
 export default function AdminSubmissionsPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { getCampaigns } = useCampaigns();
   const { getSubmissionsByCampaign, approveSubmission, loading } = useCampaignSubmissions();
 

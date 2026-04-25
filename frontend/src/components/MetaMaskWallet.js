@@ -1,9 +1,9 @@
 import React from 'react';
-import { useMetaMask } from '../contexts/MetaMaskContext';
+import { useWallet } from '../contexts/WalletContext';
 
 const MetaMaskWallet = () => {
   const {
-    connected,
+    isConnected,
     connecting,
     account,
     chainId,

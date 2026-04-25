@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
-import { useReputation } from "@/contexts/ReputationContext";
+import { useUser } from "@/contexts/UserContext";
 import HybridDashboard from "@/components/dashboard/HybridDashboard";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -67,7 +67,7 @@ export default function ExplorePage() {
 function ProjectsTab() {
   const router = useRouter();
   const { projectData, loading, errors } = useEnhancedGithub();
-  const { userProfile } = useReputation();
+  const { userProfile } = useUser();
 
   const [ecosystem, setEcosystem] = useState("all");
   const [chains, setChains] = useState([]);

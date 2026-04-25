@@ -11,7 +11,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import useCampaigns from '@/hooks/useCampaigns';
 import useCampaignSubmissions from '@/hooks/useCampaignSubmissions';
 import { Card } from '@/components/common/Card';
@@ -30,7 +30,7 @@ import {
 export default function CampaignDetailPage() {
   const router = useRouter();
   const { id: campaignId } = router.query;
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { getCampaign, loading: campaignLoading, error: campaignError } = useCampaigns();
   const { getSubmissionsByCampaign, createSubmission, loading: submissionLoading } = useCampaignSubmissions();
 

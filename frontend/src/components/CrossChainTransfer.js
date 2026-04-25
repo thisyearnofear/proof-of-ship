@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useMetaMask } from "../contexts/MetaMaskContext";
-import { useLiFi } from "../contexts/LiFiContext";
+import { useWallet } from "../contexts/WalletContext";
+import { useFinancial } from "../contexts/FinancialContext";
 import { ethers } from "ethers";
 import { Card } from "./common/Card";
 import Button from "./common/Button";
@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function CrossChainTransfer() {
-  const { account, chainId, provider, switchNetwork } = useMetaMask();
+  const { address: account, chainId, provider, switchNetwork } = useWallet();
   const {
     availableChains,
     availableTokens,
@@ -32,7 +32,7 @@ export default function CrossChainTransfer() {
     getQuote,
     executeTransfer,
     transferHistory,
-  } = useLiFi();
+  } = useFinancial();
 
   const [fromChain, setFromChain] = useState(null);
   const [toChain, setToChain] = useState(null);

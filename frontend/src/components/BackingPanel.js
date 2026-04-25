@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { useMetaMask } from '../contexts/MetaMaskContext';
-import { useBuilderCredit } from '../contexts/BuilderCreditContext';
+import { useWallet } from '../contexts/WalletContext';
+import { useBuilderCredit } from '../contexts/WalletContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';

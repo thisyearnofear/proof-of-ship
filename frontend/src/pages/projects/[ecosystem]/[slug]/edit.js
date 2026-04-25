@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ProjectEditor from "@/components/projects";
 
 export default function EditProjectPage() {
-  const { currentUser, loading, hasProjectPermission } = useAuth();
+  const { currentUser, loading, hasProjectPermission } = useUser();
   const router = useRouter();
   const { ecosystem, slug } = router.query;
 

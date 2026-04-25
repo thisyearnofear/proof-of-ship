@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "@/contexts/AuthContext";
-import { useMetaMask } from "@/contexts/MetaMaskContext";
+import { useUser } from "@/contexts/UserContext";
+import { useWallet } from "@/contexts/WalletContext";
 import Head from "next/head";
 
 export default function LoginPage() {
-  const { currentUser, signInWithGithub, linkWallet, loading: authLoading } = useAuth();
-  const { connected, account, connect, connecting, provider } = useMetaMask();
+  const { currentUser, signInWithGithub, linkWallet, loading: authLoading } = useUser();
+  const { connected, address: account, connect: connectWallet, connecting, provider } = useWallet();
   
   const router = useRouter();
   const { redirect } = router.query;

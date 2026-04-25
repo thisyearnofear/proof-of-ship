@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import useCampaigns from '@/hooks/useCampaigns';
 import { CampaignForm } from '@/components/campaigns';
 import { Card } from '@/components/common/Card';
@@ -18,7 +18,7 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export default function CreateCampaignPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { createCampaign, loading, error } = useCampaigns();
   const [projects, setProjects] = useState([]);
   const [creating, setCreating] = useState(false);

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -29,7 +29,7 @@ import {
 export default function ProjectDetailPage() {
   const router = useRouter();
   const { ecosystem, slug } = router.query;
-  const { currentUser, hasProjectPermission } = useAuth();
+  const { currentUser, hasProjectPermission } = useUser();
   const { getProject, loadProjectDetails } = useEnhancedGithub();
 
   const [project, setProject] = useState(null);

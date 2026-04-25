@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useReputation } from "../contexts/ReputationContext";
-import { useMetaMask } from "../contexts/MetaMaskContext";
+import { useUser } from "../contexts/UserContext";
+import { useWallet } from "../contexts/WalletContext";
 
 import OnboardingFlow from "../components/onboarding/OnboardingFlow";
 import { Card } from "../components/common/Card";
@@ -17,7 +17,7 @@ import {
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { connected } = useMetaMask();
+  const { connected } = useWallet();
   const {
     isAuthenticated,
     onboardingComplete,
@@ -25,7 +25,7 @@ export default function SignUpPage() {
     creditData,
     loading,
     completeOnboarding,
-  } = useReputation();
+  } = useUser();
 
   const [showOnboarding, setShowOnboarding] = useState(false);
 

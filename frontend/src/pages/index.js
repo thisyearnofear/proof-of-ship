@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
@@ -22,7 +22,7 @@ import {
 
 export default function LandingPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState("developers");
   const [previewUsername, setPreviewUsername] = useState('');
   const [previewResult, setPreviewResult] = useState(null);

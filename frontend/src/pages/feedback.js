@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { Input, Textarea, Select } from "@/components/common/Input";
@@ -10,7 +10,7 @@ import { Input, Textarea, Select } from "@/components/common/Input";
 export default function FeedbackPage() {
   const router = useRouter();
   const { project: projectSlug, taskId: initialTaskId } = router.query;
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
 
   const [message, setMessage] = useState("");
   const [recordingUrl, setRecordingUrl] = useState("");

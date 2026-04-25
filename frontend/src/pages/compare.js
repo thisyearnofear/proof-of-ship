@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { db as clientDb } from "@/lib/firebase/clientApp";
 import { collection, getDocs, query, limit, orderBy } from "firebase/firestore";
-import { useNanopayment } from "@/contexts/NanopaymentContext";
+import { useNanopayment } from "@/contexts/WalletContext";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SkeletonCard } from "@/components/common/SkeletonLoader";
 

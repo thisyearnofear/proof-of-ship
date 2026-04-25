@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/contexts/AuthContext';
-import { useBuilderCredit } from '@/contexts/BuilderCreditContext';
+import { useUser } from '@/contexts/UserContext';
+import { useBuilderCredit } from '@/contexts/WalletContext';
 import { useWarRoomData } from '@/hooks/useWarRoomData';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -21,7 +21,7 @@ import {
 
 export default function WarRoomPage() {
   const router = useRouter();
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
   const { coreContract, account } = useBuilderCredit();
   const { 
     loading, 

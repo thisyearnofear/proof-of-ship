@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@/contexts/UserContext";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
@@ -21,7 +21,7 @@ import {
 export default function UserPortfolioPage() {
   const router = useRouter();
   const { username } = router.query;
-  const { currentUser } = useAuth();
+  const { currentUser } = useUser();
 
   const [portfolio, setPortfolio] = useState(null);
   const [loading, setLoading] = useState(true);

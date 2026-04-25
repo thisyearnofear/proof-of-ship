@@ -651,8 +651,8 @@ export const useNanopayment = () => {
   const wallet = useWallet();
   const [streamingPayment, setStreamingPayment] = useState(null);
   
-  // Wrap payForAgent to track streaming state
-  const payForAgentWithStreaming = async (agentType, params = {}) => {
+  // Wrap payForAgent to track streaming state (memoized to prevent re-renders)
+  const payForAgentWithStreaming = useCallback(async (agentType, params = {}) => {
     setStreamingPayment({ agentType, amount: AGENT_PRICES[agentType] || 0.01 });
     try {
       const result = await wallet.payForAgent(agentType, params);
@@ -662,7 +662,7 @@ export const useNanopayment = () => {
       setStreamingPayment(null);
       throw err;
     }
-  };
+  }, [wallet.payForAgent]);
   
   return {
     // Nanopayment state

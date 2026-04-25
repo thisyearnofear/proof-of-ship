@@ -4,8 +4,8 @@
  * Helps users navigate the platform, understand projects,
  * and learn about x402 nanopayments. Costs 0.005 USDC per message.
  * 
- * Tries Featherless AI (DeepSeek-V3) first, falls back to AIsa Perplexity Sonar,
- * then to context-aware responses if neither is configured.
+ * Tries providers in order: Featherless AI (DeepSeek-V3) → Google Gemini →
+ * AIsa Perplexity Sonar → context-aware fallback.
  */
 
 import { withNanopayment } from "@/lib/nanopayment";
@@ -14,6 +14,11 @@ import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient"
 const FEATHERLESS_API_KEY = process.env.FEATHERLESS_API_KEY || "";
 const FEATHERLESS_MODEL = "deepseek-ai/DeepSeek-V3-0324";
 const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
+
+// Google Gemini fallback
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
+const GOOGLE_MODEL = "gemini-2.0-flash";
+const GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
 const SYSTEM_PROMPT = `You are the Proof of Ship AI Assistant — a helpful guide for a platform that tracks and funds blockchain projects using x402 nanopayments on Circle's Arc network.
 
@@ -75,11 +80,42 @@ async function chatHandler(req, res) {
           aiPayment = { provider: "featherless", model: FEATHERLESS_MODEL, status: "ok" };
         }
       } catch (err) {
-        console.warn("Featherless AI chat failed, trying AIsa:", err.message);
+        console.warn("Featherless AI chat failed, trying Google Gemini:", err.message);
       }
     }
 
-    // Fallback 1: AIsa Perplexity Sonar
+    // Fallback 1: Google Gemini
+    if (!reply && GOOGLE_API_KEY) {
+      try {
+        const contents = [
+          ...history.slice(-6).map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content.slice(0, 300) }] })),
+          { role: "user", parts: [{ text: message }] },
+        ];
+
+        const googleRes = await fetch(
+          `${GOOGLE_BASE_URL}/models/${GOOGLE_MODEL}:generateContent?key=${GOOGLE_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+              contents,
+              generationConfig: { maxOutputTokens: 300 },
+            }),
+          }
+        );
+
+        if (googleRes.ok) {
+          const data = await googleRes.json();
+          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+          aiPayment = { provider: "google", model: GOOGLE_MODEL, status: "ok" };
+        }
+      } catch (err) {
+        console.warn("Google Gemini chat failed, trying AIsa:", err.message);
+      }
+    }
+
+    // Fallback 2: AIsa Perplexity Sonar
     if (!reply && isAisaConfigured()) {
       try {
         const aisaFetch = getAisaFetch();

@@ -171,7 +171,7 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
           {scoutFlags.isScoutChoice && (
             <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold animate-pulse">
               <MagnifyingGlassCircleIcon className="w-4 h-4" />
-              SCOUT'S CHOICE
+SCOUT&apos;S CHOICE
             </div>
           )}
           {scoutFlags.highVelocity && !scoutFlags.isScoutChoice && (

@@ -291,7 +291,8 @@ export const IllustrationProvider = ({
   );
 };
 
-export default {
+// Default export with explicit name to fix react/display-name lint error
+const illustrationsExport = {
   IllustrationCategories,
   IllustrationSizes,
   IconCollections,
@@ -305,3 +306,5 @@ export default {
   IllustrationProvider,
   useIllustration
 };
+
+export default illustrationsExport;

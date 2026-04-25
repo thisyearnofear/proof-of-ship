@@ -341,7 +341,8 @@ export const commonPropTypes = {
   progressSize: ['sm', 'md', 'lg', 'xl', '2xl']
 };
 
-export default {
+// Default export with explicit name to fix react/display-name lint error
+const commonComponentsExport = {
   componentVariants,
   componentSizes,
   componentUtils,
@@ -350,3 +351,5 @@ export default {
   withLoadingState,
   withErrorBoundary
 };
+
+export default commonComponentsExport;

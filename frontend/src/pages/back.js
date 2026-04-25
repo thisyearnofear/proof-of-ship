@@ -296,14 +296,18 @@ function PortfolioTab({ setTab }) {
 
   // Load portfolio when wallet changes
   useEffect(() => {
+    let cancelled = false;
+    
     async function load() {
       if (!wallet.account || !signer || typeof chainId !== 'number') {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
         return;
       }
       try {
-        setLoading(true);
+        if (!cancelled) setLoading(true);
         const projectIds = await getBackerProjects(wallet.account);
+        
+        if (cancelled) return;
         
         if (!projectIds || projectIds.length === 0) {
           setBackedDetails([]);
@@ -315,14 +319,15 @@ function PortfolioTab({ setTab }) {
         // Get contracts to read on-chain data
         const { creditService } = await import('@/services/creditService');
         const contracts = creditService.getContracts(chainId, signer);
-        if (!contracts) {
-          setLoading(false);
+        if (!contracts || cancelled) {
+          if (!cancelled) setLoading(false);
           return;
         }
         
         const details = [];
         const roiHistory = [];
         for (const id of projectIds) {
+          if (cancelled) return;
           try {
             const project = await contracts.core.projects(id);
             // Read this backer's actual backing from the contract
@@ -365,12 +370,17 @@ function PortfolioTab({ setTab }) {
             }
           } catch (err) { /* skip failed project */ }
         }
-        setBackedDetails(details);
-        setCompassScore(calculateCompassScore(roiHistory));
+        
+        if (!cancelled) {
+          setBackedDetails(details);
+          setCompassScore(calculateCompassScore(roiHistory));
+        }
       } catch (err) { /* portfolio load failed */ }
-      finally { setLoading(false); }
+      finally { if (!cancelled) setLoading(false); }
     }
+    
     load();
+    return () => { cancelled = true; };
   }, [wallet.account, signer, chainId, getBackerProjects]);
 
   const compassTier = getCompassTier(compassScore);

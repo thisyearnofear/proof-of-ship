@@ -31,8 +31,18 @@ async function scoutHandler(req, res) {
     }
 
     // Fetch all projects from Firestore
-    const snapshot = await db.collection("projects").get();
-    const projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let projects = [];
+    try {
+      const snapshot = await db.collection("projects").get();
+      projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      // Log error details for debugging but don't fail - return empty result
+      console.error("Failed to fetch projects from Firestore:", {
+        message: err.message,
+        code: err.code,
+        stack: err.stack
+      });
+    }
 
     // Score each project
     const scored = projects
@@ -41,7 +51,7 @@ async function scoutHandler(req, res) {
         const recommendation = getRecommendation(total);
         return {
           id: project.id,
-          name: project.name,
+          name: project.name || project.slug || "Unnamed Project",
           ecosystem: project.ecosystem,
           slug: project.slug,
           score: total,

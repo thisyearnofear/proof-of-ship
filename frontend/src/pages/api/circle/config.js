@@ -91,6 +91,6 @@ async function configHandler(req, res) {
 // Apply API middleware with appropriate configuration
 export default withApiMiddleware(configHandler, {
   allowedMethods: ['GET'],
-  rateLimit: 5,
+  rateLimit: 60, // Increased from 5 to handle more concurrent users
   rateLimitKey: 'CIRCLE_CONFIG_API'
 });

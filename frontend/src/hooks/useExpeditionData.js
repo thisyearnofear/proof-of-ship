@@ -16,8 +16,8 @@ export function useExpeditionData() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch projects from Firestore
-      const projectsRef = collection(db, 'Projects');
+      // Fetch projects from Firestore (use lowercase to match firestore.rules)
+      const projectsRef = collection(db, 'projects');
       const q = query(projectsRef);
       const snapshot = await getDocs(q);
       

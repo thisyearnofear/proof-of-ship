@@ -34,20 +34,17 @@ class RealLiFiService {
 
   /**
    * Get available chains for cross-chain transfers
+   * Uses backend proxy to avoid CORS issues
    */
   async getAvailableChains() {
-    if (!this.isConfigured()) {
-      throw new Error("LI.FI SDK not configured");
-    }
-
     try {
-      const { chains } = await this.lifi.getChains();
+      // Use backend proxy to avoid CORS
+      const response = await fetch('/api/lifi/chains');
+      if (!response.ok) throw new Error(`Proxy returned ${response.status}`);
+      const { data } = await response.json();
+      const { chains } = data;
 
       // Filter to only include our supported testnet chains
-      const supportedChainIds = Object.keys(TESTNET_CHAIN_INFO).map((id) =>
-        parseInt(id)
-      );
-
       return chains
         .filter((chain) => chain.id in USDC_ADDRESSES)
         .map((chain) => ({
@@ -60,8 +57,22 @@ class RealLiFiService {
         }));
     } catch (error) {
       console.error("Failed to get available chains:", error);
-      throw error;
+      // Fall back to hardcoded chains if proxy fails
+      return this.getHardcodedChains();
     }
+  }
+
+  /**
+   * Fallback: return hardcoded chain list when LiFi API is unavailable
+   */
+  getHardcodedChains() {
+    return Object.entries(TESTNET_CHAIN_INFO).map(([id, info]) => ({
+      id: parseInt(id),
+      name: info.name,
+      token: info.symbol,
+      usdcAddress: USDC_ADDRESSES[id],
+      testnet: true,
+    }));
   }
 
   /**

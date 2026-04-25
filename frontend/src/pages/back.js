@@ -33,8 +33,21 @@ import {
 
 export default function BackPage() {
   const router = useRouter();
-  const tab = router.query.tab || "discover";
+  // Use state + useEffect to ensure proper re-render when tab changes
+  const [tab, setTabState] = useState("discover");
+
+  // Sync state with router query on mount and when router changes
+  useEffect(() => {
+    const queryTab = router.query.tab;
+    if (queryTab && queryTab !== tab) {
+      setTabState(queryTab);
+    } else if (!queryTab && tab !== "discover") {
+      setTabState("discover");
+    }
+  }, [router.query.tab, tab]);
+
   const setTab = (t) => {
+    setTabState(t); // Update state immediately
     router.replace({ pathname: router.pathname, query: t === "discover" ? {} : { tab: t } }, undefined, { shallow: true });
   };
 

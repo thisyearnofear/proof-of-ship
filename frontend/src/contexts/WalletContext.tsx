@@ -194,8 +194,8 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       if (result.success) {
         setCircleWallets(result.data.wallets || []);
       }
-    } catch (err) {
-      console.warn('Failed to fetch Circle wallets:', err);
+    } catch (err: any) {
+      console.warn('Failed to fetch Circle wallets:', err?.message || err);
     }
   };
   
@@ -281,11 +281,12 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       addNanopaymentTransaction({
         id: Date.now().toString(),
         type: 'deposit',
+        agentName: 'Deposit',
         amount: amountUSDC,
         status: 'confirmed',
         timestamp: new Date().toISOString(),
         txHash: result.txHash,
-      });
+      } as NanopaymentTransaction);
       return result;
     } finally {
       setLoading(false);
@@ -399,12 +400,17 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const loadCreditProfile = useCallback(async () => {
     if (!ethersProvider || !account) return;
     try {
-      const profile = await (await import('@/services/creditService')).creditService.getCreditProfile(ethersProvider, account);
-      setCreditProfile(profile);
+      const creditSvc = (await import('@/services/creditService')).creditService;
+      const contracts = creditSvc.getContracts(chainId as number, ethersProvider.getSigner());
+      const profile = await contracts.core.creditLines(account);
+      setCreditProfile({
+        usedAmount: ethers.utils.formatUnits(profile.usedAmount || 0, 6),
+        reputation: profile.reputation?.toNumber() || 0,
+      });
     } catch (err) {
       console.warn('Failed to load credit profile:', err);
     }
-  }, [ethersProvider, account]);
+  }, [ethersProvider, account, chainId]);
   
   const repayLoan = async (amount: string | number) => {
     if (!ethersProvider || !account) throw new Error('Not connected');
@@ -443,7 +449,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     try {
       if (showLoading) setLoading(true);
       const balance = await activeProvider.request({ method: 'eth_getBalance', params: [account, 'latest'] });
-      const balanceInEth = ethers.utils.formatEther(balance);
+      const balanceInEth = ethers.utils.formatEther(balance as string);
       setBalance(parseFloat(balanceInEth).toFixed(4));
       return balanceInEth;
     } catch (err) {
@@ -454,7 +460,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const getTokenBalance = async (tokenAddress: string, decimals = 18) => {
+  const getTokenBalance = async (tokenAddress: string, decimals: number = 18) => {
     if (!activeProvider || !account || !ethersProvider) return '0';
     try {
       const tokenContract = new ethers.Contract(tokenAddress, [
@@ -462,8 +468,8 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
         'function decimals() view returns (uint8)',
       ], ethersProvider);
       let tokenDecimals = decimals;
-      try { tokenDecimals = await tokenContract.decimals(); } catch {}
-      const balance = await tokenContract.balanceOf(account);
+      try { tokenDecimals = await (tokenContract as any).decimals(); } catch {}
+      const balance = await (tokenContract as any).balanceOf(account);
       return ethers.utils.formatUnits(balance, tokenDecimals);
     } catch {
       return '0';
@@ -482,8 +488,8 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     try {
       await activeProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hexChainId }] });
     } catch (err: any) {
-      if (err.code === 4902) {
-        const config = NETWORK_CONFIGS[chainId];
+      if ((err as any).code === 4902) {
+        const config = NETWORK_CONFIGS[chainId] || NETWORK_CONFIGS[1];
         if (config) {
           await activeProvider.request({ method: 'wallet_addEthereumChain', params: [config] });
           await activeProvider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hexChainId }] });
@@ -504,7 +510,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       });
     } catch (err: any) {
       console.error(`Failed to add ${symbol} token:`, err);
-      setError(`Failed to add ${symbol} token: ${err.message}`);
+      setError(`Failed to add ${symbol} token: ${(err as Error).message}`);
       return false;
     } finally {
       setLoading(false);
@@ -520,18 +526,19 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     return await addToken(usdcAddress, 'USDC', 6, 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png');
   };
   
-  const getCurrentUSDCAddress = () => {
+  const getCurrentUSDCAddress = (): string | null => {
     if (!chainId) return null;
-    return getUSDCAddress(chainId);
+    return getUSDCAddress(chainId) || null;
   };
   
   // Ethers provider initialization
   useEffect(() => {
-    if (activeProvider && connected) {
-      const ethProvider = new ethers.providers.Web3Provider(activeProvider);
+    if (activeProvider && connected && typeof chainId === 'number') {
+      const ethProvider = new ethers.providers.Web3Provider(activeProvider as providers.ExternalProvider);
       setEthersProvider(ethProvider);
       setSigner(ethProvider.getSigner());
-      setNetworkName(NETWORK_CONFIGS[chainId as number]?.chainName || `Chain ID: ${chainId}`);
+      const networkName = NETWORK_CONFIGS[chainId]?.chainName || `Chain ID: ${chainId}`;
+      setNetworkName(networkName);
       getBalance();
       
       const handleNewBlock = () => getBalance(false);
@@ -600,12 +607,22 @@ export const useCircleWallet = () => {
     refreshWallets: wallet.refreshCircleWallets,
     transferUSDC: wallet.transferUSDC,
     // Funding methods (delegated to creditService)
-    requestFunding: async (walletId, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares) => {
+    requestFunding: async (
+      walletId: string | null,
+      githubUrl: string,
+      projectName: string,
+      milestones: string[],
+      rewards: string[],
+      hackathons: number[],
+      addresses: string[],
+      shares: number[]
+    ): Promise<any> => {
       const { creditService } = await import('@/services/creditService');
       if (!wallet.signer) throw new Error('Wallet not connected');
+      if (typeof wallet.chainId !== 'number') throw new Error('Invalid chain ID');
       return creditService.requestFunding(wallet.chainId, wallet.signer, {
-        walletId, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares,
-      });
+        walletId: walletId || undefined, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares,
+      } as any);
     },
     getFundingHistory: async (address) => {
       // Return empty for now - implement via creditService if needed
@@ -653,15 +670,18 @@ export const useBuilderCredit = () => {
     ethersProvider: wallet.ethersProvider,
     connected: wallet.connected,
     // Legacy helpers
-    getBackerProjects: async (backerAddress) => {
+    getBackerProjects: async (backerAddress: string): Promise<string[]> => {
       // Access via creditService
       const { creditService } = await import('@/services/creditService');
       if (!wallet.chainId || !wallet.signer) return [];
+      if (typeof wallet.chainId !== 'number') return [];
       const contracts = creditService.getContracts(wallet.chainId, wallet.signer);
+      if (!contracts) return [];
       try {
         const count = await contracts.core.getBackerProjectCount(backerAddress);
-        const projectIds = [];
-        for (let i = 0; i < count.toNumber(); i++) {
+        const projectIds: string[] = [];
+        const countNum = count?.toNumber ? count.toNumber() : 0;
+        for (let i = 0; i < countNum; i++) {
           const projectId = await contracts.core.backerProjects(backerAddress, i);
           projectIds.push(projectId);
         }
@@ -670,10 +690,13 @@ export const useBuilderCredit = () => {
         return [];
       }
     },
-    backProject: async (projectId, multiplier, amount) => {
+    backProject: async (projectId: string, multiplier: number, amount: string | number): Promise<void> => {
       const { creditService } = await import('@/services/creditService');
       if (!wallet.chainId || !wallet.signer) throw new Error('Not connected');
-      await creditService.backProject(wallet.chainId, wallet.signer, projectId, multiplier, amount);
+      if (typeof wallet.chainId !== 'number') throw new Error('Invalid chain ID');
+      const contracts = creditService.getContracts(wallet.chainId, wallet.signer);
+      if (!contracts) throw new Error('Contracts not available');
+      await contracts.core.backProject(projectId, multiplier, { value: ethers.utils.parseUnits(amount.toString(), 6) } as any);
     },
     contractLoading: wallet.loading,
     // usdcBalance is async - consumers should call getUSDCBalanceAsync()
@@ -714,8 +737,8 @@ export const useNanopayment = () => {
     initialize: wallet.initializeNanopayment,
     initializeWithDemo: wallet.initializeNanopaymentDemo,
     deposit: wallet.depositNanopayment,
-    pay: (endpoint, options) => payForAgentWithStreaming('chat', { endpoint, ...options }),
-    payForAgent: payForAgentWithStreaming,
+    pay: (endpoint: string, options?: any) => payForAgentWithStreaming('chat', { endpoint, ...options }),
+    payForAgent: payForAgentWithStreaming as (agentType: string, params?: any) => Promise<any>,
     payForVerification: wallet.payForVerification,
     payForScout: wallet.payForScout,
     payForUnderwrite: wallet.payForHealthScore,

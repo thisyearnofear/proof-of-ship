@@ -272,10 +272,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!userProfile) return userProfile;
+  const updateProfile = async (updates: Partial<UserProfile>): Promise<UserProfile> => {
+    if (!userProfile) throw new Error('No user profile');
     
-    const updatedProfile = { ...userProfile, ...updates };
+    const updatedProfile: UserProfile = { ...userProfile, ...updates };
     setUserProfile(updatedProfile);
     
     if (updates.profiles && decentralizedAuth) {
@@ -328,9 +328,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const disconnectSocialProfile = async (platform: string) => {
     if (!userProfile || !decentralizedAuth) return;
     
-    const updatedProfile = { ...userProfile };
-    delete updatedProfile.profiles[platform];
-    updatedProfile.completionStatus[platform] = false;
+    const currentProfiles = (userProfile.profiles as Record<string, any>) || {};
+    const currentStatus = (userProfile.completionStatus as Record<string, boolean>) || {};
+    const updatedProfile: UserProfile = { 
+      ...userProfile, 
+      profiles: { ...currentProfiles },
+      completionStatus: { ...currentStatus }
+    };
+    if (updatedProfile.profiles) {
+      delete (updatedProfile.profiles as Record<string, any>)[platform];
+    }
+    if (updatedProfile.completionStatus) {
+      (updatedProfile.completionStatus as Record<string, boolean>)[platform] = false;
+    }
     
     decentralizedAuth.userProfile = updatedProfile;
     
@@ -349,10 +359,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await decentralizedAuth.connectGitHub();
       }
       if (userProfile.profiles?.farcaster) {
-        await decentralizedAuth.connectFarcaster(userProfile.profiles.farcaster.username);
+        const farcasterProfile = userProfile.profiles.farcaster as any;
+        await decentralizedAuth.connectFarcaster(farcasterProfile?.username || '');
       }
       if (userProfile.profiles?.lens) {
-        await decentralizedAuth.connectLens(userProfile.profiles.lens.handle);
+        const lensProfile = userProfile.profiles.lens as any;
+        await decentralizedAuth.connectLens(lensProfile?.handle || '');
       }
       
       const newCreditData = await decentralizedAuth.calculateCreditScore();
@@ -381,28 +393,36 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   
   // Computed values
   const getCompletionPercentage = () => {
-    if (!userProfile?.completionStatus) return 0;
-    const completed = Object.values(userProfile.completionStatus).filter(Boolean).length;
-    const total = Object.keys(userProfile.completionStatus).length;
-    return Math.round((completed / total) * 100);
+    const status = userProfile?.completionStatus as Record<string, boolean> | undefined;
+    if (!status) return 0;
+    const statusValues = Object.values(status) as boolean[];
+    const completed = statusValues.filter(Boolean).length;
+    const total = statusValues.length;
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
   
   const getFundingEligibility = () => {
     if (!creditData) return { eligible: false, amount: 0, reason: 'No credit data' };
     
+    const totalScore = typeof creditData.totalScore === 'number' ? creditData.totalScore : 0;
+    const fundingEligible = !!creditData.fundingEligible;
+    const fundingAmount = typeof creditData.fundingAmount === 'number' ? creditData.fundingAmount : 0;
+    
     return {
-      eligible: creditData.fundingEligible,
-      amount: creditData.fundingAmount,
-      reason: creditData.fundingEligible
-        ? `Credit score of ${creditData.totalScore} qualifies for funding`
-        : `Credit score of ${creditData.totalScore} is below minimum requirement of 400`,
+      eligible: fundingEligible,
+      amount: fundingAmount,
+      reason: fundingEligible
+        ? `Credit score of ${totalScore} qualifies for funding`
+        : `Credit score of ${totalScore} is below minimum requirement of 400`,
     };
   };
   
   const isProfileComplete = () => getCompletionPercentage() === 100;
   
-  const hasMinimumProfile = () => 
-    userProfile?.completionStatus?.wallet && userProfile?.completionStatus?.github;
+  const hasMinimumProfile = () => {
+    const status = userProfile?.completionStatus;
+    return !!(status?.wallet && status?.github);
+  };
   
   const getRecommendations = () => creditData?.recommendations || [];
   

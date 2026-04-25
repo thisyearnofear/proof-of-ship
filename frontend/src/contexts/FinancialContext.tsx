@@ -9,7 +9,7 @@
  * Provides unified financial operations: cross-chain swaps, token transfers.
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { LiFi } from '@lifi/sdk';
 import { ethers } from 'ethers';
 import { TESTNET_USDC_ADDRESSES } from '../config/tokens';
@@ -159,7 +159,7 @@ export const useLiFi = () => {
 };
 
 // LiFiProvider - alias for FinancialProvider
-export const LiFiProvider = FinancialProvider;
+// LiFiProvider will be defined after FinancialProvider
 
 // Note: CircleWalletProvider is now integrated into WalletContext as circleWallets/circleConfig
 
@@ -219,11 +219,11 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
         setLifiLoading(true);
         
         const response = await lifi.getChains();
-        const lifiChains = response?.chains || [];
+        const lifiChains = (response as any)?.data || [];
         
         // Map to our format
-        const chains: ChainInfo[] = lifiChains
-          .filter((chain: any) => CHAIN_LOGOS[chain.id])
+        const chains: ChainInfo[] = (lifiChains as any[])
+          .filter((chain: any) => chain?.id && CHAIN_LOGOS[Number(chain.id)])
           .map((chain: any) => ({
             id: chain.id,
             name: chain.name,
@@ -239,22 +239,24 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
         const tokenData: Record<number, any[]> = {};
         for (const chain of chains) {
           try {
-            const { tokens } = await lifi.getTokens({ chains: [chain.id] });
+            const tokenResponse = await lifi.getTokens({ chains: [String(chain.id)] } as any);
+            const responseData = tokenResponse as any;
+            const chainTokens = responseData?.[chain.id] || responseData?.tokens?.[chain.id] || [];
+            const tokens: any[] = Array.isArray(chainTokens) ? chainTokens : [];
             
             const usdcAddr = usdcAddresses[chain.id];
-            const chainTokens = tokens[chain.id] || [];
             
             // Find USDC and native token
-            const usdcToken = chainTokens.find((t: any) => 
-              usdcAddr && t.address.toLowerCase() === usdcAddr.toLowerCase()
+            const usdcToken = tokens.find((t: any) => 
+              usdcAddr && t.address?.toLowerCase() === usdcAddr.toLowerCase()
             );
-            const nativeToken = chainTokens.find((t: any) => 
+            const nativeToken = tokens.find((t: any) => 
               t.address === '0x0000000000000000000000000000000000000000' ||
               t.symbol === chain.token
             );
             
             if (nativeToken || usdcToken) {
-              tokenData[chain.id] = [nativeToken, usdcToken].filter(Boolean);
+              (tokenData as any)[chain.id] = [nativeToken, usdcToken].filter(Boolean);
             }
           } catch (err) {
             console.warn(`Failed to load tokens for chain ${chain.id}`);
@@ -293,17 +295,17 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       return await lifi.getQuote({
-        fromChainId,
-        toChainId,
-        fromTokenAddress,
-        toTokenAddress,
-        fromAmount,
+        fromChain: fromChainId,
+        toChain: toChainId,
+        fromToken: fromTokenAddress,
+        toToken: toTokenAddress,
+        amount: fromAmount,
         fromAddress: options.fromAddress,
         options: {
           slippage: parseFloat(options.slippage || 1) / 100,
           integrator: 'BuilderCredit',
         },
-      });
+      } as any);
     } finally {
       setLifiLoading(false);
     }
@@ -318,17 +320,19 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     try {
       const ethersProvider = signer 
         ? (signer as any).provider 
-        : new ethers.providers.Web3Provider(window.ethereum);
+        : new ethers.providers.Web3Provider(window.ethereum as any);
       const ethSigner = ethersProvider.getSigner();
       
-      const result = await lifi.executeRoute(quote, {
-        signer: ethSigner,
+      const result = await lifi.executeRoute(quote as any, {
+        signer: ethSigner as any,
         infiniteApproval: false,
-      });
+      } as any);
       
-      const lastStep = result.steps[result.steps.length - 1];
-      const txHash = lastStep.execution?.process.find((p: any) => p.txHash)?.txHash 
-        || result.transactionHash;
+      const steps = (result as any)?.steps || [];
+      const lastStep = steps[steps.length - 1] as any;
+      const processList = lastStep?.execution?.process || [];
+      const lastProcess = processList[processList.length - 1] as any;
+      const txHash = lastProcess?.txHash || (lastStep as any)?.transactionHash || '';
       
       const transfer: TransferRecord = {
         id: `${txHash || Date.now()}-${Date.now()}`,
@@ -361,7 +365,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
   
   const getTransferStatus = async (txHash: string, fromChainId: number, toChainId: number) => {
     if (!lifi) throw new Error('LiFi not initialized');
-    return await lifi.getStatus({ txHash, fromChainId, toChainId });
+    return await lifi.getStatus({ txHash, fromChain: fromChainId, toChain: toChainId });
   };
   
   const getRoutes = async (
@@ -376,13 +380,13 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     setLifiLoading(true);
     try {
       return await lifi.getRoutes({
-        fromChainId,
-        toChainId,
-        fromTokenAddress,
-        toTokenAddress,
-        fromAmount,
-        fromAddress: '0x0000000000000000000000000000000000000000', // Placeholder
-      });
+        fromChain: fromChainId,
+        toChain: toChainId,
+        fromToken: fromTokenAddress,
+        toToken: toTokenAddress,
+        amount: fromAmount,
+        fromAddress: '0x0000000000000000000000000000000000000000',
+      } as any);
     } finally {
       setLifiLoading(false);
     }
@@ -391,8 +395,20 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
   const subscribeToStatus = (txHash: string, fromChainId: number, callback: (status: any) => void) => {
     if (!lifi) throw new Error('LiFi not initialized');
     
-    const subscription = lifi.subscribeToStatus({ txHash, fromChainId }, callback);
-    return () => subscription.unsubscribe();
+    // Poll for status updates instead of using subscription
+    const intervalId = setInterval(async () => {
+      try {
+        const status = await getTransferStatus(txHash, fromChainId, fromChainId);
+        callback(status);
+        if (status.status === 'DONE' || status.status === 'FAILED') {
+          clearInterval(intervalId);
+        }
+      } catch {
+        // Ignore polling errors
+      }
+    }, 10000);
+    
+    return () => clearInterval(intervalId);
   };
   
   const updateTransferStatuses = async () => {
@@ -412,8 +428,9 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
           try {
             const status = await getTransferStatus(transfer.txHash, transfer.fromChainId, transfer.toChainId);
             
-            if (status && status.status !== transfer.status) {
-              updated[i] = { ...transfer, status: status.status, lastUpdated: Date.now() };
+            const newStatus = (status as any)?.status;
+            if (status && newStatus && newStatus !== transfer.status) {
+              updated[i] = { ...transfer, status: newStatus as any };
               hasUpdates = true;
             }
           } catch {}
@@ -443,7 +460,9 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     setCreditError(null);
     
     try {
+      if (!creditService) throw new Error('Credit service not available');
       const contracts = creditService.getContracts(chainId, signer);
+      if (!contracts) throw new Error('Contracts not available for chain ' + chainId);
       const profile = await contracts.core.creditLines(address);
       
       setCreditLine({
@@ -483,7 +502,11 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     setCreditError(null);
     
     try {
-      await creditService.requestCredit(chainId, signer, amount);
+      // Request credit via credit service
+      const contracts = creditService.getContracts(chainId, signer);
+      if (!contracts) throw new Error('Contracts not available');
+      const amountInWei = ethers.utils.parseUnits(amount.toString(), 6);
+      await contracts.core.requestCredit(amountInWei, { value: 0 });
       
       // Reload credit line
       const address = await signer.getAddress();
@@ -530,3 +553,6 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export default FinancialContext;
+
+// Backward compatibility alias - define after FinancialProvider
+export const LiFiProvider = FinancialProvider;

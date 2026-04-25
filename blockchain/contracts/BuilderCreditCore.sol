@@ -805,6 +805,19 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     }
     
     /**
+     * @dev Gets the number of backers for a project
+     * @param projectId ID of the project
+     * @return Number of backers
+     */
+    function getProjectBackerCount(uint256 projectId) 
+        external 
+        view 
+        returns (uint256) 
+    {
+        return projectBackings[projectId].length;
+    }
+    
+    /**
      * @dev Pauses the contract
      * Only callable by platform admin
      */

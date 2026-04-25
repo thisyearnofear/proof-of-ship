@@ -114,12 +114,15 @@ class CreditService {
     }
 
     async getBackerCount(chainId: number, signer: Signer, projectId: number): Promise<number> {
-        // Note: Contract doesn't expose backer count directly.
-        // This would require either: 
-        // 1. A getProjectBackerCount() view function on the contract
-        // 2. Indexing ProjectBacked events from blockchain
-        // For now, return 0 and display based on total backing if needed
-        return 0;
+        const contracts = this.getContracts(chainId, signer);
+        if (!contracts) return 0;
+        
+        try {
+            const count = await contracts.core.getProjectBackerCount(projectId);
+            return count?.toNumber ? count.toNumber() : 0;
+        } catch {
+            return 0;
+        }
     }
 
     calculateMaxMultiplier(creditScore: number): number {

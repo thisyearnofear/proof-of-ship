@@ -18,7 +18,7 @@ class RealLiFiService {
   initialize() {
     try {
       this.lifi = new LiFi({
-        apiUrl: "https://li.fi/api",
+        apiUrl: "https://li.fi/v1",
         integrator: this.integrator,
         apiKey: this.apiKey,
       });

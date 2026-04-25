@@ -189,7 +189,7 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     const initializeLiFi = async () => {
       try {
         const lifiInstance = new LiFi({
-          apiUrl: 'https://li.fi/api/v1',
+          apiUrl: 'https://li.fi/v1',
           integrator: 'BuilderCredit',
         });
         setLifi(lifiInstance);

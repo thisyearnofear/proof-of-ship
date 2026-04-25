@@ -171,11 +171,17 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     }
   }, [sdk, provider]);
   
-  // Initialize Circle Wallet Service
-  useEffect(() => {
-    initializeCircleService();
-  }, [initializeCircleService]);
-  
+  const refreshCircleWallets = useCallback(async () => {
+    try {
+      const result = await walletService.getWallets();
+      if (result.success) {
+        setCircleWallets(result.data.wallets || []);
+      }
+    } catch (err: any) {
+      console.warn('Failed to fetch Circle wallets:', err?.message || err);
+    }
+  }, []);
+
   const initializeCircleService = useCallback(async () => {
     try {
       const config = await walletService.getConfig();
@@ -187,17 +193,11 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       console.warn('Circle initialization skipped:', err.message);
     }
   }, [refreshCircleWallets]);
-  
-  const refreshCircleWallets = useCallback(async () => {
-    try {
-      const result = await walletService.getWallets();
-      if (result.success) {
-        setCircleWallets(result.data.wallets || []);
-      }
-    } catch (err: any) {
-      console.warn('Failed to fetch Circle wallets:', err?.message || err);
-    }
-  }, []);
+
+  // Initialize Circle Wallet Service (declared AFTER callbacks to avoid TDZ on deps array)
+  useEffect(() => {
+    initializeCircleService();
+  }, [initializeCircleService]);
   
   const createCircleWallet = useCallback(async (config: any = {}) => {
     if (!circleConfig) throw new Error('Circle not initialized');

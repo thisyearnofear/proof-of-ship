@@ -1,95 +1,41 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+/**
+ * @deprecated ThemeContext.tsx - Merged into AppContext.tsx
+ * 
+ * Use: import { useApp } from '@/contexts/AppContext';
+ * 
+ * Re-exports from AppContext with backward compatibility API mapping.
+ */
 
-type Theme = 'light' | 'dark' | 'high-contrast';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useApp } from './AppContext';
 
-interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-  setLightTheme: () => void;
-  setDarkTheme: () => void;
-  setHighContrastTheme: () => void;
-  mounted: boolean;
-}
+const ThemeContext = createContext({
+  theme: 'light',
+  setTheme: () => {},
+  toggleTheme: () => {},
+  setLightTheme: () => {},
+  setDarkTheme: () => {},
+  setHighContrastTheme: () => {},
+  mounted: true,
+});
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+export const useTheme = () => useContext(ThemeContext);
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+export const ThemeProvider = ({ children }) => {
+  const app = useApp();
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState('light');
-  const [mounted, setMounted] = useState(false);
-
-  // Initialize theme from localStorage or system preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('pos-dashboard-theme');
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initialTheme = savedTheme || systemTheme;
-    
-    setTheme(initialTheme);
-    setMounted(true);
-  }, []);
-
-  // Apply theme to document
-  useEffect(() => {
-    if (mounted) {
-      document.documentElement.setAttribute('data-theme', theme);
-      // Toggle 'dark' class for Tailwind dark: variant support
-      document.documentElement.classList.toggle('dark', theme === 'dark');
-      localStorage.setItem('pos-dashboard-theme', theme);
-    }
-  }, [theme, mounted]);
-
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e) => {
-      // Only update if user hasn't manually set a theme
-      const savedTheme = localStorage.getItem('pos-dashboard-theme');
-      if (!savedTheme) {
-        setTheme(e.matches ? 'dark' : 'light');
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
-  const setLightTheme = () => setTheme('light');
-  const setDarkTheme = () => setTheme('dark');
-  const setHighContrastTheme = () => setTheme('high-contrast');
-
+  // Map AppContext to ThemeContext API
   const value = {
-    theme,
-    setTheme,
-    toggleTheme,
-    setLightTheme,
-    setDarkTheme,
-    setHighContrastTheme,
-    mounted
+    theme: app.theme,
+    setTheme: app.setTheme,
+    toggleTheme: app.toggleTheme,
+    setLightTheme: app.setLightTheme,
+    setDarkTheme: app.setDarkTheme,
+    setHighContrastTheme: app.setHighContrastTheme,
+    mounted: app.themeMounted,
   };
 
-  // Prevent flash of unstyled content
-  if (!mounted) {
-    return null;
-  }
-
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 export default ThemeProvider;

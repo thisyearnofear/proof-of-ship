@@ -1,21 +1,24 @@
 /**
- * AppProviders — Refactored flat provider composition (Phase 2C)
- * Providers are now flattened, removing implicit dependency chains where possible.
+ * AppProviders — Consolidated Provider Composition (Phase 3C)
+ * 
+ * Consolidated from 10 contexts into 5 focused providers:
+ * - WalletProvider: MetaMask + Circle Wallet + Nanopayment
+ * - UserProvider: Firebase Auth + Decentralized Reputation
+ * - AppProvider: Theme + User Behavior Tracking
+ * - FinancialProvider: LiFi + Builder Credit
+ * - EnhancedGithubProvider: GitHub data fetching
  */
 
 import React from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import NoSSR from '@/providers/NoSSR/NoSSR';
 
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { WalletProvider } from '@/contexts/WalletContext';
+import { UserProvider } from '@/contexts/UserContext';
+import { AppProvider } from '@/contexts/AppContext';
+import { FinancialProvider } from '@/contexts/FinancialContext';
 import { ToastProvider } from '@/components/common/Toast';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { MetaMaskProviderWrapper as MetaMaskProvider } from '@/contexts/MetaMaskContext';
-import { BuilderCreditProvider } from '@/contexts/BuilderCreditContext';
-import { ReputationProvider } from '@/contexts/ReputationContext';
-import { NanopaymentProvider } from '@/contexts/NanopaymentContext';
 import { EnhancedGithubProvider } from '@/providers/Github/EnhancedGithubProvider';
-import { UserBehaviorProvider } from '@/contexts/UserBehaviorContext';
 
 // Helper: wrap a provider with an error boundary
 function BoundProvider({ name, children }) {
@@ -28,27 +31,21 @@ function BoundProvider({ name, children }) {
 
 export default function AppProviders({ children }) {
   return (
-    <BoundProvider name="App Root">
+    <BoundProvider name='App Root'>
       <NoSSR>
-        <ThemeProvider>
-          <ToastProvider position="top-right" maxToasts={5}>
-            <AuthProvider>
-              <MetaMaskProvider demand={false}>
-                <BuilderCreditProvider>
-                  <NanopaymentProvider>
-                    <ReputationProvider>
-                      <EnhancedGithubProvider>
-                        <UserBehaviorProvider>
-                          {children}
-                        </UserBehaviorProvider>
-                      </EnhancedGithubProvider>
-                  </ReputationProvider>
-                  </NanopaymentProvider>
-                </BuilderCreditProvider>
-              </MetaMaskProvider>
-            </AuthProvider>
+        <AppProvider>
+          <ToastProvider position='top-right' maxToasts={5}>
+            <UserProvider>
+              <WalletProvider demand={false}>
+                <FinancialProvider>
+                  <EnhancedGithubProvider>
+                    {children}
+                  </EnhancedGithubProvider>
+                </FinancialProvider>
+              </WalletProvider>
+            </UserProvider>
           </ToastProvider>
-        </ThemeProvider>
+        </AppProvider>
       </NoSSR>
     </BoundProvider>
   );

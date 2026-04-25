@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import sdk from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
 import { db } from '@/lib/firebase/clientApp';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import ethosService from '@/services/EthosService';
@@ -121,8 +121,10 @@ export default function UserProfile() {
   const handleToggleNotifications = async () => {
     try {
       if (!notificationsEnabled) {
-        const context = await sdk.context;
-        const result = await sdk.actions.addFrame();
+        // miniapp-sdk: context is a direct object with user info
+        const context = sdk.context;
+        // miniapp-sdk: addMiniApp prompts user to add miniapp
+        const result = await sdk.actions.addMiniApp();
         
         const userRef = doc(db, 'users', currentUser.uid);
         await setDoc(userRef, {

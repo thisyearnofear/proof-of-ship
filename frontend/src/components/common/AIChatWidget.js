@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon, SparklesIcon, CreditCardIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 
 const QUICK_ACTIONS = [
   { label: "How does x402 work?", message: "How do x402 nanopayments work on this platform?" },
@@ -22,8 +22,15 @@ export default function AIChatWidget() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const messagesRef = useRef([]);
+  
+  // Keep messagesRef in sync for use in callbacks
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // Check if user previously dismissed the widget
   useEffect(() => {
@@ -59,7 +66,7 @@ export default function AIChatWidget() {
     }
   }, [open]);
 
-  const sendMessage = async (text) => {
+  const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || loading) return;
 
@@ -67,6 +74,7 @@ export default function AIChatWidget() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
+    setPaymentError(null);
 
     try {
       const res = await fetch("/api/agent/chat", {
@@ -77,9 +85,32 @@ export default function AIChatWidget() {
         },
         body: JSON.stringify({
           message: trimmed,
-          history: messages.slice(-6),
+          history: messagesRef.current.slice(-6),
         }),
       });
+
+      // Handle 402 Payment Required with interactive card
+      if (res.status === 402) {
+        const data = await res.json();
+        setPaymentError({
+          message: data.message || "Payment required to use AI assistant",
+          amount: data.priceUSD || 0.005,
+          demo: data.demo,
+          instructions: data.instructions,
+        });
+        
+        // Show payment error in chat
+        setMessages((prev) => [
+          ...prev,
+          { 
+            role: "assistant", 
+            content: "💳 This AI assistant requires a nanopayment to use. Each message costs ~$0.005 USDC.",
+            type: "payment_required",
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
 
       const data = await res.json();
 
@@ -102,7 +133,7 @@ export default function AIChatWidget() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [input, loading]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -236,7 +267,9 @@ export default function AIChatWidget() {
               className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                 msg.role === "user"
                   ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                  : msg.type === "payment_required"
+                    ? "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-700"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
               }`}
             >
               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
@@ -246,6 +279,70 @@ export default function AIChatWidget() {
             </div>
           </div>
         ))}
+
+        {/* Interactive Payment Card */}
+        {paymentError && (
+          <div className="flex justify-start">
+            <div className="max-w-[90%] bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-amber-200 dark:border-amber-700 overflow-hidden">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 text-white">
+                <div className="flex items-center gap-2">
+                  <CreditCardIcon className="w-5 h-5" />
+                  <span className="font-semibold">x402 Nanopayment Required</span>
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="p-4 space-y-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                    ${paymentError.amount?.toFixed(3) || "0.005"}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">per message via USDC</div>
+                </div>
+
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-sm">
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium">How it works:</span> Payments are settled on Circle's Arc L2 with zero gas fees. Each AI message costs less than a penny!
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      window.location.href = '/back';
+                    }}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <ArrowTrendingUpIcon className="w-4 h-4" />
+                    Setup Wallet
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Remove the payment required message from chat history
+                      setMessages(prev => prev.filter((_, idx) => {
+                        const paymentMsgIndex = prev.findIndex(
+                          m => m.type === 'payment_required'
+                        );
+                        return idx !== paymentMsgIndex;
+                      }));
+                      setPaymentError(null);
+                    }}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+
+                {paymentError.demo && (
+                  <div className="text-xs text-center text-gray-500 dark:text-gray-400">
+                    Demo mode: Add <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">x-demo-key: demo</code> header to test free
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading && (
           <div className="flex justify-start">

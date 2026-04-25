@@ -1,6 +1,6 @@
 import React from "react";
 import localFont from "next/font/local";
-import sdk from "@farcaster/frame-sdk";
+import { sdk } from "@farcaster/miniapp-sdk";
 import AppProviders from "@/providers/AppProviders";
 import { Navbar, Footer } from "@/components/common/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -37,9 +37,15 @@ export default function App({ Component, pageProps }) {
 
     const init = async () => {
       try {
+        // New miniapp-sdk: ready() signals the host we're ready to receive context
         await sdk.actions.ready();
       } catch (error) {
-        console.error("Farcaster Frame SDK initialization failed", error);
+        // miniapp-sdk may not be available outside Warpcast - that's ok
+        if (error?.message?.includes('sdk')) {
+          console.warn("Farcaster miniapp-sdk not available (expected outside Warpcast)");
+        } else {
+          console.error("Farcaster SDK initialization failed", error);
+        }
       }
     };
     init();

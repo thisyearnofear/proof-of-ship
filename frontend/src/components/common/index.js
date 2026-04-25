@@ -62,9 +62,7 @@ export {
 } from './CircularProgress';
 
 // Nanopayment Components
-export {
-  default as NanopaymentWidget
-} from './NanopaymentWidget';
+export { default as NanopaymentWidget } from './NanopaymentWidget';
 export {
   NanopaymentLedger,
   AgentEarningsCard

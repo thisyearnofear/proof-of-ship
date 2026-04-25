@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { crossChainUSDCService } from '../lib/lifiIntegration';
 import { usdcPaymentService } from '../lib/usdcPayments';
 import { useWallet } from '../contexts/WalletContext';
-import { useCircleWallet } from '../contexts/CircleWalletContext';
+import { useCircleWallet } from '../contexts/WalletContext';
 import Button from './common/Button';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';
 
 export default function CrossChainFunding({ creditScore, developerAddress, onFundingComplete }) {
-  const { account, provider } = useMetaMask();
-  const { requestFunding, checkAPIConfiguration } = useCircleWallet();
+  const { account, ethersProvider: provider } = useWallet();
+  const circleWallet = useCircleWallet();
   const [supportedChains, setSupportedChains] = useState([]);
   const [selectedChains, setSelectedChains] = useState([]);
   const [fundingAmount, setFundingAmount] = useState(0);
@@ -27,7 +27,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
 
   const checkCircleAPIConfig = async () => {
     try {
-      const config = await checkAPIConfiguration();
+      const config = await circleWallet.checkAPIConfiguration();
       setApiConfig(config);
     } catch (error) {
       console.error('Error checking API configuration:', error);
@@ -137,7 +137,8 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
   const executeDirectFunding = async () => {
     setIsLoading(true);
     try {
-      const result = await requestFunding(
+      const result = await circleWallet.requestFunding(
+        null, // walletId
         developerAddress || account,
         creditScore
       );

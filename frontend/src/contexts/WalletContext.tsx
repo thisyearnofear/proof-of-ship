@@ -586,6 +586,42 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
 // Backward Compatibility Hooks
 // ============================================================================
 
+// useCircleWallet - maps to WalletContext circle functionality
+export const useCircleWallet = () => {
+  const wallet = useWallet();
+  return {
+    // Circle Wallet state
+    circleWallets: wallet.circleWallets,
+    circleConfig: wallet.circleConfig,
+    loading: wallet.loading,
+    error: wallet.error,
+    // Circle Wallet methods
+    createWallet: wallet.createCircleWallet,
+    refreshWallets: wallet.refreshCircleWallets,
+    transferUSDC: wallet.transferUSDC,
+    // Funding methods (delegated to creditService)
+    requestFunding: async (walletId, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares) => {
+      const { creditService } = await import('@/services/creditService');
+      if (!wallet.signer) throw new Error('Wallet not connected');
+      return creditService.requestFunding(wallet.chainId, wallet.signer, {
+        walletId, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares,
+      });
+    },
+    getFundingHistory: async (address) => {
+      // Return empty for now - implement via creditService if needed
+      return [];
+    },
+    checkAPIConfiguration: async () => {
+      if (!wallet.circleConfig) {
+        return { configured: false, message: 'Circle API not configured' };
+      }
+      return { configured: true, message: 'Circle API configured' };
+    },
+    isConfigured: () => !!wallet.circleConfig,
+    getEnvironment: () => wallet.circleConfig?.environment || 'sandbox',
+  };
+};
+
 // useBuilderCredit - maps to WalletContext functionality
 export const useBuilderCredit = () => {
   const wallet = useWallet();

@@ -102,6 +102,50 @@ interface StoredPreferences {
 }
 
 // ============================================================================
+// Backward Compatibility Hooks
+// ============================================================================
+
+// useTheme - maps to AppContext theme functionality
+export const useTheme = () => {
+  const app = useApp();
+  return {
+    theme: app.theme,
+    setTheme: app.setTheme,
+    toggleTheme: app.toggleTheme,
+    setLightTheme: app.setLightTheme,
+    setDarkTheme: app.setDarkTheme,
+    setHighContrastTheme: app.setHighContrastTheme,
+    themeMounted: app.themeMounted,
+  };
+};
+
+// useUserBehavior - maps to AppContext behavior tracking functionality
+export const useUserBehavior = () => {
+  const app = useApp();
+  return {
+    // Map AppContext tracking to UserBehavior API
+    trackViewModeChange: app.trackViewModeChange,
+    trackFilterUsage: app.trackFilterUsage,
+    trackEcosystemInteraction: app.trackEcosystemInteraction,
+    trackProjectInteraction: app.trackProjectInteraction,
+    trackFeatureUsage: app.trackFeatureUsage,
+    trackInteraction: app.trackInteraction,
+    // Expose preferences and smart defaults
+    preferences: app.preferences,
+    smartDefaults: app.smartDefaults,
+    usageStats: app.usageStats,
+    personalizedRecommendations: app.personalizedRecommendations,
+    adaptiveSettings: app.adaptiveSettings,
+    getAdaptiveSettings: app.getAdaptiveSettings,
+    isExperiencedWith: app.isExperiencedWith,
+    applySmartDefaults: app.applySmartDefaults,
+    // Utility methods
+    getPreference: app.getPreference,
+    updatePreference: app.updatePreference,
+  };
+};
+
+// ============================================================================
 // Context
 // ============================================================================
 

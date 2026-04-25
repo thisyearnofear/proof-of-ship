@@ -4,9 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useCircleWallet } from '../contexts/CircleWalletContext';
-import { useWallet } from '../contexts/WalletContext';
-import { useBuilderCredit } from '../contexts/WalletContext';
+import { useWallet, useCircleWallet, useBuilderCredit } from '../contexts/WalletContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
@@ -24,15 +22,13 @@ export default function FundingInterface({
   creditData, 
   onFundingComplete 
 }) {
-  const { account } = useMetaMask();
-  const { coreContract, contractLoading } = useBuilderCredit();
-  const {
-    requestFunding,
-    getFundingHistory,
-    isConfigured,
-    getEnvironment,
-    loading: circleLoading
-  } = useCircleWallet();
+  const wallet = useWallet();
+  const builderCredit = useBuilderCredit();
+  const circleWallet = useCircleWallet();
+  
+  const { account, ethersProvider } = wallet;
+  const { coreContract, contractLoading } = builderCredit;
+  const { requestFunding, getFundingHistory, isConfigured, getEnvironment, loading: circleLoading } = circleWallet;
   
   const [fundingAmount, setFundingAmount] = useState(0);
   const [fundingHistory, setFundingHistory] = useState([]);
@@ -115,7 +111,7 @@ export default function FundingInterface({
 
   const loadFundingHistory = async () => {
     try {
-      const history = await getFundingHistory(account);
+      const history = await circleWallet.getFundingHistory(account);
       setFundingHistory(history);
     } catch (err) {
       console.error('Failed to load funding history:', err);
@@ -225,7 +221,7 @@ export default function FundingInterface({
       const memberShares = teamMembers.map(m => m.share);
       
       // Request funding with all required parameters
-      const result = await requestFunding(
+      const result = await circleWallet.requestFunding(
         null, // walletId (optional)
         githubUrl,
         projectName,
@@ -236,16 +232,10 @@ export default function FundingInterface({
         memberShares
       );
       
-      // Pledge prize if provided
-      if (pledgedPrize && result.projectId && coreContract) {
-        try {
-          const prizeUnits = ethers.utils.parseUnits(pledgedPrize, 6);
-          await coreContract.pledgePrize(result.projectId, prizeUnits);
-        } catch (pledgeErr) {
-          console.warn('Failed to pledge prize:', pledgeErr);
-          // Continue even if prize pledge fails
-        }
-      }
+      // Pledge prize if provided - would need creditService implementation
+      // if (pledgedPrize && result.projectId && coreContract) {
+      //   console.warn('Prize pledge not yet implemented in consolidated contexts');
+      // }
       
       setSuccess({
         amount: result.amount,

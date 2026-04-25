@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/router';
-import { useUserBehavior } from '../../contexts/UserBehaviorContext';
+import { useUserBehavior } from '../../contexts/AppContext';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import {

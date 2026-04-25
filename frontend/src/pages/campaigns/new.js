@@ -145,7 +145,7 @@ export default function CreateCampaignPage() {
               <li>✓ Provide clear step-by-step test scenarios</li>
               <li>✓ Set a competitive reward to attract quality testers</li>
               <li>✓ Set a realistic deadline (at least 1 week)</li>
-              <li>✓ Define success metrics so testers know what you're looking for</li>
+              <li>✓ Define success metrics so testers know what you&apos;re looking for</li>
             </ul>
           </div>
         </div>

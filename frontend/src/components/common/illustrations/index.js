@@ -235,7 +235,7 @@ export const createErrorState = (type = 'default', options = {}) => {
 
 // Higher-Order Components
 export const withIllustration = (WrappedComponent, illustrationType = 'loading') => {
-  return React.forwardRef((props, ref) => {
+  const WithIllustrationComponent = React.forwardRef((props, ref) => {
     const { loading, error, empty, children, ...restProps } = props;
 
     if (loading) {
@@ -255,6 +255,9 @@ export const withIllustration = (WrappedComponent, illustrationType = 'loading')
 
     return <WrappedComponent ref={ref} {...restProps}>{children}</WrappedComponent>;
   });
+  
+  WithIllustrationComponent.displayName = `withIllustration(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+  return WithIllustrationComponent;
 };
 
 // Illustration Context for global state management

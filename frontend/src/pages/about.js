@@ -57,7 +57,7 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-3xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">
-          Empowering the World's <span className="text-primary-600">Builders</span>
+          Empowering the World&apos;s <span className="text-primary-600">Builders</span>
         </h1>
         <p className="text-xl text-secondary">
           Builder Credit is the first predictive liquidity platform that turns 

@@ -278,16 +278,20 @@ export const componentUtils = {
   }
 };
 
-// Component composition helpers
-export const withToast = (Component) => {
-  return (props) => {
+// Component composition helpers - all with explicit displayName to fix react/display-name lint errors
+
+const withToastWrapper = (Component) => {
+  const WithToastComponent = (props) => {
     const toast = useToastActions();
     return <Component {...props} toast={toast} />;
   };
+  WithToastComponent.displayName = `withToast(${Component.displayName || Component.name || 'Component'})`;
+  return WithToastComponent;
 };
+export { withToastWrapper as withToast };
 
-export const withLoadingState = (Component, loadingType = 'default') => {
-  return (props) => {
+const withLoadingStateWrapper = (Component, loadingType = 'default') => {
+  const WithLoadingStateComponent = (props) => {
     const { loading, ...restProps } = props;
     
     if (loading) {
@@ -297,10 +301,13 @@ export const withLoadingState = (Component, loadingType = 'default') => {
     
     return <Component {...restProps} />;
   };
+  WithLoadingStateComponent.displayName = `withLoadingState(${Component.displayName || Component.name || 'Component'})`;
+  return WithLoadingStateComponent;
 };
+export { withLoadingStateWrapper as withLoadingState };
 
-export const withErrorBoundary = (Component, errorType = 'default') => {
-  return class extends React.Component {
+const withErrorBoundaryWrapper = (Component) => {
+  class WithErrorBoundaryComponent extends React.Component {
     constructor(props) {
       super(props);
       this.state = { hasError: false, error: null };
@@ -327,8 +334,11 @@ export const withErrorBoundary = (Component, errorType = 'default') => {
 
       return <Component {...this.props} />;
     }
-  };
+  }
+  WithErrorBoundaryComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name || 'Component'})`;
+  return WithErrorBoundaryComponent;
 };
+export { withErrorBoundaryWrapper as withErrorBoundary };
 
 // Common prop types for TypeScript-like validation
 export const commonPropTypes = {

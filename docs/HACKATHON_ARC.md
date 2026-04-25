@@ -84,8 +84,21 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] Onboarding banner, SEO meta tags, share buttons
 - [x] Project add/edit/delete flow with GitHub auto-populate
 - [x] Transaction activity feed and navbar balance indicator
+- [x] Buyer + AIsa wallets funded on Arc Testnet (20 / 10 USDC)
+- [x] Featherless AI primary chat provider wired
+- [x] AIsa x402 agent-to-agent loop wired (OWS_MNEMONIC configured)
 - [ ] 50+ real on-chain transactions on Arc testnet
 - [ ] Transaction flow demo video
+
+### Funded Wallets (Arc Testnet)
+
+| Role | Address | Purpose |
+|------|---------|---------|
+| Agent / Buyer | `0x3De205B21e9d313332BB167Ebc1590A37BF96dF9` | Signs nanopayments + on-chain backings (`AGENT_PRIVATE_KEY` / `PRIVATE_KEY`) |
+| AIsa Buyer | `0x46Dd93AB40a62C03Ff1f8bFA9C013F2251E4EC07` | Pays Perplexity Sonar in agent-to-agent x402 loop (`OWS_MNEMONIC`) |
+| Gateway Recipient | `0x75d928668e7268241f194f441C23B5cE31936F67` | Collects USDC from nanopayments (`CIRCLE_GATEWAY_WALLET_ADDRESS`) |
+
+Funding tx (Agent → AIsa, 10 USDC): [`0x8881ebc18d6963a93bba010fd64b4908bdaa7c63c78bb6173b0a595ee2014d44`](https://explorer.testnet.arc.network/tx/0x8881ebc18d6963a93bba010fd64b4908bdaa7c63c78bb6173b0a595ee2014d44)
 
 ### Files Changed
 

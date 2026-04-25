@@ -4,22 +4,19 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
-import { useWallet } from '../contexts/WalletContext';
-import { useBuilderCredit } from '../contexts/WalletContext';
+import { useWallet, useBuilderCredit } from '../contexts/WalletContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
 import {
   BanknotesIcon,
-  ChartBarIcon,
   RocketLaunchIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
 export default function BackingPanel({ projectId, developerAddress }) {
-  const { account, signer, getUSDCBalance, getCurrentUSDCAddress } = useMetaMask();
-  const { coreContract, usdcContract } = useBuilderCredit();
+  const { account } = useWallet();
+  const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
 
   const [amount, setAmount] = useState('');
   const [multiplier, setMultiplier] = useState(200); // Default 2x (200)
@@ -30,50 +27,30 @@ export default function BackingPanel({ projectId, developerAddress }) {
   const [totalBacking, setTotalBacking] = useState('0');
   const [maxAllowedMultiplier, setMaxAllowedMultiplier] = useState(300);
 
+  const loadUserBalance = async () => {
+    try {
+      const balance = await getUSDCBalanceAsync();
+      setUserBalance(balance || '0');
+    } catch (err) {
+      console.error("Failed to load USDC balance:", err);
+      setUserBalance('0');
+    }
+  };
+
   useEffect(() => {
     if (account) {
       loadUserBalance();
     }
-  }, [account]);
+  }, [account, getUSDCBalanceAsync]);
 
+  // Load project backing info when projectId changes
   useEffect(() => {
-    if (projectId && coreContract) {
-      loadProjectBacking();
-      loadMaxMultiplier();
+    if (projectId && account) {
+      // For now, just show a placeholder until we have proper project data loading
+      // TODO: Load actual backing from contract or props
+      setTotalBacking('0');
     }
-  }, [projectId, coreContract, loadProjectBacking, loadMaxMultiplier]);
-
-  const loadUserBalance = async () => {
-    try {
-      const balance = await getUSDCBalance();
-      setUserBalance(balance);
-    } catch (err) {
-      console.error("Failed to load USDC balance:", err);
-    }
-  };
-
-  const loadMaxMultiplier = async () => {
-    try {
-      const project = await coreContract.projects(projectId);
-      const maxMult = await coreContract.getMaxMultiplier(project.creditScore);
-      setMaxAllowedMultiplier(maxMult.toNumber());
-      // Adjust selected multiplier if it exceeds max
-      if (multiplier > maxMult.toNumber()) {
-        setMultiplier(maxMult.toNumber());
-      }
-    } catch (err) {
-      console.error("Failed to load max multiplier:", err);
-    }
-  };
-
-  const loadProjectBacking = async () => {
-    try {
-      const backing = await coreContract.totalProjectBacking(projectId);
-      setTotalBacking(ethers.utils.formatUnits(backing, 6));
-    } catch (err) {
-      console.error("Failed to load project backing:", err);
-    }
-  };
+  }, [projectId, account]);
 
   const handleBackProject = async () => {
     if (!account) {
@@ -86,8 +63,8 @@ export default function BackingPanel({ projectId, developerAddress }) {
       return;
     }
 
-    if (!coreContract || !usdcContract) {
-      setError("Contracts not initialized");
+    if (!projectId) {
+      setError("Project not available");
       return;
     }
 
@@ -96,23 +73,14 @@ export default function BackingPanel({ projectId, developerAddress }) {
       setError(null);
       setSuccess(null);
 
-      const amountInUnits = ethers.utils.parseUnits(amount, 6);
+      // Use the backProject function from useBuilderCredit (handles approval + tx)
+      const txHash = await backProjectFn(projectId, multiplier, amount);
 
-      // Check allowance
-      const allowance = await usdcContract.allowance(account, coreContract.address);
-      if (allowance.lt(amountInUnits)) {
-        const approveTx = await usdcContract.approve(coreContract.address, ethers.constants.MaxUint256);
-        await approveTx.wait();
-      }
-
-      // Back project
-      const tx = await coreContract.backProject(projectId, multiplier, amountInUnits);
-      await tx.wait();
-
-      setSuccess(`Successfully backed project with ${amount} USDC at ${multiplier/100}x multiplier!`);
+      setSuccess(`Successfully backed project! Transaction: ${txHash.slice(0, 10)}...`);
       setAmount('');
       loadUserBalance();
-      loadProjectBacking();
+      // Reload project data
+      setTotalBacking(prev => (parseFloat(prev) + parseFloat(amount)).toString());
     } catch (err) {
       console.error("Backing failed:", err);
       setError(err.message || "Failed to back project");

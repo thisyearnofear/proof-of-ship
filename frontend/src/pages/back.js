@@ -57,7 +57,7 @@ export default function BackPage() {
             className="mb-6"
           />
 
-          {tab === "discover" ? <DiscoverTab /> : tab === "portfolio" ? <PortfolioTab /> : <EconomyTab />}
+          {tab === "discover" ? <DiscoverTab /> : tab === "portfolio" ? <PortfolioTab setTab={setTab} /> : <EconomyTab />}
         </div>
       </div>
     </ErrorBoundary>
@@ -68,7 +68,7 @@ export default function BackPage() {
 function DiscoverTab() {
   const { projects, loading, error, refresh } = useExpeditionData();
   const { connected, connect } = useWallet();
-  const { backProject, contractLoading } = useBuilderCredit();
+  const { backProject } = useBuilderCredit();
   const { payForScout, agentPrices, loading: nanopaymentLoading } = useNanopayment();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMultiplier, setFilterMultiplier] = useState("all");
@@ -287,37 +287,57 @@ function DiscoverTab() {
 }
 
 /* ── Portfolio Tab ── */
-function PortfolioTab() {
-  const { address } = useWallet();
-  const { coreContract, getBackerProjects } = useBuilderCredit();
+function PortfolioTab({ setTab }) {
+  const wallet = useWallet();
+  const { getBackerProjects, chainId, signer } = useBuilderCredit();
   const [loading, setLoading] = useState(true);
   const [backedDetails, setBackedDetails] = useState([]);
   const [compassScore, setCompassScore] = useState(400);
 
+  // Load portfolio when wallet changes
   useEffect(() => {
     async function load() {
-      if (!coreContract || !address) { setLoading(false); return; }
+      if (!wallet.account || !signer || typeof chainId !== 'number') {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
-        const projectIds = await getBackerProjects(address);
+        const projectIds = await getBackerProjects(wallet.account);
+        
+        if (!projectIds || projectIds.length === 0) {
+          setBackedDetails([]);
+          setCompassScore(400);
+          setLoading(false);
+          return;
+        }
+        
+        // Get contracts to read on-chain data
+        const { creditService } = await import('@/services/creditService');
+        const contracts = creditService.getContracts(chainId, signer);
+        if (!contracts) {
+          setLoading(false);
+          return;
+        }
+        
         const details = [];
         const roiHistory = [];
         for (const id of projectIds) {
           try {
-            const project = await coreContract.projects(id);
+            const project = await contracts.core.projects(id);
             // Read this backer's actual backing from the contract
             const backings = [];
             let idx = 0;
             try {
               while (true) {
-                const b = await coreContract.projectBackings(id, idx);
+                const b = await contracts.core.projectBackings(id, idx);
                 backings.push(b);
                 idx++;
               }
             } catch (e) { /* end of array */ }
 
             const myBacking = backings.find(
-              (b) => b.backer.toLowerCase() === address?.toLowerCase()
+              (b) => b.backer.toLowerCase() === wallet.account?.toLowerCase()
             );
             const stakeAmount = myBacking
               ? parseFloat(ethers.utils.formatUnits(myBacking.amount, 6))
@@ -351,18 +371,19 @@ function PortfolioTab() {
       finally { setLoading(false); }
     }
     load();
-  }, [coreContract, account, getBackerProjects]);
+  }, [wallet.account, signer, chainId, getBackerProjects]);
 
   const compassTier = getCompassTier(compassScore);
 
   if (loading) return <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>;
 
-  if (!account) {
+  if (!wallet.account) {
     return (
       <Card className="p-8 text-center">
         <ShieldCheckIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900">Connect Wallet</h3>
         <p className="text-gray-500 mt-2">Connect your wallet to view your backed positions.</p>
+        <Button onClick={() => wallet.connect()} className="mt-4">Connect Wallet</Button>
       </Card>
     );
   }
@@ -373,9 +394,9 @@ function PortfolioTab() {
         <RocketLaunchIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900">No Positions Yet</h3>
         <p className="text-gray-500 mt-2">You haven&apos;t backed any projects yet.</p>
-        <button onClick={() => {}} className="mt-4 text-blue-600 hover:underline text-sm">
-          Switch to Discover tab to find projects →
-        </button>
+        <Button onClick={() => setTab('discover')} variant="primary" className="mt-4">
+          Discover Projects to Back
+        </Button>
       </Card>
     );
   }

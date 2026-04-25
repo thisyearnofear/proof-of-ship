@@ -174,9 +174,9 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   // Initialize Circle Wallet Service
   useEffect(() => {
     initializeCircleService();
-  }, []);
+  }, [initializeCircleService]);
   
-  const initializeCircleService = async () => {
+  const initializeCircleService = useCallback(async () => {
     try {
       const config = await walletService.getConfig();
       if (config.success) {
@@ -186,9 +186,9 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.warn('Circle initialization skipped:', err.message);
     }
-  };
+  }, [refreshCircleWallets]);
   
-  const refreshCircleWallets = async () => {
+  const refreshCircleWallets = useCallback(async () => {
     try {
       const result = await walletService.getWallets();
       if (result.success) {
@@ -197,9 +197,9 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       console.warn('Failed to fetch Circle wallets:', err?.message || err);
     }
-  };
+  }, []);
   
-  const createCircleWallet = async (config: any = {}) => {
+  const createCircleWallet = useCallback(async (config: any = {}) => {
     if (!circleConfig) throw new Error('Circle not initialized');
     setLoading(true);
     try {
@@ -221,9 +221,9 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [circleConfig, account, refreshCircleWallets]);
   
-  const transferUSDC = async (amount: number, destinationAddress: string, walletId: string, reason?: string) => {
+  const transferUSDC = useCallback(async (amount: number, destinationAddress: string, walletId: string, reason?: string) => {
     setLoading(true);
     try {
       const transferRequest = {
@@ -242,7 +242,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   
   // Nanopayment methods
   const initializeNanopayment = useCallback(async (pk: string) => {
@@ -444,7 +444,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     setCreditProfile(null);
   };
   
-  const getBalance = async (showLoading = true) => {
+  const getBalance = useCallback(async (showLoading = true) => {
     if (!activeProvider || !account) return null;
     try {
       if (showLoading) setLoading(true);
@@ -458,7 +458,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [activeProvider, account]);
   
   const getTokenBalance = async (tokenAddress: string, decimals: number = 18) => {
     if (!activeProvider || !account || !ethersProvider) return '0';
@@ -533,26 +533,37 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   
   // Ethers provider initialization
   useEffect(() => {
-    if (activeProvider && connected && typeof chainId === 'number') {
-      const ethProvider = new ethers.providers.Web3Provider(activeProvider as providers.ExternalProvider);
+    if (!activeProvider || !connected || typeof chainId !== 'number') {
+      setEthersProvider(null);
+      setSigner(null);
+      return;
+    }
+
+    let cancelled = false;
+    const ethProvider = new ethers.providers.Web3Provider(activeProvider as providers.ExternalProvider);
+
+    if (!cancelled) {
       setEthersProvider(ethProvider);
       setSigner(ethProvider.getSigner());
       const networkName = NETWORK_CONFIGS[chainId]?.chainName || `Chain ID: ${chainId}`;
       setNetworkName(networkName);
-      getBalance();
-      
-      const handleNewBlock = () => getBalance(false);
-      ethProvider.on('block', handleNewBlock);
-      return () => ethProvider.off('block', handleNewBlock);
-    } else {
-      setEthersProvider(null);
-      setSigner(null);
     }
-  }, [activeProvider, connected, chainId]);
+
+    getBalance();
+
+    const handleNewBlock = () => getBalance(false);
+    ethProvider.on('block', handleNewBlock);
+
+    return () => {
+      cancelled = true;
+      ethProvider.off('block', handleNewBlock);
+    };
+  }, [activeProvider, connected, chainId, getBalance]);
   
   // Listen for account/chain changes
   useEffect(() => {
     if (!activeProvider) return;
+
     const handleAccountsChanged = (accounts: string[]) => {
       if (accounts.length === 0) disconnect();
       else getBalance();
@@ -568,7 +579,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       activeProvider.removeListener('accountsChanged', handleAccountsChanged);
       activeProvider.removeListener('chainChanged', handleChainChanged);
     };
-  }, [activeProvider]);
+  }, [activeProvider, disconnect, getBalance]);
   
   const value: WalletContextType = {
     // MetaMask

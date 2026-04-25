@@ -7,30 +7,13 @@ import React, { useState, useEffect } from 'react';
 import { useWallet, useBuilderCredit } from '../contexts/WalletContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
-import { LoadingSpinner } from './common/LoadingStates';
+import { LoadingSpinner, MarketConfidenceSkeleton } from './common/LoadingStates';
 import {
   BanknotesIcon,
   RocketLaunchIcon,
   ShieldCheckIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
-
-// Skeleton loader for market confidence section (uses semantic tokens for dark mode)
-const MarketConfidenceSkeleton = () => (
-  <div className="space-y-3">
-    <div className="flex justify-between items-center">
-      <div className="flex items-center text-sm text-secondary">
-        <div className="w-4 h-4 bg-surface-secondary rounded animate-pulse mr-1"></div>
-        <div className="h-4 w-28 bg-surface-secondary rounded animate-pulse"></div>
-      </div>
-      <div className="h-5 w-24 bg-surface-secondary rounded animate-pulse"></div>
-    </div>
-    <div className="w-full bg-surface-secondary rounded-full h-2">
-      <div className="bg-surface-secondary h-2 rounded-full animate-pulse w-3/4"></div>
-    </div>
-    <div className="h-4 w-36 bg-surface-secondary rounded animate-pulse"></div>
-  </div>
-);
 
 export default function BackingPanel({ projectId, developerAddress }) {
   const wallet = useWallet();

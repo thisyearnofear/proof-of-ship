@@ -230,6 +230,23 @@ export const LoadingSpinner = ({ size = 'medium', className = '' }) => {
   );
 };
 
+// Market Confidence skeleton (for BackingPanel)
+export const MarketConfidenceSkeleton = () => (
+  <div className="space-y-3">
+    <div className="flex justify-between items-center">
+      <div className="flex items-center text-sm text-secondary">
+        <div className="w-4 h-4 bg-surface-secondary rounded animate-pulse mr-1"></div>
+        <div className="h-4 w-28 bg-surface-secondary rounded animate-pulse"></div>
+      </div>
+      <div className="h-5 w-24 bg-surface-secondary rounded animate-pulse"></div>
+    </div>
+    <div className="w-full bg-surface-secondary rounded-full h-2">
+      <div className="bg-surface-secondary h-2 rounded-full animate-pulse w-3/4"></div>
+    </div>
+    <div className="h-4 w-36 bg-surface-secondary rounded animate-pulse"></div>
+  </div>
+);
+
 // Error state component
 export const ErrorState = ({ 
   error, 

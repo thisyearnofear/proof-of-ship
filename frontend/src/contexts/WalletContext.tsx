@@ -11,6 +11,10 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { MetaMaskProvider, useSDK } from '@metamask/sdk-react';
+import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { Connection, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
+import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { ethers, providers, Signer } from 'ethers';
 import { getUSDCAddress } from '../config/networks';
 import { walletService } from '../services/walletService';
@@ -147,6 +151,13 @@ export const useWallet = () => {
 
 const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const { sdk, connected, connecting, provider, chainId, account } = useSDK();
+  const { 
+    publicKey, 
+    connected: solanaConnectedReal, 
+    connecting: solanaConnectingReal, 
+    disconnect: disconnectSolanaReal 
+  } = useSolanaWallet();
+  const { setVisible: setSolanaModalVisible } = useWalletModal();
   
   // MetaMask state
   const [activeProvider, setActiveProvider] = useState<any>(null);
@@ -176,6 +187,28 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const [solanaConnecting, setSolanaConnecting] = useState<boolean>(false);
   const [solanaBalance, setSolanaBalance] = useState<string | null>(null);
   const [activeChainFamily, setActiveChainFamily] = useState<'evm' | 'solana'>('evm');
+
+  // Sync Solana state from adapter
+  useEffect(() => {
+    setSolanaAddress(publicKey ? publicKey.toBase58() : null);
+    setSolanaConnected(solanaConnectedReal);
+    setSolanaConnecting(solanaConnectingReal);
+    
+    if (solanaConnectedReal && publicKey) {
+      const fetchSolanaBalance = async () => {
+        try {
+          const connection = new Connection(clusterApiUrl('devnet'));
+          const bal = await connection.getBalance(publicKey);
+          setSolanaBalance((bal / LAMPORTS_PER_SOL).toFixed(4));
+        } catch (err) {
+          console.warn('Failed to fetch Solana balance:', err);
+        }
+      };
+      fetchSolanaBalance();
+    } else {
+      setSolanaBalance(null);
+    }
+  }, [publicKey, solanaConnectedReal, solanaConnectingReal]);
 
   // Sync active provider from SDK
   useEffect(() => {
@@ -473,19 +506,26 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   
   // Solana Methods (Phase 1 preparation)
   const connectSolana = useCallback(async () => {
-    setSolanaConnecting(true);
     try {
-      console.log('Solana connection will be implemented in Phase 2');
+      setSolanaConnecting(true);
+      setSolanaModalVisible(true);
+    } catch (err) {
+      console.error('Solana connection error:', err);
     } finally {
       setSolanaConnecting(false);
     }
-  }, []);
+  }, [setSolanaModalVisible]);
 
-  const disconnectSolana = useCallback(() => {
-    setSolanaAddress(null);
-    setSolanaConnected(false);
-    setSolanaBalance(null);
-  }, []);
+  const disconnectSolana = useCallback(async () => {
+    try {
+      await disconnectSolanaReal();
+      setSolanaAddress(null);
+      setSolanaConnected(false);
+      setSolanaBalance(null);
+    } catch (err) {
+      console.error('Solana disconnect error:', err);
+    }
+  }, [disconnectSolanaReal]);
   
   const getBalance = useCallback(async (showLoading = true) => {
     if (!activeProvider || !account) return null;
@@ -873,7 +913,9 @@ export const WalletProvider = ({ children, demand = false }: { children: ReactNo
   
   return (
     <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
-      <WalletContextProviderInner>{children}</WalletContextProviderInner>
+      <SolanaWalletProvider>
+        <WalletContextProviderInner>{children}</WalletContextProviderInner>
+      </SolanaWalletProvider>
     </MetaMaskProvider>
   );
 };

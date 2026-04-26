@@ -1,6 +1,7 @@
 import React from "react";
+import { getExplorerUrl } from "../../utils/web3";
 
-export default function RecentTransactionsTable({ transactions, loading }) {
+export default function RecentTransactionsTable({ transactions, loading, chainId = 44787 }) {
   if (loading) return <div className="py-6 text-center text-gray-400">Loading transactions…</div>;
   if (!transactions || transactions.length === 0)
     return <div className="py-6 text-center text-gray-400">No recent transactions.</div>;
@@ -22,7 +23,7 @@ export default function RecentTransactionsTable({ transactions, loading }) {
             <tr key={tx.hash} className="border-b last:border-0">
               <td className="px-2 py-1 truncate max-w-[120px]">
                 <a
-                  href={`https://celoscan.io/tx/${tx.hash}`}
+                  href={getExplorerUrl(tx.hash, tx.chainId || chainId, "tx")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/common';
+import { getExplorerUrl } from '@/utils/web3';
 import {
   ClockIcon,
   CheckCircleIcon,
@@ -188,10 +189,15 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
                   {new Date(funding.requestDate).toLocaleDateString()}
                 </div>
                 {funding.transactionHash && (
-                  <button className="flex items-center text-primary-600 hover:text-primary-700">
+                  <a 
+                    href={getExplorerUrl(funding.transactionHash, funding.chainId || (funding.network === 'ethereum' ? 1 : funding.network === 'polygon' ? 137 : 44787), 'tx')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-primary-600 hover:text-primary-700"
+                  >
                     <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-1" />
                     View Transaction
-                  </button>
+                  </a>
                 )}
               </div>
             </div>
@@ -298,9 +304,14 @@ const FundingRecord = ({ funding, expanded, onToggleExpand }) => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-secondary">Transaction Hash:</span>
-                    <button className="text-primary-600 hover:text-primary-700 font-mono text-xs">
+                    <a 
+                      href={getExplorerUrl(funding.transactionHash, funding.chainId || (funding.network === 'ethereum' ? 1 : funding.network === 'polygon' ? 137 : 44787), 'tx')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary-600 hover:text-primary-700 font-mono text-xs"
+                    >
                       {funding.transactionHash.slice(0, 10)}...{funding.transactionHash.slice(-8)}
-                    </button>
+                    </a>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-secondary">Credit Score at Time:</span>

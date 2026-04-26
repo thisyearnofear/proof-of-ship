@@ -9,6 +9,7 @@ import { useWallet } from '../contexts/WalletContext';
 import { ethers } from 'ethers';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';
+import { getExplorerUrl } from '../utils/web3';
 import {
   ArrowsRightLeftIcon,
   CheckCircleIcon,
@@ -224,7 +225,7 @@ export default function TransferHistory() {
                             <div className="flex justify-between">
                               <span className="text-gray-500">Transaction Hash:</span>
                               <a 
-                                href={`https://etherscan.io/tx/${transfer.txHash}`} 
+                                href={getExplorerUrl(transfer.txHash, transfer.fromChainId, "tx")} 
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-blue-600 font-mono hover:underline"

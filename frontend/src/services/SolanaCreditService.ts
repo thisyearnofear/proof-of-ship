@@ -12,6 +12,7 @@ interface ProjectData {
     projectName: string;
     milestoneDescriptions: string[];
     milestoneAmounts: string[] | number[];
+    verifier?: string;
 }
 
 interface ProjectBackingData {
@@ -40,6 +41,9 @@ class SolanaCreditService {
         console.log('Solana: requestFunding', projectData);
         
         try {
+            // Default verifier if none provided (e.g., a platform-wide verifier)
+            const verifier = projectData.verifier || publicKey.toBase58();
+
             // Derive Project PDA
             const [projectPda] = await PublicKey.findProgramAddress(
                 [
@@ -67,7 +71,8 @@ class SolanaCreditService {
                 projectData.githubUrl,
                 projectData.projectName,
                 projectData.milestoneDescriptions,
-                projectData.milestoneAmounts.map(amt => new BN(amt))
+                projectData.milestoneAmounts.map(amt => new BN(amt)),
+                new PublicKey(verifier)
             ).accounts({
                 project: projectPda,
                 creditLine: creditLinePda,
@@ -128,6 +133,56 @@ class SolanaCreditService {
             };
         } catch (error) {
             console.error('Solana repayLoan error:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Verify a milestone and trigger payout
+     */
+    async verifyMilestone(
+        connection: Connection, 
+        verifierPublicKey: PublicKey, 
+        projectPda: PublicKey,
+        developerTokenAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        milestoneIndex: number
+    ) {
+        console.log('Solana: verifyMilestone', { projectPda: projectPda.toBase58(), milestoneIndex });
+
+        try {
+            // Derive Vault Authority PDA
+            const [vaultAuthorityPda] = await PublicKey.findProgramAddress(
+                [
+                    Buffer.from("vault_authority"),
+                    projectPda.toBuffer()
+                ],
+                this.PROGRAM_ID
+            );
+
+            // In a real implementation, we'd construct the instruction
+            /*
+            const program = new Program(IDL, this.PROGRAM_ID, provider);
+            const tx = await program.methods.verifyMilestone(milestoneIndex)
+                .accounts({
+                    project: projectPda,
+                    developerTokenAccount,
+                    vaultTokenAccount,
+                    vaultAuthority: vaultAuthorityPda,
+                    verifier: verifierPublicKey,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                })
+                .transaction();
+            */
+
+            return {
+                success: true,
+                hash: 'solana_verify_hash_' + Date.now(),
+                projectPda: projectPda.toBase58(),
+                milestoneIndex
+            };
+        } catch (error) {
+            console.error('Solana verifyMilestone error:', error);
             throw error;
         }
     }

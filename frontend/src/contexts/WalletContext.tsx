@@ -93,6 +93,16 @@ interface WalletContextType {
   creditProfile: CreditProfile | null;
   repayLoan: (amount: string | number) => Promise<void>;
   loadCreditProfile: () => Promise<void>;
+
+  // Solana integration (Phase 1 preparation)
+  solanaAddress: string | null;
+  solanaConnected: boolean;
+  solanaConnecting: boolean;
+  solanaBalance: string | null;
+  connectSolana: () => Promise<void>;
+  disconnectSolana: () => void;
+  activeChainFamily: 'evm' | 'solana';
+  setActiveChainFamily: (family: 'evm' | 'solana') => void;
 }
 
 // ============================================================================
@@ -160,6 +170,13 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   // Builder Credit state
   const [creditProfile, setCreditProfile] = useState<CreditProfile | null>(null);
   
+  // Solana state (Phase 1 preparation)
+  const [solanaAddress, setSolanaAddress] = useState<string | null>(null);
+  const [solanaConnected, setSolanaConnected] = useState<boolean>(false);
+  const [solanaConnecting, setSolanaConnecting] = useState<boolean>(false);
+  const [solanaBalance, setSolanaBalance] = useState<string | null>(null);
+  const [activeChainFamily, setActiveChainFamily] = useState<'evm' | 'solana'>('evm');
+
   // Sync active provider from SDK
   useEffect(() => {
     if (sdk?.getProvider()) {
@@ -454,6 +471,22 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     setCreditProfile(null);
   };
   
+  // Solana Methods (Phase 1 preparation)
+  const connectSolana = useCallback(async () => {
+    setSolanaConnecting(true);
+    try {
+      console.log('Solana connection will be implemented in Phase 2');
+    } finally {
+      setSolanaConnecting(false);
+    }
+  }, []);
+
+  const disconnectSolana = useCallback(() => {
+    setSolanaAddress(null);
+    setSolanaConnected(false);
+    setSolanaBalance(null);
+  }, []);
+  
   const getBalance = useCallback(async (showLoading = true) => {
     if (!activeProvider || !account) return null;
     try {
@@ -609,6 +642,9 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     payForAgent, payForHealthScore, payForScout, payForVerification, payForRebalance,
     // Builder Credit
     creditProfile, repayLoan, loadCreditProfile,
+    // Solana (Phase 1)
+    solanaAddress, solanaConnected, solanaConnecting, solanaBalance,
+    connectSolana, disconnectSolana, activeChainFamily, setActiveChainFamily,
   } as WalletContextType;
   
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

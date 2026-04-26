@@ -3,6 +3,10 @@
  * Using a lightweight validation approach without external dependencies
  */
 
+// Regex patterns for address validation
+const EVM_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+const SOLANA_ADDRESS_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
 // Project validation schema
 export const validateProject = (project) => {
   const errors = [];
@@ -70,12 +74,16 @@ export const validateProject = (project) => {
         errors.push(`Contract at index ${index} must have a valid address`);
       }
 
-      if (contract.address && !/^0x[a-fA-F0-9]{40}$/.test(contract.address)) {
-        errors.push(`Contract at index ${index} has invalid Ethereum address format`);
-      }
-
       if (!contract.chain || typeof contract.chain !== 'string') {
         errors.push(`Contract at index ${index} must specify a chain`);
+      }
+
+      if (contract.address && contract.chain) {
+        const isSolana = contract.chain.toLowerCase() === 'solana';
+        const regex = isSolana ? SOLANA_ADDRESS_REGEX : EVM_ADDRESS_REGEX;
+        if (!regex.test(contract.address)) {
+          errors.push(`Contract at index ${index} has invalid ${isSolana ? 'Solana' : 'Ethereum'} address format`);
+        }
       }
 
       const validTypes = ['ERC20', 'ERC721', 'ERC1155', 'Custom'];
@@ -88,8 +96,10 @@ export const validateProject = (project) => {
   // Validate contractAddresses map if present
   if (project.contractAddresses && typeof project.contractAddresses === 'object') {
     Object.entries(project.contractAddresses).forEach(([chain, address]) => {
-      if (typeof address !== 'string' || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-        errors.push(`contractAddresses["${chain}"] must be a valid Ethereum address`);
+      const isSolana = chain.toLowerCase() === 'solana';
+      const regex = isSolana ? SOLANA_ADDRESS_REGEX : EVM_ADDRESS_REGEX;
+      if (typeof address !== 'string' || !regex.test(address)) {
+        errors.push(`contractAddresses["${chain}"] must be a valid ${isSolana ? 'Solana' : 'Ethereum'} address`);
       }
     });
   }
@@ -209,17 +219,21 @@ export const sanitizeProject = (project) => {
       ? project.chains.filter(chain => validChains.includes(chain.toLowerCase()))
       : [],
     contracts: Array.isArray(project.contracts)
-      ? project.contracts.filter(contract => 
-          contract.address && 
-          contract.chain &&
-          /^0x[a-fA-F0-9]{40}$/.test(contract.address)
-        )
+      ? project.contracts.filter(contract => {
+          if (!contract.address || !contract.chain) return false;
+          const isSolana = contract.chain.toLowerCase() === 'solana';
+          const regex = isSolana ? SOLANA_ADDRESS_REGEX : EVM_ADDRESS_REGEX;
+          return regex.test(contract.address);
+        })
       : [],
     contractAddresses: project.contractAddresses && typeof project.contractAddresses === 'object'
       ? Object.fromEntries(
-          Object.entries(project.contractAddresses).filter(([chain, address]) =>
-            typeof address === 'string' && /^0x[a-fA-F0-9]{40}$/.test(address)
-          )
+          Object.entries(project.contractAddresses).filter(([chain, address]) => {
+            if (typeof address !== 'string') return false;
+            const isSolana = chain.toLowerCase() === 'solana';
+            const regex = isSolana ? SOLANA_ADDRESS_REGEX : EVM_ADDRESS_REGEX;
+            return regex.test(address);
+          })
         )
       : {},
     repositories: Array.isArray(project.repositories)

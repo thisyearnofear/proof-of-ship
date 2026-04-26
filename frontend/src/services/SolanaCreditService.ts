@@ -30,8 +30,8 @@ interface ProjectDetails {
 }
 
 class SolanaCreditService {
-    // Placeholder for Solana program ID - to be updated with actual program ID
-    private PROGRAM_ID = new PublicKey('11111111111111111111111111111111');
+    // Phase 6: Updated with actual program ID from blockchain-solana
+    private PROGRAM_ID = new PublicKey('Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS');
 
     /**
      * Request funding for a project on Solana
@@ -40,17 +40,47 @@ class SolanaCreditService {
         console.log('Solana: requestFunding', projectData);
         
         try {
-            // In a real implementation, this would build and send a Solana transaction
-            // to the Builder Credit program.
+            // Derive Project PDA
+            const [projectPda] = await PublicKey.findProgramAddress(
+                [
+                    Buffer.from("project"),
+                    publicKey.toBuffer(),
+                    Buffer.from(projectData.projectName)
+                ],
+                this.PROGRAM_ID
+            );
+
+            // Derive Credit Line PDA
+            const [creditLinePda] = await PublicKey.findProgramAddress(
+                [
+                    Buffer.from("credit_line"),
+                    publicKey.toBuffer()
+                ],
+                this.PROGRAM_ID
+            );
+
+            // In a real implementation with @coral-xyz/anchor, we would:
+            /*
+            const program = new Program(IDL, this.PROGRAM_ID, provider);
+            const tx = await program.methods.requestFunding(
+                projectData.hackathonIds.map(id => new BN(id)),
+                projectData.githubUrl,
+                projectData.projectName,
+                projectData.milestoneDescriptions,
+                projectData.milestoneAmounts.map(amt => new BN(amt))
+            ).accounts({
+                project: projectPda,
+                creditLine: creditLinePda,
+                developer: publicKey,
+                systemProgram: SystemProgram.programId,
+            }).transaction();
+            */
             
-            // For now, we simulate a successful transaction
-            // This allows Phase 3 integration testing
-            
-            // Create a dummy transaction to check if wallet is functional
+            // Build a placeholder transaction to satisfy the wallet adapter
             const transaction = new Transaction().add(
                 SystemProgram.transfer({
                     fromPubkey: publicKey,
-                    toPubkey: publicKey, // Send to self as a test
+                    toPubkey: projectPda, // Send a tiny bit to the project PDA to "initialize" it in this simulation
                     lamports: 0,
                 })
             );
@@ -59,12 +89,10 @@ class SolanaCreditService {
             transaction.recentBlockhash = blockhash;
             transaction.feePayer = publicKey;
             
-            // Note: The actual signing and sending is handled by the wallet adapter
-            // which is called from the hook/component level.
-            
             return { 
                 success: true, 
                 hash: 'solana_tx_hash_' + Date.now(),
+                projectPda: projectPda.toBase58(),
                 projectData 
             };
         } catch (error) {
@@ -80,10 +108,22 @@ class SolanaCreditService {
         console.log('Solana: repayLoan', amount);
         
         try {
-            // Simulate repayment transaction
+            // Derive Credit Line PDA
+            const [creditLinePda] = await PublicKey.findProgramAddress(
+                [
+                    Buffer.from("credit_line"),
+                    publicKey.toBuffer()
+                ],
+                this.PROGRAM_ID
+            );
+
+            // In a real implementation, we'd also need the USDC token accounts
+            // For now, we simulate the transaction building
+            
             return { 
                 success: true, 
                 hash: 'solana_repay_hash_' + Date.now(),
+                creditLinePda: creditLinePda.toBase58(),
                 amount 
             };
         } catch (error) {

@@ -1,8 +1,34 @@
 import { JsonRpcProvider, Contract, formatEther } from 'ethers';
+import { NETWORK_CONFIGS } from '../config/networks';
 
-// Default Celo provider URLs
-const CELO_MAINNET_RPC = 'https://forno.celo.org';
-const CELO_ALFAJORES_RPC = 'https://alfajores-forno.celo-testnet.org';
+/**
+ * Get explorer URL for an address or transaction
+ * @param {string} identifier - Address or transaction hash
+ * @param {string|number} chainId - Chain ID or network identifier
+ * @param {string} type - 'address' or 'tx'
+ * @returns {string} Explorer URL
+ */
+export function getExplorerUrl(identifier, chainId = 44787, type = 'address') {
+  const config = NETWORK_CONFIGS[chainId];
+  let baseUrl = config?.explorer || 'https://celoscan.io';
+  
+  // Clean trailing slash if present
+  if (baseUrl.endsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
+
+  // Special handling for Solana since it uses query parameters for clusters
+  if (chainId === 'sol-devnet' || chainId === 'sol') {
+    const cluster = chainId === 'sol-devnet' ? '?cluster=devnet' : '';
+    if (type === 'tx') {
+      return `https://explorer.solana.com/tx/${identifier}${cluster}`;
+    }
+    return `https://explorer.solana.com/address/${identifier}${cluster}`;
+  }
+  
+  const path = type === 'tx' ? 'tx' : 'address';
+  return `${baseUrl}/${path}/${identifier}`;
+}
 
 /**
  * Create an ethers provider for the specified network
@@ -10,7 +36,10 @@ const CELO_ALFAJORES_RPC = 'https://alfajores-forno.celo-testnet.org';
  * @returns {JsonRpcProvider} Ethers provider
  */
 export function getProvider(network = 'mainnet') {
-  const rpcUrl = network === 'testnet' ? CELO_ALFAJORES_RPC : CELO_MAINNET_RPC;
+  // 42220 is Celo Mainnet, 44787 is Celo Alfajores
+  const chainId = network === 'testnet' ? 44787 : 42220;
+  const config = NETWORK_CONFIGS[chainId];
+  const rpcUrl = config?.rpcUrl || (network === 'testnet' ? 'https://alfajores-forno.celo-testnet.org' : 'https://forno.celo.org');
   return new JsonRpcProvider(rpcUrl);
 }
 
@@ -89,16 +118,3 @@ export function formatAddress(address, startChars = 6, endChars = 4) {
   return `${address.substring(0, startChars)}...${address.substring(address.length - endChars)}`;
 }
 
-/**
- * Get explorer URL for an address
- * @param {string} address - Contract address
- * @param {string} network - 'mainnet' or 'testnet'
- * @returns {string} Explorer URL
- */
-export function getExplorerUrl(address, network = 'mainnet') {
-  const baseUrl = network === 'testnet' 
-    ? 'https://alfajores.celoscan.io/address/' 
-    : 'https://celoscan.io/address/';
-  
-  return `${baseUrl}${address}`;
-}

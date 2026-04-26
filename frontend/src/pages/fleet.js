@@ -74,6 +74,10 @@ const FleetMap = () => {
                   <span className="w-3 h-3 rounded-full bg-purple-500"></span>
                   <span className="text-xs text-slate-400">Linea</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-[#14F195]"></span>
+                  <span className="text-xs text-slate-400">Solana</span>
+                </div>
               </div>
             </div>
 
@@ -104,8 +108,9 @@ const FleetMap = () => {
                 ) : (
                   projects.map((project) => {
                     const { x, y } = getCoordinates(project.name);
-                    const color = project.ecosystem === 'base' ? 'text-blue-500' : 
-                                  project.ecosystem === 'celo' ? 'text-green-500' : 'text-purple-500';
+                    const color = project.ecosystem === 'base' ? 'text-blue-500' :
+                                  project.ecosystem === 'celo' ? 'text-green-500' :
+                                  project.ecosystem === 'solana' ? 'text-[#14F195]' : 'text-purple-500';
                     return (
                       <div 
                         key={project.id}

@@ -1,0 +1,10 @@
+# Solana/Anchor
+.anchor/
+target/
+**/*.rs.bk
+node_modules/
+test-ledger/
+.env
+
+# General
+.DS_Store

@@ -180,6 +180,54 @@ pub mod blockchain_solana {
 
         Ok(())
     }
+
+    pub fn claim_reward(
+        ctx: Context<ClaimReward>,
+        backing_index: u32,
+    ) -> Result<()> {
+        let project = &mut ctx.accounts.project;
+        let backer = &ctx.accounts.backer;
+
+        if backing_index as usize >= project.backings.len() {
+            return Err(ErrorCode::InvalidBackingIndex.into());
+        }
+
+        let backing = &mut project.backings[backing_index as usize];
+
+        require_keys_eq!(
+            backing.backer,
+            backer.key(),
+            ErrorCode::UnauthorizedBacker
+        );
+
+        if backing.claimed {
+            return Err(ErrorCode::BackingAlreadyClaimed.into());
+        }
+
+        let reward_amount = backing.amount; // Simple 1:1 claim for now
+        
+        backing.claimed = true;
+
+        // Payout to backer
+        let project_key = project.key();
+        let seeds = &[
+            b"vault_authority",
+            project_key.as_ref(),
+            &[ctx.bumps.vault_authority],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.vault_token_account.to_account_info(),
+            to: ctx.accounts.backer_token_account.to_account_info(),
+            authority: ctx.accounts.vault_authority.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+        token::transfer(cpi_ctx, reward_amount)?;
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -226,8 +274,18 @@ pub struct BackProject<'info> {
     #[account(mut)]
     pub backer_token_account: Account<'info, TokenAccount>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = vault_token_account.owner == vault_authority.key()
+    )]
     pub vault_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA used as authority for the vault
+    #[account(
+        seeds = [b"vault_authority", project.key().as_ref()],
+        bump
+    )]
+    pub vault_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
 }
@@ -247,8 +305,25 @@ pub struct RepayLoan<'info> {
     #[account(mut)]
     pub developer_token_account: Account<'info, TokenAccount>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = vault_token_account.owner == vault_authority.key()
+    )]
     pub vault_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA used as authority for the vault (we need to know which project this repayment is for, 
+    /// or have a global credit line vault. For now let's assume it's passed or derived from somewhere.
+    /// Since CreditLine doesn't have a project, maybe we need a different vault or pass project key)
+    /// Looking at the current lib.rs, RepayLoan doesn't take a project.
+    /// Let's add project to RepayLoan to know which vault to pay into.
+    pub project: Account<'info, Project>,
+
+    /// CHECK: PDA used as authority for the vault
+    #[account(
+        seeds = [b"vault_authority", project.key().as_ref()],
+        bump
+    )]
+    pub vault_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
 }
@@ -261,6 +336,12 @@ pub enum ErrorCode {
     MilestoneAlreadyCompleted,
     #[msg("The milestone index is out of bounds.")]
     InvalidMilestoneIndex,
+    #[msg("The backing index is out of bounds.")]
+    InvalidBackingIndex,
+    #[msg("The signer is not the authorized backer for this backing.")]
+    UnauthorizedBacker,
+    #[msg("The reward has already been claimed.")]
+    BackingAlreadyClaimed,
 }
 
 #[derive(Accounts)]
@@ -286,6 +367,33 @@ pub struct VerifyMilestone<'info> {
     pub vault_authority: AccountInfo<'info>,
 
     pub verifier: Signer<'info>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimReward<'info> {
+    #[account(mut)]
+    pub project: Account<'info, Project>,
+
+    #[account(mut)]
+    pub backer: Signer<'info>,
+
+    #[account(mut)]
+    pub backer_token_account: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        constraint = vault_token_account.owner == vault_authority.key()
+    )]
+    pub vault_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA used as authority for the vault
+    #[account(
+        seeds = [b"vault_authority", project.key().as_ref()],
+        bump
+    )]
+    pub vault_authority: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
 }

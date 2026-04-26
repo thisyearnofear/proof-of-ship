@@ -44,7 +44,9 @@ async function handler(req, res) {
             model: "sonar",
             messages: [{
               role: "user",
-              content: `Analyze GitHub pull request #${prId}. Check code quality, test coverage, and security. Respond ONLY with JSON: {"approved": boolean, "confidence": number between 0 and 1, "summary": "one sentence", "issues": number}`
+              content: `Analyze GitHub pull request #${prId}. Check code quality, test coverage, and security. 
+              Respond ONLY with JSON: {"approved": boolean, "confidence": number between 0 and 1, "summary": "one sentence", "issues": number}.
+              Note: If this is a Solana/Rust project, evaluate Anchor framework usage and Rust safety. If EVM, evaluate Solidity security.`
             }],
           }),
         });

@@ -47,7 +47,8 @@ export function scoreGithub(stats) {
 export function scoreCompleteness(project) {
   let score = 0;
   if (project.description && project.description.length > 50) score += 20;
-  if (project.contractAddress) score += 25;
+  // Support both EVM contractAddress and Solana programId/address
+  if (project.contractAddress || project.programId || project.deploymentProof) score += 25;
   if (project.website) score += 10;
   if (project.milestones && project.milestones.length > 0) score += 25;
   if (project.hackathons && project.hackathons.length > 0) score += 10;

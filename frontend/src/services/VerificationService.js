@@ -103,8 +103,8 @@ class VerificationService {
    */
   async _verifyOnchain(hackathonData, userId, verificationProof) {
     // In a real implementation, this would:
-    // 1. Connect to blockchain (Ethers.js, Web3.js)
-    // 2. Call verification contract
+    // 1. Connect to blockchain (Ethers.js, Web3.js, @solana/web3.js)
+    // 2. Call verification contract or check transaction status
     // 3. Validate proof onchain
     // 4. Return verification result
     
@@ -113,14 +113,22 @@ class VerificationService {
     console.log(`Contract: ${hackathonData.verificationContract}`);
     console.log(`Proof: ${verificationProof}`);
 
-    // MODULAR: Simulated verification logic
-    // In production, replace with actual contract call
-    const isValidProof = verificationProof && verificationProof.startsWith('0x');
+    // MODULAR: Multi-chain transaction verification logic
+    // EVM: 0x followed by 64 hex characters
+    const isEvmHash = /^0x[a-fA-F0-9]{64}$/.test(verificationProof);
+    
+    // Solana: Base58 string, typically 32-88 characters
+    // Note: Transaction signatures are 64 bytes -> ~88 chars in Base58
+    const isSolanaHash = /^[1-9A-HJ-NP-Za-km-z]{32,88}$/.test(verificationProof);
+
+    const isValidProof = isEvmHash || isSolanaHash;
+    const chainType = isEvmHash ? 'evm' : (isSolanaHash ? 'solana' : 'unknown');
 
     return {
       verified: isValidProof,
       details: {
         method: 'onchain',
+        chainType,
         contract: hackathonData.verificationContract,
         proof: verificationProof,
         validated: isValidProof
@@ -334,14 +342,17 @@ class VerificationService {
       }
 
       // MODULAR: Simulated deployment verification
-      // In production, this would verify onchain deployment
-      const isValidDeployment = deploymentProof && deploymentProof.startsWith('0x');
+      // Support both EVM and Solana transaction formats
+      const isEvm = /^0x[a-fA-F0-9]{64}$/.test(deploymentProof);
+      const isSolana = /^[1-9A-HJ-NP-Za-km-z]{32,88}$/.test(deploymentProof);
+      const isValidDeployment = isEvm || isSolana;
 
       if (isValidDeployment) {
         // Update project with deployment info
         await projectRef.update({
           deploymentVerified: true,
           deploymentProof,
+          deploymentChain: isEvm ? 'evm' : 'solana',
           deploymentVerifiedAt: new Date().toISOString()
         });
       }

@@ -115,8 +115,11 @@ async function scoutHandler(req, res) {
     if (isAisaConfigured()) {
       try {
         const avgScore = Math.round(scored.reduce((s, p) => s + p.score, 0) / scored.length);
-        const topNames = toBack.slice(0, 3).map((p) => p.name).join(", ");
-        const prompt = `Summarize the investment landscape for these ${scored.length} blockchain projects in 2 sentences. Top projects: ${topNames}. Overall ecosystem health score: ${avgScore}/100.`;
+        const topNames = toBack.slice(0, 3).map((p) => `${p.name} (${p.ecosystem || 'unknown'})`).join(", ");
+        const prompt = `Summarize the investment landscape for these ${scored.length} blockchain projects in 2 sentences. 
+        Top projects: ${topNames}. 
+        Overall ecosystem health score: ${avgScore}/100.
+        Pay special attention to Solana-based projects if present, as they represent a key growth area.`;
 
         const aisaFetch = getAisaFetch();
         const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {

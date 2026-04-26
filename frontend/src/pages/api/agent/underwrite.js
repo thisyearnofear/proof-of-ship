@@ -67,7 +67,14 @@ async function handler(req, res) {
             messages: [
               {
                 role: "user",
-                content: `Analyze this blockchain project for investment potential in 3 sentences. Project: ${project.name}. Description: ${project.description || "N/A"}. GitHub stats: ${JSON.stringify(project.stats || {})}. Score: ${total}/100.`,
+                content: `Analyze this blockchain project for investment potential in 3 sentences. 
+                Project: ${project.name}. 
+                Ecosystem: ${project.ecosystem || 'unknown'}.
+                Description: ${project.description || "N/A"}. 
+                GitHub stats: ${JSON.stringify(project.stats || {})}. 
+                Score: ${total}/100.
+                
+                Note: If the ecosystem is Solana, focus on its specific advantages like high throughput and Rust/Anchor development quality.`,
               },
             ],
           }),

@@ -30,13 +30,26 @@ import TabBar from "@/components/common/TabBar";
 import ScoreBar from "@/components/common/ScoreBar";
 
 export default function BuildPage() {
-  const { connected, connect, loading: metaMaskLoading } = useWallet();
+  const { 
+    connected, 
+    connect, 
+    loading: metaMaskLoading,
+    activeChainFamily,
+    setActiveChainFamily,
+    solanaConnected,
+    connectSolana,
+    disconnectSolana,
+    solanaAddress
+  } = useWallet();
   const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = useBuilderCredit();
   const [activeTab, setActiveTab] = useState("credit");
   const [previewUsername, setPreviewUsername] = useState('');
   const [previewResult, setPreviewResult] = useState(null);
   const [previewError, setPreviewError] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+
+  const isActuallyConnected = activeChainFamily === 'solana' ? solanaConnected : connected;
+  const handleConnect = activeChainFamily === 'solana' ? connectSolana : connect;
 
   const handlePreviewScore = async (e) => {
     e.preventDefault();
@@ -62,19 +75,47 @@ export default function BuildPage() {
 
   const loading = metaMaskLoading || contractLoading;
 
-  if (!connected) {
+  if (!isActuallyConnected) {
     return (
       <>
         <Head><title>Build | Builder Credit</title></Head>
         <div className="py-12 max-w-xl mx-auto px-4 text-center space-y-8">
           <div>
-            <ShieldCheckIcon className="w-16 h-16 mx-auto text-tertiary" />
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex p-1 bg-gray-100 rounded-lg">
+                <button
+                  onClick={() => setActiveChainFamily('evm')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                    activeChainFamily === 'evm' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  EVM (Metamask)
+                </button>
+                <button
+                  onClick={() => setActiveChainFamily('solana')}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                    activeChainFamily === 'solana' 
+                      ? 'bg-white text-purple-600 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Solana
+                </button>
+              </div>
+            </div>
+
+            <ShieldCheckIcon className={`w-16 h-16 mx-auto ${activeChainFamily === 'solana' ? 'text-purple-500' : 'text-blue-500'}`} />
             <h1 className="mt-4 text-2xl font-bold text-primary">Builder Hub</h1>
             <p className="mt-2 text-secondary">
-              Connect your wallet to view your credit score, request funding, and manage projects.
+              Connect your {activeChainFamily === 'solana' ? 'Solana' : 'EVM'} wallet to view your credit score, request funding, and manage projects.
             </p>
-            <Button onClick={connect} className="mt-6">
-              Connect Wallet
+            <Button 
+              onClick={handleConnect} 
+              className={`mt-6 ${activeChainFamily === 'solana' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+            >
+              Connect {activeChainFamily === 'solana' ? 'Solana' : 'Wallet'}
             </Button>
           </div>
 
@@ -190,8 +231,10 @@ export default function BuildPage() {
                 </div>
               </Card>
               <Card className="p-6">
-                <p className="text-sm text-secondary">USDC Balance</p>
-                <p className="text-2xl font-bold text-primary mt-1">${usdcBalance || "0.00"}</p>
+                <p className="text-sm text-secondary">{activeChainFamily === 'solana' ? 'SOL Balance' : 'USDC Balance'}</p>
+                <p className="text-2xl font-bold text-primary mt-1">
+                  {activeChainFamily === 'solana' ? '' : '$'}{usdcBalance || "0.00"}{activeChainFamily === 'solana' ? ' SOL' : ''}
+                </p>
                 <div className="mt-4">
                   <p className="text-sm text-secondary">Reputation</p>
                   <p className="text-lg font-semibold text-primary">{reputation}</p>

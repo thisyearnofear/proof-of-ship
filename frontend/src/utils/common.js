@@ -108,9 +108,20 @@ export function parseTokenAmount(amount, decimals = 6) {
 }
 
 /**
- * Check if value is a valid Ethereum address
+ * Check if value is a valid Solana address (Base58)
  */
-export function isValidAddress(address) {
+export function isValidSolanaAddress(address) {
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+}
+
+/**
+ * Check if value is a valid address based on chain family
+ */
+export function isValidAddress(address, family = 'evm') {
+  if (family === 'solana') {
+    return isValidSolanaAddress(address);
+  }
+  // Default to EVM
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
 
@@ -228,6 +239,7 @@ export default {
   formatTokenAmount,
   parseTokenAmount,
   isValidAddress,
+  isValidSolanaAddress,
   isValidTxHash,
   debounce,
   throttle,

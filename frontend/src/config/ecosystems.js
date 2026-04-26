@@ -10,6 +10,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Celo',
     description: 'Mobile-first blockchain projects focused on financial inclusion',
     longDescription: 'Projects built during Celo\'s Proof of Ship program across three seasons, focusing on mobile-first blockchain solutions and financial inclusion.',
+    chainFamily: 'evm',
     
     // Visual identity
     icon: '🌱',
@@ -53,6 +54,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Arc',
     description: 'Circle\'s L2 with native USDC and x402 nanopayments',
     longDescription: 'Projects building on Arc, Circle\'s EVM L2 with native USDC, gasless transactions, and the x402 nanopayment protocol for agentic economies.',
+    chainFamily: 'evm',
     icon: '⚡',
     color: '#00D395',
     bgGradient: 'from-teal-50 to-cyan-50',
@@ -89,6 +91,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Base',
     description: 'Coinbase\'s L2 network enabling fast, low-cost applications',
     longDescription: 'Projects building on Coinbase\'s Base network, leveraging low fees and fast transactions for innovative decentralized applications.',
+    chainFamily: 'evm',
     icon: '🔵',
     color: '#0052FF',
     bgGradient: 'from-blue-50 to-indigo-50',
@@ -124,6 +127,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Linea',
     description: 'Consensys zkEVM L2 with low fees and Ethereum security',
     longDescription: 'Projects building on Linea, a zkEVM Layer 2 by Consensys offering Ethereum-level security with significantly lower transaction costs.',
+    chainFamily: 'evm',
     icon: '🟣',
     color: '#61DFFF',
     bgGradient: 'from-purple-50 to-blue-50',
@@ -155,6 +159,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Arbitrum',
     description: 'Leading Optimistic Rollup L2 with deep DeFi liquidity',
     longDescription: 'Projects building on Arbitrum, the largest Optimistic Rollup Layer 2 by TVL, known for its thriving DeFi ecosystem and developer tooling.',
+    chainFamily: 'evm',
     icon: '🔷',
     color: '#28A0F0',
     bgGradient: 'from-sky-50 to-blue-50',
@@ -188,6 +193,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Ethereum',
     description: 'The original smart contract platform and settlement layer',
     longDescription: 'Projects building on Ethereum mainnet and Sepolia testnet, the foundational layer for decentralized applications and DeFi.',
+    chainFamily: 'evm',
     icon: '💎',
     color: '#627EEA',
     bgGradient: 'from-indigo-50 to-violet-50',
@@ -219,6 +225,7 @@ export const ECOSYSTEM_CONFIGS = {
     shortName: 'Optimism',
     description: 'OP Stack L2 powering the Superchain vision',
     longDescription: 'Projects building on Optimism, the OP Stack Layer 2 driving the Superchain ecosystem with retroactive public goods funding.',
+    chainFamily: 'evm',
     icon: '🔴',
     color: '#FF0420',
     bgGradient: 'from-red-50 to-orange-50',
@@ -244,6 +251,38 @@ export const ECOSYSTEM_CONFIGS = {
     showHealthScore: true,
     showActivity: true,
     previewLimit: 4
+  },
+
+  solana: {
+    id: 'solana',
+    name: 'Solana Ecosystem',
+    shortName: 'Solana',
+    description: 'High-performance blockchain for decentralized applications',
+    longDescription: 'Projects building on Solana, a high-performance blockchain supporting fast transactions and low fees for builders and users globally.',
+    chainFamily: 'solana',
+    icon: '☀️',
+    color: '#14F195',
+    bgGradient: 'from-purple-50 to-emerald-50',
+    borderColor: 'border-emerald-200',
+    textColor: 'text-emerald-800',
+    bgColor: 'bg-emerald-50',
+    route: '/ecosystems/solana',
+    apiEndpoint: '/api/projects/solana',
+    features: ['High throughput', 'Low latency', 'Rust smart contracts'],
+    submissionRequirements: [
+      'Project must be deployed on Solana',
+      'Provide a GitHub repo for reviewers and users'
+    ],
+    category: 'Layer 1',
+    dataSource: 'dynamic',
+    hasSeasons: false,
+    hasCategories: true,
+    categories: ['defi', 'nft', 'gaming', 'social', 'infrastructure', 'dao', 'other'],
+    tradeWinds: [],
+    defaultSort: 'recent',
+    showHealthScore: true,
+    showActivity: true,
+    previewLimit: 4
   }
 };
 
@@ -264,6 +303,11 @@ export const getEcosystemColors = () => {
   return Object.fromEntries(
     Object.entries(ECOSYSTEM_CONFIGS).map(([key, config]) => [key, config.color])
   );
+};
+
+export const getChainFamily = (ecosystemId) => {
+  const config = getEcosystemConfig(ecosystemId);
+  return config ? config.chainFamily : 'evm';
 };
 
 // CSS class generators

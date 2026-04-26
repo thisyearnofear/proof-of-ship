@@ -1,8 +1,9 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { SOLANA_MAINNET_USDC, SOLANA_DEVNET_USDC } from '../config/tokens';
 
 /**
  * Solana Credit Service
- * Handles Solana-specific credit operations (Phase 3B)
+ * Handles Solana-specific credit operations (Phase 5: Real on-chain data)
  */
 
 interface ProjectData {
@@ -95,27 +96,107 @@ class SolanaCreditService {
      * Get project backing data for a Solana project
      */
     async getProjectBackingData(connection: Connection, projectId: string | number): Promise<ProjectBackingData> {
-        // Mock data for Solana projects in Phase 3
-        return {
-            totalBacking: '0',
-            backerCount: 0,
-            maxMultiplier: 300,
-            creditScore: 400
-        };
+        try {
+            // Attempt to treat projectId as a public key if it's in the right format
+            let projectPubkey: PublicKey;
+            try {
+                projectPubkey = new PublicKey(projectId.toString());
+            } catch {
+                // If not a pubkey, it's a slug, we'd normally derive a PDA here
+                // For Phase 5, we'll return a default state for slugs
+                return {
+                    totalBacking: '0',
+                    backerCount: 0,
+                    maxMultiplier: 300,
+                    creditScore: 400
+                };
+            }
+
+            const accountInfo = await connection.getAccountInfo(projectPubkey);
+            
+            if (!accountInfo) {
+                return {
+                    totalBacking: '0',
+                    backerCount: 0,
+                    maxMultiplier: 300,
+                    creditScore: 400
+                };
+            }
+
+            // In a real implementation, we would decode the account data using an IDL
+            // For now, we fetch the USDC balance of this account as "backing"
+            const usdcMint = connection.rpcEndpoint.includes('devnet') ? SOLANA_DEVNET_USDC : SOLANA_MAINNET_USDC;
+            const usdcBalance = await this.fetchTokenBalance(connection, projectPubkey, usdcMint);
+
+            return {
+                totalBacking: usdcBalance,
+                backerCount: accountInfo.lamports > 0 ? 1 : 0, // Simplified
+                maxMultiplier: this.calculateMaxMultiplier(450),
+                creditScore: 450 // Base score for existing accounts
+            };
+        } catch (error) {
+            console.error('Error fetching Solana project backing data:', error);
+            return {
+                totalBacking: '0',
+                backerCount: 0,
+                maxMultiplier: 300,
+                creditScore: 400
+            };
+        }
     }
 
     /**
      * Get details for a Solana project
      */
     async getProjectDetails(connection: Connection, projectId: string | number): Promise<ProjectDetails | null> {
-        // Mock data for Solana projects in Phase 3
-        return {
-            isActive: true,
-            creditScore: 400,
-            fundingAmount: '0',
-            milestonesCompleted: 0,
-            milestonesCount: 0
-        };
+        try {
+            let projectPubkey: PublicKey;
+            try {
+                projectPubkey = new PublicKey(projectId.toString());
+            } catch {
+                return {
+                    isActive: false,
+                    creditScore: 0,
+                    fundingAmount: '0',
+                    milestonesCompleted: 0,
+                    milestonesCount: 0
+                };
+            }
+
+            const accountInfo = await connection.getAccountInfo(projectPubkey);
+            const usdcMint = connection.rpcEndpoint.includes('devnet') ? SOLANA_DEVNET_USDC : SOLANA_MAINNET_USDC;
+            const usdcBalance = await this.fetchTokenBalance(connection, projectPubkey, usdcMint);
+            
+            return {
+                isActive: !!accountInfo,
+                creditScore: accountInfo ? 450 : 0,
+                fundingAmount: usdcBalance,
+                milestonesCompleted: 0,
+                milestonesCount: 0
+            };
+        } catch (error) {
+            console.error('Error fetching Solana project details:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Helper to fetch USDC token balance for a Solana account
+     */
+    private async fetchTokenBalance(connection: Connection, publicKey: PublicKey, mintAddress: string): Promise<string> {
+        try {
+            const response = await connection.getTokenAccountsByOwner(publicKey, {
+                mint: new PublicKey(mintAddress)
+            });
+            
+            if (response.value.length === 0) return '0';
+            
+            const balance = await connection.getTokenAccountBalance(response.value[0].pubkey);
+            return balance.value.uiAmountString || '0';
+        } catch (error) {
+            // It's common to not have a token account, so we return '0'
+            return '0';
+        }
     }
 
     /**

@@ -90,6 +90,7 @@ export interface EcosystemProjects {
   arbitrum: Project[];
   ethereum: Project[];
   optimism: Project[];
+  solana: Project[];
 }
 
 export interface EcosystemStats {
@@ -294,11 +295,11 @@ class DataService {
     }
 
     const projects: EcosystemProjects = {
-      celo: [], arc: [], base: [], linea: [], arbitrum: [], ethereum: [], optimism: []
+      celo: [], arc: [], base: [], linea: [], arbitrum: [], ethereum: [], optimism: [], solana: []
     };
 
     const ecosystems = ecosystem === 'all' 
-      ? ['celo', 'arc', 'base', 'linea', 'arbitrum', 'ethereum', 'optimism']
+      ? ['celo', 'arc', 'base', 'linea', 'arbitrum', 'ethereum', 'optimism', 'solana']
       : [ecosystem];
 
     await Promise.all(ecosystems.map(async (eco) => {

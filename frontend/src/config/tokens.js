@@ -9,6 +9,9 @@ export const ARC_TESTNET_CHAIN_ID = 5042002;
 // Circle SDK blockchain identifier for Arc (matches SDK enum pattern)
 export const ARC_CIRCLE_BLOCKCHAIN = "ARC";
 
+export const SOLANA_MAINNET_USDC = "EPjFW364Ac7H5keePybR7L5tS5sLwerZEv8oaW6wED7L";
+export const SOLANA_DEVNET_USDC = "4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX";
+
 export const TESTNET_USDC_ADDRESSES = {
   // Ethereum Sepolia
   11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
@@ -30,6 +33,9 @@ export const TESTNET_USDC_ADDRESSES = {
 
   // Arc Testnet (native USDC ERC-20 interface)
   5042002: "0x3600000000000000000000000000000000000000",
+
+  // Solana Devnet
+  'sol-devnet': SOLANA_DEVNET_USDC,
 };
 
 export const MAINNET_USDC_ADDRESSES = {
@@ -50,6 +56,9 @@ export const MAINNET_USDC_ADDRESSES = {
 
   // Linea
   59144: "0x176211869cA2b568f2A7D4EE941E073a821EE1ff",
+
+  // Solana
+  'sol': SOLANA_MAINNET_USDC,
 };
 
 export const USDC_ADDRESSES = {
@@ -164,6 +173,13 @@ export const TESTNET_CHAIN_INFO = {
     decimals: 18,
     rpcUrl: "https://rpc.testnet.arc.network",
     explorer: "https://testnet.arcscan.app",
+  },
+  'sol-devnet': {
+    name: "Solana Devnet",
+    symbol: "SOL",
+    decimals: 9,
+    rpcUrl: "https://api.devnet.solana.com",
+    explorer: "https://explorer.solana.com/?cluster=devnet",
   },
 };
 

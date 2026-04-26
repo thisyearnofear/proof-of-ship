@@ -8,11 +8,12 @@ import { TESTNET_USDC_ADDRESSES, TESTNET_CHAIN_INFO } from "./tokens";
 export const NETWORK_CONFIGS = {
   // Combine chain info with USDC addresses
   ...Object.keys(TESTNET_CHAIN_INFO).reduce((acc, chainId) => {
-    const id = parseInt(chainId);
+    // Handle both numeric (EVM) and string (Solana) chain IDs
+    const id = isNaN(parseInt(chainId)) ? chainId : parseInt(chainId);
     acc[id] = {
-      ...TESTNET_CHAIN_INFO[id],
+      ...TESTNET_CHAIN_INFO[chainId],
       chainId: id,
-      usdcAddress: TESTNET_USDC_ADDRESSES[id],
+      usdcAddress: TESTNET_USDC_ADDRESSES[chainId],
       isTestnet: true,
     };
     return acc;
@@ -20,7 +21,7 @@ export const NETWORK_CONFIGS = {
 };
 
 export const SUPPORTED_CHAINS = Object.keys(NETWORK_CONFIGS).map((id) =>
-  parseInt(id)
+  isNaN(parseInt(id)) ? id : parseInt(id)
 );
 
 export const MAINNET_CHAIN_IDS = [1, 137, 10, 42161, 8453, 100]; // For future use
@@ -59,5 +60,8 @@ export const getSupportedChainIds = () => {
 };
 
 export const validateChainId = (chainId) => {
+  if (typeof chainId === 'string' && isNaN(parseInt(chainId))) {
+    return SUPPORTED_CHAINS.includes(chainId);
+  }
   return SUPPORTED_CHAINS.includes(parseInt(chainId));
 };

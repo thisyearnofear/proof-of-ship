@@ -46,15 +46,19 @@ class RealLiFiService {
 
       // Filter to only include our supported testnet chains
       return chains
-        .filter((chain) => chain.id in USDC_ADDRESSES)
-        .map((chain) => ({
-          id: chain.id,
-          name: chain.name,
-          token: chain.nativeCurrency?.symbol || "ETH",
-          logoURI: chain.logoURI,
-          testnet: !!chain.metamask?.testnet,
-          usdcAddress: USDC_ADDRESSES[chain.id],
-        }));
+        .filter((chain) => chain.id in USDC_ADDRESSES || chain.key === 'sol' || (chain.id === 'solana' && 'sol' in USDC_ADDRESSES))
+        .map((chain) => {
+          // Handle Solana special case in LiFi
+          const chainId = (chain.key === 'sol' || chain.id === 'solana') ? 'sol' : chain.id;
+          return {
+            id: chainId,
+            name: chain.name,
+            token: chain.nativeCurrency?.symbol || "ETH",
+            logoURI: chain.logoURI,
+            testnet: !!chain.metamask?.testnet,
+            usdcAddress: USDC_ADDRESSES[chainId],
+          };
+        });
     } catch (error) {
       console.error("Failed to get available chains:", error);
       // Fall back to hardcoded chains if proxy fails
@@ -66,13 +70,16 @@ class RealLiFiService {
    * Fallback: return hardcoded chain list when LiFi API is unavailable
    */
   getHardcodedChains() {
-    return Object.entries(TESTNET_CHAIN_INFO).map(([id, info]) => ({
-      id: parseInt(id),
-      name: info.name,
-      token: info.symbol,
-      usdcAddress: USDC_ADDRESSES[id],
-      testnet: true,
-    }));
+    return Object.entries(TESTNET_CHAIN_INFO).map(([id, info]) => {
+      const chainId = isNaN(parseInt(id)) ? id : parseInt(id);
+      return {
+        id: chainId,
+        name: info.name,
+        token: info.symbol,
+        usdcAddress: USDC_ADDRESSES[id],
+        testnet: true,
+      };
+    });
   }
 
   /**

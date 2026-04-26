@@ -14,6 +14,7 @@ pub mod blockchain_solana {
         project_name: String,
         milestone_descriptions: Vec<String>,
         milestone_amounts: Vec<u64>,
+        verifier: Pubkey,
     ) -> Result<()> {
         let project = &mut ctx.accounts.project;
         let credit_line = &mut ctx.accounts.credit_line;
@@ -26,6 +27,7 @@ pub mod blockchain_solana {
 
         // Initialize project
         project.developer = developer.key();
+        project.verifier = verifier;
         project.hackathon_ids = hackathon_ids;
         project.github_url = github_url;
         project.name = project_name;
@@ -126,6 +128,58 @@ pub mod blockchain_solana {
 
         Ok(())
     }
+
+    pub fn verify_milestone(
+        ctx: Context<VerifyMilestone>,
+        milestone_index: u8,
+    ) -> Result<()> {
+        let project = &mut ctx.accounts.project;
+        
+        // Ensure signer is the authorized verifier
+        require_keys_eq!(
+            ctx.accounts.verifier.key(),
+            project.verifier,
+            ErrorCode::UnauthorizedVerifier
+        );
+
+        // Check milestone index bounds
+        if milestone_index as usize >= project.milestones.len() {
+            return Err(ErrorCode::InvalidMilestoneIndex.into());
+        }
+
+        let milestone = &mut project.milestones[milestone_index as usize];
+        
+        // Check if already completed
+        if milestone.completed {
+            return Err(ErrorCode::MilestoneAlreadyCompleted.into());
+        }
+
+        // Update milestone status
+        milestone.completed = true;
+        milestone.completed_at = Clock::get()?.unix_timestamp;
+        project.milestones_completed += 1;
+
+        // Payout to developer
+        let payout_amount = milestone.amount;
+        let project_key = project.key();
+        let seeds = &[
+            b"vault_authority",
+            project_key.as_ref(),
+            &[ctx.bumps.vault_authority],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.vault_token_account.to_account_info(),
+            to: ctx.accounts.developer_token_account.to_account_info(),
+            authority: ctx.accounts.vault_authority.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+        token::transfer(cpi_ctx, payout_amount)?;
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -134,7 +188,7 @@ pub struct RequestFunding<'info> {
     #[account(
         init,
         payer = developer,
-        space = 8 + 32 + 8 + 200 + 100 + 8 + 1 + 8 + 1 + 1 + (10 * 200), // Approximate space
+        space = 8 + 32 + 32 + 8 + 200 + 100 + 8 + 1 + 8 + 1 + 1 + (10 * 200), // Added 32 for verifier
         seeds = [b"project", developer.key().as_ref(), project_name.as_bytes()],
         bump
     )]
@@ -199,9 +253,47 @@ pub struct RepayLoan<'info> {
     pub token_program: Program<'info, Token>,
 }
 
+#[error_code]
+pub enum ErrorCode {
+    #[msg("The signer is not the authorized verifier for this project.")]
+    UnauthorizedVerifier,
+    #[msg("The milestone has already been completed.")]
+    MilestoneAlreadyCompleted,
+    #[msg("The milestone index is out of bounds.")]
+    InvalidMilestoneIndex,
+}
+
+#[derive(Accounts)]
+pub struct VerifyMilestone<'info> {
+    #[account(mut)]
+    pub project: Account<'info, Project>,
+
+    /// CHECK: This is the developer's token account, we trust the program to transfer to it
+    #[account(mut)]
+    pub developer_token_account: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        constraint = vault_token_account.owner == vault_authority.key()
+    )]
+    pub vault_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA used as authority for the vault
+    #[account(
+        seeds = [b"vault_authority", project.key().as_ref()],
+        bump
+    )]
+    pub vault_authority: AccountInfo<'info>,
+
+    pub verifier: Signer<'info>,
+
+    pub token_program: Program<'info, Token>,
+}
+
 #[account]
 pub struct Project {
     pub developer: Pubkey,
+    pub verifier: Pubkey,
     pub hackathon_ids: Vec<u64>,
     pub github_url: String,
     pub name: String,

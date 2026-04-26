@@ -26,9 +26,8 @@ export default function FundingInterface({
   const builderCredit = useBuilderCredit();
   const circleWallet = useCircleWallet();
   
-  const { account, ethersProvider } = wallet;
-  const { coreContract, contractLoading } = builderCredit;
-  const { requestFunding, getFundingHistory, isConfigured, getEnvironment, loading: circleLoading } = circleWallet;
+  const { activeChainFamily, account, connected, requestFunding, contractLoading } = builderCredit;
+  const { getFundingHistory, isConfigured, getEnvironment, loading: circleLoading } = circleWallet;
   
   const [fundingAmount, setFundingAmount] = useState(0);
   const [fundingHistory, setFundingHistory] = useState([]);
@@ -216,27 +215,21 @@ export default function FundingInterface({
       const memberShares = teamMembers.map(m => m.share);
       
       // Request funding with all required parameters
-      const result = await circleWallet.requestFunding(
-        null, // walletId (optional)
+      const result = await requestFunding({
         githubUrl,
         projectName,
         milestoneDescriptions,
-        milestoneRewards,
-        selectedHackathons,
-        memberAddresses,
-        memberShares
-      );
-      
-      // Pledge prize if provided - would need creditService implementation
-      // if (pledgedPrize && result.projectId && coreContract) {
-      //   console.warn('Prize pledge not yet implemented in consolidated contexts');
-      // }
+        milestoneAmounts: milestoneRewards,
+        hackathonIds: selectedHackathons,
+        teamMembers: memberAddresses,
+        teamShares: memberShares
+      });
       
       setSuccess({
-        amount: result.amount,
-        transactionHash: result.transactionHash,
-        projectId: result.projectId,
-        environment: getEnvironment()
+        amount: result.amount || fundingAmount,
+        transactionHash: result.transactionHash || result.hash,
+        projectId: result.projectId || (result.projectData ? result.projectData.projectName : null),
+        environment: activeChainFamily === 'solana' ? 'devnet' : getEnvironment()
       });
 
       // Refresh funding history
@@ -278,7 +271,16 @@ export default function FundingInterface({
       )}
 
       {/* Environment Notice */}
-      {environment === 'sandbox' && (
+      {activeChainFamily === 'solana' ? (
+        <Card className="p-4 bg-purple-50 border-purple-200">
+          <div className="flex items-center space-x-2">
+            <InformationCircleIcon className="w-5 h-5 text-purple-600" />
+            <span className="text-purple-800 text-sm">
+              Running on Solana Devnet. Cross-chain funding enabled.
+            </span>
+          </div>
+        </Card>
+      ) : environment === 'sandbox' && (
         <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex items-center space-x-2">
             <InformationCircleIcon className="w-5 h-5 text-blue-600" />
@@ -695,13 +697,15 @@ export default function FundingInterface({
       {/* Integration Status */}
       <Card className="p-4 bg-gray-50">
         <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-            Circle USDC Integration
+          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+            activeChainFamily === 'solana' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+          }`}>
+            {activeChainFamily === 'solana' ? 'Solana Integration' : 'Circle USDC Integration'}
           </span>
           <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-            {environment === 'sandbox' ? 'Testnet Mode' : 'Mainnet Mode'}
+            {activeChainFamily === 'solana' ? 'Devnet Mode' : (environment === 'sandbox' ? 'Testnet Mode' : 'Mainnet Mode')}
           </span>
-          {isConfigured() && (
+          {isConfigured() && activeChainFamily !== 'solana' && (
             <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
               API Configured
             </span>

@@ -97,6 +97,7 @@ interface WalletContextType {
   creditProfile: CreditProfile | null;
   repayLoan: (amount: string | number) => Promise<void>;
   loadCreditProfile: () => Promise<void>;
+  requestFunding: (projectData: any) => Promise<any>;
 
   // Solana integration (Phase 1 preparation)
   solanaAddress: string | null;
@@ -449,6 +450,24 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   
   // Builder Credit methods
   const loadCreditProfile = useCallback(async () => {
+    if (activeChainFamily === 'solana') {
+      if (!publicKey) return;
+      try {
+        const { solanaCreditService } = await import('@/services/SolanaCreditService');
+        const connection = new Connection(clusterApiUrl('devnet'));
+        const details = await solanaCreditService.getProjectDetails(connection, publicKey.toBase58());
+        if (details) {
+          setCreditProfile({
+            usedAmount: details.fundingAmount,
+            reputation: details.creditScore,
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to load Solana credit profile:', err);
+      }
+      return;
+    }
+
     if (!ethersProvider || !account) return;
     try {
       const creditSvc = (await import('@/services/creditService')).creditService;
@@ -465,9 +484,18 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.warn('Failed to load credit profile:', err);
     }
-  }, [ethersProvider, account, chainId]);
+  }, [ethersProvider, account, chainId, activeChainFamily, publicKey]);
   
   const repayLoan = async (amount: string | number) => {
+    if (activeChainFamily === 'solana') {
+      if (!publicKey) throw new Error('Solana wallet not connected');
+      const { solanaCreditService } = await import('@/services/SolanaCreditService');
+      const connection = new Connection(clusterApiUrl('devnet'));
+      await solanaCreditService.repayLoan(connection, publicKey, amount);
+      await loadCreditProfile();
+      return;
+    }
+
     if (!ethersProvider || !account) throw new Error('Not connected');
     const creditService = (await import('@/services/creditService')).creditService;
     await creditService.repayLoan(
@@ -477,6 +505,25 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     );
     await loadCreditProfile();
   };
+
+  const requestFunding = useCallback(async (projectData: any) => {
+    setLoading(true);
+    try {
+      if (activeChainFamily === 'solana') {
+        if (!publicKey) throw new Error('Solana wallet not connected');
+        const { solanaCreditService } = await import('@/services/SolanaCreditService');
+        const connection = new Connection(clusterApiUrl('devnet'));
+        return await solanaCreditService.requestFunding(connection, publicKey, projectData);
+      } else {
+        if (!signer || !chainId) throw new Error('EVM wallet not connected');
+        const { creditService } = await import('@/services/creditService');
+        const numericChainId = typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10);
+        return await creditService.requestFunding(numericChainId, signer, projectData);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [activeChainFamily, publicKey, signer, chainId]);
   
   // MetaMask methods
   const connect = async () => {
@@ -681,7 +728,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     initializeNanopaymentDemo, depositNanopayment,
     payForAgent, payForHealthScore, payForScout, payForVerification, payForRebalance,
     // Builder Credit
-    creditProfile, repayLoan, loadCreditProfile,
+    creditProfile, repayLoan, loadCreditProfile, requestFunding,
     // Solana (Phase 1)
     solanaAddress, solanaConnected, solanaConnecting, solanaBalance,
     connectSolana, disconnectSolana, activeChainFamily, setActiveChainFamily,
@@ -712,18 +759,22 @@ export const useCircleWallet = () => {
       walletId: string | null,
       githubUrl: string,
       projectName: string,
-      milestones: string[],
-      rewards: string[],
-      hackathons: number[],
-      addresses: string[],
-      shares: number[]
+      milestones: string[] = [],
+      rewards: string[] = [],
+      hackathons: number[] = [],
+      addresses: string[] = [],
+      shares: number[] = []
     ): Promise<any> => {
-      const { creditService } = await import('@/services/creditService');
-      if (!wallet.signer) throw new Error('Wallet not connected');
-      if (typeof wallet.chainId !== 'number') throw new Error('Invalid chain ID');
-      return creditService.requestFunding(wallet.chainId, wallet.signer, {
-        walletId: walletId || undefined, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares,
-      } as any);
+      return wallet.requestFunding({
+        walletId: walletId || undefined,
+        githubUrl,
+        projectName: projectName?.toString(),
+        milestoneDescriptions: milestones,
+        milestoneAmounts: rewards,
+        hackathonIds: hackathons,
+        teamMembers: addresses,
+        teamShares: shares
+      });
     },
     getFundingHistory: async (address: string) => {
       // Return empty for now - implement via creditService if needed
@@ -746,6 +797,9 @@ export const useBuilderCredit = () => {
   
   // Helper to get USDC balance asynchronously
   const getUSDCBalanceAsync = async () => {
+    if (wallet.activeChainFamily === 'solana') {
+      return wallet.solanaBalance || '0.00';
+    }
     try {
       return await wallet.getUSDCBalance();
     } catch {
@@ -758,20 +812,26 @@ export const useBuilderCredit = () => {
     creditProfile: wallet.creditProfile,
     repayLoan: wallet.repayLoan,
     loadCreditProfile: wallet.loadCreditProfile,
+    requestFunding: wallet.requestFunding,
+    activeChainFamily: wallet.activeChainFamily,
     // Circle Wallet for contract interactions
     circleWallets: wallet.circleWallets,
     circleConfig: wallet.circleConfig,
     // Contract access via creditService (lazy loaded)
     coreContract: null, // Use creditService.getContracts() directly
     hackathonRegistryContract: null,
-    account: wallet.account,
-    address: wallet.account, // Legacy alias
+    account: wallet.activeChainFamily === 'solana' ? wallet.solanaAddress : wallet.account,
+    address: wallet.activeChainFamily === 'solana' ? wallet.solanaAddress : wallet.account, // Legacy alias
     chainId: wallet.chainId,
     signer: wallet.signer,
     ethersProvider: wallet.ethersProvider,
-    connected: wallet.connected,
+    connected: wallet.activeChainFamily === 'solana' ? wallet.solanaConnected : wallet.connected,
     // Legacy helpers
     getBackerProjects: async (backerAddress: string): Promise<string[]> => {
+      if (wallet.activeChainFamily === 'solana') {
+        // Solana doesn't have this implemented yet, return empty
+        return [];
+      }
       // Access via creditService
       const { creditService } = await import('@/services/creditService');
       if (!wallet.chainId || !wallet.signer) return [];
@@ -792,6 +852,13 @@ export const useBuilderCredit = () => {
       }
     },
     backProject: async (projectId: string, multiplier: number, amount: string | number): Promise<string> => {
+      if (wallet.activeChainFamily === 'solana') {
+        if (!wallet.solanaConnected || !wallet.solanaAddress) throw new Error('Solana wallet not connected');
+        // Placeholder for Solana backing logic
+        console.log('Backing project on Solana:', { projectId, multiplier, amount });
+        return 'solana_backing_hash_' + Date.now();
+      }
+
       const { creditService } = await import('@/services/creditService');
       
       // Input validation
@@ -838,9 +905,9 @@ export const useBuilderCredit = () => {
       return tx.hash;
     },
     contractLoading: wallet.loading,
-    // usdcBalance is async - consumers should call getUSDCBalanceAsync()
+    // usdcBalance for sync access
+    usdcBalance: wallet.activeChainFamily === 'solana' ? wallet.solanaBalance || '0.00' : '0.00',
     getUSDCBalanceAsync,
-    usdcBalance: '0.00', // Sync access returns 0 - use async version
   };
 };
 

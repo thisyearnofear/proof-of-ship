@@ -73,6 +73,7 @@ async function handler(req, res) {
                 Description: ${project.description || "N/A"}. 
                 GitHub stats: ${JSON.stringify(project.stats || {})}. 
                 Score: ${total}/100.
+                Deployment: ${project.deploymentVerified ? `Verified on ${project.deploymentChain} (Proof: ${project.deploymentProof})` : 'Unverified'}.
                 
                 Note: If the ecosystem is Solana, focus on its specific advantages like high throughput and Rust/Anchor development quality.`,
               },

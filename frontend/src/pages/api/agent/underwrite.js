@@ -10,7 +10,7 @@
 import { db } from "@/lib/firebase/serverOnly";
 import { computeScore, getRecommendation } from "@/lib/scoringEngine";
 import { withNanopayment } from "@/lib/nanopayment";
-import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 
 async function handler(req, res) {

@@ -237,23 +237,33 @@ class DataService {
     return results;
   }
 
+  /**
+   * Helper: call GitHub API via the BFF proxy at /api/github/...
+   * This avoids embedding GITHUB_TOKEN in the browser bundle.
+   */
+  private async githubFetch<T>(path: string, params: Record<string, string> = {}): Promise<T> {
+    const qs = new URLSearchParams(params).toString();
+    const url = `/api/github/${path}${qs ? `?${qs}` : ''}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `GitHub proxy error: ${res.status}`);
+    }
+    const json = await res.json();
+    return json.data as T;
+  }
+
   async loadGitHubRepoData(owner: string, repo: string): Promise<any> {
     const cacheKey = `github_${owner}_${repo}`;
     return this.fetchWithCache(cacheKey, async () => {
-      const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
-      const headers = {
-        Authorization: `token ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-      };
-
       const [meta, commits, issues, prs] = await Promise.all([
-        fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers }).then(r => r.json()),
-        fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`, { headers }).then(r => r.json()),
-        fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=50`, { headers }).then(r => r.json()),
-        fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=50`, { headers }).then(r => r.json()),
+        this.githubFetch(`repos/${owner}/${repo}`),
+        this.githubFetch(`repos/${owner}/${repo}/commits`, { per_page: '100' }),
+        this.githubFetch(`repos/${owner}/${repo}/issues`, { state: 'all', per_page: '50' }),
+        this.githubFetch(`repos/${owner}/${repo}/pulls`, { state: 'all', per_page: '50' }),
       ]);
 
-      return { meta, commits, issues: issues.filter((i: any) => !i.pull_request), prs };
+      return { meta, commits, issues: (issues as any[]).filter((i: any) => !i.pull_request), prs };
     });
   }
 
@@ -359,22 +369,17 @@ class DataService {
     
     return this.fetchWithCache(cacheKey, async () => {
       const data: any = {};
-      const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
-      const headers = {
-        Authorization: `token ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-      };
 
       for (const dataType of dataTypes) {
         try {
           if (dataType === 'meta') {
-            data.meta = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers }).then(r => r.json());
+            data.meta = await this.githubFetch(`repos/${owner}/${repo}`);
           } else if (dataType === 'commits') {
-            data.commits = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`, { headers }).then(r => r.json());
+            data.commits = await this.githubFetch(`repos/${owner}/${repo}/commits`, { per_page: '100' });
           } else if (dataType === 'issues') {
-            data.issues = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=all&per_page=50`, { headers }).then(r => r.json());
+            data.issues = await this.githubFetch(`repos/${owner}/${repo}/issues`, { state: 'all', per_page: '50' });
           } else if (dataType === 'prs') {
-            data.pulls = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=all&per_page=50`, { headers }).then(r => r.json());
+            data.pulls = await this.githubFetch(`repos/${owner}/${repo}/pulls`, { state: 'all', per_page: '50' });
           }
         } catch (error) {
           console.warn(`Failed to fetch ${dataType} for ${owner}/${repo}:`, error);

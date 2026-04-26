@@ -31,7 +31,7 @@ async function configHandler(req, res) {
     });
   }
   
-  // Entity secret is optional but recommended
+  // Entity secret is used server-side only — never expose to the client
   const warnings = [];
   if (!entitySecret) {
     warnings.push('Circle Entity Secret not configured');
@@ -47,10 +47,11 @@ async function configHandler(req, res) {
     : ['ARC', 'ETH', 'MATIC', 'AVAX', 'ARB'];
 
   // Prepare configuration for frontend
-  // Note: We don't send API keys to the frontend
+  // Note: We don't send API keys or secrets to the frontend
   const config = {
     walletSetId,
-    entitySecretCiphertext: entitySecret,
+    // entitySecretCiphertext removed — server-side only
+    entitySecretConfigured: !!entitySecret,
     environment,
     supportedTokens,
     supportedBlockchains,

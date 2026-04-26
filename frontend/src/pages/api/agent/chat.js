@@ -9,7 +9,7 @@
  */
 
 import { withNanopayment } from "@/lib/nanopayment";
-import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 
 const FEATHERLESS_API_KEY = process.env.FEATHERLESS_API_KEY || "";
 const FEATHERLESS_MODEL = "deepseek-ai/DeepSeek-V3-0324";

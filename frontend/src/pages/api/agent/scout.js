@@ -13,7 +13,7 @@
 import { db } from "@/lib/firebase/serverOnly";
 import { withNanopayment } from "@/lib/nanopayment";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
-import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/lib/aisaClient";
+import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 
 async function scoutHandler(req, res) {

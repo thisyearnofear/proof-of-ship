@@ -27,17 +27,9 @@ export function GithubProvider({ children }) {
   const dataService = useDataService();
   const mountedRef = useRef(true);
 
-  // Fetch all JSON files using the data service
+  // Fetch all JSON files using the data service (routed through BFF proxy)
   useEffect(() => {
     async function fetchAll() {
-      if (!process.env.NEXT_PUBLIC_GITHUB_TOKEN) {
-        console.warn(
-          "GitHub API token is not configured. GitHub-related features will not be available."
-        );
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
         const results = await dataService.loadAllGitHubData(repos);

@@ -1,4 +1,19 @@
-// AIsa x402-paid fetch client for Arc Testnet
+/**
+ * AIsa x402-paid fetch client for Arc Testnet
+ *
+ * ⚠️  SERVER-ONLY — this file MUST NEVER be imported from client-side code.
+ *     It reads OWS_MNEMONIC from process.env, which must never reach the browser.
+ *
+ *     A runtime guard throws if accidentally imported on the client.
+ */
+
+if (typeof window !== 'undefined') {
+  throw new Error(
+    'aisaClient.js must only be imported from server-side code. ' +
+    'It contains secrets (OWS_MNEMONIC) that must never reach the browser.'
+  );
+}
+
 import { createWalletClient, createPublicClient, http, getAddress, toHex } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import { toClientEvmSigner } from "@x402/evm";

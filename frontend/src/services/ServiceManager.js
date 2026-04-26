@@ -7,7 +7,7 @@
 import { walletService } from "./walletService";
 import { realGitHubService } from "./RealGitHubService";
 import { realLiFiService } from "./RealLiFiService";
-import { validateApiService } from "../config/environment";
+import { validateApiService } from "../config/publicConfig";
 
 class ServiceManager {
   constructor() {

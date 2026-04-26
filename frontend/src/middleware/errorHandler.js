@@ -2,7 +2,7 @@
  * Global error handling middleware and utilities
  */
 
-import config from '@/config/environment';
+import config from '@/config/publicConfig';
 
 // Error types for better categorization
 export const ERROR_TYPES = {

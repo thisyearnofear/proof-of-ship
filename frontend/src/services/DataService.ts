@@ -315,7 +315,16 @@ class DataService {
       const projects: Project[] = [];
 
       await Promise.all(snapshot.docs.map(async (docSnap) => {
-        const projectData: Project = { id: docSnap.id, ...docSnap.data() };
+        const docData = docSnap.data();
+        const projectData: Project = { 
+          id: docSnap.id, 
+          slug: docData.slug || '',
+          name: docData.name || '',
+          owner: docData.owner || '',
+          repo: docData.repo || '',
+          ecosystem: ecosystemId,
+          ...docData 
+        } as Project;
         
         if (projectData.owner && projectData.repo) {
           try {
@@ -650,11 +659,11 @@ class DataService {
       await addDoc(collection(db, 'admin_queue'), {
         type: 'project_submission',
         projectSlug: slug,
-        ecosystem: projectData.ecosystem,
+        ecosystem: inputData.ecosystem,
         submittedBy: user.uid,
         submittedAt: now,
         status: 'pending',
-        priority: projectData.ecosystem === 'base' ? 'high' : 'normal',
+        priority: inputData.ecosystem === 'base' ? 'high' : 'normal',
       });
 
       // Clear project cache to include new project
@@ -691,11 +700,11 @@ class DataService {
     Object.entries(projects).forEach(([eco, projectList]) => {
       stats[eco] = {
         totalProjects: projectList.length,
-        activeProjects: projectList.filter(p => p.stats?.isActive).length,
-        totalCommits: projectList.reduce((sum, p) => sum + (p.stats?.commits || 0), 0),
-        totalStars: projectList.reduce((sum, p) => sum + (p.stats?.stars || 0), 0),
+        activeProjects: projectList.filter((p: Project) => p.stats?.isActive).length,
+        totalCommits: projectList.reduce((sum: number, p: Project) => sum + (p.stats?.commits || 0), 0),
+        totalStars: projectList.reduce((sum: number, p: Project) => sum + (p.stats?.stars || 0), 0),
         averageHealthScore: projectList.length > 0 
-          ? Math.round(projectList.reduce((sum, p) => sum + (p.stats?.healthScore || 0), 0) / projectList.length)
+          ? Math.round(projectList.reduce((sum: number, p: Project) => sum + (p.stats?.healthScore || 0), 0) / projectList.length)
           : 0,
         lastUpdated: new Date().toISOString()
       };

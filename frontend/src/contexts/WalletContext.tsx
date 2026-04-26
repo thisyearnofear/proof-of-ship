@@ -48,8 +48,8 @@ interface WalletContextType {
   // MetaMask integration
   connect: () => Promise<void>;
   disconnect: () => void;
-  account: string | null;
-  chainId: number | null;
+  account: string | undefined;
+  chainId: number | string | null;
   balance: string | null;
   networkName: string;
   ethersProvider: providers.Web3Provider | null;
@@ -80,7 +80,7 @@ interface WalletContextType {
   nanopaymentBalance: { available: string; locked: string };
   nanopaymentAddress: string | null;
   nanopaymentTransactions: NanopaymentTransaction[];
-  initializeNanopayment: (privateKey: string) => Promise<void>;
+  initializeNanopayment: (privateKey: string | `0x${string}`) => Promise<void>;
   initializeNanopaymentDemo: () => void;
   depositNanopayment: (amountUSDC: number) => Promise<any>;
   payForAgent: (agentType: string, params?: any) => Promise<any>;
@@ -99,7 +99,7 @@ interface WalletContextType {
 // Constants
 // ============================================================================
 
-const AGENT_PRICES = {
+const AGENT_PRICES: Record<string, number> = {
   underwrite: 0.05,
   scout: 0.01,
   verify: 0.001,
@@ -189,8 +189,8 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
         setCircleConfig(config.data);
         await refreshCircleWallets();
       }
-    } catch (err) {
-      console.warn('Circle initialization skipped:', err.message);
+    } catch (err: unknown) {
+      console.warn('Circle initialization skipped:', err instanceof Error ? err.message : err);
     }
   }, [refreshCircleWallets]);
 
@@ -245,19 +245,20 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   }, []);
   
   // Nanopayment methods
-  const initializeNanopayment = useCallback(async (pk: string) => {
+  const initializeNanopayment = useCallback(async (pk: `0x${string}`) => {
     try {
       setLoading(true);
       const client = await nanopaymentService.initialize({
         chain: 'arcTestnet',
         privateKey: pk,
       });
-      setNanopaymentAddress(client.account?.address || null);
+      const address = client.account?.address;
+      setNanopaymentAddress(address ?? null);
       setNanopaymentInitialized(true);
       const bal = await nanopaymentService.getBalance();
       setNanopaymentBalance(bal);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -401,7 +402,11 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     if (!ethersProvider || !account) return;
     try {
       const creditSvc = (await import('@/services/creditService')).creditService;
-      const contracts = creditSvc.getContracts(chainId as number, ethersProvider.getSigner());
+      const signer = ethersProvider.getSigner();
+      const numericChainId = typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10);
+      if (isNaN(numericChainId)) throw new Error('Invalid chain ID');
+      const contracts = creditSvc.getContracts(numericChainId, signer);
+      if (!contracts) throw new Error('Contracts not available');
       const profile = await contracts.core.creditLines(account);
       setCreditProfile({
         usedAmount: ethers.utils.formatUnits(profile.usedAmount || 0, 6),
@@ -415,7 +420,11 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const repayLoan = async (amount: string | number) => {
     if (!ethersProvider || !account) throw new Error('Not connected');
     const creditService = (await import('@/services/creditService')).creditService;
-    await creditService.repayLoan(ethersProvider, account, amount);
+    await creditService.repayLoan(
+      typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10),
+      ethersProvider as unknown as import('ethers').Signer,
+      amount
+    );
     await loadCreditProfile();
   };
   
@@ -425,14 +434,15 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       let accounts = await sdk?.connect();
-      if (!accounts || accounts.length === 0) {
+      const accountList = Array.isArray(accounts) ? accounts : [];
+      if (!accountList.length) {
         if (activeProvider) {
           accounts = await activeProvider.request({ method: 'eth_requestAccounts' });
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to connect:', err);
-      setError(err.message || 'Failed to connect to MetaMask. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to connect to MetaMask. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -581,7 +591,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     };
   }, [activeProvider, disconnect, getBalance]);
   
-  const value: WalletContextType = {
+  const value = {
     // MetaMask
     connect, disconnect, account, chainId, balance, networkName,
     ethersProvider, signer, connected, connecting, loading, error, activeProvider,
@@ -590,12 +600,16 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     // Circle Wallet
     circleWallets, circleConfig, createCircleWallet, refreshCircleWallets, transferUSDC,
     // Nanopayment
-    nanopaymentInitialized, nanopaymentBalance, nanopaymentAddress, nanopaymentTransactions,
-    initializeNanopayment, initializeNanopaymentDemo, depositNanopayment,
+    nanopaymentInitialized, 
+    nanopaymentBalance: nanopaymentBalance ?? { available: '0', locked: '0' }, 
+    nanopaymentAddress: nanopaymentAddress ?? undefined, 
+    nanopaymentTransactions,
+    initializeNanopayment: (pk: string) => initializeNanopayment(pk as `0x${string}`), 
+    initializeNanopaymentDemo, depositNanopayment,
     payForAgent, payForHealthScore, payForScout, payForVerification, payForRebalance,
     // Builder Credit
     creditProfile, repayLoan, loadCreditProfile,
-  };
+  } as WalletContextType;
   
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
@@ -635,7 +649,7 @@ export const useCircleWallet = () => {
         walletId: walletId || undefined, githubUrl, projectName, milestones, rewards, hackathons, addresses, shares,
       } as any);
     },
-    getFundingHistory: async (address) => {
+    getFundingHistory: async (address: string) => {
       // Return empty for now - implement via creditService if needed
       return [];
     },
@@ -757,10 +771,10 @@ export const useBuilderCredit = () => {
 // useNanopayment - maps to WalletContext nanopayment functionality
 export const useNanopayment = () => {
   const wallet = useWallet();
-  const [streamingPayment, setStreamingPayment] = useState(null);
+  const [streamingPayment, setStreamingPayment] = useState<{ agentType: string; amount: number } | null>(null);
   
   // Wrap payForAgent to track streaming state (memoized to prevent re-renders)
-  const payForAgentWithStreaming = useCallback(async (agentType, params = {}) => {
+  const payForAgentWithStreaming = useCallback(async (agentType: string, params = {}) => {
     setStreamingPayment({ agentType, amount: AGENT_PRICES[agentType] || 0.01 });
     try {
       const result = await wallet.payForAgent(agentType, params);

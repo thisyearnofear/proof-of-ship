@@ -8,7 +8,7 @@
  * Provides unified UI preferences, theming, and user behavior tracking.
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { useRouter } from 'next/router';
 
 // ============================================================================
@@ -179,26 +179,85 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   });
   const [isLoaded, setIsLoaded] = useState(false);
   
-  // Track interaction helper
-  const trackInteraction = useCallback((event: string, type: string = 'use') => {
+  // Save to localStorage helper
+  const savePreferencesToStorage = useCallback((prefs: StoredPreferences) => {
+    try {
+      localStorage.setItem('pos-user-preferences', JSON.stringify(prefs));
+      localStorage.setItem('pos-dashboard-theme', prefs.theme || 'light');
+    } catch (err) {
+      console.warn('Failed to save preferences:', err);
+    }
+  }, []);
+  
+  // Preference methods
+  const updatePreference = useCallback((key: string, value: any) => {
+    setPreferences(prev => {
+      const updated = { ...prev, [key]: value };
+      savePreferencesToStorage(updated as StoredPreferences);
+      return updated;
+    });
+  }, [savePreferencesToStorage]);
+  
+  const updateNestedPreference = useCallback((path: string, key: string, value: any) => {
+    setPreferences(prev => {
+      const keys = path.split('.');
+      const updated = { ...prev };
+      let current: any = updated;
+      
+      for (let i = 0; i < keys.length - 1; i++) {
+        current[keys[i]] = current[keys[i]] || {};
+        current = current[keys[i]];
+      }
+      
+      current[key] = value;
+      savePreferencesToStorage(updated as StoredPreferences);
+      return updated;
+    });
+  }, [savePreferencesToStorage]);
+  
+  // Ref to access current preferences without creating dependency cycles
+  const preferencesRef = useRef(preferences);
+  useEffect(() => {
+    preferencesRef.current = preferences;
+  }, [preferences]);
+  
+  // Theme methods
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    savePreferencesToStorage({ ...preferencesRef.current, theme: newTheme });
+  }, [savePreferencesToStorage]);
+  
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+  };
+  
+  const setLightTheme = () => setTheme('light');
+  const setDarkTheme = () => setTheme('dark');
+  const setHighContrastTheme = () => setTheme('high-contrast');
+  
+  // Track interaction helper — stable callback (no deps on preferences)
+  const trackInteraction = useCallback((event: string, _type: string = 'use') => {
     setPreferences(prev => {
       const featureUsage = { ...prev.featureUsage };
       featureUsage[event] = (featureUsage[event] || 0) + 1;
       
-      return {
+      const updated = {
         ...prev,
         totalInteractions: (prev.totalInteractions || 0) + 1,
         featureUsage,
       };
+      
+      // Persist to localStorage using the updated state (not stale closure)
+      try {
+        localStorage.setItem('pos-user-preferences', JSON.stringify(updated));
+      } catch (err) {
+        // Ignore storage errors
+      }
+      
+      return updated;
     });
-    
-    // Persist to localStorage
-    savePreferencesToStorage({
-      ...preferences,
-      totalInteractions: (preferences.totalInteractions || 0) + 1,
-      featureUsage: { ...preferences.featureUsage, [event]: (preferences.featureUsage?.[event] || 0) + 1 },
-    });
-  }, [preferences]);
+  }, []);
   
   // Load preferences from localStorage
   useEffect(() => {
@@ -258,7 +317,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
   
-  // Track page visits
+  // Stable ref for updatePreference to avoid re-subscriptions
+  const updatePreferenceRef = useRef(updatePreference);
+  useEffect(() => {
+    updatePreferenceRef.current = updatePreference;
+  }, [updatePreference]);
+  
+  // Track page visits — stable effect that only re-subscribes when router/isLoaded change
   useEffect(() => {
     if (!isLoaded) return;
     
@@ -275,10 +340,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       
       if (page === 'ecosystems' && section) {
         trackInteraction(`ecosystem_${section}`, 'visit');
-        updatePreference('lastVisitedEcosystem', section);
+        updatePreferenceRef.current('lastVisitedEcosystem', section);
       }
       
-      updatePreference('lastActiveDate', new Date().toISOString());
+      updatePreferenceRef.current('lastActiveDate', new Date().toISOString());
     };
     
     router.events.on('routeChangeComplete', handleRouteChange);
@@ -287,8 +352,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange);
     };
+  // trackInteraction is now stable (no deps), so this effect won't re-run on every preference change
   }, [router, isLoaded, trackInteraction]);
   
+  // Smart features
+  const applySmartDefaults = useCallback(() => {
+    if (preferencesRef.current.experienceLevel === 'beginner') {
+      updatePreference('showHints', true);
+      updatePreference('defaultComplexity', 'simple');
+    } else if (preferencesRef.current.experienceLevel === 'intermediate') {
+      updatePreference('showAdvancedFilters', true);
+      updatePreference('defaultComplexity', 'detailed');
+    } else {
+      updatePreference('enableCompactMode', true);
+      updatePreference('defaultComplexity', 'advanced');
+    }
+  }, [updatePreference]);
+
   // Auto-apply smart defaults at milestones
   useEffect(() => {
     if (!isLoaded) return;
@@ -298,58 +378,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (totalInteractions === 10 || totalInteractions === 25 || totalInteractions === 50) {
       applySmartDefaults();
     }
-  }, [preferences.totalInteractions, isLoaded]);
-  
-  // Save to localStorage helper
-  const savePreferencesToStorage = (prefs: StoredPreferences) => {
-    try {
-      localStorage.setItem('pos-user-preferences', JSON.stringify(prefs));
-      localStorage.setItem('pos-dashboard-theme', prefs.theme || 'light');
-    } catch (err) {
-      console.warn('Failed to save preferences:', err);
-    }
-  };
-  
-  // Theme methods
-  const setTheme = useCallback((newTheme: Theme) => {
-    setThemeState(newTheme);
-    savePreferencesToStorage({ ...preferences, theme: newTheme });
-  }, [preferences]);
-  
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-  };
-  
-  const setLightTheme = () => setTheme('light');
-  const setDarkTheme = () => setTheme('dark');
-  const setHighContrastTheme = () => setTheme('high-contrast');
-  
-  // Preference methods
-  const updatePreference = useCallback((key: string, value: any) => {
-    setPreferences(prev => {
-      const updated = { ...prev, [key]: value };
-      savePreferencesToStorage(updated as StoredPreferences);
-      return updated;
-    });
-  }, []);
-  
-  const updateNestedPreference = useCallback((path: string, key: string, value: any) => {
-    setPreferences(prev => {
-      const keys = path.split('.');
-      const updated = { ...prev };
-      let current: any = updated;
-      
-      for (let i = 0; i < keys.length - 1; i++) {
-        current[keys[i]] = current[keys[i]] || {};
-        current = current[keys[i]];
-      }
-      
-      current[key] = value;
-      savePreferencesToStorage(updated as StoredPreferences);
-      return updated;
-    });
-  }, []);
+  }, [preferences.totalInteractions, isLoaded, applySmartDefaults]);
   
   const getPreference = useCallback((key: string, defaultValue?: any) => {
     return (preferences as any)[key] ?? defaultValue;
@@ -422,19 +451,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  // Smart features
-  const applySmartDefaults = useCallback(() => {
-    if (preferences.experienceLevel === 'beginner') {
-      updatePreference('showHints', true);
-      updatePreference('defaultComplexity', 'simple');
-    } else if (preferences.experienceLevel === 'intermediate') {
-      updatePreference('showAdvancedFilters', true);
-      updatePreference('defaultComplexity', 'detailed');
-    } else {
-      updatePreference('enableCompactMode', true);
-      updatePreference('defaultComplexity', 'advanced');
-    }
-  }, [preferences.experienceLevel]);
+
   
   const isExperiencedWith = (feature: string) => {
     return (preferences.featureUsage?.[feature] || 0) >= 3;

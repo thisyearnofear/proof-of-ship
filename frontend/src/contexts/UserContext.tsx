@@ -239,7 +239,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // Refresh if stale (>24 hours)
         const lastUpdated = new Date(existingProfile.lastUpdated);
         const now = new Date();
-        const hoursDiff = (now - lastUpdated) / (1000 * 60 * 60);
+        const hoursDiff = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60);
         
         if (hoursDiff > 24) {
           await refreshProfile();

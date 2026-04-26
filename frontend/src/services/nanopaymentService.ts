@@ -32,7 +32,7 @@ class NanopaymentService {
   async initialize(config: NanopaymentConfig) {
     this.config = config;
     this.client = new GatewayClient({
-      chain: config.chain === "arc" ? "arc" : "arcTestnet",
+      chain: config.chain === "arc" ? "arbitrum" : "arbitrumSepolia",
       privateKey: config.privateKey,
     });
     return this.client;
@@ -46,8 +46,10 @@ class NanopaymentService {
     if (!this.client) {
       throw new Error("NanopaymentClient not initialized");
     }
-    const balance = await this.client.getBalance();
-    return { available: balance.available, locked: balance.locked || '0' };
+    const balance = await this.client.getBalance() as unknown as { available: string | number; locked?: string | number };
+    const available = String(balance.available);
+    const locked = balance.locked ? String(balance.locked) : '0';
+    return { available, locked };
   }
 
   async deposit(amountUSDC: number): Promise<{ txHash: string }> {
@@ -55,7 +57,7 @@ class NanopaymentService {
       throw new Error("NanopaymentClient not initialized");
     }
     const amountWei = (BigInt(amountUSDC) * BigInt(1e6)).toString();
-    const result = await this.client.deposit(amountWei);
+    const result = await this.client.deposit(amountWei) as { txHash?: string; hash?: string };
     return { txHash: result.txHash || result.hash || '' };
   }
 
@@ -64,7 +66,7 @@ class NanopaymentService {
       throw new Error("NanopaymentClient not initialized");
     }
     const amountWei = (BigInt(amountUSDC) * BigInt(1e6)).toString();
-    const result = await this.client.withdraw(amountWei);
+    const result = await this.client.withdraw(amountWei) as { txHash?: string; hash?: string };
     return { txHash: result.txHash || result.hash || '' };
   }
 
@@ -74,24 +76,25 @@ class NanopaymentService {
     }
 
     try {
-      const { data, status, headers } = await this.client.pay(url, fallbackHeaders);
+      const result = await this.client.pay(url, fallbackHeaders) as { data?: any; status?: number; headers?: Record<string, string> };
+      const { data, status, headers } = result;
       
       if (status === 402) {
         return {
           success: false,
-          error: headers["x-payment-requirement"] || "Payment required",
+          error: headers?.["x-payment-requirement"] || "Payment required",
         };
       }
 
       return {
         success: true,
         data,
-        txHash: headers["x-settlement-hash"] || headers["x-tx-hash"],
+        txHash: headers?.["x-settlement-hash"] || headers?.["x-tx-hash"],
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message || "Payment failed",
+        error: error instanceof Error ? error.message : "Payment failed",
       };
     }
   }

@@ -507,15 +507,15 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   
    const repayLoan = async (amount: string | number, projectPda?: PublicKey) => {
      if (activeChainFamily === 'solana') {
-       if (!publicKey) throw new Error('Solana wallet not connected');
+       if (!publicKey || !solanaWallet) throw new Error('Solana wallet not connected');
        if (!projectPda) throw new Error('Project PDA required for Solana repayment');
        const { solanaCreditService } = await import('@/services/SolanaCreditService');
        const connection = getSolanaConnection();
        const result = await solanaCreditService.repayLoan(
          connection, 
          solanaWallet,
-         projectPda,
-         amount
+         amount,
+         projectPda
        );
        
        await loadCreditProfile();
@@ -539,7 +539,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
         if (!publicKey) throw new Error('Solana wallet not connected');
         const { solanaCreditService } = await import('@/services/SolanaCreditService');
         const connection = getSolanaConnection();
-        return await solanaCreditService.requestFunding(connection, solanaWallet, projectData);
+         return await solanaCreditService.requestFunding(connection, solanaWallet, projectData);
       } else {
         if (!signer || !chainId) throw new Error('EVM wallet not connected');
         const { creditService } = await import('@/services/creditService');
@@ -879,7 +879,8 @@ export const useBuilderCredit = () => {
     },
     backProject: async (projectId: string, multiplier: number, amount: string | number): Promise<string> => {
       if (wallet.activeChainFamily === 'solana') {
-        const solPubkey = wallet.solanaWallet?.publicKey;
+        if (!wallet.solanaWallet) throw new Error('Solana wallet not connected');
+        const solPubkey = wallet.solanaWallet.publicKey;
         if (!wallet.solanaConnected || !wallet.solanaAddress || !solPubkey) throw new Error('Solana wallet not connected');
         
         const { solanaCreditService } = await import('@/services/SolanaCreditService');

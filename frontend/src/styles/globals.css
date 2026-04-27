@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
 /* Base Styles with Design Tokens */
 html {
   font-size: 16px;
@@ -183,7 +189,69 @@ pre code {
   animation: spin 1s linear infinite;
 }
 
-/* Skeleton loading animation */
+/* Fade in up animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+/* Scale in animation */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+/* Float animation for decorative elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse glow animation */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 20px 4px rgba(59, 130, 246, 0.2); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Shimmer loading animation */
 @keyframes skeleton-loading {
   0% {
     background-position: -200px 0;
@@ -198,6 +266,16 @@ pre code {
   background-size: 200px 100%;
   animation: skeleton-loading 1.5s infinite;
 }
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 75ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 225ms; }
+.stagger-5 { animation-delay: 300ms; }
+.stagger-6 { animation-delay: 375ms; }
+.stagger-7 { animation-delay: 450ms; }
+.stagger-8 { animation-delay: 525ms; }
 
 /* Utility classes for common patterns */
 .container {

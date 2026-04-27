@@ -13,7 +13,7 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import TabBar from "@/components/common/TabBar";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
-import { SkeletonProjectGrid } from "@/components/common/SkeletonLoader";
+import { SkeletonProjectGrid, SkeletonBlock } from "@/components/common/SkeletonLoader";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NETWORK_CONFIGS } from "@/config/networks";
@@ -128,6 +128,46 @@ function ProjectsTab() {
       <Card className="p-8 text-center">
         <p className="text-red-600">Failed to load projects. Please refresh.</p>
       </Card>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-10 w-48 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="h-10 w-32 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          <div className="h-10 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          <div className="h-10 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        </div>
+
+        <Card className="p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-8 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            ))}
+          </div>
+        </Card>
+
+        <div className="h-10 w-64 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div className="flex-1">
+                  <div className="h-4 w-2/3 mb-2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                </div>
+              </div>
+              <div className="h-3 w-full mb-2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div className="h-3 w-3/4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 

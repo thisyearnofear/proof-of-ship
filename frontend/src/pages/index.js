@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
 
@@ -18,7 +18,37 @@ import {
   EyeIcon,
   RocketLaunchIcon,
   BoltIcon,
+  PlusCircleIcon,
+  ChatBubbleLeftRightIcon,
+  FlagIcon,
+  UsersIcon,
+  MagnifyingGlassIcon,
+  BanknotesIcon,
+  CubeIcon,
+  MapIcon,
+  LightBulbIcon,
+  SparklesIcon as SparklesIconOutline,
+  BookOpenIcon,
 } from "@heroicons/react/24/outline";
+
+// Lazy-loaded component sections - code-split for better performance
+const FeaturesSection = lazy(() => 
+  import('@/components/sections/FeatureSection').then(mod => ({
+    default: mod.FeatureSection
+  })).catch(() => ({ default: () => null }))
+);
+
+const PaymentFlowSection = lazy(() =>
+  import('@/components/sections/PaymentFlow').then(mod => ({
+    default: mod.PaymentFlow
+  })).catch(() => ({ default: () => null }))
+);
+
+const UserJourneySection = lazy(() =>
+  import('@/components/sections/UserJourney').then(mod => ({
+    default: mod.UserJourney
+  })).catch(() => ({ default: () => null }))
+);
 
 export default function LandingPage() {
   const router = useRouter();
@@ -31,26 +61,26 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: RocketLaunchIcon,
-      title: "🚀 Market-Backed Credit",
+      icon: ChartBarIcon,
+      title: "Market-Backed Credit",
       description:
         "Your credit limit isn't just a score—it's a market. Backer confidence directly scales your available liquidity.",
     },
     {
       icon: EyeIcon,
-      title: "🎯 Prize Collateral",
+      title: "Prize Collateral",
       description:
         "Collateralize your potential hackathon winnings to get USDC upfront. We bridge the gap between building and winning.",
     },
     {
-      icon: ClockIcon,
-      title: "🎲 Simple Multiplier Betting",
+      icon: BanknotesIcon,
+      title: "Simple Multiplier Betting",
       description:
         "Backers place 1.5x, 2x, or 3x bets on your project milestones. Higher stakes from the community lead to better credit terms for you.",
     },
     {
-      icon: UserGroupIcon,
-      title: "🚢 Proven Delivery",
+      icon: RocketLaunchIcon,
+      title: "Proven Delivery",
       description:
         "Ship milestones to validate backer bets and unlock the next tier of credit. A virtuous cycle of shipping and funding.",
     },
@@ -72,19 +102,23 @@ export default function LandingPage() {
       subtitle: "Build your portfolio, get feedback, and grow your reputation",
       steps: [
         {
-          title: "🎨 Showcase Your Portfolio",
-          desc: "Create your builder portfolio with subdomain routing to showcase your Farcaster mini apps",
+          icon: PlusCircleIcon,
+          title: "Showcase Your Portfolio",
+          desc: "Create your builder portfolio with subdomain routing to showcase your projects",
         },
         {
-          title: "💬 Collect User Feedback",
+          icon: ChatBubbleLeftRightIcon,
+          title: "Collect User Feedback",
           desc: "Get valuable feedback with screen recordings to improve your projects",
         },
         {
-          title: "🏆 Track Hackathons",
+          icon: FlagIcon,
+          title: "Track Hackathons",
           desc: "Follow hackathons, track participation, and showcase your wins",
         },
         {
-          title: "🚢 Grow Your Community",
+          icon: UsersIcon,
+          title: "Grow Your Community",
           desc: "Connect with other builders and grow your project community",
         },
       ],
@@ -94,19 +128,23 @@ export default function LandingPage() {
       subtitle: "Track builders, manage hackathons, and recognize achievements",
       steps: [
         {
-          title: "📡 Track Builder Progress",
+          icon: EyeIcon,
+          title: "Track Builder Progress",
           desc: "Monitor builder participation and project progress in real-time",
         },
         {
-          title: "🗺️ Manage Hackathons",
+          icon: MapIcon,
+          title: "Manage Hackathons",
           desc: "Organize and track hackathon participation across your ecosystem",
         },
         {
-          title: "⚡ Collect Feedback",
+          icon: ChatBubbleLeftRightIcon,
+          title: "Collect Feedback",
           desc: "Gather valuable feedback from builders to improve your programs",
         },
         {
-          title: "🏆 Recognize Achievements",
+          icon: FlagIcon,
+          title: "Recognize Achievements",
           desc: "Highlight successful builders and projects in your ecosystem",
         },
       ],
@@ -116,19 +154,23 @@ export default function LandingPage() {
       subtitle: "Scout talent, back builders, and earn from their success",
       steps: [
         {
-          title: "🔍 Scout Talent",
+          icon: MagnifyingGlassIcon,
+          title: "Scout Talent",
           desc: "Find promising builders by analyzing their GitHub history and onchain reputation",
         },
         {
-          title: "🎲 Place Your Bets",
-          desc: "Back builders you believe in by staking capital with 1.5x-3x reward multipliers on their milestone completion",
+          icon: BanknotesIcon,
+          title: "Place Your Bets",
+          desc: "Back builders you believe in by staking capital with 1.5x-3x reward multipliers",
         },
         {
-          title: "📈 Market Confidence",
+          icon: ChartBarIcon,
+          title: "Market Confidence",
           desc: "Your backing increases the builder's credit limit through market confidence",
         },
         {
-          title: "💰 Shared Rewards",
+          icon: CubeIcon,
+          title: "Shared Rewards",
           desc: "Earn a portion of the hackathon prizes when your backed builders win",
         },
       ],
@@ -179,19 +221,20 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 relative">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium border border-blue-200 shadow-lg">
-                <span className="text-lg">🌐</span>
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium border border-blue-200 shadow-lg animate-fade-in-up">
+                <GlobeAltIcon className="w-4 h-4" />
                 <span>Onchain Project Portfolios</span>
               </div>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-primary mb-4 sm:mb-6 leading-tight">
+            <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-primary mb-4 sm:mb-6 leading-tight tracking-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               Predictive Credit:
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                {" "}
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
                 Backer-Funded,
               </span>
-              <br /> Prize-Collateralized
+              <br />
+              <span className="text-secondary">Prize-Collateralized</span>
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
@@ -199,12 +242,13 @@ export default function LandingPage() {
               directly determines your credit limit. Borrow against your future prizes.
             </p>
 
-            <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
+            <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
               <Button
                 onClick={handleGetStarted}
                 className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-primary-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
               >
-                ✨ Create your portfolio
+                <SparklesIconOutline className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
+                Create your portfolio
                 <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
               </Button>
 
@@ -213,7 +257,8 @@ export default function LandingPage() {
                 variant="outline"
                 className="px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
               >
-                🔎 Explore projects
+                <MagnifyingGlassIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
+                Explore projects
               </Button>
             </div>
 
@@ -274,199 +319,59 @@ export default function LandingPage() {
                 <p className="mt-2 text-sm text-red-600">{previewError}</p>
               )}
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-secondary px-4 sm:px-0">
-              <div className="flex items-center gap-2">
-                <span className="text-green-500">🌐</span>
-                <span>Subdomain portfolio</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-500">🧪</span>
-                <span>Human verification</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-500">🏁</span>
-                <span>Hackathon tracking</span>
-              </div>
+      {/* Features Section - Lazily loaded */}
+      <Suspense fallback={
+        <div className="bg-surface py-12 sm:py-16 border-t border-default">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-4 sm:p-6 text-center border border-default rounded-xl">
+                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto mb-3 animate-pulse" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-2 animate-pulse" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      }>
+        <FeaturesSection features={features} />
+      </Suspense>
 
-      {/* User Journey Tabs */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-12 sm:py-16">
-        <div className="text-center mb-8 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
-            How It Works
-          </h2>
-          <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
-            Whether you&apos;re building, organizing, or backing &mdash; every role
-            contributes to the proof-of-ship ecosystem.
-          </p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8 sm:mb-12 overflow-x-auto">
-          <div className="bg-surface-secondary p-1 rounded-lg border border-default inline-flex gap-1">
-            {Object.keys(userJourneys).map((key) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap min-h-touch ${
-                  activeTab === key
-                    ? "bg-surface text-primary shadow-sm border border-default"
-                    : "text-secondary hover:text-primary"
-                }`}
-              >
-                {userJourneys[key].title}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Active Tab Content */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h3 className="text-xl sm:text-2xl font-bold text-primary mb-2 px-4 sm:px-0">
-            {userJourneys[activeTab].title}
-          </h3>
-          <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
-            {userJourneys[activeTab].subtitle}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-          {userJourneys[activeTab].steps.map((step, index) => (
-            <Card
-              key={index}
-              className="p-4 sm:p-6 text-center border border-default hover:border-primary-300 transition-colors"
-            >
-              <div className="w-10 sm:w-12 h-10 sm:h-12 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4 shadow-lg">
-                {index + 1}
-              </div>
-              <h4 className="font-semibold text-primary mb-2 text-sm sm:text-base">{step.title}</h4>
-              <p className="text-secondary text-xs sm:text-sm">{step.desc}</p>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Features Section */}
-      <div className="bg-surface py-12 sm:py-16 border-t border-default">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
-              ⚡ Why Hackathons Need This
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-secondary px-4 sm:px-0">
-              Solving the three biggest problems that sink great hackathon
-              projects
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-            {features.map((feature, index) => (
-              <Card
-                key={index}
-              className="p-4 sm:p-6 text-center hover:shadow-lg transition-all hover:border-primary-300 border border-default"
-              >
-                <feature.icon className="w-10 sm:w-12 h-10 sm:h-12 text-primary-500 mx-auto mb-3 sm:mb-4" />
-                <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">
-                  {feature.title}
-                </h3>
-                <p className="text-secondary text-xs sm:text-sm">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* How x402 Nanopayments Work — Visual Flow Diagram */}
+      {/* How x402 Nanopayments Work */}
       <div className="py-12 sm:py-16 bg-gradient-to-b from-teal-50 to-white border-t border-teal-100">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-semibold mb-4">
-              <BoltIcon className="w-3.5 h-3.5" /> Powered by Arc & x402
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-              AI Agents, Paid Per Query
-            </h2>
-            <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Each AI call costs fractions of a cent, settled instantly on Circle&apos;s Arc L2 via the x402 nanopayment protocol.
-            </p>
-          </div>
-
-          {/* Visual Flow Diagram */}
-          <div className="relative max-w-4xl mx-auto mb-10">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-              {/* Step 1: User */}
-              <div className="bg-white rounded-xl border-2 border-blue-200 shadow-sm p-4 text-center">
-                <div className="text-3xl mb-2">👤</div>
-                <p className="text-xs font-semibold text-gray-900">You</p>
-                <p className="text-[10px] text-gray-500">Click &ldquo;Analyze&rdquo;</p>
-              </div>
-              {/* Arrow */}
-              <div className="hidden md:flex items-center justify-center">
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-gray-400 mb-1">402</span>
-                  <div className="w-full h-0.5 bg-gradient-to-r from-blue-300 to-teal-300 relative">
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-transparent border-l-teal-400" />
-                  </div>
-                  <span className="text-xs text-gray-400 mt-1">USDC</span>
-                </div>
-              </div>
-              <div className="md:hidden flex justify-center"><span className="text-gray-300 text-xl">↓</span></div>
-              {/* Step 2: Gateway */}
-              <div className="bg-white rounded-xl border-2 border-teal-200 shadow-sm p-4 text-center">
-                <div className="text-3xl mb-2">🔐</div>
-                <p className="text-xs font-semibold text-gray-900">Circle Gateway</p>
-                <p className="text-[10px] text-gray-500">Signs USDC on Arc</p>
-              </div>
-              {/* Arrow */}
-              <div className="hidden md:flex items-center justify-center">
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-gray-400 mb-1">settle</span>
-                  <div className="w-full h-0.5 bg-gradient-to-r from-teal-300 to-purple-300 relative">
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-transparent border-l-purple-400" />
-                  </div>
-                  <span className="text-xs text-gray-400 mt-1">result</span>
-                </div>
-              </div>
-              <div className="md:hidden flex justify-center"><span className="text-gray-300 text-xl">↓</span></div>
-              {/* Step 3: AI Agent */}
-              <div className="bg-white rounded-xl border-2 border-purple-200 shadow-sm p-4 text-center">
-                <div className="text-3xl mb-2">🤖</div>
-                <p className="text-xs font-semibold text-gray-900">AI Agent</p>
-                <p className="text-[10px] text-gray-500">Returns analysis</p>
-              </div>
-            </div>
-            {/* Secondary payment: Agent → AIsa */}
-            <div className="mt-4 flex justify-center">
-              <div className="bg-gray-50 rounded-lg border border-gray-200 px-4 py-2 inline-flex items-center gap-3 text-xs text-gray-500">
-                <span>🤖 Our Agent</span>
-                <span className="text-gray-300">→ pays →</span>
-                <span>🧠 AIsa (LLM)</span>
-                <span className="text-gray-300">→ settled on</span>
-                <span className="font-semibold text-teal-600">Arc L2</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Agent Pricing + CTA */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div className="flex flex-wrap gap-3">
-              <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🤖 Underwriter — $0.05</span>
-              <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">🔍 Scout — $0.01</span>
-              <span className="px-3 py-1.5 bg-white border border-teal-200 rounded-lg text-xs font-medium text-teal-700">✅ Verifier — $0.001</span>
-            </div>
-            <Button
-              onClick={() => router.push('/back')}
-              className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 text-sm font-semibold"
-            >
-              ⚡ Try AI Agents
-            </Button>
-          </div>
+          <Suspense fallback={<div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+          </div>}>
+            <PaymentFlowSection />
+          </Suspense>
         </div>
       </div>
+
+      {/* User Journey Tabs - Lazily loaded */}
+      <Suspense fallback={
+        <div className="bg-surface-secondary py-12 sm:py-16">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-8 animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-6 border border-default rounded-xl">
+                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-xl mx-auto mb-3 animate-pulse" />
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-2 animate-pulse" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      }>
+        <UserJourneySection />
+      </Suspense>
 
       {/* Ecosystems Section */}
       <div className="py-12 sm:py-16 bg-surface-secondary">
@@ -485,7 +390,7 @@ export default function LandingPage() {
               <Card
                 key={ecosystem.id}
                 className="p-4 sm:p-6 hover:shadow-lg transition-all cursor-pointer border border-default hover:border-primary-300 bg-surface"
-                onClick={() => router.push(`/explore?ecosystem=${ecosystem.id}`) }
+                onClick={() => router.push(`/explore?ecosystem=${ecosystem.id}`)}
               >
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4">
                   <div

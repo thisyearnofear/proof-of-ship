@@ -7,17 +7,16 @@
  * - Project submission
  * - React hook for context integration
  * 
- * Previously split across:
+ * Consolidated from:
  * - DataService.ts (base caching)
  * - EnhancedDataService.js (multi-ecosystem)
  * - ClientProjectService.js (submission)
- * 
- * @deprecated EnhancedDataService.js and ClientProjectService.js - use this instead
  */
 
 
 import { db } from '@/lib/firebase/clientApp';
 import { collection, getDocs, doc, getDoc, query, where, orderBy, setDoc, addDoc } from 'firebase/firestore';
+import { COLLECTIONS, getProjectCollection } from '@/config/collections';
 
 // Static repos for Celo fallback (imported lazily to avoid bundling in server contexts)
 let staticRepos: any[] | null = null;
@@ -317,7 +316,8 @@ class DataService {
 
   async loadEcosystemProjects(ecosystemId: string, dataTypes: string[] = ['meta', 'commits']): Promise<Project[]> {
     try {
-      const ref = collection(db, `projects_${ecosystemId}`);
+      const collectionName = getProjectCollection(ecosystemId);
+      const ref = collection(db, collectionName);
       const q = ecosystemId === 'base' 
         ? query(ref, where('status', '==', 'approved'), orderBy('createdAt', 'desc'))
         : query(ref, orderBy('createdAt', 'desc'));
@@ -492,7 +492,8 @@ class DataService {
 
     if (ecosystem && ecosystem !== 'celo') {
       try {
-        const ref = doc(db, `projects_${ecosystem}`, slug);
+        const collectionName = getProjectCollection(ecosystem);
+        const ref = doc(db, collectionName, slug);
         const snap = await getDoc(ref);
         if (!snap.exists()) return null;
 
@@ -659,10 +660,10 @@ class DataService {
         stats: { commits: 0, issues: 0, pulls: 0, stars: 0, forks: 0, watchers: 0, lastCommit: null, languages: [], isActive: false, healthScore: 0 },
       };
 
-      await setDoc(doc(db, 'projects', slug), projectDoc as any);
-      await setDoc(doc(db, `projects_${inputData.ecosystem}`, slug), projectDoc as any);
+      await setDoc(doc(db, COLLECTIONS.PROJECTS_GENERIC, slug), projectDoc as any);
+      await setDoc(doc(db, getProjectCollection(inputData.ecosystem), slug), projectDoc as any);
 
-      await addDoc(collection(db, 'admin_queue'), {
+      await addDoc(collection(db, COLLECTIONS.ADMIN_QUEUE), {
         type: 'project_submission',
         projectSlug: slug,
         ecosystem: inputData.ecosystem,

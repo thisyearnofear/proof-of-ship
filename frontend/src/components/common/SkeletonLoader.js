@@ -1,13 +1,19 @@
 /**
  * Skeleton Loading Components
  * Replaces spinners with animated placeholder bars for a polished loading experience.
+ * Uses shimmer animation for more realistic loading feedback.
  */
 import React from "react";
 
 export function SkeletonBlock({ className = "" }) {
   return (
     <div
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded relative overflow-hidden ${className}`}
+      style={{
+        background: 'linear-gradient(90deg, transparent 25%, var(--color-background-tertiary) 50%, transparent 75%)',
+        backgroundSize: '200px 100%',
+        animation: 'shimmer 1.5s infinite'
+      }}
     />
   );
 }
@@ -56,11 +62,28 @@ export function SkeletonProjectGrid({ count = 6 }) {
   );
 }
 
+export function SkeletonDashboardStats() {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-3">
+            <SkeletonBlock className="w-10 h-10 rounded-lg" />
+            <div className="flex-1">
+              <SkeletonBlock className="h-6 w-16 mb-2" />
+              <SkeletonBlock className="h-3 w-20" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function SkeletonTable({ rows = 5, cols = 4 }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="grid gap-0">
-        {/* Header */}
         <div
           className="grid gap-4 p-4 bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700"
           style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
@@ -69,7 +92,6 @@ export function SkeletonTable({ rows = 5, cols = 4 }) {
             <SkeletonBlock key={i} className="h-4 w-3/4" />
           ))}
         </div>
-        {/* Rows */}
         {Array.from({ length: rows }).map((_, r) => (
           <div
             key={r}

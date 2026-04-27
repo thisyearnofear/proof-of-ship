@@ -11,7 +11,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { MetaMaskProvider, useSDK } from '@metamask/sdk-react';
-import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
+import { useWallet as useSolanaWallet, WalletContextState } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { Connection, LAMPORTS_PER_SOL, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
@@ -93,18 +93,18 @@ interface WalletContextType {
   payForVerification: (prId: string, lines: number, baseUrl?: string) => Promise<any>;
   payForRebalance: (baseUrl?: string) => Promise<any>;
   
-  // Builder Credit
-  creditProfile: CreditProfile | null;
-  repayLoan: (amount: string | number) => Promise<void>;
-  loadCreditProfile: () => Promise<void>;
-  requestFunding: (projectData: any) => Promise<any>;
+   // Builder Credit
+   creditProfile: CreditProfile | null;
+   repayLoan: (amount: string | number, projectPda?: PublicKey) => Promise<void>;
+   loadCreditProfile: () => Promise<void>;
+   requestFunding: (projectData: any) => Promise<any>;
 
-  // Solana integration (Phase 1 preparation)
-  solanaAddress: string | null;
-  solanaConnected: boolean;
-  solanaConnecting: boolean;
-  solanaBalance: string | null;
-  solanaWallet: any;
+   // Solana integration (Phase 1 preparation)
+   solanaAddress: string | null;
+   solanaConnected: boolean;
+   solanaConnecting: boolean;
+   solanaBalance: string | null;
+   solanaWallet: WalletContextState | null;
   connectSolana: () => Promise<void>;
   disconnectSolana: () => void;
   activeChainFamily: 'evm' | 'solana';
@@ -136,10 +136,12 @@ const NETWORK_CONFIGS: Record<number, NetworkConfig> = {
 // Solana config helpers (module-level; safe for hooks + non-hook code)
 // ============================================================================
 
+type SolanaCluster = 'devnet' | 'testnet' | 'mainnet-beta' | 'mainnet';
+
 const getSolanaEndpoint = () => {
   const explicit = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
   if (explicit) return explicit;
-  const cluster = (process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet') as any;
+  const cluster = (process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet').toLowerCase() as SolanaCluster;
   if (cluster === 'mainnet-beta' || cluster === 'mainnet') return clusterApiUrl('mainnet-beta');
   if (cluster === 'testnet') return clusterApiUrl('testnet');
   return clusterApiUrl('devnet');
@@ -503,20 +505,22 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     }
   }, [ethersProvider, account, chainId, activeChainFamily, publicKey]);
   
-  const repayLoan = async (amount: string | number) => {
-    if (activeChainFamily === 'solana') {
-      if (!publicKey) throw new Error('Solana wallet not connected');
-      const { solanaCreditService } = await import('@/services/SolanaCreditService');
-      const connection = getSolanaConnection();
-      const result = await solanaCreditService.repayLoan(
-        connection, 
-        solanaWallet,
-        amount
-      );
-      
-      await loadCreditProfile();
-      return result;
-    }
+   const repayLoan = async (amount: string | number, projectPda?: PublicKey) => {
+     if (activeChainFamily === 'solana') {
+       if (!publicKey) throw new Error('Solana wallet not connected');
+       if (!projectPda) throw new Error('Project PDA required for Solana repayment');
+       const { solanaCreditService } = await import('@/services/SolanaCreditService');
+       const connection = getSolanaConnection();
+       const result = await solanaCreditService.repayLoan(
+         connection, 
+         solanaWallet,
+         projectPda,
+         amount
+       );
+       
+       await loadCreditProfile();
+       return result;
+     }
 
     if (!ethersProvider || !account) throw new Error('Not connected');
     const creditService = (await import('@/services/creditService')).creditService;

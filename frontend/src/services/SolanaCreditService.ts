@@ -3,7 +3,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { Program, BN } from '@coral-xyz/anchor';
 import { SOLANA_MAINNET_USDC, SOLANA_DEVNET_USDC } from '../config/tokens';
 import IDL from '../idl/blockchain_solana.json';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token';
 
 /**
  * Solana Credit Service
@@ -50,76 +50,70 @@ class SolanaCreditService {
         return new PublicKey(SOLANA_DEVNET_USDC);
     }
 
-    private getConfigPda(): PublicKey {
-        const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], this.PROGRAM_ID);
-        return configPda;
-    }
-
-    private getProgram(connection: Connection, anchorWallet: any) {
+    private getProgram(connection: Connection, anchorWallet: anchor.Wallet) {
         if (!anchorWallet) {
             throw new Error("Wallet not connected or not provided");
         }
         const provider = new anchor.AnchorProvider(connection, anchorWallet, {
             preflightCommitment: 'processed',
         });
-        // Anchor >=0.30 expects idl.address (and constructor signature is Program(idl, provider)).
-        const idlWithAddress = { ...(IDL as any), address: this.PROGRAM_ID.toBase58() };
-        return new Program(idlWithAddress as any, provider);
+        return new Program(IDL, provider);
     }
 
     private getReadOnlyProgram(connection: Connection) {
         // AnchorProvider requires a wallet interface, but read-only fetches don't need signing.
         const dummyKeypair = Keypair.generate();
-        const dummyWallet = {
+        const dummyWallet: anchor.Wallet = {
             publicKey: dummyKeypair.publicKey,
-            signTransaction: async (tx: any) => tx,
-            signAllTransactions: async (txs: any[]) => txs,
+            signTransaction: async (tx) => tx,
+            signAllTransactions: async (txs) => txs,
         };
-        const provider = new anchor.AnchorProvider(connection, dummyWallet as any, {
+        const provider = new anchor.AnchorProvider(connection, dummyWallet, {
             preflightCommitment: 'processed',
         });
-        const idlWithAddress = { ...(IDL as any), address: this.PROGRAM_ID.toBase58() };
-        return new Program(idlWithAddress as any, provider);
-    }
-
-    private async assertConfigInitialized(connection: Connection) {
-        const program = this.getReadOnlyProgram(connection);
-        try {
-            await program.account.config.fetch(this.getConfigPda());
-        } catch (e) {
-            throw new Error(
-                'Solana program is missing on-chain Config. After deploying, call solanaCreditService.initializeConfig() once to set the USDC mint.'
-            );
-        }
+        return new Program(IDL, provider);
     }
 
     /**
-     * One-time init after deploy: sets the USDC mint in the on-chain config PDA.
+     * Initialize treasury (one-time setup to create protocol treasury ATA)
      */
-    async initializeConfig(connection: Connection, anchorWallet: any) {
+    async initializeTreasury(connection: Connection, anchorWallet: any) {
         const program = this.getProgram(connection, anchorWallet);
         const usdcMint = this.getUsdcMint();
-        const config = this.getConfigPda();
 
-        const tx = await program.methods.initializeConfig(usdcMint).accounts({
-            config,
+        const [treasuryAuthorityPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from('treasury')],
+            this.PROGRAM_ID
+        );
+
+        const treasuryTokenAccount = getAssociatedTokenAddressSync(
+            usdcMint,
+            treasuryAuthorityPda,
+            true
+        );
+
+        const tx = await program.methods.initializeTreasury().accounts({
+            treasury_authority: treasuryAuthorityPda,
+            usdc_mint: usdcMint,
+            treasury_token_account: treasuryTokenAccount,
             authority: anchorWallet.publicKey,
             systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
         }).rpc();
 
-        return { success: true, hash: tx, config: config.toBase58(), usdcMint: usdcMint.toBase58() };
+        return { success: true, hash: tx, treasuryAuthority: treasuryAuthorityPda.toBase58(), usdcMint: usdcMint.toBase58() };
     }
 
     /**
      * Request funding for a project on Solana
      */
-    async requestFunding(connection: Connection, anchorWallet: any, projectData: ProjectData) {
+    async requestFunding(connection: Connection, anchorWallet: anchor.Wallet, projectData: ProjectData) {
         console.log('Solana: requestFunding', projectData);
         const publicKey = anchorWallet.publicKey;
         const program = this.getProgram(connection, anchorWallet);
         
         try {
-            await this.assertConfigInitialized(connection);
             if (Buffer.from(projectData.projectName).length > 32) {
                 throw new Error('Solana projectName must be <= 32 bytes (PDA seed limit). Shorten the name.');
             }
@@ -151,20 +145,22 @@ class SolanaCreditService {
                 this.PROGRAM_ID
             );
 
-            const payoutVault = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: vaultAuthorityPda,
-            });
+            const vaultTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                vaultAuthorityPda,
+                true
+            );
 
             const [treasuryAuthorityPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from('treasury_authority'), publicKey.toBuffer()],
+                [Buffer.from('treasury')],
                 this.PROGRAM_ID
             );
 
-            const treasuryVault = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: treasuryAuthorityPda,
-            });
+            const treasuryTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                treasuryAuthorityPda,
+                true
+            );
 
             const tx = await program.methods.requestFunding(
                 projectData.hackathonIds.map(id => new BN(id)),
@@ -174,19 +170,17 @@ class SolanaCreditService {
                 projectData.milestoneAmounts.map(amt => new BN(amt)),
                 verifier
             ).accounts({
-                config,
                 project: projectPda,
-                creditLine: creditLinePda,
-                usdcMint,
-                vaultAuthority: vaultAuthorityPda,
-                payoutVault,
-                treasuryAuthority: treasuryAuthorityPda,
-                treasuryVault,
+                credit_line: creditLinePda,
+                vault_authority: vaultAuthorityPda,
+                vault_token_account: vaultTokenAccount,
+                treasury_authority: treasuryAuthorityPda,
+                treasury_token_account: treasuryTokenAccount,
                 developer: publicKey,
-                systemProgram: SystemProgram.programId,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
-                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                usdc_mint: usdcMint,
+                system_program: SystemProgram.programId,
+                token_program: TOKEN_PROGRAM_ID,
+                associated_token_program: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
             }).rpc();
 
             return { 
@@ -206,7 +200,7 @@ class SolanaCreditService {
      */
     async backProject(
         connection: Connection,
-        anchorWallet: any,
+        anchorWallet: anchor.Wallet,
         projectPda: PublicKey,
         amount: string | number,
         multiplier: number,
@@ -242,29 +236,30 @@ class SolanaCreditService {
                 this.PROGRAM_ID
             );
 
-            const resolvedBackerTokenAccount = backerTokenAccount || anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: anchorWallet.publicKey
-            });
+            const resolvedBackerTokenAccount = backerTokenAccount || getAssociatedTokenAddressSync(
+                usdcMint,
+                anchorWallet.publicKey,
+                false
+            );
 
-            const payoutVault = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: vaultAuthorityPda
-            });
+            const vaultTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                vaultAuthorityPda,
+                true
+            );
 
             const tx = await program.methods.backProject(
                 new BN(multiplier),
                 new BN(amount)
             ).accounts({
-                config,
                 project: projectPda,
-                developerCreditLine: devCreditLinePda,
+                developer_credit_line: devCreditLinePda,
                 backer: anchorWallet.publicKey,
-                backerTokenAccount: resolvedBackerTokenAccount,
-                usdcMint,
-                payoutVault,
-                vaultAuthority: vaultAuthorityPda,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                backer_token_account: resolvedBackerTokenAccount,
+                vault_token_account: vaultTokenAccount,
+                vault_authority: vaultAuthorityPda,
+                usdc_mint: usdcMint,
+                token_program: TOKEN_PROGRAM_ID,
             }).rpc();
 
             return {
@@ -283,7 +278,8 @@ class SolanaCreditService {
      */
     async repayLoan(
         connection: Connection, 
-        anchorWallet: any, 
+        anchorWallet: anchor.Wallet, 
+        projectPda: PublicKey,
         amount: string | number,
         developerTokenAccount?: PublicKey
     ) {
@@ -292,48 +288,49 @@ class SolanaCreditService {
         const program = this.getProgram(connection, anchorWallet);
         
         try {
-            await this.assertConfigInitialized(connection);
             const usdcMint = this.getUsdcMint();
-            const config = this.getConfigPda();
 
-            // Derive Credit Line PDA
+            // Derive Credit Line PDA (per developer)
             const [creditLinePda] = PublicKey.findProgramAddressSync(
-                [
-                    Buffer.from("credit_line"),
-                    publicKey.toBuffer()
-                ],
+                [Buffer.from("credit_line"), publicKey.toBuffer()],
                 this.PROGRAM_ID
             );
 
+            // Derive Vault Authority PDA (per project)
+            const [vaultAuthorityPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault_authority"), projectPda.toBuffer()],
+                this.PROGRAM_ID
+            );
+
+            // Derive Treasury Authority PDA (global)
             const [treasuryAuthorityPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from('treasury_authority'), publicKey.toBuffer()],
+                [Buffer.from('treasury')],
                 this.PROGRAM_ID
             );
 
-            const treasuryVault = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: treasuryAuthorityPda
-            });
+            const treasuryTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                treasuryAuthorityPda,
+                true
+            );
 
-            const resolvedDeveloperTokenAccount = developerTokenAccount || anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: publicKey
-            });
+            const resolvedDeveloperTokenAccount = developerTokenAccount || getAssociatedTokenAddressSync(
+                usdcMint,
+                publicKey,
+                false
+            );
 
             const tx = await program.methods.repayLoan(
                 new BN(amount)
             ).accounts({
-                config,
-                creditLine: creditLinePda,
+                credit_line: creditLinePda,
                 developer: publicKey,
-                usdcMint,
-                developerTokenAccount: resolvedDeveloperTokenAccount,
-                treasuryAuthority: treasuryAuthorityPda,
-                treasuryVault,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId,
-                associatedTokenProgram: anchor.utils.token.ASSOCIATED_PROGRAM_ID,
-                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+                developer_token_account: resolvedDeveloperTokenAccount,
+                treasury_token_account: treasuryTokenAccount,
+                treasury_authority: treasuryAuthorityPda,
+                project: projectPda,
+                usdc_mint: usdcMint,
+                token_program: TOKEN_PROGRAM_ID,
             }).rpc();
             
             return { 
@@ -353,7 +350,7 @@ class SolanaCreditService {
      */
     async verifyMilestone(
         connection: Connection, 
-        anchorWallet: any, 
+        anchorWallet: anchor.Wallet, 
         projectPda: PublicKey,
         milestoneIndex: number
     ) {
@@ -361,9 +358,7 @@ class SolanaCreditService {
         const program = this.getProgram(connection, anchorWallet);
 
         try {
-            await this.assertConfigInitialized(connection);
             const usdcMint = this.getUsdcMint();
-            const config = this.getConfigPda();
 
             const projectAccount = await program.account.project.fetch(projectPda) as any;
             const developerPublicKey = new PublicKey(projectAccount.developer);
@@ -377,26 +372,27 @@ class SolanaCreditService {
                 this.PROGRAM_ID
             );
 
-            const payoutVault = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: vaultAuthorityPda
-            });
+            const vaultTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                vaultAuthorityPda,
+                true
+            );
 
-            const developerTokenAccount = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: developerPublicKey
-            });
+            const developerTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                developerPublicKey,
+                false
+            );
 
             const tx = await program.methods.verifyMilestone(milestoneIndex)
                 .accounts({
-                    config,
                     project: projectPda,
-                    developerTokenAccount: developerTokenAccount,
-                    usdcMint,
-                    payoutVault,
-                    vaultAuthority: vaultAuthorityPda,
+                    developer_token_account: developerTokenAccount,
+                    vault_token_account: vaultTokenAccount,
+                    vault_authority: vaultAuthorityPda,
                     verifier: anchorWallet.publicKey,
-                    tokenProgram: TOKEN_PROGRAM_ID,
+                    usdc_mint: usdcMint,
+                    token_program: TOKEN_PROGRAM_ID,
                 })
                 .rpc();
 
@@ -417,7 +413,7 @@ class SolanaCreditService {
      */
     async claimReward(
         connection: Connection,
-        anchorWallet: any,
+        anchorWallet: anchor.Wallet,
         projectPda: PublicKey,
         backingIndex: number
     ) {
@@ -425,9 +421,7 @@ class SolanaCreditService {
         const program = this.getProgram(connection, anchorWallet);
 
         try {
-            await this.assertConfigInitialized(connection);
             const usdcMint = this.getUsdcMint();
-            const config = this.getConfigPda();
 
             // Derive Vault Authority PDA
             const [vaultAuthorityPda] = PublicKey.findProgramAddressSync(
@@ -438,26 +432,27 @@ class SolanaCreditService {
                 this.PROGRAM_ID
             );
 
-            const payoutVault = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: vaultAuthorityPda
-            });
+            const vaultTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                vaultAuthorityPda,
+                true
+            );
 
-            const backerTokenAccount = anchor.utils.token.associatedAddress({
-                mint: usdcMint,
-                owner: anchorWallet.publicKey
-            });
+            const backerTokenAccount = getAssociatedTokenAddressSync(
+                usdcMint,
+                anchorWallet.publicKey,
+                false
+            );
 
             const tx = await program.methods.claimReward(backingIndex)
                 .accounts({
-                    config,
                     project: projectPda,
                     backer: anchorWallet.publicKey,
-                    backerTokenAccount: backerTokenAccount,
-                    usdcMint,
-                    payoutVault,
-                    vaultAuthority: vaultAuthorityPda,
-                    tokenProgram: TOKEN_PROGRAM_ID,
+                    backer_token_account: backerTokenAccount,
+                    vault_token_account: vaultTokenAccount,
+                    vault_authority: vaultAuthorityPda,
+                    usdc_mint: usdcMint,
+                    token_program: TOKEN_PROGRAM_ID,
                 })
                 .rpc();
 
@@ -482,14 +477,14 @@ class SolanaCreditService {
             try {
                 projectPubkey = new PublicKey(projectId.toString());
             } catch {
-                return { totalBacking: '0', backerCount: 0, maxMultiplier: 300, creditScore: 400 };
+            return { totalBacking: '0', backerCount: 0, maxMultiplier: this.calculateMaxMultiplier(0), creditScore: 0 };
             }
 
             const program = this.getReadOnlyProgram(connection);
             
             const projectAccount = await program.account.project.fetch(projectPubkey) as any;
             const creditLine = await this.getDeveloperCreditLine(connection, new PublicKey(projectAccount.developer));
-            const creditScore = creditLine?.reputation ? Number(creditLine.reputation) : 400;
+            const creditScore = creditLine?.reputation ? Number(creditLine.reputation) : 0;
             
             return {
                 totalBacking: projectAccount.totalBacking.toString(),
@@ -499,7 +494,7 @@ class SolanaCreditService {
             };
         } catch (error) {
             console.error('Error fetching Solana project backing data:', error);
-            return { totalBacking: '0', backerCount: 0, maxMultiplier: 300, creditScore: 400 };
+            return { totalBacking: '0', backerCount: 0, maxMultiplier: this.calculateMaxMultiplier(0), creditScore: 0 };
         }
     }
 
@@ -519,7 +514,7 @@ class SolanaCreditService {
             
             const projectAccount = await program.account.project.fetch(projectPubkey) as any;
             const creditLine = await this.getDeveloperCreditLine(connection, new PublicKey(projectAccount.developer));
-            const creditScore = creditLine?.reputation ? Number(creditLine.reputation) : 400;
+            const creditScore = creditLine?.reputation ? Number(creditLine.reputation) : 0;
             
             return {
                 isActive: projectAccount.isActive,

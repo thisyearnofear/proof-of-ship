@@ -14,10 +14,15 @@ import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import bs58 from "bs58";
 import IDL from "@/idl/blockchain_solana.json";
 
-const PROGRAM_ID = new PublicKey("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+const PROGRAM_ID = new PublicKey(
+  process.env.SOLANA_PROGRAM_ID ||
+    process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID ||
+    "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+);
 
 async function handler(req, res) {
   if (req.method !== "GET") {
@@ -115,42 +120,42 @@ async function handler(req, res) {
           const provider = new anchor.AnchorProvider(connection, wallet, {
             preflightCommitment: "confirmed",
           });
-          const program = new Program(IDL, PROGRAM_ID, provider);
+          const idlWithAddress = { ...IDL, address: PROGRAM_ID.toBase58() };
+          const program = new Program(idlWithAddress, provider);
 
           const projectPubkey = new PublicKey(projectPda);
+          const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], PROGRAM_ID);
+          const configAcct = await program.account.config.fetch(configPda);
+          const usdcMint = new PublicKey(configAcct.usdcMint);
+
           const [vaultAuthority] = PublicKey.findProgramAddressSync(
             [Buffer.from("vault_authority"), projectPubkey.toBuffer()],
             PROGRAM_ID
           );
 
-          // Derive vault token account if not provided
-          let vaultTA = vaultTokenAccount;
-          if (!vaultTA) {
-            const mint = new PublicKey(solanaRpc.includes("devnet") 
-              ? "4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX" 
-              : "EPjFW364Ac7H5keePybR7L5tS5sLwerZEv8oaW6wED7L");
-            vaultTA = anchor.utils.token.associatedAddress({
-              mint,
-              owner: vaultAuthority
-            });
-          } else {
-            vaultTA = new PublicKey(vaultTA);
-          }
+          const payoutVault = anchor.utils.token.associatedAddress({
+            mint: usdcMint,
+            owner: vaultAuthority,
+          });
 
-          // If developerTokenAccount is not provided, we might need to fetch it or fail
-          if (!developerTokenAccount) {
-            throw new Error("developerTokenAccount is required for on-chain payout");
-          }
+          const projectAcct = await program.account.project.fetch(projectPubkey);
+          const developerPk = new PublicKey(projectAcct.developer);
+          const developerAta = anchor.utils.token.associatedAddress({
+            mint: usdcMint,
+            owner: developerPk,
+          });
 
           const tx = await program.methods
             .verifyMilestone(parseInt(milestoneIndex || 0))
             .accounts({
+              config: configPda,
               project: projectPubkey,
-              developerTokenAccount: new PublicKey(developerTokenAccount),
-              vaultTokenAccount: vaultTA,
-              vaultAuthority: vaultAuthority,
+              developerTokenAccount: developerAta,
+              usdcMint,
+              payoutVault,
+              vaultAuthority,
               verifier: keypair.publicKey,
-              tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+              tokenProgram: TOKEN_PROGRAM_ID,
             })
             .rpc();
 

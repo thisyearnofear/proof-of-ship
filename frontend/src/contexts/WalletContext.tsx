@@ -13,7 +13,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { MetaMaskProvider, useSDK } from '@metamask/sdk-react';
 import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { Connection, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
+import { Connection, LAMPORTS_PER_SOL, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { ethers, providers, Signer } from 'ethers';
 import { getUSDCAddress } from '../config/networks';
@@ -133,6 +133,21 @@ const NETWORK_CONFIGS: Record<number, NetworkConfig> = {
 };
 
 // ============================================================================
+// Solana config helpers (module-level; safe for hooks + non-hook code)
+// ============================================================================
+
+const getSolanaEndpoint = () => {
+  const explicit = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
+  if (explicit) return explicit;
+  const cluster = (process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet') as any;
+  if (cluster === 'mainnet-beta' || cluster === 'mainnet') return clusterApiUrl('mainnet-beta');
+  if (cluster === 'testnet') return clusterApiUrl('testnet');
+  return clusterApiUrl('devnet');
+};
+
+const getSolanaConnection = () => new Connection(getSolanaEndpoint(), { commitment: 'confirmed' });
+
+// ============================================================================
 // Context
 // ============================================================================
 
@@ -200,7 +215,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     if (solanaConnectedReal && publicKey) {
       const fetchSolanaBalance = async () => {
         try {
-          const connection = new Connection(clusterApiUrl('devnet'));
+          const connection = getSolanaConnection();
           const bal = await connection.getBalance(publicKey);
           setSolanaBalance((bal / LAMPORTS_PER_SOL).toFixed(4));
         } catch (err) {
@@ -456,12 +471,12 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       if (!publicKey) return;
       try {
         const { solanaCreditService } = await import('@/services/SolanaCreditService');
-        const connection = new Connection(clusterApiUrl('devnet'));
-        const details = await solanaCreditService.getProjectDetails(connection, publicKey.toBase58());
-        if (details) {
+        const connection = getSolanaConnection();
+        const creditLine = await solanaCreditService.getDeveloperCreditLine(connection, publicKey);
+        if (creditLine) {
           setCreditProfile({
-            usedAmount: details.fundingAmount,
-            reputation: details.creditScore,
+            usedAmount: creditLine.usedAmount?.toString?.() ?? '0',
+            reputation: Number(creditLine.reputation || 0),
           });
         }
       } catch (err) {
@@ -488,39 +503,15 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     }
   }, [ethersProvider, account, chainId, activeChainFamily, publicKey]);
   
-  const repayLoan = async (amount: string | number, projectPdaStr?: string) => {
+  const repayLoan = async (amount: string | number) => {
     if (activeChainFamily === 'solana') {
       if (!publicKey) throw new Error('Solana wallet not connected');
-      if (!projectPdaStr) throw new Error('Project PDA is required for Solana repayment');
-      
       const { solanaCreditService } = await import('@/services/SolanaCreditService');
-      const connection = new Connection(clusterApiUrl('devnet'));
-      const projectPda = new PublicKey(projectPdaStr);
-      
-      // We need the token accounts
-      const usdcMint = new PublicKey("4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX"); // Devnet USDC
-      const developerTokenAccount = anchor.utils.token.associatedAddress({
-        mint: usdcMint,
-        owner: publicKey
-      });
-      
-      const [vaultAuthority] = PublicKey.findProgramAddressSync(
-        [Buffer.from("vault_authority"), projectPda.toBuffer()],
-        new PublicKey('Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS')
-      );
-      
-      const vaultTokenAccount = anchor.utils.token.associatedAddress({
-        mint: usdcMint,
-        owner: vaultAuthority
-      });
-
+      const connection = getSolanaConnection();
       const result = await solanaCreditService.repayLoan(
         connection, 
         solanaWallet,
-        projectPda,
-        amount,
-        developerTokenAccount,
-        vaultTokenAccount
+        amount
       );
       
       await loadCreditProfile();
@@ -543,7 +534,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       if (activeChainFamily === 'solana') {
         if (!publicKey) throw new Error('Solana wallet not connected');
         const { solanaCreditService } = await import('@/services/SolanaCreditService');
-        const connection = new Connection(clusterApiUrl('devnet'));
+        const connection = getSolanaConnection();
         return await solanaCreditService.requestFunding(connection, solanaWallet, projectData);
       } else {
         if (!signer || !chainId) throw new Error('EVM wallet not connected');
@@ -884,38 +875,14 @@ export const useBuilderCredit = () => {
     },
     backProject: async (projectId: string, multiplier: number, amount: string | number): Promise<string> => {
       if (wallet.activeChainFamily === 'solana') {
-        if (!wallet.solanaConnected || !wallet.solanaAddress || !publicKey) throw new Error('Solana wallet not connected');
+        const solPubkey = wallet.solanaWallet?.publicKey;
+        if (!wallet.solanaConnected || !wallet.solanaAddress || !solPubkey) throw new Error('Solana wallet not connected');
         
         const { solanaCreditService } = await import('@/services/SolanaCreditService');
-        const connection = new Connection(clusterApiUrl('devnet'));
+        const connection = getSolanaConnection();
         const projectPda = new PublicKey(projectId);
 
-        // Derive token accounts
-        const usdcMint = new PublicKey("4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX"); // Devnet USDC
-        const backerTokenAccount = anchor.utils.token.associatedAddress({
-          mint: usdcMint,
-          owner: publicKey
-        });
-
-        const [vaultAuthority] = PublicKey.findProgramAddressSync(
-          [Buffer.from("vault_authority"), projectPda.toBuffer()],
-          new PublicKey('Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS')
-        );
-
-        const vaultTokenAccount = anchor.utils.token.associatedAddress({
-          mint: usdcMint,
-          owner: vaultAuthority
-        });
-
-        const result = await solanaCreditService.backProject(
-          connection,
-          wallet.solanaWallet, // Use the real adapter from context
-          projectPda,
-          amount,
-          multiplier,
-          backerTokenAccount,
-          vaultTokenAccount
-        );
+        const result = await solanaCreditService.backProject(connection, wallet.solanaWallet, projectPda, amount, multiplier);
         return result.hash;
       }
 

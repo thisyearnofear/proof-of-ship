@@ -1,103 +1,955 @@
 {
-  "version": "0.1.0",
-  "name": "blockchain_solana",
+  "address": "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS",
+  "metadata": {
+    "name": "blockchain_solana",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
   "instructions": [
     {
-      "name": "requestFunding",
+      "name": "back_project",
+      "discriminator": [
+        150,
+        11,
+        112,
+        175,
+        238,
+        34,
+        131,
+        215
+      ],
       "accounts": [
-        { "name": "project", "isMut": true, "isSigner": false },
-        { "name": "creditLine", "isMut": true, "isSigner": false },
-        { "name": "developer", "isMut": true, "isSigner": true },
-        { "name": "systemProgram", "isMut": false, "isSigner": false }
+        {
+          "name": "project",
+          "writable": true
+        },
+        {
+          "name": "developer_credit_line",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  95,
+                  108,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project.developer",
+                "account": "Project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "backer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "backer_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint — validates that both token accounts are USDC"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
       ],
       "args": [
-        { "name": "hackathonIds", "type": { "vec": "u64" } },
-        { "name": "githubUrl", "type": "string" },
-        { "name": "projectName", "type": "string" },
-        { "name": "milestoneDescriptions", "type": { "vec": "string" } },
-        { "name": "milestoneAmounts", "type": { "vec": "u64" } },
-        { "name": "verifier", "type": "publicKey" }
+        {
+          "name": "multiplier",
+          "type": "u64"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
       ]
     },
     {
-      "name": "backProject",
+      "name": "claim_reward",
+      "discriminator": [
+        149,
+        95,
+        181,
+        242,
+        94,
+        90,
+        158,
+        162
+      ],
       "accounts": [
-        { "name": "project", "isMut": true, "isSigner": false },
-        { "name": "developerCreditLine", "isMut": true, "isSigner": false },
-        { "name": "backer", "isMut": true, "isSigner": true },
-        { "name": "backerTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
-        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+        {
+          "name": "project",
+          "writable": true
+        },
+        {
+          "name": "backer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "backer_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
       ],
       "args": [
-        { "name": "multiplier", "type": "u64" },
-        { "name": "amount", "type": "u64" }
+        {
+          "name": "backing_index",
+          "type": "u32"
+        }
       ]
     },
     {
-      "name": "repayLoan",
+      "name": "initialize_treasury",
+      "docs": [
+        "One-time setup: create the protocol treasury ATA so repay_loan has",
+        "somewhere to send USDC that isn't the project's milestone vault.",
+        "",
+        "NOTE: Treasury funds are currently locked — no withdraw instruction exists yet.",
+        "A `withdraw_treasury` instruction should be added before mainnet to allow",
+        "the protocol authority to reclaim accumulated repayments."
+      ],
+      "discriminator": [
+        124,
+        186,
+        211,
+        195,
+        85,
+        165,
+        129,
+        166
+      ],
       "accounts": [
-        { "name": "creditLine", "isMut": true, "isSigner": false },
-        { "name": "developer", "isMut": true, "isSigner": true },
-        { "name": "developerTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "project", "isMut": false, "isSigner": false },
-        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
-        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+        {
+          "name": "treasury_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "treasury_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "repay_loan",
+      "discriminator": [
+        224,
+        93,
+        144,
+        77,
+        61,
+        17,
+        137,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "credit_line",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  95,
+                  108,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "developer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "developer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "developer_token_account",
+          "writable": true
+        },
+        {
+          "name": "treasury_token_account",
+          "docs": [
+            "Protocol treasury — repayments flow here, not back into the",
+            "project's milestone vault."
+          ],
+          "writable": true
+        },
+        {
+          "name": "treasury_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "project",
+          "docs": [
+            "Project account is read-only here — needed only so the client",
+            "can identify which credit line to repay."
+          ]
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
       ],
       "args": [
-        { "name": "amount", "type": "u64" }
+        {
+          "name": "amount",
+          "type": "u64"
+        }
       ]
     },
     {
-      "name": "verifyMilestone",
+      "name": "request_funding",
+      "discriminator": [
+        181,
+        251,
+        230,
+        32,
+        73,
+        41,
+        179,
+        115
+      ],
       "accounts": [
-        { "name": "project", "isMut": true, "isSigner": false },
-        { "name": "developerTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
-        { "name": "verifier", "isMut": false, "isSigner": true },
-        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+        {
+          "name": "project",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  106,
+                  101,
+                  99,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "developer"
+              },
+              {
+                "kind": "arg",
+                "path": "project_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "credit_line",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  114,
+                  101,
+                  100,
+                  105,
+                  116,
+                  95,
+                  108,
+                  105,
+                  110,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "developer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_authority",
+          "docs": [
+            "Derived from the project key so each project gets its own vault authority."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint — all token accounts in this instruction must use this mint."
+          ]
+        },
+        {
+          "name": "vault_token_account",
+          "docs": [
+            "Project vault: ATA of vault_authority for usdc_mint.",
+            "Created here so back_project / verify_milestone / claim_reward can assume it exists."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "vault_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "developer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        }
       ],
       "args": [
-        { "name": "milestoneIndex", "type": "u8" }
+        {
+          "name": "hackathon_ids",
+          "type": {
+            "vec": "u64"
+          }
+        },
+        {
+          "name": "github_url",
+          "type": "string"
+        },
+        {
+          "name": "project_name",
+          "type": "string"
+        },
+        {
+          "name": "milestone_descriptions",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "milestone_amounts",
+          "type": {
+            "vec": "u64"
+          }
+        },
+        {
+          "name": "verifier",
+          "type": "pubkey"
+        }
       ]
     },
     {
-      "name": "claimReward",
+      "name": "verify_milestone",
+      "discriminator": [
+        33,
+        124,
+        38,
+        194,
+        150,
+        153,
+        90,
+        227
+      ],
       "accounts": [
-        { "name": "project", "isMut": true, "isSigner": false },
-        { "name": "backer", "isMut": true, "isSigner": true },
-        { "name": "backerTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
-        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+        {
+          "name": "project",
+          "writable": true
+        },
+        {
+          "name": "developer_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_token_account",
+          "writable": true
+        },
+        {
+          "name": "vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "verifier",
+          "signer": true
+        },
+        {
+          "name": "usdc_mint",
+          "docs": [
+            "USDC mint"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
       ],
       "args": [
-        { "name": "backingIndex", "type": "u32" }
+        {
+          "name": "milestone_index",
+          "type": "u8"
+        }
       ]
     }
   ],
   "accounts": [
     {
+      "name": "CreditLine",
+      "discriminator": [
+        220,
+        226,
+        205,
+        24,
+        220,
+        151,
+        129,
+        104
+      ]
+    },
+    {
       "name": "Project",
+      "discriminator": [
+        205,
+        168,
+        189,
+        202,
+        181,
+        247,
+        142,
+        19
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UnauthorizedVerifier",
+      "msg": "The signer is not the authorized verifier for this project."
+    },
+    {
+      "code": 6001,
+      "name": "MilestoneAlreadyCompleted",
+      "msg": "The milestone has already been completed."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidMilestoneIndex",
+      "msg": "The milestone index is out of bounds."
+    },
+    {
+      "code": 6003,
+      "name": "InvalidBackingIndex",
+      "msg": "The backing index is out of bounds."
+    },
+    {
+      "code": 6004,
+      "name": "UnauthorizedBacker",
+      "msg": "The signer is not the authorized backer for this backing."
+    },
+    {
+      "code": 6005,
+      "name": "BackingAlreadyClaimed",
+      "msg": "The reward has already been claimed."
+    },
+    {
+      "code": 6006,
+      "name": "ArithmeticOverflow",
+      "msg": "Arithmetic overflow."
+    },
+    {
+      "code": 6007,
+      "name": "ArithmeticUnderflow",
+      "msg": "Arithmetic underflow."
+    },
+    {
+      "code": 6008,
+      "name": "ProjectInactive",
+      "msg": "The project is not active."
+    },
+    {
+      "code": 6009,
+      "name": "MaxBackingsReached",
+      "msg": "Maximum number of backings reached for this project."
+    },
+    {
+      "code": 6010,
+      "name": "InvalidMint",
+      "msg": "Invalid mint — expected USDC."
+    },
+    {
+      "code": 6011,
+      "name": "InvalidTokenAccountOwner",
+      "msg": "Token account owner does not match the expected owner."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidVaultOwner",
+      "msg": "Vault token account has incorrect owner."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidTreasuryOwner",
+      "msg": "Treasury token account has incorrect owner."
+    },
+    {
+      "code": 6014,
+      "name": "TooManyHackathonIds",
+      "msg": "Too many hackathon IDs."
+    },
+    {
+      "code": 6015,
+      "name": "GithubUrlTooLong",
+      "msg": "GitHub URL exceeds maximum length."
+    },
+    {
+      "code": 6016,
+      "name": "ProjectNameTooLong",
+      "msg": "Project name exceeds maximum length."
+    },
+    {
+      "code": 6017,
+      "name": "TooManyMilestones",
+      "msg": "Too many milestones."
+    },
+    {
+      "code": 6018,
+      "name": "MilestoneDescriptionTooLong",
+      "msg": "Milestone description exceeds maximum length."
+    },
+    {
+      "code": 6019,
+      "name": "UnauthorizedDeveloper",
+      "msg": "The developer is not authorized for this project."
+    },
+    {
+      "code": 6020,
+      "name": "InvalidMultiplier",
+      "msg": "Multiplier must be between 100 (1×) and 500 (5×)."
+    },
+    {
+      "code": 6021,
+      "name": "CreditLimitExceeded",
+      "msg": "Credit limit exceeded."
+    }
+  ],
+  "types": [
+    {
+      "name": "Backing",
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "developer", "type": "publicKey" },
-          { "name": "verifier", "type": "publicKey" },
-          { "name": "hackathonIds", "type": { "vec": "u64" } },
-          { "name": "githubUrl", "type": "string" },
-          { "name": "name", "type": "string" },
-          { "name": "fundingAmount", "type": "u64" },
-          { "name": "isActive", "type": "bool" },
-          { "name": "fundedAt", "type": "i64" },
-          { "name": "milestonesCompleted", "type": "u8" },
-          { "name": "milestonesCount", "type": "u8" },
-          { "name": "milestones", "type": { "vec": { "defined": "Milestone" } } },
-          { "name": "backings", "type": { "vec": { "defined": "Backing" } } },
-          { "name": "totalBacking", "type": "u64" }
+          {
+            "name": "backer",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "multiplier",
+            "type": "u64"
+          },
+          {
+            "name": "claimed",
+            "type": "bool"
+          }
         ]
       }
     },
@@ -106,48 +958,130 @@
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "developer", "type": "publicKey" },
-          { "name": "totalAmount", "type": "u64" },
-          { "name": "usedAmount", "type": "u64" },
-          { "name": "reputation", "type": "u64" },
-          { "name": "isActive", "type": "bool" },
-          { "name": "lastUpdated", "type": "i64" }
+          {
+            "name": "developer",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_amount",
+            "type": "u64"
+          },
+          {
+            "name": "used_amount",
+            "type": "u64"
+          },
+          {
+            "name": "reputation",
+            "type": "u64"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          }
         ]
       }
-    }
-  ],
-  "types": [
+    },
     {
       "name": "Milestone",
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "description", "type": "string" },
-          { "name": "amount", "type": "u64" },
-          { "name": "completed", "type": "bool" },
-          { "name": "completedAt", "type": "i64" }
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "completed",
+            "type": "bool"
+          },
+          {
+            "name": "completed_at",
+            "type": "i64"
+          }
         ]
       }
     },
     {
-      "name": "Backing",
+      "name": "Project",
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "backer", "type": "publicKey" },
-          { "name": "amount", "type": "u64" },
-          { "name": "multiplier", "type": "u64" },
-          { "name": "claimed", "type": "bool" }
+          {
+            "name": "developer",
+            "type": "pubkey"
+          },
+          {
+            "name": "verifier",
+            "type": "pubkey"
+          },
+          {
+            "name": "hackathon_ids",
+            "type": {
+              "vec": "u64"
+            }
+          },
+          {
+            "name": "github_url",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "funding_amount",
+            "type": "u64"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "funded_at",
+            "type": "i64"
+          },
+          {
+            "name": "milestones_completed",
+            "type": "u8"
+          },
+          {
+            "name": "milestones_count",
+            "type": "u8"
+          },
+          {
+            "name": "milestones",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Milestone"
+                }
+              }
+            }
+          },
+          {
+            "name": "backings",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Backing"
+                }
+              }
+            }
+          },
+          {
+            "name": "total_backing",
+            "type": "u64"
+          }
         ]
       }
     }
-  ],
-  "errors": [
-    { "code": 6000, "name": "UnauthorizedVerifier", "msg": "The signer is not the authorized verifier for this project." },
-    { "code": 6001, "name": "MilestoneAlreadyCompleted", "msg": "The milestone has already been completed." },
-    { "code": 6002, "name": "InvalidMilestoneIndex", "msg": "The milestone index is out of bounds." },
-    { "code": 6003, "name": "InvalidBackingIndex", "msg": "The backing index is out of bounds." },
-    { "code": 6004, "name": "UnauthorizedBacker", "msg": "The signer is not the authorized backer for this backing." },
-    { "code": 6005, "name": "BackingAlreadyClaimed", "msg": "The reward has already been claimed." }
   ]
 }

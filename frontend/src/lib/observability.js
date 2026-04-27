@@ -6,7 +6,7 @@ export const initObservability = () => {
     // Initialize PostHog
     const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com';
-    
+
     if (posthogKey) {
       posthog.init(posthogKey, {
         api_host: posthogHost,
@@ -16,17 +16,13 @@ export const initObservability = () => {
       });
     }
 
-    // Initialize Sentry
+    // Initialize Sentry (v10+ auto-includes BrowserTracing and Replay)
     const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
     if (sentryDsn) {
       Sentry.init({
         dsn: sentryDsn,
-        integrations: [
-          new Sentry.BrowserTracing(),
-          new Sentry.Replay(),
-        ],
         // Performance Monitoring
-        tracesSampleRate: 1.0, 
+        tracesSampleRate: 1.0,
         // Session Replay
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,

@@ -1,5 +1,8 @@
-import { JsonRpcProvider, Contract, formatEther } from 'ethers';
+import { ethers } from 'ethers';
 import { NETWORK_CONFIGS } from '../config/networks';
+
+const { JsonRpcProvider, Contract } = ethers;
+const { formatEther } = ethers.utils;
 
 /**
  * Get explorer URL for an address or transaction

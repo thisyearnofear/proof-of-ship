@@ -7,6 +7,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  transpilePackages: [
+    '@solana/wallet-adapter-react',
+    '@solana/wallet-adapter-react-ui',
+    '@solana/wallet-adapter-base',
+    '@solana/wallet-adapter-phantom',
+    '@solana/wallet-adapter-solflare',
+    '@solana-mobile/wallet-adapter-mobile',
+  ],
   // Enable skew protection (if supported by the deployment platform)
   deploymentId: process.env.NEXT_PUBLIC_DEPLOYMENT_ID || 'stable',
   // Redirect old routes to consolidated pages

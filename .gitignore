@@ -140,3 +140,5 @@ EFFICIENCY_REPORT.md
 .blackboxcli/
 frontend/tsconfig.tsbuildinfo
 .output.txt
+frontend/bun.lock
+frontend/package-lock.json

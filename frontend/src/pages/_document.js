@@ -14,6 +14,11 @@ export default function Document() {
         <meta name="twitter:title" content="Proof of Ship — Builder Credit Platform" />
         <meta name="twitter:description" content="AI-powered project analysis paid per-query via x402 micropayments on Circle's Arc L2." />
         <link rel="icon" href="/favicon.ico" />
+        
+        {/* Google Fonts: Plus Jakarta Sans for display, Inter for body */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
       <body className="antialiased">
         <Main />

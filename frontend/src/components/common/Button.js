@@ -4,19 +4,19 @@ import { cva } from "class-variance-authority";
 // Button variant styles using our design tokens
 const buttonVariants = cva(
   // Base styles
-  "btn-base inline-flex items-center justify-center font-medium transition-colors focus-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-touch min-w-touch",
+  "btn-base inline-flex items-center justify-center font-medium transition-all duration-150 focus-ring disabled:opacity-50 disabled:cursor-not-allowed min-h-touch min-w-touch",
   {
     variants: {
       variant: {
-        primary: "bg-primary-500 hover:bg-primary-600 text-white shadow-sm",
+        primary: "bg-primary-500 hover:bg-primary-600 active:scale-[0.97] text-white shadow-sm",
         secondary:
-          "bg-surface border border-default hover:bg-surface-hover text-primary",
-        ghost: "hover:bg-surface-hover text-secondary hover:text-primary",
-        danger: "bg-error-500 hover:bg-error-600 text-white shadow-sm",
-        success: "bg-success-500 hover:bg-success-600 text-white shadow-sm",
-        warning: "bg-warning-500 hover:bg-warning-600 text-white shadow-sm",
+          "bg-surface border border-default hover:bg-surface-hover active:scale-[0.97] text-primary",
+        ghost: "hover:bg-surface-hover active:scale-[0.97] text-secondary hover:text-primary",
+        danger: "bg-error-500 hover:bg-error-600 active:scale-[0.97] text-white shadow-sm",
+        success: "bg-success-500 hover:bg-success-600 active:scale-[0.97] text-white shadow-sm",
+        warning: "bg-warning-500 hover:bg-warning-600 active:scale-[0.97] text-white shadow-sm",
         outline:
-          "border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white",
+          "border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white active:scale-[0.97]",
         link: "text-primary-500 hover:text-primary-600 underline-offset-4 hover:underline p-0 h-auto min-h-0 min-w-0",
       },
       size: {

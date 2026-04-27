@@ -300,3 +300,99 @@
 .bg-base { background-color: var(--color-base); }
 .bg-linea { background-color: var(--color-linea); }
 .bg-celo { background-color: var(--color-celo); }
+
+/* Ecosystem Accent Colors - Extended palette for visual variety */
+:root {
+  /* Ecosystem-specific accent colors */
+  --color-arc: #00d4aa;
+  --color-arc-light: #e6faf5;
+  --color-arc-dark: #00a88a;
+  
+  --color-celo: #35d07f;
+  --color-celo-light: #e8f9ef;
+  --color-celo-dark: #2ab36a;
+  
+  --color-base: #0052ff;
+  --color-base-light: #e6eeff;
+  --color-base-dark: #0044cc;
+  
+  --color-linea: #121212;
+  --color-linea-light: #f3f3f3;
+  --color-linea-dark: #2a2a2a;
+  
+  --color-arbitrum: #28a0f0;
+  --color-arbitrum-light: #e6f4fd;
+  --color-arbitrum-dark: #1f88cc;
+  
+  --color-optimism: #ff0420;
+  --color-optimism-light: #ffe6e8;
+  --color-optimism-dark: #cc0320;
+  
+  --color-ethereum: #627eea;
+  --color-ethereum-light: #e8ecfc;
+  --color-ethereum-dark: #4a60cc;
+}
+
+/* Ecosystem text colors */
+.text-arc { color: var(--color-arc); }
+.text-arc-light { color: var(--color-arc-light); }
+.text-arc-dark { color: var(--color-arc-dark); }
+.text-celo { color: var(--color-celo); }
+.text-celo-light { color: var(--color-celo-light); }
+.text-celo-dark { color: var(--color-celo-dark); }
+.text-base { color: var(--color-base); }
+.text-base-light { color: var(--color-base-light); }
+.text-base-dark { color: var(--color-base-dark); }
+.text-linea { color: var(--color-linea); }
+.text-linea-light { color: var(--color-linea-light); }
+.text-linea-dark { color: var(--color-linea-dark); }
+.text-arbitrum { color: var(--color-arbitrum); }
+.text-arbitrum-light { color: var(--color-arbitrum-light); }
+.text-arbitrum-dark { color: var(--color-arbitrum-dark); }
+
+/* Ecosystem background colors */
+.bg-arc { background-color: var(--color-arc); }
+.bg-arc-light { background-color: var(--color-arc-light); }
+.bg-celo { background-color: var(--color-celo); }
+.bg-celo-light { background-color: var(--color-celo-light); }
+.bg-base { background-color: var(--color-base); }
+.bg-base-light { background-color: var(--color-base-light); }
+.bg-linea { background-color: var(--color-linea); }
+.bg-linea-light { background-color: var(--color-linea-light); }
+.bg-arbitrum { background-color: var(--color-arbitrum); }
+.bg-arbitrum-light { background-color: var(--color-arbitrum-light); }
+
+/* Ecosystem border colors */
+.border-arc { border-color: var(--color-arc); }
+.border-arc-light { border-color: var(--color-arc-light); }
+.border-celo { border-color: var(--color-celo); }
+.border-base { border-color: var(--color-base); }
+.border-linea { border-color: var(--color-linea); }
+.border-arbitrum { border-color: var(--color-arbitrum); }
+
+/* Gradient backgrounds for ecosystem cards */
+.bg-gradient-arc {
+  background: linear-gradient(135deg, var(--color-arc) 0%, var(--color-arc-dark) 100%);
+}
+
+.bg-gradient-celo {
+  background: linear-gradient(135deg, var(--color-celo) 0%, var(--color-celo-dark) 100%);
+}
+
+.bg-gradient-base {
+  background: linear-gradient(135deg, var(--color-base) 0%, var(--color-base-dark) 100%);
+}
+
+.bg-gradient-arbitrum {
+  background: linear-gradient(135deg, var(--color-arbitrum) 0%, var(--color-arbitrum-dark) 100%);
+}
+
+/* Pulse animation for ecosystem highlights */
+@keyframes ecosystem-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-arc); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+
+.animate-ecosystem-pulse {
+  animation: ecosystem-pulse 2s ease-in-out infinite;
+}

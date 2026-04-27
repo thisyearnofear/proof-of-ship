@@ -25,6 +25,13 @@ import {
   ShieldCheckIcon,
   ArrowTrendingUpIcon,
   GlobeAltIcon,
+  CubeIcon,
+  StarIcon,
+  FolderIcon,
+  CalendarIcon,
+  UserGroupIcon,
+  SparklesIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
 import ScoreBar from "@/components/common/ScoreBar";
@@ -162,10 +169,10 @@ export default function BuildPage() {
                   <span>400</span><span>550</span><span>700</span><span>850</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm text-secondary">
-                  <span>📦 {previewResult.stats.publicRepos} repos</span>
-                  <span>⭐ {previewResult.stats.totalStars} stars</span>
-                  <span>👥 {previewResult.stats.followers} followers</span>
-                  <span>📅 {Math.floor(previewResult.stats.accountAgeDays / 365)}y on GitHub</span>
+                  <span className="flex items-center gap-1"><FolderIcon className="w-4 h-4" /> {previewResult.stats.publicRepos} repos</span>
+                  <span className="flex items-center gap-1"><StarIcon className="w-4 h-4" /> {previewResult.stats.totalStars} stars</span>
+                  <span className="flex items-center gap-1"><UserGroupIcon className="w-4 h-4" /> {previewResult.stats.followers} followers</span>
+                  <span className="flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {Math.floor(previewResult.stats.accountAgeDays / 365)}y on GitHub</span>
                 </div>
                 <p className="mt-4 text-xs text-secondary italic">
                   This is an estimate based on public data. Connect your wallet to unlock your full credit profile with activity and community scores.
@@ -316,10 +323,10 @@ export default function BuildPage() {
                 <ArrowTrendingUpIcon className="w-5 h-5 text-primary-500" /> How to Improve Your Credit
               </h2>
               <ul className="space-y-2 text-sm text-secondary">
-                <li>✅ Complete project milestones to increase reputation</li>
-                <li>✅ Get backers to stake on your projects</li>
-                <li>✅ Pledge expected prizes as collateral</li>
-                <li>✅ Ship consistently across hackathons</li>
+                <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Complete project milestones to increase reputation</li>
+                <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Get backers to stake on your projects</li>
+                <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Pledge expected prizes as collateral</li>
+                <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Ship consistently across hackathons</li>
               </ul>
             </Card>
           </div>

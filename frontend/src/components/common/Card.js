@@ -20,7 +20,7 @@ const cardVariants = cva(
         xl: 'p-8 sm:p-10'
       },
       interactive: {
-        true: 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]',
+        true: 'cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200',
         false: ''
       }
     },

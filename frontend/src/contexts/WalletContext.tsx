@@ -536,10 +536,10 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       if (activeChainFamily === 'solana') {
-        if (!publicKey) throw new Error('Solana wallet not connected');
+        if (!publicKey || !solanaWallet) throw new Error('Solana wallet not connected');
         const { solanaCreditService } = await import('@/services/SolanaCreditService');
         const connection = getSolanaConnection();
-         return await solanaCreditService.requestFunding(connection, solanaWallet, projectData);
+        return await solanaCreditService.requestFunding(connection, solanaWallet, projectData);
       } else {
         if (!signer || !chainId) throw new Error('EVM wallet not connected');
         const { creditService } = await import('@/services/creditService');

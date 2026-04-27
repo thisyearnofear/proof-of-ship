@@ -1,21 +1,9 @@
 import { Connection, PublicKey, SystemProgram, Keypair } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
-import { Program, BN, Wallet as AnchorWallet } from '@coral-xyz/anchor';
+import { Program, BN } from '@coral-xyz/anchor';
 import { SOLANA_MAINNET_USDC, SOLANA_DEVNET_USDC } from '../config/tokens';
 import IDL from '../idl/blockchain_solana.json';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
-
-// Helper: wrap a wallet adapter into an Anchor-compatible Wallet (requires `payer` Keypair).
-// For read-only / dummy wallets we generate an ephemeral keypair; for real wallets we
-// mock `payer` because Anchor only uses it for fee-payment (handled by the adapter).
-function toAnchorWallet(wallet: { publicKey: PublicKey; signTransaction: any; signAllTransactions: any }): AnchorWallet {
-    return {
-        publicKey: wallet.publicKey,
-        signTransaction: wallet.signTransaction,
-        signAllTransactions: wallet.signAllTransactions,
-        payer: Keypair.generate(), // never used for signing — just keeps TS happy
-    } as AnchorWallet;
-}
 
 /**
  * Solana Credit Service
@@ -74,8 +62,7 @@ class SolanaCreditService {
         if (!wallet) {
             throw new Error("Wallet not connected or not provided");
         }
-        const anchorWallet = toAnchorWallet(wallet);
-        const provider = new anchor.AnchorProvider(connection, anchorWallet, {
+        const provider = new anchor.AnchorProvider(connection, wallet, {
             preflightCommitment: 'processed',
         });
         return new Program(IDL as anchor.Idl, provider);
@@ -83,12 +70,11 @@ class SolanaCreditService {
 
     private getReadOnlyProgram(connection: Connection) {
         const dummyKeypair = Keypair.generate();
-        const dummyWallet = toAnchorWallet({
+        const provider = new anchor.AnchorProvider(connection, {
             publicKey: dummyKeypair.publicKey,
             signTransaction: async (tx: any) => tx,
             signAllTransactions: async (txs: any[]) => txs,
-        });
-        const provider = new anchor.AnchorProvider(connection, dummyWallet, {
+        } as any, {
             preflightCommitment: 'processed',
         });
         return new Program(IDL as anchor.Idl, provider);

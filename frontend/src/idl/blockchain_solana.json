@@ -1,0 +1,153 @@
+{
+  "version": "0.1.0",
+  "name": "blockchain_solana",
+  "instructions": [
+    {
+      "name": "requestFunding",
+      "accounts": [
+        { "name": "project", "isMut": true, "isSigner": false },
+        { "name": "creditLine", "isMut": true, "isSigner": false },
+        { "name": "developer", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "hackathonIds", "type": { "vec": "u64" } },
+        { "name": "githubUrl", "type": "string" },
+        { "name": "projectName", "type": "string" },
+        { "name": "milestoneDescriptions", "type": { "vec": "string" } },
+        { "name": "milestoneAmounts", "type": { "vec": "u64" } },
+        { "name": "verifier", "type": "publicKey" }
+      ]
+    },
+    {
+      "name": "backProject",
+      "accounts": [
+        { "name": "project", "isMut": true, "isSigner": false },
+        { "name": "developerCreditLine", "isMut": true, "isSigner": false },
+        { "name": "backer", "isMut": true, "isSigner": true },
+        { "name": "backerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "multiplier", "type": "u64" },
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "repayLoan",
+      "accounts": [
+        { "name": "creditLine", "isMut": true, "isSigner": false },
+        { "name": "developer", "isMut": true, "isSigner": true },
+        { "name": "developerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "project", "isMut": false, "isSigner": false },
+        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "amount", "type": "u64" }
+      ]
+    },
+    {
+      "name": "verifyMilestone",
+      "accounts": [
+        { "name": "project", "isMut": true, "isSigner": false },
+        { "name": "developerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
+        { "name": "verifier", "isMut": false, "isSigner": true },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "milestoneIndex", "type": "u8" }
+      ]
+    },
+    {
+      "name": "claimReward",
+      "accounts": [
+        { "name": "project", "isMut": true, "isSigner": false },
+        { "name": "backer", "isMut": true, "isSigner": true },
+        { "name": "backerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "vaultAuthority", "isMut": false, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
+      ],
+      "args": [
+        { "name": "backingIndex", "type": "u32" }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Project",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "developer", "type": "publicKey" },
+          { "name": "verifier", "type": "publicKey" },
+          { "name": "hackathonIds", "type": { "vec": "u64" } },
+          { "name": "githubUrl", "type": "string" },
+          { "name": "name", "type": "string" },
+          { "name": "fundingAmount", "type": "u64" },
+          { "name": "isActive", "type": "bool" },
+          { "name": "fundedAt", "type": "i64" },
+          { "name": "milestonesCompleted", "type": "u8" },
+          { "name": "milestonesCount", "type": "u8" },
+          { "name": "milestones", "type": { "vec": { "defined": "Milestone" } } },
+          { "name": "backings", "type": { "vec": { "defined": "Backing" } } },
+          { "name": "totalBacking", "type": "u64" }
+        ]
+      }
+    },
+    {
+      "name": "CreditLine",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "developer", "type": "publicKey" },
+          { "name": "totalAmount", "type": "u64" },
+          { "name": "usedAmount", "type": "u64" },
+          { "name": "reputation", "type": "u64" },
+          { "name": "isActive", "type": "bool" },
+          { "name": "lastUpdated", "type": "i64" }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Milestone",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "description", "type": "string" },
+          { "name": "amount", "type": "u64" },
+          { "name": "completed", "type": "bool" },
+          { "name": "completedAt", "type": "i64" }
+        ]
+      }
+    },
+    {
+      "name": "Backing",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          { "name": "backer", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "multiplier", "type": "u64" },
+          { "name": "claimed", "type": "bool" }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    { "code": 6000, "name": "UnauthorizedVerifier", "msg": "The signer is not the authorized verifier for this project." },
+    { "code": 6001, "name": "MilestoneAlreadyCompleted", "msg": "The milestone has already been completed." },
+    { "code": 6002, "name": "InvalidMilestoneIndex", "msg": "The milestone index is out of bounds." },
+    { "code": 6003, "name": "InvalidBackingIndex", "msg": "The backing index is out of bounds." },
+    { "code": 6004, "name": "UnauthorizedBacker", "msg": "The signer is not the authorized backer for this backing." },
+    { "code": 6005, "name": "BackingAlreadyClaimed", "msg": "The reward has already been claimed." }
+  ]
+}

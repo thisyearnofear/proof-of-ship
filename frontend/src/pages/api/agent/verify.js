@@ -11,13 +11,29 @@
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import bs58 from "bs58";
+import IDL from "@/idl/blockchain_solana.json";
+
+const PROGRAM_ID = new PublicKey("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { prId, lines = 100, fresh } = req.query;
+  const { 
+    prId, 
+    lines = 100, 
+    fresh, 
+    network, 
+    projectPda, 
+    developerTokenAccount, 
+    vaultTokenAccount, 
+    milestoneIndex 
+  } = req.query;
 
   if (!prId) {
     return res.status(400).json({ error: "prId query parameter is required" });
@@ -86,13 +102,78 @@ async function handler(req, res) {
       };
     }
 
+    // Phase 8: Connect AI Verifier Agent to trigger on-chain Solana payouts
+    if (verification.approved && network === "solana" && projectPda) {
+      try {
+        const solanaRpc = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
+        const connection = new Connection(solanaRpc, "confirmed");
+        const agentKey = process.env.SOLANA_AGENT_KEY;
+        
+        if (agentKey) {
+          const keypair = Keypair.fromSecretKey(bs58.decode(agentKey));
+          const wallet = new anchor.Wallet(keypair);
+          const provider = new anchor.AnchorProvider(connection, wallet, {
+            preflightCommitment: "confirmed",
+          });
+          const program = new Program(IDL, PROGRAM_ID, provider);
+
+          const projectPubkey = new PublicKey(projectPda);
+          const [vaultAuthority] = PublicKey.findProgramAddressSync(
+            [Buffer.from("vault_authority"), projectPubkey.toBuffer()],
+            PROGRAM_ID
+          );
+
+          // Derive vault token account if not provided
+          let vaultTA = vaultTokenAccount;
+          if (!vaultTA) {
+            const mint = new PublicKey(solanaRpc.includes("devnet") 
+              ? "4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX" 
+              : "EPjFW364Ac7H5keePybR7L5tS5sLwerZEv8oaW6wED7L");
+            vaultTA = anchor.utils.token.associatedAddress({
+              mint,
+              owner: vaultAuthority
+            });
+          } else {
+            vaultTA = new PublicKey(vaultTA);
+          }
+
+          // If developerTokenAccount is not provided, we might need to fetch it or fail
+          if (!developerTokenAccount) {
+            throw new Error("developerTokenAccount is required for on-chain payout");
+          }
+
+          const tx = await program.methods
+            .verifyMilestone(parseInt(milestoneIndex || 0))
+            .accounts({
+              project: projectPubkey,
+              developerTokenAccount: new PublicKey(developerTokenAccount),
+              vaultTokenAccount: vaultTA,
+              vaultAuthority: vaultAuthority,
+              verifier: keypair.publicKey,
+              tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            })
+            .rpc();
+
+          verification.onChainTx = tx;
+          verification.onChainStatus = "success";
+        } else {
+          console.warn("SOLANA_AGENT_KEY not configured, skipping on-chain payout");
+          verification.onChainStatus = "skipped (no agent key)";
+        }
+      } catch (solErr) {
+        console.error("Solana on-chain verification failed:", solErr);
+        verification.onChainStatus = "failed";
+        verification.onChainError = solErr.message;
+      }
+    }
+
     const result = {
       success: true,
       agentInfo: {
         name: "Verifier Agent",
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
-        network: "arc",
+        network: network || "arc",
         ...(aisaPayment && { aisaPayment }),
       },
       verification,

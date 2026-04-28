@@ -11,6 +11,7 @@ export const ARC_CIRCLE_BLOCKCHAIN = "ARC";
 
 export const SOLANA_MAINNET_USDC = "EPjFW364Ac7H5keePybR7L5tS5sLwerZEv8oaW6wED7L";
 export const SOLANA_DEVNET_USDC = "4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX";
+export const BAGS_FEE_SHARE_V2_ID = "FEE2tBhCKAt7shrod19QttSVREUYPiyMzoku1mL1gqVK";
 
 export const TESTNET_USDC_ADDRESSES = {
   // Ethereum Sepolia

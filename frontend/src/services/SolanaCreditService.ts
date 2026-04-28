@@ -192,17 +192,12 @@ class SolanaCreditService {
 
         try {
             console.log('Bags: Launching token', projectData.bagsTokenMetadata);
-            
-            // Note: In a real implementation, we would call the Bags SDK to launch the token.
-            // Since we are in a hackathon context, we'll implement the logic according to Bags SDK v2.
             const launchResult = await (this.bagsClient as any).token.launchV2({
                 metadata: {
                     name: projectData.bagsTokenMetadata.name,
                     symbol: projectData.bagsTokenMetadata.symbol,
                     description: projectData.bagsTokenMetadata.description,
-                    // Additional metadata like image could be added here
                 },
-                // Additional parameters like initialPurchaseAmount could be passed from projectData
             });
 
             return {
@@ -214,6 +209,31 @@ class SolanaCreditService {
             console.error('Bags token launch error:', error);
             throw error;
         }
+    }
+
+    /**
+     * Get claimable fees for the current user
+     */
+    async getClaimableFees(walletPublicKey: PublicKey) {
+        if (!this.bagsClient) return [];
+        return await (this.bagsClient as any).fee.getAllClaimablePositions(walletPublicKey.toBase58());
+    }
+
+    /**
+     * Claim fees from Bags Fee Share V2
+     */
+    async claimFees(wallet: any, positions: any[]) {
+        if (!this.bagsClient) throw new Error("Bags SDK not initialized");
+        
+        const tx = await (this.bagsClient as any).fee.getClaimTransactions({
+            wallet: wallet.publicKey.toBase58(),
+            positions: positions.map(p => p.id),
+        });
+
+        // Sign and send transaction (via wallet adapter)
+        const signed = await wallet.signAllTransactions(tx);
+        // ... (broadcast via connection)
+        return signed;
     }
 
     /**

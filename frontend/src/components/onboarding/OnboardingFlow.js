@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { decentralizedAuth } from '../../lib/auth/DecentralizedAuth';
 import { useWallet } from '../../contexts/WalletContext';
+import { useUser } from '../../contexts/UserContext';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingStates';
@@ -57,7 +58,8 @@ const ONBOARDING_STEPS = [
 
 export default function OnboardingFlow({ onComplete }) {
   const router = useRouter();
-  const { connect, account, provider } = useMetaMask();
+  const { connect, account, provider } = useWallet();
+  const { currentUser } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
   const [userProfile, setUserProfile] = useState(null);
@@ -149,7 +151,12 @@ export default function OnboardingFlow({ onComplete }) {
     setError(null);
 
     try {
-      const githubProfile = await decentralizedAuth.connectGitHub();
+      const githubData = currentUser?.providerData?.find(p => p.providerId === 'github.com');
+      const githubProfile = await decentralizedAuth.connectGitHub({
+        login: githubData?.uid || currentUser?.displayName,
+        name: githubData?.displayName || currentUser?.displayName,
+        photoURL: githubData?.photoURL || currentUser?.photoURL,
+      });
       if (githubProfile) {
         setUserProfile(decentralizedAuth.userProfile);
         setCompletedSteps(prev => new Set([...prev, 'github']));

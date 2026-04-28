@@ -3,7 +3,7 @@ import { useWallet } from '../contexts/WalletContext';
 
 const MetaMaskWallet = () => {
   const {
-    isConnected,
+    connected,
     connecting,
     account,
     chainId,
@@ -13,7 +13,7 @@ const MetaMaskWallet = () => {
     connect,
     disconnect,
     addUSDCToken,
-  } = useMetaMask();
+  } = useWallet();
 
   const formatAddress = (address) => {
     if (!address) return '';

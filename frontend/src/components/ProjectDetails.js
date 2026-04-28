@@ -22,7 +22,7 @@ import BackingPanel from './BackingPanel';
 import ProjectHealthChart from './expedition/ProjectHealthChart';
 
 export default function ProjectDetails({ projectId, onMilestoneComplete }) {
-  const { account } = useMetaMask();
+  const { account } = useWallet();
   const { coreContract, usdcContract, contractLoading } = useBuilderCredit();
 
   const [project, setProject] = useState(null);

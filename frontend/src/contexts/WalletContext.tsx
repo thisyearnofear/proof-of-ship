@@ -63,6 +63,7 @@ interface WalletContextType {
   loading: boolean;
   error: string | null;
   activeProvider: any;
+  provider: any;
   getBalance: (showLoading?: boolean) => Promise<string | null>;
   getTokenBalance: (tokenAddress: string, decimals?: number) => Promise<string>;
   switchNetwork: (chainId: number) => Promise<void>;
@@ -740,7 +741,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const value = {
     // MetaMask
     connect, disconnect, account, chainId, balance, networkName,
-    ethersProvider, signer, connected, connecting, loading, error, activeProvider,
+    ethersProvider, signer, connected, connecting, loading, error, activeProvider, provider,
     getBalance, getTokenBalance, getUSDCBalance, switchNetwork, addToken, addUSDCToken,
     networkConfigs: NETWORK_CONFIGS, getCurrentUSDCAddress,
     // Circle Wallet

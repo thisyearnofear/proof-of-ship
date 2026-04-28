@@ -6,19 +6,32 @@ import Head from "next/head";
 
 export default function LoginPage() {
   const { currentUser, signInWithGithub, linkWallet, loading: authLoading } = useUser();
-  const { connected, address: account, connect: connectWallet, connecting, provider } = useWallet();
-  
+  const {
+    connected: evmConnected,
+    address: evmAddress,
+    connect: connectEvm,
+    connecting: evmConnecting,
+    provider,
+    solanaConnected,
+    solanaAddress,
+    connectSolana,
+    solanaConnecting,
+    solanaWallet,
+  } = useWallet();
+
   const router = useRouter();
   const { redirect } = router.query;
-  
+
   const [error, setError] = useState(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const [linked, setLinked] = useState(false);
+  const [walletFamily, setWalletFamily] = useState(null);
 
-  const isFullyAuthed = !!currentUser && !!connected && linked;
+  const anyWalletConnected = evmConnected || solanaConnected;
+  const activeWalletAddress = walletFamily === 'solana' ? solanaAddress : evmAddress;
+  const isFullyAuthed = !!currentUser && anyWalletConnected && linked;
 
-  // Auto-redirect once fully linked
   useEffect(() => {
     if (isFullyAuthed) {
       const timer = setTimeout(() => {
@@ -40,19 +53,50 @@ export default function LoginPage() {
     }
   };
 
+  const handleConnectEvm = async () => {
+    try {
+      setError(null);
+      await connectEvm();
+      setWalletFamily('evm');
+    } catch (err) {
+      setError("Failed to connect wallet.");
+    }
+  };
+
+  const handleConnectSolana = async () => {
+    try {
+      setError(null);
+      await connectSolana();
+      setWalletFamily('solana');
+    } catch (err) {
+      setError("Failed to connect Solana wallet.");
+    }
+  };
+
   const handleLinkIdentity = async () => {
-    if (!currentUser || !connected || !account) return;
+    if (!currentUser || !anyWalletConnected || !activeWalletAddress) return;
     try {
       setError(null);
       setIsLinking(true);
 
       const githubUsername = currentUser.providerData?.find(p => p.providerId === 'github.com')?.uid;
-      const message = `Proof of Ship - Link Identity\n\nGitHub: ${githubUsername}\nWallet: ${account}\nTimestamp: ${Date.now()}`;
-      const signature = await provider.request({ method: 'personal_sign', params: [message, account] });
-      await linkWallet(account, signature, message);
+      const message = `Proof of Ship - Link Identity\n\nGitHub: ${githubUsername}\nWallet: ${activeWalletAddress}\nTimestamp: ${Date.now()}`;
+
+      let signature;
+      if (walletFamily === 'solana') {
+        if (!solanaWallet?.signMessage) throw new Error('Solana wallet does not support message signing');
+        const encoded = new TextEncoder().encode(message);
+        const sigBytes = await solanaWallet.signMessage(encoded);
+        signature = Buffer.from(sigBytes).toString('base64');
+      } else {
+        if (!provider) throw new Error('EVM provider not available');
+        signature = await provider.request({ method: 'personal_sign', params: [message, activeWalletAddress] });
+      }
+
+      await linkWallet(activeWalletAddress, signature, message, walletFamily);
       setLinked(true);
     } catch (err) {
-      setError("Failed to verify wallet ownership.");
+      setError(err.message || "Failed to verify wallet ownership.");
     } finally {
       setIsLinking(false);
     }
@@ -109,11 +153,11 @@ export default function LoginPage() {
             </div>
 
             {/* Step 2: Wallet */}
-            <div className={`p-4 rounded-lg border-2 transition-all ${connected ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+            <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className={`p-2 rounded-full ${connected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
-                    {connected ? (
+                  <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    {anyWalletConnected ? (
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                     ) : (
                       <span className="text-xs font-bold">2</span>
@@ -121,14 +165,24 @@ export default function LoginPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-bold text-primary">Web3 Wallet</p>
-                    <p className="text-xs text-secondary">{connected && account ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Destination for your funding'}</p>
+                    <p className="text-xs text-secondary">
+                      {anyWalletConnected && activeWalletAddress
+                        ? `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`
+                        : 'Destination for your funding'}
+                    </p>
                   </div>
                 </div>
-                {!connected && (
-                  <button onClick={connect} disabled={connecting}
-                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-md hover:bg-blue-700 disabled:opacity-50">
-                    {connecting ? '...' : 'Connect'}
-                  </button>
+                {!anyWalletConnected && (
+                  <div className="flex gap-2">
+                    <button onClick={handleConnectEvm} disabled={evmConnecting}
+                      className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-md hover:bg-blue-700 disabled:opacity-50">
+                      {evmConnecting ? '...' : 'EVM'}
+                    </button>
+                    <button onClick={handleConnectSolana} disabled={solanaConnecting}
+                      className="px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-md hover:bg-purple-700 disabled:opacity-50">
+                      {solanaConnecting ? '...' : 'Solana'}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -143,7 +197,7 @@ export default function LoginPage() {
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-secondary">Once both are connected, sign a message to link them forever.</p>
-                  <button onClick={handleLinkIdentity} disabled={!currentUser || !connected || isLinking}
+                  <button onClick={handleLinkIdentity} disabled={!currentUser || !anyWalletConnected || isLinking}
                     className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg shadow-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-30 disabled:grayscale transition-all">
                     {isLinking ? 'Verifying...' : 'Verify & Link Identity'}
                   </button>

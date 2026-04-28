@@ -73,6 +73,9 @@ interface UserContextType {
     reason: string;
   };
   
+  // Wallet Linking
+  linkWallet: (walletAddress: string, signature: string, message: string, chainFamily?: 'evm' | 'solana') => Promise<void>;
+  
   // Profile Actions
   completeOnboarding: (profile: UserProfile, creditData: any) => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<UserProfile>;
@@ -261,6 +264,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     clearProfile();
   };
   
+  const linkWallet = async (walletAddress: string, signature: string, message: string, chainFamily: 'evm' | 'solana' = 'evm') => {
+    if (!currentUser) throw new Error('Must be authenticated to link wallet');
+    
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    await setDoc(userDocRef, {
+      wallet: {
+        address: walletAddress,
+        chainFamily,
+        signature,
+        message,
+        linkedAt: new Date().toISOString(),
+      }
+    }, { merge: true });
+  };
+  
   // Profile management
   const completeOnboarding = async (profile: UserProfile, creditDataInput: any) => {
     setUserProfile(profile);
@@ -298,9 +316,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       let result;
       
       switch (platform) {
-        case 'github':
-          result = await decentralizedAuth.connectGitHub();
+        case 'github': {
+          const githubData = currentUser?.providerData?.find(p => p.providerId === 'github.com');
+          result = await decentralizedAuth.connectGitHub({
+            login: githubData?.uid || currentUser?.displayName,
+            name: githubData?.displayName || currentUser?.displayName,
+            photoURL: githubData?.photoURL || currentUser?.photoURL,
+          });
           break;
+        }
         case 'farcaster':
           result = await decentralizedAuth.connectFarcaster(identifier);
           break;
@@ -432,6 +456,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     loading,
     logout,
     signInWithGithub,
+    linkWallet,
     
     // User Permissions
     userPermissions,

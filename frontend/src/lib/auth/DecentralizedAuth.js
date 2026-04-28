@@ -87,10 +87,9 @@ export class DecentralizedAuthService {
   /**
    * Step 3: Connect Social Profiles (Optional but Recommended)
    */
-  async connectGitHub() {
+  async connectGitHub(externalData = null) {
     try {
-      // Use GitHub OAuth (minimal scope)
-      const githubData = await this.authenticateGitHub();
+      const githubData = externalData || await this.fetchGitHubProfile();
       
       this.userProfile.profiles.github = {
         username: githubData.login,
@@ -101,12 +100,12 @@ export class DecentralizedAuthService {
         followers: githubData.followers,
         following: githubData.following,
         createdAt: githubData.created_at,
+        photoURL: githubData.photoURL,
         verified: true
       };
 
       this.userProfile.completionStatus.github = true;
       
-      // Analyze GitHub activity
       await this.analyzeGitHubActivity(githubData.login);
       
       return this.userProfile.profiles.github;
@@ -260,24 +259,18 @@ export class DecentralizedAuthService {
     return `Proof of Ship - Verify Identity\n\nAddress: ${address}\nTimestamp: ${timestamp}\n\nBy signing this message, you verify ownership of this wallet address.`;
   }
 
-  async authenticateGitHub() {
-    // This would integrate with GitHub OAuth
-    // For now, returning mock data
-    return new Promise((resolve) => {
-      // In production, this would open GitHub OAuth popup
-      setTimeout(() => {
-        resolve({
-          login: 'developer',
-          id: 12345,
-          name: 'Developer Name',
-          bio: 'Building the future',
-          public_repos: 25,
-          followers: 100,
-          following: 50,
-          created_at: '2020-01-01T00:00:00Z'
-        });
-      }, 1000);
-    });
+  async fetchGitHubProfile() {
+    const stored = localStorage.getItem('pos_user_profile');
+    if (stored) {
+      try {
+        const profile = JSON.parse(stored);
+        if (profile.profiles?.github?.username) {
+          const resp = await fetch(`https://api.github.com/users/${profile.profiles.github.username}`);
+          if (resp.ok) return await resp.json();
+        }
+      } catch {}
+    }
+    throw new Error('No GitHub profile available. Pass external data or connect via Firebase Auth first.');
   }
 
   async analyzeOnChainActivity(address) {

@@ -28,7 +28,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function DeveloperDashboard() {
-  const { account, connected } = useMetaMask();
+  const { account, connected } = useWallet();
   const { coreContract, usdcContract, contractLoading, creditProfile, repayLoan, loadUserData, formatUSDC, usdcBalance, developerProjects, projectDetails, contractError } = useBuilderCredit();
 
   const [loading, setLoading] = useState(false);

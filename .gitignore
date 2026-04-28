@@ -57,6 +57,12 @@ public/workbox-*.js
 public/workbox-*.js.map
 public/*.js.map
 
+# Media files
+videos/
+*.webm
+*.mp4
+*.mov
+
 # Editor directories and files
 .idea/
 .vscode/

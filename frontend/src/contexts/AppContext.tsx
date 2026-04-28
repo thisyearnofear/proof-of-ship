@@ -41,6 +41,16 @@ interface UserPreferences {
   lastVisitedEcosystem?: string;
   lastActiveDate?: string;
   favoriteEcosystems?: string[];
+  /**
+   * User-pinned primary ecosystem (e.g. 'solana', 'arc', 'celo').
+   * When set, this overrides wallet/activity inference for ranking purposes.
+   * Set via onboarding "Pick your ecosystems" step or profile settings.
+   */
+  primaryEcosystem?: string;
+  /**
+   * Has the user completed (or dismissed) the ecosystem-preference onboarding step?
+   */
+  ecosystemOnboardingComplete?: boolean;
   recentProjects?: Record<string, any>;
   rememberFilters?: boolean;
   commonFilters?: Record<string, any>;
@@ -92,6 +102,8 @@ interface StoredPreferences {
   lastVisitedEcosystem?: string;
   lastActiveDate?: string;
   favoriteEcosystems?: string[];
+  primaryEcosystem?: string;
+  ecosystemOnboardingComplete?: boolean;
   recentProjects?: Record<string, any>;
   rememberFilters?: boolean;
   commonFilters?: Record<string, any>;

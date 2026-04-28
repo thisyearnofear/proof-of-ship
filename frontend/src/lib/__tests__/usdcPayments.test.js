@@ -4,12 +4,13 @@
  */
 
 import { USDCPaymentService, formatUSDC, getFundingTier } from '../usdcPayments';
+import { vi } from 'vitest';
 
 // Mock environment variables for testing
 const originalEnv = process.env;
 
 beforeEach(() => {
-  jest.resetModules();
+  vi.resetModules();
   process.env = {
     ...originalEnv,
     CIRCLE_API_KEY: undefined,

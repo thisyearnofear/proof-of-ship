@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 
 /**
  * PaymentFlowSection - Visualizes the x402 nanopayment flow
+ * @returns {JSX.Element} Payment flow section component
  */
 export function PaymentFlow() {
   const router = useRouter();

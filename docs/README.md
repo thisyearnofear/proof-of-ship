@@ -2,6 +2,8 @@
 
 Decentralized platform where backers fund builders and hackathon prizes collateralize credit.
 
+> **New:** See [VISION.md](./VISION.md) for the unified capital-stack narrative (Bags Token → x402 Credit → Prize Routing) and how the agentic layer prices, scouts, and verifies across all three rails.
+
 ## How It Works
 
 1. **Backers** stake USDC on builders with 1.5x, 2x, or 3x reward multipliers.

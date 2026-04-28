@@ -3,10 +3,11 @@ import { Card } from "@/components/common/Card";
 
 /**
  * FeatureSection - Displays platform features in a responsive grid
- * @param {Object[]} features - Array of feature objects
- * @param {React.ElementType} features[].icon - Icon component
- * @param {string} features[].title - Feature title
- * @param {string} features[].description - Feature description
+ * @param {Object} props - Component props
+ * @param {Array<{icon: React.ElementType, title: string, description: string}>} props.features - Array of feature objects
+ * @param {React.ElementType} props.features[].icon - Icon component
+ * @param {string} props.features[].title - Feature title
+ * @param {string} props.features[].description - Feature description
  */
 export function FeatureSection({ features = [] }) {
   return (

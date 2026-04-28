@@ -2,9 +2,11 @@ import React from "react";
 
 /**
  * UserJourneySection - Displays user journey steps for different personas
- * @param {Object} userJourneys - Journey data for different personas
- * @param {string} activeTab - Currently active persona tab
- * @param {Function} onTabChange - Callback when tab changes
+ * @param {Object} props - Component props
+ * @param {Object} props.userJourneys - Journey data for different personas
+ * @param {string} props.activeTab - Currently active persona tab
+ * @param {Function} props.onTabChange - Callback when tab changes
+ * @returns {JSX.Element} User journey section component
  */
 export function UserJourney({ userJourneys = {}, activeTab = "developers", onTabChange = () => {} }) {
   const tabs = [
@@ -29,18 +31,26 @@ export function UserJourney({ userJourneys = {}, activeTab = "developers", onTab
 
         {/* Tab Navigation */}
         <div className="flex justify-center mb-8 sm:mb-12">
-          <div className="inline-flex p-1 bg-surface rounded-xl border border-default">
+          <div
+            className="inline-flex p-1 bg-surface rounded-xl border border-default"
+            role="tablist"
+            aria-label="User journey persona selection"
+          >
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`${tab.key}-panel`}
+                  id={`${tab.key}-tab`}
                   onClick={() => onTabChange(tab.key)}
                   className={`
                     px-4 sm:px-6 py-2.5 rounded-lg font-medium text-sm sm:text-base
-                    transition-all duration-200 whitespace-nowrap
+                    transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
                     ${isActive
-                      ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20" 
+                      ? "bg-primary-500 text-white shadow-lg shadow-primary-500/20"
                       : "text-secondary hover:text-primary hover:bg-surface-hover"
                     }
                   `}
@@ -54,7 +64,12 @@ export function UserJourney({ userJourneys = {}, activeTab = "developers", onTab
 
         {/* Journey Content */}
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12">
+          <div
+            role="tabpanel"
+            id={`${activeTab}-panel`}
+            aria-labelledby={`${activeTab}-tab`}
+            className="text-center mb-8 sm:mb-12"
+          >
             <h3 className="text-xl sm:text-2xl font-semibold text-primary mb-2">
               {currentJourney.title}
             </h3>

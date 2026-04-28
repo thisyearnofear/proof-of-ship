@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useUser } from "@/contexts/UserContext";
+import { useBuilderCredit } from "@/contexts/WalletContext";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
@@ -22,6 +23,7 @@ const DEFAULT_CATEGORIES = [
 
 export default function ProjectEditor({ projectSlug }) {
   const { currentUser, hasProjectPermission } = useUser();
+  const { requestFunding, connected, activeChainFamily } = useBuilderCredit();
 
   const isEditMode = Boolean(projectSlug);
 
@@ -61,6 +63,8 @@ export default function ProjectEditor({ projectSlug }) {
     fundingAmount: draft?.fundingAmount || "",
     milestones: draft?.milestones || [""],
     hackathons: draft?.hackathons || [],
+    launchOnBags: draft?.launchOnBags || false,
+    bagsTokenMetadata: draft?.bagsTokenMetadata || { name: "", symbol: "", description: "" },
   });
 
   const [showOptional, setShowOptional] = useState(false);
@@ -377,6 +381,32 @@ export default function ProjectEditor({ projectSlug }) {
           window.location.href = `/projects/${cleaned.ecosystem}/${projectSlug}`;
         }, 600);
       } else {
+        // On-chain funding/Bags launch for Solana (Phase 8: Bags Hackathon)
+        let onChainResult = null;
+        if (cleaned.ecosystem === 'solana' && (form.lookingForFunding || form.launchOnBags)) {
+          if (!connected || activeChainFamily !== 'solana') {
+            throw new Error("Please connect your Solana wallet to request funding or launch on Bags.");
+          }
+
+          try {
+            // Prepare on-chain data
+            const onChainData = {
+              ...cleaned,
+              hackathonIds: [1], // Default hackathon ID
+              milestoneDescriptions: cleaned.milestones,
+              milestoneAmounts: cleaned.milestones.map(() => 0), // Demo: 0 reward for now
+              launchOnBags: form.launchOnBags,
+              bagsTokenMetadata: form.bagsTokenMetadata
+            };
+
+            onChainResult = await requestFunding(onChainData);
+            console.log('Solana on-chain result:', onChainResult);
+          } catch (err) {
+            console.error('On-chain operation failed:', err);
+            throw new Error(`Blockchain operation failed: ${err.message}`);
+          }
+        }
+
         let result;
         let useClientSide = false;
         
@@ -386,6 +416,9 @@ export default function ProjectEditor({ projectSlug }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               ...cleaned,
+              launchOnBags: form.launchOnBags,
+              bagsTokenAddress: onChainResult?.projectData?.bagsTokenAddress || null,
+              solanaProjectPda: onChainResult?.projectPda || null,
               submittedBy: currentUser.uid,
               submittedAt: new Date().toISOString(),
             }),
@@ -640,6 +673,53 @@ export default function ProjectEditor({ projectSlug }) {
             checked={form.lookingForFunding}
             onChange={(e) => setField("lookingForFunding", e.target.checked)}
           />
+
+          {form.ecosystem === 'solana' && (
+            <div className="md:col-span-2">
+              <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">💰</span>
+                    <div>
+                      <h4 className="font-semibold text-emerald-900">Bags Boost (Hackathon Special)</h4>
+                      <p className="text-sm text-emerald-700">Launch a token on Bags alongside your credit request for community-backed liquidity.</p>
+                    </div>
+                  </div>
+                  <Checkbox
+                    label="Active"
+                    checked={form.launchOnBags}
+                    onChange={(e) => setField("launchOnBags", e.target.checked)}
+                  />
+                </div>
+
+                {form.launchOnBags && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-emerald-100">
+                    <Input
+                      label="Token Name"
+                      placeholder="e.g. Proof of Ship Token"
+                      value={form.bagsTokenMetadata.name}
+                      onChange={(e) => setField("bagsTokenMetadata", { ...form.bagsTokenMetadata, name: e.target.value })}
+                    />
+                    <Input
+                      label="Token Symbol"
+                      placeholder="e.g. SHIP"
+                      value={form.bagsTokenMetadata.symbol}
+                      onChange={(e) => setField("bagsTokenMetadata", { ...form.bagsTokenMetadata, symbol: e.target.value.toUpperCase() })}
+                    />
+                    <div className="md:col-span-2">
+                      <Textarea
+                        label="Token Description"
+                        placeholder="Describe the utility or vision for your project token..."
+                        value={form.bagsTokenMetadata.description}
+                        onChange={(e) => setField("bagsTokenMetadata", { ...form.bagsTokenMetadata, description: e.target.value })}
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {form.lookingForFunding && (

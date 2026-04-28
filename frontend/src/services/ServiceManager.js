@@ -7,6 +7,7 @@
 import { walletService } from "./walletService";
 import { realGitHubService } from "./RealGitHubService";
 import { realLiFiService } from "./RealLiFiService";
+import { solanaCreditService } from "./SolanaCreditService";
 import { validateApiService } from "../config/publicConfig";
 
 class ServiceManager {
@@ -22,6 +23,7 @@ class ServiceManager {
     this.services.set("circle", walletService);
     this.services.set("github", realGitHubService);
     this.services.set("lifi", realLiFiService);
+    this.services.set("solana", solanaCreditService);
   }
 
   /**
@@ -100,6 +102,13 @@ class ServiceManager {
   }
 
   /**
+   * Get Solana service
+   */
+  getSolanaService() {
+    return this.getService("solana");
+  }
+
+  /**
    * Health check for all services
    */
   async healthCheck() {
@@ -118,6 +127,10 @@ class ServiceManager {
         if (name === 'circle' && typeof service.getStatus === 'function') {
             const status = await service.getStatus();
             results[name].ping = status.success ? "success" : "failed";
+        }
+
+        if (name === 'solana' && typeof service.getCluster === 'function') {
+            results[name].cluster = service.getCluster();
         }
       } catch (error) {
         results[name] = {

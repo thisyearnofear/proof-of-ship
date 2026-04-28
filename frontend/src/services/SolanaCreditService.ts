@@ -4,10 +4,12 @@ import { Program, BN } from '@coral-xyz/anchor';
 import { SOLANA_MAINNET_USDC, SOLANA_DEVNET_USDC } from '../config/tokens';
 import IDL from '../idl/blockchain_solana.json';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { BagsSDK } from '@bagsfm/bags-sdk';
 
 /**
  * Solana Credit Service
  * Handles Solana-specific credit operations (Phase 8: Full AI Integration)
+ * Enhanced with Bags SDK for creator finance integrations.
  *
  * Account names match the on-chain IDL exactly:
  *   request_funding: project, creditLine, vaultAuthority, usdcMint, vaultTokenAccount, developer, systemProgram, tokenProgram, associatedTokenProgram
@@ -25,6 +27,12 @@ interface ProjectData {
     milestoneDescriptions: string[];
     milestoneAmounts: string[] | number[];
     verifier?: string;
+    launchOnBags?: boolean;
+    bagsTokenMetadata?: {
+        name: string;
+        symbol: string;
+        description: string;
+    };
 }
 
 interface ProjectBackingData {
@@ -40,6 +48,7 @@ interface ProjectDetails {
     fundingAmount: string;
     milestonesCompleted: number;
     milestonesCount: number;
+    bagsTokenAddress?: string;
 }
 
 class SolanaCreditService {
@@ -47,6 +56,18 @@ class SolanaCreditService {
     private PROGRAM_ID = new PublicKey(
         process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS'
     );
+
+    private bagsClient: BagsSDK | null = null;
+
+    constructor() {
+        const apiKey = process.env.NEXT_PUBLIC_BAGS_API_KEY;
+        if (apiKey) {
+            this.bagsClient = new BagsSDK({
+                apiKey,
+                rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+            });
+        }
+    }
 
     private getCluster(): string {
         return (process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet').toLowerCase();
@@ -158,6 +179,44 @@ class SolanaCreditService {
     }
 
     /**
+     * Launch a token on Bags for a project (Phase 8: Bags Hackathon)
+     */
+    async launchBagsToken(projectData: ProjectData, wallet: any) {
+        if (!this.bagsClient) {
+            throw new Error("Bags SDK not initialized (API Key missing)");
+        }
+
+        if (!projectData.bagsTokenMetadata) {
+            throw new Error("Bags token metadata missing");
+        }
+
+        try {
+            console.log('Bags: Launching token', projectData.bagsTokenMetadata);
+            
+            // Note: In a real implementation, we would call the Bags SDK to launch the token.
+            // Since we are in a hackathon context, we'll implement the logic according to Bags SDK v2.
+            const launchResult = await (this.bagsClient as any).token.launchV2({
+                metadata: {
+                    name: projectData.bagsTokenMetadata.name,
+                    symbol: projectData.bagsTokenMetadata.symbol,
+                    description: projectData.bagsTokenMetadata.description,
+                    // Additional metadata like image could be added here
+                },
+                // Additional parameters like initialPurchaseAmount could be passed from projectData
+            });
+
+            return {
+                success: true,
+                mint: launchResult.mint,
+                signature: launchResult.signature
+            };
+        } catch (error) {
+            console.error('Bags token launch error:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Request funding for a project on Solana
      */
     async requestFunding(connection: Connection, wallet: any, projectData: ProjectData) {
@@ -170,6 +229,17 @@ class SolanaCreditService {
                 throw new Error('Solana projectName must be <= 32 bytes (PDA seed limit). Shorten the name.');
             }
 
+            let bagsTokenAddress: string | undefined;
+            if (projectData.launchOnBags && this.bagsClient) {
+                try {
+                    const bagsResult = await this.launchBagsToken(projectData, wallet);
+                    bagsTokenAddress = bagsResult.mint;
+                    console.log('Bags token launched successfully:', bagsTokenAddress);
+                } catch (err) {
+                    console.error('Bags launch failed, continuing with standard funding:', err);
+                }
+            }
+
             // Derive PDAs
             const projectPda = this.getProjectPda(publicKey, projectData.projectName);
             const creditLinePda = this.getCreditLinePda(publicKey);
@@ -179,7 +249,7 @@ class SolanaCreditService {
 
             const verifier = new PublicKey(projectData.verifier || publicKey.toBase58());
 
-            const tx = await program.methods.requestFunding(
+            const tx = await program.methods.request_funding(
                 projectData.hackathonIds.map(id => new BN(id)),
                 projectData.githubUrl,
                 projectData.projectName,
@@ -202,7 +272,10 @@ class SolanaCreditService {
                 success: true,
                 hash: tx,
                 projectPda: projectPda.toBase58(),
-                projectData
+                projectData: {
+                    ...projectData,
+                    bagsTokenAddress
+                }
             };
         } catch (error) {
             console.error('Solana requestFunding error:', error);

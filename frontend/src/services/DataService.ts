@@ -649,6 +649,8 @@ class DataService {
         lookingForFunding: Boolean(inputData.lookingForFunding),
         fundingAmount: inputData.fundingAmount || null,
         milestones: Array.isArray(inputData.milestones) ? inputData.milestones.filter(Boolean) : [],
+        launchOnBags: Boolean(inputData.launchOnBags),
+        bagsTokenAddress: inputData.bagsTokenAddress || null,
         submittedBy: user.uid,
         owners: [user.uid],
         submittedAt: now,

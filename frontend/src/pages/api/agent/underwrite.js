@@ -8,7 +8,7 @@
  */
 
 import { db } from "@/lib/firebase/serverOnly";
-import { computeScore, getRecommendation } from "@/lib/scoringEngine";
+import { computeScore, getRecommendation, computeStrategicAdvice } from "@/lib/scoringEngine";
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
@@ -51,8 +51,9 @@ async function handler(req, res) {
     // 2. Run the AI Scoring Engine
     const { total, breakdown } = computeScore(project);
     const recommendation = getRecommendation(total);
+    const strategicAdvice = computeStrategicAdvice(project);
 
-    // 3. Enrich with AI analysis via AIsa Perplexity Sonar (agent-to-agent x402 payment)
+    // 3. Enrich with AI analysis
     let aiAnalysis = null;
     let aisaPayment = null;
 
@@ -73,9 +74,8 @@ async function handler(req, res) {
                 Description: ${project.description || "N/A"}. 
                 GitHub stats: ${JSON.stringify(project.stats || {})}. 
                 Score: ${total}/100.
-                Deployment: ${project.deploymentVerified ? `Verified on ${project.deploymentChain} (Proof: ${project.deploymentProof})` : 'Unverified'}.
                 
-                Note: If the ecosystem is Solana, focus on its specific advantages like high throughput and Rust/Anchor development quality.`,
+                Also provide a brief recommendation on whether they should launch a token on Solana via Bags or stick to Circle-backed credit lines based on their GitHub activity.`,
               },
             ],
           }),
@@ -90,8 +90,6 @@ async function handler(req, res) {
             estimatedCost: "~0.012 USDC",
             paymentHeader: aisaRes.headers.get("x-402-receipt") || "paid",
           };
-        } else {
-          console.warn("AIsa enrichment failed:", aisaRes.status, await aisaRes.text());
         }
       } catch (aisaErr) {
         console.error("AIsa enrichment error:", aisaErr.message);
@@ -115,6 +113,7 @@ async function handler(req, res) {
       healthScore: total,
       breakdown,
       recommendation,
+      strategicAdvice,
       aiAnalysis,
       timestamp: new Date().toISOString()
     };

@@ -21,6 +21,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ArrowTrendingUpIcon,
+  RocketLaunchIcon,
   CodeBracketIcon,
   CogIcon,
   ChevronDownIcon,
@@ -91,6 +92,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
   const [pendingService, setPendingService] = useState(null);
   const [showDeposit, setShowDeposit] = useState(false);
   const [depositAmount, setDepositAmount] = useState("1");
+  const [lastResult, setLastResult] = useState(null);
 
   useEffect(() => {
     if (!isInitialized && process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
@@ -104,9 +106,11 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
     }
 
     setPendingService(service.id);
+    setLastResult(null);
     try {
       const result = await payForAgent(service.id);
       if (result.success) {
+        setLastResult(result.data);
         onPaymentComplete?.(result);
       }
     } catch (err) {
@@ -184,6 +188,13 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
           {/* Services Tab */}
           {activeTab === "services" && (
             <div className="space-y-3">
+              {lastResult?.strategicAdvice && (
+                <StrategicAdvisorPanel 
+                  advice={lastResult.strategicAdvice} 
+                  onDismiss={() => setLastResult(null)}
+                />
+              )}
+              
               {AGENT_SERVICES.map((service) => (
                 <ServiceCard
                   key={service.id}
@@ -289,6 +300,76 @@ function TabButton({ active, onClick, children }) {
     >
       {children}
     </button>
+  );
+}
+
+function StrategicAdvisorPanel({ advice, onDismiss }) {
+  if (!advice) return null;
+
+  return (
+    <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100 animate-fade-in">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <SparklesIcon className="w-5 h-5 text-indigo-600" />
+          <h4 className="font-bold text-indigo-900">AI Strategic Advice</h4>
+        </div>
+        <button onClick={onDismiss} className="text-indigo-400 hover:text-indigo-600">
+          <ChevronUpIcon className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {advice.ecosystemFit.map((fit, i) => (
+          <span key={i} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
+            {fit}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-white p-3 rounded-lg border border-indigo-50">
+          <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Solana / Bags</p>
+          <div className="flex items-end justify-between">
+            <span className="text-lg font-black text-indigo-700">{advice.tradeOffMatrix.solanaBags.suitability}%</span>
+            <span className="text-[10px] text-indigo-500">Fit Score</span>
+          </div>
+        </div>
+        <div className="bg-white p-3 rounded-lg border border-indigo-50">
+          <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Circle / Arc</p>
+          <div className="flex items-end justify-between">
+            <span className="text-lg font-black text-indigo-700">{advice.tradeOffMatrix.circleArc.suitability}%</span>
+            <span className="text-[10px] text-indigo-500">Fit Score</span>
+          </div>
+        </div>
+      </div>
+
+      {advice.bagsRecommendation && (
+        <div className="bg-white p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <RocketLaunchIcon className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-bold text-emerald-900">Bags Recommendation</span>
+          </div>
+          <p className="text-xs text-gray-600 mb-3">{advice.bagsRecommendation.reason}</p>
+          
+          {advice.bagsRecommendation.recommended && advice.bagsRecommendation.parameters && (
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50">
+              <div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase">Fee Split</p>
+                <p className="text-xs font-bold text-gray-700">{advice.bagsRecommendation.parameters.feeSplit}</p>
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-gray-400 uppercase">Initial Buy</p>
+                <p className="text-xs font-bold text-gray-700">{advice.bagsRecommendation.parameters.initialPurchase}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      <p className="text-[10px] text-indigo-400 mt-4 text-center italic">
+        Recommendations are agentic insights only. Final decision is yours.
+      </p>
+    </div>
   );
 }
 

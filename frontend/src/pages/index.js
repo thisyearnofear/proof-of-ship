@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
 
@@ -370,7 +370,7 @@ export default function LandingPage() {
           </div>
         </div>
       }>
-        <UserJourneySection />
+        <UserJourneySection userJourneys={userJourneys} activeTab={activeTab} onTabChange={setActiveTab} />
       </Suspense>
 
       {/* Ecosystems Section */}

@@ -9,7 +9,7 @@ import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 
 export default function UserProfile() {
-  const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet } = useUser();
+  const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet, userRole } = useUser();
   const { disconnect: disconnectEvm, disconnectSolana } = useWallet();
 
   const [githubUsername, setGithubUsername] = useState('');
@@ -146,15 +146,30 @@ export default function UserProfile() {
 
   if (!currentUser) return null;
 
+  const isBacker = userRole === 'backer';
+  const primaryWallet = linkedWallets[0]?.address;
+  const displayName = currentUser.displayName || (primaryWallet ? formatAddress(primaryWallet, linkedWallets[0]?.chainFamily) : 'User');
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center space-x-4 mb-6">
-        {currentUser.photoURL && (
-          <img src={currentUser.photoURL} alt={currentUser.displayName || 'User'} className="w-16 h-16 rounded-full" />
-        )}
+        {currentUser.photoURL ? (
+          <img src={currentUser.photoURL} alt={displayName} className="w-16 h-16 rounded-full" />
+        ) : primaryWallet ? (
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold">
+            {primaryWallet.slice(2, 4).toUpperCase()}
+          </div>
+        ) : null}
         <div className="flex-1">
-          <h2 className="text-xl font-semibold">{currentUser.displayName}</h2>
-          <p className="text-gray-600">{currentUser.email}</p>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-semibold">{displayName}</h2>
+            {userRole && (
+              <span className={`px-2 py-0.5 text-xs font-medium rounded ${isBacker ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                {isBacker ? 'Backer' : 'Builder'}
+              </span>
+            )}
+          </div>
+          {!isBacker && currentUser.email && <p className="text-gray-600">{currentUser.email}</p>}
           {githubUsername && (
             <p className="text-sm text-gray-500">
               Portfolio: <a href={`/u/${githubUsername}`} className="text-blue-600 underline">/u/{githubUsername}</a>
@@ -182,16 +197,18 @@ export default function UserProfile() {
         {error && <div className="text-sm text-red-600">{error}</div>}
         {success && <div className="text-sm text-green-700">{success}</div>}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">GitHub username</label>
-          <input
-            className="mt-1 block w-full border rounded p-2"
-            placeholder="e.g. thisyearnofear"
-            value={githubUsername}
-            onChange={(e) => setGithubUsername(e.target.value)}
-          />
-          <p className="text-xs text-gray-500 mt-1">Used for your portfolio subdomain and project ownership verification.</p>
-        </div>
+        {!isBacker && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">GitHub username</label>
+            <input
+              className="mt-1 block w-full border rounded p-2"
+              placeholder="e.g. thisyearnofear"
+              value={githubUsername}
+              onChange={(e) => setGithubUsername(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">Used for your portfolio subdomain and project ownership verification.</p>
+          </div>
+        )}
 
         {/* Linked Wallets */}
         <div>

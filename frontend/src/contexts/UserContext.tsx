@@ -12,6 +12,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import {
   onAuthStateChanged,
   signInWithPopup,
+  signInAnonymously,
   GithubAuthProvider,
   signOut,
   User,
@@ -65,6 +66,10 @@ interface UserContextType {
   loading: boolean;
   logout: () => Promise<void>;
   signInWithGithub: () => Promise<void>;
+  signInWithWallet: (walletAddress: string, signature: string, message: string, chainFamily?: 'evm' | 'solana') => Promise<void>;
+  
+  // Role
+  userRole: 'builder' | 'backer' | null;
   
   // User Permissions
   userPermissions: Permission[];
@@ -130,6 +135,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [linkedWallets, setLinkedWallets] = useState<LinkedWallet[]>([]);
+  const [userRole, setUserRole] = useState<'builder' | 'backer' | null>(null);
   
   // Decentralized auth instance (lazy loaded)
   const [decentralizedAuth, setDecentralizedAuth] = useState<any>(null);
@@ -230,6 +236,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           } else {
             setLinkedWallets([]);
           }
+          setUserRole(data.userRole || (data.githubUsername ? 'builder' : null));
         }
         
         // Load decentralized profile if available
@@ -243,6 +250,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
         setOnboardingComplete(false);
         setLinkedWallets([]);
+        setUserRole(null);
       }
       
       setLoading(false);
@@ -282,6 +290,58 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGithub = async () => {
     const provider = new GithubAuthProvider();
     await signInWithPopup(auth, provider);
+  };
+  
+  const signInWithWallet = async (walletAddress: string, signature: string, message: string, chainFamily: 'evm' | 'solana' = 'evm') => {
+    // Sign in anonymously to get a Firebase session for Firestore rules
+    const credential = await signInAnonymously(auth);
+    const uid = credential.user.uid;
+    
+    const entry: LinkedWallet = {
+      address: walletAddress,
+      chainFamily,
+      signature,
+      message,
+      linkedAt: new Date().toISOString(),
+    };
+    
+    // Check if this wallet is already linked to an existing account
+    const existingQuery = await getDocs(
+      query(collection(db, 'users'), where('walletAddress', '==', walletAddress))
+    );
+    
+    let existingData: any = {};
+    let existingWallets: LinkedWallet[] = [];
+    
+    if (!existingQuery.empty) {
+      // Found existing account — read its data
+      const existingDoc = existingQuery.docs[0];
+      existingData = existingDoc.data();
+      existingWallets = existingData.wallets || [];
+      
+      // If the existing doc is under a different UID, migrate it to the new anonymous UID
+      if (existingDoc.id !== uid) {
+        const oldDocRef = doc(db, 'users', existingDoc.id);
+        const oldData = (await getDoc(oldDocRef)).data() || {};
+        
+        // Write old data to new UID
+        await setDoc(doc(db, 'users', uid), { ...oldData, uid }, { merge: true });
+      }
+    }
+    
+    // Deduplicate
+    const updated = [...existingWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase()), entry];
+    
+    const userDocRef = doc(db, 'users', uid);
+    await setDoc(userDocRef, {
+      wallets: updated,
+      walletAddress,
+      userRole: 'backer',
+      displayName: existingData.displayName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`,
+    }, { merge: true });
+    
+    setLinkedWallets(updated);
+    setUserRole('backer');
   };
   
   const logout = async () => {
@@ -448,6 +508,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setOnboardingComplete(false);
     setLinkedWallets([]);
+    setUserRole(null);
     
     if (typeof window !== 'undefined') {
       localStorage.removeItem('pos_user_profile');
@@ -498,6 +559,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     loading,
     logout,
     signInWithGithub,
+    signInWithWallet,
+    userRole,
     linkedWallets,
     linkWallet,
     unlinkWallet,

@@ -11,11 +11,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Username is required" });
     }
 
-    const userSnapshot = await db
+    let userSnapshot = await db
       .collection("users")
       .where("githubUsername", "==", username)
       .limit(1)
       .get();
+
+    // Fallback: look up by wallet address (for backer/wallet-only users)
+    if (userSnapshot.empty && /^0x[a-fA-F0-9]{40}$/.test(username)) {
+      userSnapshot = await db
+        .collection("users")
+        .where("walletAddress", "==", username)
+        .limit(1)
+        .get();
+    }
 
     if (userSnapshot.empty) {
       return res.status(404).json({ error: "User not found" });

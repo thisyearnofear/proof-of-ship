@@ -993,10 +993,24 @@ export const useNanopayment = () => {
 };
 
 // ============================================================================
-// Main Provider Wrapper
+// Main Provider Wrapper (with MetaMask SDK error recovery)
 // ============================================================================
 
 export const WalletProvider = ({ children, demand = false }: { children: ReactNode; demand?: boolean }) => {
+  // Suppress MetaMask SDK async errors that crash the page
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (event: ErrorEvent) => {
+      const msg = event.message || '';
+      if (msg.includes('SDK state invalid') || msg.includes('mobile provider') || msg.includes('Extension context invalidated')) {
+        event.preventDefault();
+        console.warn('[WalletProvider] Suppressed MetaMask SDK error:', msg);
+      }
+    };
+    window.addEventListener('error', handler);
+    return () => window.removeEventListener('error', handler);
+  }, []);
+
   const host = typeof window !== 'undefined' ? window.location.host : 'localhost';
   const sdkOptions = {
     logging: { developerMode: false },

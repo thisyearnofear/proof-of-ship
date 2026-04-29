@@ -62,10 +62,11 @@ class SolanaCreditService {
     constructor() {
         const apiKey = process.env.NEXT_PUBLIC_BAGS_API_KEY;
         if (apiKey) {
-            this.bagsClient = new BagsSDK({
+            const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+            this.bagsClient = new BagsSDK(
                 apiKey,
-                rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com',
-            });
+                new Connection(rpcUrl),
+            );
         }
     }
 

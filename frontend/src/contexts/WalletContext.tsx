@@ -110,6 +110,8 @@ interface WalletContextType {
   disconnectSolana: () => void;
   activeChainFamily: 'evm' | 'solana';
   setActiveChainFamily: (family: 'evm' | 'solana') => void;
+  // EIP-6963 multi-wallet support
+  syncEip6963Account: (provider: any) => Promise<void>;
 }
 
 // ============================================================================
@@ -577,7 +579,25 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     setCircleWallets([]);
     setCreditProfile(null);
   };
-  
+
+  // Sync EIP-6963 direct connects into SDK-compatible state so that `account`,
+  // `connected`, and `provider` from useSDK() stay consistent with what login.js reads.
+  const syncEip6963Account = useCallback(async (provider: any) => {
+    try {
+      const accounts = await provider.request({ method: 'eth_accounts' });
+      const accountList = Array.isArray(accounts) ? accounts : [];
+      // Trigger ethers provider re-init so the context's account/connected reflect this provider
+      if (accountList.length && !activeProvider) {
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        setActiveProvider(provider);
+        setEthersProvider(web3Provider);
+        setSigner(web3Provider.getSigner());
+      }
+    } catch (err) {
+      console.error('syncEip6963Account error:', err);
+    }
+  }, [activeProvider]);
+
   // Solana Methods (Phase 1 preparation)
   const connectSolana = useCallback(async () => {
     try {
@@ -759,6 +779,8 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     // Solana (Phase 1)
     solanaAddress, solanaConnected, solanaConnecting, solanaBalance, solanaWallet,
     connectSolana, disconnectSolana, activeChainFamily, setActiveChainFamily,
+    // EIP-6963 sync
+    syncEip6963Account,
   } as WalletContextType;
   
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
@@ -1022,7 +1044,8 @@ export const WalletProvider = ({ children, demand = false }: { children: ReactNo
     },
     enableDebug: false,
     autoConnect: { enable: true },
-    extensionOnly: true,
+    // extensionOnly removed to enable WalletConnect QR-code + deep-link fallback
+    // for mobile wallets and users without a browser extension installed.
   };
   
   return (

@@ -1,90 +1,14 @@
-# Node.js dependencies
+# ============================================
+# Dependencies
+# ============================================
 node_modules/
 
-# Hardhat artifacts and cache
+# ============================================
+# Blockchain / Hardhat
+# ============================================
 artifacts/
 cache/
 typechain-types/
-
-# Environment variables and secrets
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-.env.development.local
-.env.test.local
-.env.production.local
-.env.circle
-.env.circle.*
-!.env.example
-.env.*.local
-*.env
-.secret
-secrets.json
-secrets.*.json
-*_key.json
-*_keys.json
-
-# API Keys and credentials
-*.pem
-*.key
-*.p8
-*.p12
-*.pfx
-*.crt
-*.cer
-serviceAccount*.json
-firebase-adminsdk*.json
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# Build and Export files
-build/
-dist/
-out/
-.next/
-.vercel/
-public/sw.js
-public/sw.js.map
-public/workbox-*.js
-public/workbox-*.js.map
-public/*.js.map
-
-# Media files
-videos/
-*.webm
-*.mp4
-*.mov
-
-# Editor directories and files
-.idea/
-.vscode/
-*.swp
-*.swo
-*.sublime-*
-.project
-.classpath
-.settings/
-.history/
-
-# OS files
-.DS_Store
-Thumbs.db
-*.tmp
-*.bak
-*.backup
-Desktop.ini
-$RECYCLE.BIN/
-._*
-
-# Hardhat & Blockchain info
 deployments/
 deployed-contracts.json
 contract-addresses*.json
@@ -98,17 +22,118 @@ solc-input.json
 mythril-report.md
 slither-report.md
 
+# ============================================
+# Environment variables and secrets
+# ============================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+.env.circle
+.env.circle.*
+!.env.example
+.env.*.local
+.env.example
+*.env
+.secret
+secrets.json
+secrets.*.json
+usdc-payment-keys.json
+wallet-credentials.json
+*wallet-key*.json
+
+# ============================================
+# Keys and credentials
+# ============================================
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.crt
+*.cer
+*_key.json
+*_keys.json
+serviceAccount*.json
+firebase-adminsdk*.json
+firebase-service-account*.json
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ============================================
+# Build output
+# ============================================
+build/
+dist/
+out/
+.next/
+.vercel/
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/*.js.map
+
+# ============================================
+# Media
+# ============================================
+videos/
+*.webm
+*.mp4
+*.mov
+
+# ============================================
+# Editor and IDE
+# ============================================
+.idea/
+.vscode/
+.vscode/settings.json
+*.swp
+*.swo
+*.sublime-*
+.project
+.classpath
+.settings/
+.history/
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.backup
+Desktop.ini
+$RECYCLE.BIN/
+._*
+
+# ============================================
 # Firebase
+# ============================================
 .firebase/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
 .runtimeconfig.json
 firebase-export-*
-firebaserc
-firebase-service-account*.json
+firbaserc
 
+# ============================================
 # Testing
+# ============================================
 .coverage
 coverage/
 coverage.json
@@ -117,20 +142,22 @@ lcov.info
 coverage-all.json
 coverage-report/
 
-# Generated files
+# ============================================
+# Generated / build artifacts
+# ============================================
 generated/
 **/generated/
 auto-generated/
 .webpack/
 .serverless/
+frontend/tsconfig.tsbuildinfo
+frontend/.next/
+frontend/bun.lock
+frontend/package-lock.json
 
-# Circle and payment specific
-usdc-payment-keys.json
-wallet-credentials.json
-*wallet-key*.json
-.env
-
-# AI tool directories
+# ============================================
+# AI / agent tool directories
+# ============================================
 .junie/
 .zencoder/
 .zenflow/
@@ -155,7 +182,4 @@ QWEN.md
 AGENT.md
 AGENTS.md
 EFFICIENCY_REPORT.md
-frontend/tsconfig.tsbuildinfo
 .output.txt
-frontend/bun.lock
-frontend/package-lock.json

@@ -11,7 +11,8 @@ import {
   CurrencyDollarIcon, 
   ArrowTrendingUpIcon,
   UserGroupIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  HeartIcon
 } from '@heroicons/react/24/outline';
 
 export default function ExpeditionCard({ project, onBack, scoutScore }) {
@@ -33,6 +34,21 @@ export default function ExpeditionCard({ project, onBack, scoutScore }) {
               <span>💎</span> Founder Staked: ${project.founderStakedAmount}
             </div>
           )}
+
+          {/* Heartbeat Indicator */}
+          <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider rounded-full px-2.5 py-1 w-fit border ${
+            project.lastCheckIn < 24 ? 'text-blue-700 bg-blue-50 border-blue-200' :
+            project.lastCheckIn < 72 ? 'text-yellow-700 bg-yellow-50 border-yellow-200' :
+            'text-red-700 bg-red-50 border-red-200'
+          }`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              project.lastCheckIn < 24 ? 'bg-blue-500 animate-ping' :
+              project.lastCheckIn < 72 ? 'bg-yellow-500' :
+              'bg-red-500'
+            }`} />
+            <HeartIcon className="w-3 h-3" />
+            Heartbeat: {project.lastCheckIn < 24 ? 'Active' : project.lastCheckIn < 72 ? 'Recent' : 'Stale'}
+          </div>
         </div>
         {/* Header */}
         <div className="flex justify-between items-start mb-4">

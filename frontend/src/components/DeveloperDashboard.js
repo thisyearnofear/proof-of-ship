@@ -30,7 +30,7 @@ import {
 
 export default function DeveloperDashboard() {
   const { account, connected } = useWallet();
-  const { coreContract, usdcContract, contractLoading, creditProfile, repayLoan, loadUserData, formatUSDC, usdcBalance, developerProjects, projectDetails, contractError } = useBuilderCredit();
+  const { coreContract, usdcContract, contractLoading, creditProfile, repayLoan, postCheckIn, loadUserData, formatUSDC, usdcBalance, developerProjects, projectDetails, contractError } = useBuilderCredit();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -39,6 +39,7 @@ export default function DeveloperDashboard() {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showRepayModal, setShowRepayModal] = useState(false);
   const [showStakeModal, setShowStakeModal] = useState(false);
+  const [checkInText, setCheckInText] = useState('');
   const [prizeAmount, setPrizeAmount] = useState('1000');
   const [githubStreak, setGithubStreak] = useState(12); // Default mock value
 
@@ -79,6 +80,36 @@ export default function DeveloperDashboard() {
 
     } catch (err) {
       console.error('Failed to distribute prize:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePostCheckIn = async () => {
+    if (!checkInText || !selectedProjectId) {
+      setError('Please select a project and enter check-in details');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      const result = await postCheckIn(selectedProjectId, checkInText);
+      
+      setSuccess({
+        message: 'Heartbeat recorded! Your activity is now visible to backers.',
+        transactionHash: result.transactionHash
+      });
+
+      setCheckInText('');
+      // Trigger data reload
+      if (loadUserData) loadUserData();
+
+    } catch (err) {
+      console.error('Failed to post check-in:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -402,6 +433,34 @@ export default function DeveloperDashboard() {
               </div>
             </div>
           </Card>
+
+          {/* Voyage Log / Check-ins */}
+          <section>
+            <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Voyage Log</h2>
+            <Card className="p-4 bg-white/80 border-blue-100 border-2">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <h3 className="font-bold text-slate-800 text-sm">Post Heartbeat</h3>
+              </div>
+              <textarea
+                value={checkInText}
+                onChange={(e) => setCheckInText(e.target.value)}
+                placeholder="What did you ship today? (e.g., 'Fixed auth bug', 'Deployed V1')"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:ring-1 ring-blue-500 outline-none h-20 mb-3 resize-none"
+              />
+              <Button
+                onClick={handlePostCheckIn}
+                disabled={loading || !selectedProjectId || !checkInText}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-2"
+              >
+                <SignalIcon className="w-4 h-4" />
+                Broadcast Activity
+              </Button>
+              {!selectedProjectId && (
+                <p className="text-[10px] text-slate-400 mt-2 text-center italic">Select a vessel to log activity</p>
+              )}
+            </Card>
+          </section>
 
           {/* Quick Actions */}
           <section>

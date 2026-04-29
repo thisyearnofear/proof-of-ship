@@ -49,6 +49,9 @@ export function useExpeditionData() {
         // Mocking: If project has developer and some backing, 60% chance they staked on themselves
         const founderStakedAmount = p.developer ? (Math.random() > 0.4 ? Math.floor(Math.random() * 500) + 100 : 0) : 0;
         
+        // Mocking: Last check-in in hours (0-168 hours / 1 week)
+        const lastCheckIn = Math.floor(Math.random() * 168);
+        
         return {
           ...p,
           confidence,
@@ -59,6 +62,7 @@ export function useExpeditionData() {
           targetFunding,
           founderStaked: founderStakedAmount > 0,
           founderStakedAmount,
+          lastCheckIn,
           category: p.sectors?.[0] || 'Infrastructure',
         };
       });

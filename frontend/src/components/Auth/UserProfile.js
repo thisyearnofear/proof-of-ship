@@ -210,13 +210,14 @@ export default function UserProfile() {
           </div>
         )}
 
-        {/* Linked Wallets */}
+        {/* Verified Wallets */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Linked Wallets</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Verified Wallets</label>
+          <p className="text-xs text-gray-400 mb-2">These were verified during sign-in. Used for payouts and identity.</p>
           {linkedWallets.length === 0 ? (
             <div className="text-sm text-gray-500 py-3">
-              No wallets linked.{' '}
-              <Link href="/login" className="text-blue-600 underline">Link a wallet</Link>
+              No wallets verified yet.{' '}
+              <Link href="/login" className="text-blue-600 underline">Connect a wallet</Link>
             </div>
           ) : (
             <div className="space-y-2">
@@ -224,10 +225,9 @@ export default function UserProfile() {
                 <div key={w.address} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-0.5 text-xs font-medium rounded ${w.chainFamily === 'solana' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {w.chainFamily === 'solana' ? 'Solana' : 'EVM'}
+                      {w.chainFamily === 'solana' ? 'Phantom' : 'MetaMask'}
                     </span>
                     <span className="font-mono text-sm">{formatAddress(w.address, w.chainFamily)}</span>
-                    <span className="text-xs text-gray-400">Linked {new Date(w.linkedAt).toLocaleDateString()}</span>
                   </div>
                   <button
                     type="button"
@@ -235,14 +235,14 @@ export default function UserProfile() {
                     disabled={unlinking === w.address}
                     className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
                   >
-                    {unlinking === w.address ? 'Removing...' : 'Unlink'}
+                    {unlinking === w.address ? 'Removing...' : 'Remove'}
                   </button>
                 </div>
               ))}
             </div>
           )}
           {linkedWallets.length > 0 && (
-            <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 underline">Link another wallet</Link>
+            <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 underline">Add another wallet</Link>
           )}
         </div>
 

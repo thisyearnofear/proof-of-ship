@@ -11,6 +11,7 @@ import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
 import ProjectDetails from './ProjectDetails';
 import VelocityGauge from './github/VelocityGauge';
+import BackingPanel from './BackingPanel';
 import { getEvolutionTier } from './projects/ProjectCard';
 import {
   UserCircleIcon,
@@ -37,6 +38,7 @@ export default function DeveloperDashboard() {
   const [repayAmount, setRepayAmount] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [showRepayModal, setShowRepayModal] = useState(false);
+  const [showStakeModal, setShowStakeModal] = useState(false);
   const [prizeAmount, setPrizeAmount] = useState('1000');
   const [githubStreak, setGithubStreak] = useState(12); // Default mock value
 
@@ -322,7 +324,19 @@ export default function DeveloperDashboard() {
                             <div className="font-bold text-slate-900 truncate">{project.name}</div>
                             <div className="flex items-center justify-between mt-1">
                               <span className="text-xs font-bold text-blue-600">${formatUSDC(project.fundingAmount)}</span>
-                              <span className="text-[10px] font-bold text-slate-400 uppercase">{tier.name}</span>
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedProjectId(projectId);
+                                    setShowStakeModal(true);
+                                  }}
+                                  className="text-[10px] font-bold text-green-600 hover:text-green-700 bg-green-50 px-1.5 py-0.5 rounded border border-green-100"
+                                >
+                                  BOOST
+                                </button>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">{tier.name}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -528,6 +542,27 @@ export default function DeveloperDashboard() {
               </Button>
             </div>
           </Card>
+        </div>
+      )}
+
+      {/* Stake/Boost Modal */}
+      {showStakeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowStakeModal(false)}>
+          <div className="w-full max-w-lg animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-2 px-2">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <ShieldCheckIcon className="w-5 h-5" />
+                Boost Project Reputation
+              </h3>
+              <button onClick={() => setShowStakeModal(false)} className="text-white/70 hover:text-white">
+                ✕
+              </button>
+            </div>
+            <BackingPanel projectId={selectedProjectId} />
+            <p className="mt-4 text-center text-xs text-white/60">
+              Self-staking increases your reputation score and boosts your credit limit 2x.
+            </p>
+          </div>
         </div>
       )}
     </div>

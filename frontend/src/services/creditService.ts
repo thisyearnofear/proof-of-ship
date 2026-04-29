@@ -132,6 +132,18 @@ class CreditService {
         return 300; // 3.0x
     }
 
+    calculateBaseFunding(creditScore: number): number {
+        if (creditScore < 400) return 0;
+        if (creditScore >= 800) return 5000;
+        
+        const minFunding = 500;
+        const maxFunding = 5000;
+        const scoreRange = 800 - 400;
+        const adjustedScore = creditScore - 400;
+        
+        return minFunding + (maxFunding - minFunding) * adjustedScore / scoreRange;
+    }
+
     async getProjectDetails(chainId: number, signer: Signer, projectId: string | number): Promise<ProjectDetails | null> {
         const contracts = this.getContracts(chainId, signer);
         if (!contracts) return null;

@@ -249,31 +249,65 @@ export default function BuildPage() {
               </Card>
             </div>
 
-            {/* Credit Line */}
+            {/* Credit Line Breakdown */}
             <Card className="p-6">
-              <h2 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                <CurrencyDollarIcon className="w-5 h-5 text-success-600" /> Credit Line
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <p className="text-sm text-secondary">Total Available</p>
-                  <p className="text-xl font-bold text-success-700">${totalCredit}</p>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-semibold text-primary flex items-center gap-2">
+                  <CurrencyDollarIcon className="w-5 h-5 text-success-600" /> Funding Capacity
+                </h2>
+                <div className="text-right">
+                  <p className="text-xs text-secondary uppercase font-bold tracking-wider">Total Available</p>
+                  <p className="text-2xl font-black text-primary">${totalCredit}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-secondary">Used</p>
-                  <p className="text-xl font-bold text-warning-600">${usedCredit}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Visual breakdown bar */}
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-secondary font-medium">Utilization</span>
+                      <span className="text-primary font-bold">{Math.round((parseFloat(usedCredit) / parseFloat(totalCredit)) * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden flex">
+                      <div 
+                        className="bg-warning-500 h-full transition-all duration-500" 
+                        style={{ width: `${(parseFloat(usedCredit) / parseFloat(totalCredit)) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-surface-secondary rounded-xl border border-default">
+                      <p className="text-[10px] text-secondary uppercase font-bold mb-1">Used</p>
+                      <p className="text-lg font-bold text-warning-600">${usedCredit}</p>
+                    </div>
+                    <div className="p-3 bg-success-50 rounded-xl border border-success-100">
+                      <p className="text-[10px] text-success-600 uppercase font-bold mb-1">Remaining</p>
+                      <p className="text-lg font-bold text-success-700">
+                        ${(parseFloat(totalCredit) - parseFloat(usedCredit)).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-secondary">Remaining</p>
-                  <p className="text-xl font-bold text-primary-700">
-                    ${(parseFloat(totalCredit) - parseFloat(usedCredit)).toFixed(2)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-secondary">Max Multiplier</p>
-                  <p className="text-xl font-bold text-secondary-700">
-                    {score >= 800 ? "1.5x" : score >= 700 ? "2.0x" : score >= 600 ? "2.5x" : "3.0x"}
-                  </p>
+
+                {/* Sources breakdown */}
+                <div className="space-y-3">
+                  <div className="p-4 bg-primary-50/50 rounded-xl border border-primary-100">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-semibold text-primary">Base Limit</span>
+                      <span className="text-sm font-bold text-primary">${creditProfile?.baseAmount || "0"}</span>
+                    </div>
+                    <p className="text-[10px] text-primary-600">Calculated from your on-chain reputation and GitHub history.</p>
+                  </div>
+
+                  <div className="p-4 bg-secondary-50/50 rounded-xl border border-secondary-100">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-semibold text-secondary">Market Boost</span>
+                      <span className="text-sm font-bold text-secondary">+${creditProfile?.marketBoost || "0"}</span>
+                    </div>
+                    <p className="text-[10px] text-secondary-600">2x multiplier bonus from backer confidence in your projects.</p>
+                  </div>
                 </div>
               </div>
             </Card>

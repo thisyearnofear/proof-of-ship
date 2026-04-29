@@ -34,6 +34,9 @@ interface NetworkConfig {
 
 interface CreditProfile {
   usedAmount: string;
+  totalAmount: string;
+  baseAmount: string;
+  marketBoost: string;
   reputation: number;
 }
 
@@ -479,9 +482,20 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
         const connection = getSolanaConnection();
         const creditLine = await solanaCreditService.getDeveloperCreditLine(connection, publicKey);
         if (creditLine) {
+          const usedAmount = creditLine.usedAmount?.toString?.() ?? '0';
+          const totalAmount = creditLine.totalAmount?.toString?.() ?? '0';
+          const reputation = Number(creditLine.reputation || 0);
+          
+          // Mock calculation for Solana if service doesn't have it
+          const baseAmount = Math.min(5000, 500 + (Math.max(0, reputation - 400) * 11.25));
+          const marketBoost = Math.max(0, parseFloat(totalAmount) - baseAmount);
+
           setCreditProfile({
-            usedAmount: creditLine.usedAmount?.toString?.() ?? '0',
-            reputation: Number(creditLine.reputation || 0),
+            usedAmount,
+            totalAmount,
+            baseAmount: baseAmount.toFixed(0),
+            marketBoost: marketBoost.toFixed(0),
+            reputation,
           });
         }
       } catch (err) {
@@ -499,9 +513,19 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       const contracts = creditSvc.getContracts(numericChainId, signer);
       if (!contracts) throw new Error('Contracts not available');
       const profile = await contracts.core.creditLines(account);
+      const usedAmount = ethers.utils.formatUnits(profile.usedAmount || 0, 6);
+      const totalAmount = ethers.utils.formatUnits(profile.totalAmount || 0, 6);
+      const reputation = profile.reputation?.toNumber() || 0;
+      
+      const baseAmount = creditSvc.calculateBaseFunding(reputation);
+      const marketBoost = Math.max(0, parseFloat(totalAmount) - baseAmount);
+
       setCreditProfile({
-        usedAmount: ethers.utils.formatUnits(profile.usedAmount || 0, 6),
-        reputation: profile.reputation?.toNumber() || 0,
+        usedAmount,
+        totalAmount,
+        baseAmount: baseAmount.toString(),
+        marketBoost: marketBoost.toString(),
+        reputation,
       });
     } catch (err) {
       console.warn('Failed to load credit profile:', err);

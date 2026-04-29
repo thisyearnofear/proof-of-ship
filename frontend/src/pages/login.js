@@ -324,24 +324,16 @@ export default function LoginPage() {
                     <p className="text-sm font-bold text-green-700">This wallet is already linked to your account.</p>
                     <Link href="/profile" className="text-xs text-blue-600 underline">Manage your wallets</Link>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {anyWalletConnected && (
-                      <>
-                        <p className="text-sm text-secondary">Your wallet is connected. Sign in with one click:</p>
-                        <button onClick={handleWalletSignIn} disabled={isLinking}
-                          className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-purple-700 hover:to-blue-700 disabled:opacity-30 disabled:grayscale transition-all">
-                          {isLinking ? 'Waiting for wallet...' : 'Sign In with Wallet'}
-                        </button>
-                      </>
-                    )}
-                    {!anyWalletConnected && (
-                      <>
-                        <p className="text-sm text-secondary">Connect your wallet first, then sign in — all in one place.</p>
-                        {renderWalletButtons()}
-                      </>
-                    )}
+                ) : anyWalletConnected ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-secondary">Your wallet is connected. Sign in:</p>
+                    <button onClick={handleWalletSignIn} disabled={isLinking}
+                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-lg shadow-md hover:from-purple-700 hover:to-blue-700 disabled:opacity-30 disabled:grayscale transition-all">
+                      {isLinking ? 'Waiting for wallet...' : 'Sign In with Wallet'}
+                    </button>
                   </div>
+                ) : (
+                  <p className="text-sm text-secondary">Connect a wallet above to sign in.</p>
                 )}
               </div>
 

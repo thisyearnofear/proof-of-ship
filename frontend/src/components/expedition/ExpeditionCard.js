@@ -21,11 +21,19 @@ export default function ExpeditionCard({ project, onBack, scoutScore }) {
     <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 border-t-4 border-blue-500">
       <div className="p-5 flex-1">
         {/* AI Scout Badge */}
-        {scoutScore?.backed && (
-          <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-full px-2.5 py-1 w-fit">
-            <span>🤖</span> AI Scout: {scoutScore.score}/100 · {scoutScore.recommendation?.label}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {scoutScore?.backed && (
+            <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-full px-2.5 py-1 w-fit">
+              <span>🤖</span> AI Scout: {scoutScore.score}/100
+            </div>
+          )}
+          
+          {project.founderStaked && (
+            <div className="flex items-center gap-1.5 text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full px-2.5 py-1 w-fit animate-pulse-slow">
+              <span>💎</span> Founder Staked: ${project.founderStakedAmount}
+            </div>
+          )}
+        </div>
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>

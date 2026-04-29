@@ -54,7 +54,7 @@ export default function BackPage() {
   const tabs = [
     { id: 'discover', label: 'Discover' },
     { id: 'portfolio', label: 'My Positions' },
-    { id: 'economy', label: 'Economy' },
+    { id: 'economy', label: 'AI Agents' },
   ];
 
   return (
@@ -250,7 +250,17 @@ function DiscoverTab() {
             ) : (
               <>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Back {backingProject.name}</h3>
-                <p className="text-sm text-gray-500 mb-4">Stake USDC with a multiplier. Returns paid when milestones complete.</p>
+                {connected && wallet.account?.toLowerCase() === backingProject.developer?.toLowerCase() ? (
+                  <div className="flex items-center gap-2 mb-4 p-2 bg-green-50 border border-green-100 rounded-lg">
+                    <span className="text-lg">💎</span>
+                    <div>
+                      <p className="text-xs font-bold text-green-800 uppercase">Self-Staking Mode</p>
+                      <p className="text-[10px] text-green-600 italic">Your stake provides a reputation boost + 2x credit limit boost.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 mb-4">Stake USDC with a multiplier. Returns paid when the builder wins prizes.</p>
+                )}
 
                 <div className="space-y-4">
                   <div>
@@ -450,7 +460,7 @@ function PortfolioTab({ setTab }) {
         </Card>
         <Card className="p-5">
           <RocketLaunchIcon className="w-5 h-5 text-purple-600 mb-1" />
-          <p className="text-xs text-gray-500 uppercase">Active Bets</p>
+          <p className="text-xs text-gray-500 uppercase">Active Stakes</p>
           <p className="text-xl font-bold">{backedDetails.length}</p>
         </Card>
       </div>

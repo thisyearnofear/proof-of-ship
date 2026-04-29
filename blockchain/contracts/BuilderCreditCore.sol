@@ -559,7 +559,18 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         // Track project for this backer
         backerProjects[msg.sender].push(projectId);
 
-        // Also boost the credit line of the developer
+        // Reputation Multiplier: If developer stakes on themselves, they get a small reputation boost
+        // This incentivizes "Skin in the Game" (Bootstrap Loop)
+        if (msg.sender == project.developer) {
+            CreditLine storage devCredit = creditLines[project.developer];
+            uint256 repBonus = amount / 200e6; // +1 rep for every 200 USDC self-staked
+            if (repBonus > 0) {
+                devCredit.reputation += repBonus;
+                if (devCredit.reputation > MAX_CREDIT_SCORE) devCredit.reputation = MAX_CREDIT_SCORE;
+            }
+        }
+
+        // Also boost the credit line of the developer (Market Confidence)
         CreditLine storage creditLine = creditLines[project.developer];
         creditLine.totalAmount += (amount * 2); // 2x confidence boost
         

@@ -45,6 +45,10 @@ export function useExpeditionData() {
         const totalBacked = p.totalBacked || (Math.floor(Math.random() * 5000) + 1000);
         const targetFunding = p.targetFunding || 10000;
         
+        // Product Design: Skin-in-the-Game Signal
+        // Mocking: If project has developer and some backing, 60% chance they staked on themselves
+        const founderStakedAmount = p.developer ? (Math.random() > 0.4 ? Math.floor(Math.random() * 500) + 100 : 0) : 0;
+        
         return {
           ...p,
           confidence,
@@ -53,6 +57,8 @@ export function useExpeditionData() {
           projectedROI: (activeMultiplier - 1) * 100, // percentage gain
           totalBacked,
           targetFunding,
+          founderStaked: founderStakedAmount > 0,
+          founderStakedAmount,
           category: p.sectors?.[0] || 'Infrastructure',
         };
       });

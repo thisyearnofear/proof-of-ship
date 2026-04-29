@@ -23,13 +23,13 @@ export default function AboutPage() {
     },
     {
       title: "2. Get Backed",
-      description: "Create project milestones. Backers place bets on your success, directly scaling your liquidity via our predictive credit market.",
+      description: "Backers stake USDC on your projects with reward multipliers. Their confidence directly scales your available credit line.",
       icon: CurrencyDollarIcon,
       color: "bg-green-100 text-green-600"
     },
     {
-      title: "3. Ship & Repay",
-      description: "Deliver your milestones to unlock funding. Repay from your prize winnings or revenue to grow your reputation and credit terms.",
+      title: "3. Ship & Earn",
+      description: "Deliver milestones to unlock funding. Win prizes to repay backers and grow your reputation for better credit terms.",
       icon: ArrowPathIcon,
       color: "bg-purple-100 text-purple-600"
     }
@@ -57,11 +57,11 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-3xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">
-          Empowering the World&apos;s <span className="text-primary-600">Builders</span>
+          Reputation-Backed Credit for <span className="text-primary-600">On-Chain Builders</span>
         </h1>
         <p className="text-xl text-secondary">
-          Builder Credit is the first predictive liquidity platform that turns 
-          developer reputation into collateralized funding.
+          Builder Credit is the first on-chain credit platform where AI agents 
+          analyze your work, backers stake on your success, and you ship with funded milestones.
         </p>
       </section>
 

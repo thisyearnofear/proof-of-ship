@@ -270,7 +270,7 @@ export default function LoginPage() {
             <button onClick={() => setRole('backer')}
               className="p-6 bg-surface rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-left group">
               <div className="text-2xl mb-2">{'\u{1F4B0}'}</div>
-              <h3 className="text-lg font-bold text-primary group-hover:text-purple-700">I&apos;m Backing</h3>
+              <h3 className="text-lg font-bold text-primary group-hover:text-purple-700">I&apos;m Staking</h3>
               <p className="text-sm text-secondary mt-1">Fund builders and track your portfolio.</p>
               <p className="text-xs text-gray-400 mt-3">Wallet only — no GitHub needed</p>
             </button>

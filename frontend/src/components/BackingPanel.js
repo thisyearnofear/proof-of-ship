@@ -1,6 +1,6 @@
 /**
  * Backing Panel Component
- * Allows backers to bet on projects with multipliers
+ * Allows backers to stake on projects with multipliers
  */
 
 import React, { useState, useEffect } from 'react';
@@ -145,7 +145,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
     <Card className="p-6">
       <div className="flex items-center mb-4">
         <RocketLaunchIcon className="w-6 h-6 text-indigo-600 mr-2" />
-        <h3 className="text-lg font-bold text-gray-900">Backer-Driven Liquidity</h3>
+        <h3 className="text-lg font-bold text-gray-900">Stake on This Builder</h3>
       </div>
 
       <p className="text-sm text-gray-600 mb-6">
@@ -239,7 +239,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
             Processing...
           </div>
         ) : (
-          `Back Project (${multiplier/100}x Reward)`
+          `Stake USDC (${multiplier/100}x Reward)`
         )}
       </Button>
 
@@ -251,7 +251,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
             <div className="flex justify-between items-center">
               <div className="flex items-center text-sm text-gray-500">
                 <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500" />
-                Market Confidence
+                Backer Confidence
               </div>
               <div className="text-sm font-bold text-gray-900">
                 ${parseFloat(totalBacking || 0).toFixed(2)} USDC

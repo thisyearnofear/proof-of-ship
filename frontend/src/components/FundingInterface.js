@@ -415,7 +415,7 @@ export default function FundingInterface({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pledge Expected Prize (USDC)
+                  Expected Prize Pool (USDC)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -430,7 +430,7 @@ export default function FundingInterface({
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  Collateralize your credit with expected hackathon winnings to boost your limit.
+                  Optionally pledge expected hackathon winnings as additional collateral.
                 </p>
               </div>
 

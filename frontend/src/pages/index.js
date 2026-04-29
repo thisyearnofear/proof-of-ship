@@ -62,27 +62,27 @@ export default function LandingPage() {
   const features = [
     {
       icon: ChartBarIcon,
-      title: "Market-Backed Credit",
+      title: "Reputation-Backed Credit",
       description:
-        "Your credit limit isn't just a score—it's a market. Backer confidence directly scales your available liquidity.",
+        "Your credit limit isn't just a score—it's backed by reputation. Backer stakes directly scale your available credit line.",
     },
     {
-      icon: EyeIcon,
-      title: "Prize Collateral",
+      icon: ShieldCheckIcon,
+      title: "Reputation Collateral",
       description:
-        "Collateralize your potential hackathon winnings to get USDC upfront. We bridge the gap between building and winning.",
+        "AI agents analyze your shipping history and GitHub activity to form your credit foundation. No traditional collateral needed.",
     },
     {
       icon: BanknotesIcon,
-      title: "Simple Multiplier Betting",
+      title: "Multiplier Staking",
       description:
-        "Backers place 1.5x, 2x, or 3x bets on your project milestones. Higher stakes from the community lead to better credit terms for you.",
+        "Backers stake USDC with 1.5x, 2x, or 3x reward tiers. Higher backer confidence unlocks better credit terms for builders.",
     },
     {
       icon: RocketLaunchIcon,
-      title: "Proven Delivery",
+      title: "Ship to Unlock Credit",
       description:
-        "Ship milestones to validate backer bets and unlock the next tier of credit. A virtuous cycle of shipping and funding.",
+        "Deliver milestones to verify backer stakes and unlock the next tier of credit. A virtuous cycle of shipping and funding.",
     },
   ];
 
@@ -160,13 +160,13 @@ export default function LandingPage() {
         },
         {
           icon: BanknotesIcon,
-          title: "Place Your Bets",
-          desc: "Back builders you believe in by staking capital with 1.5x-3x reward multipliers",
+          title: "Stake on Builders",
+          desc: "Back builders you believe in by staking USDC with 1.5x–3x reward multipliers",
         },
         {
           icon: ChartBarIcon,
-          title: "Market Confidence",
-          desc: "Your backing increases the builder's credit limit through market confidence",
+          title: "Backer Confidence",
+          desc: "Your stake increases the builder's credit limit—more confidence, more credit",
         },
         {
           icon: CubeIcon,
@@ -222,24 +222,24 @@ export default function LandingPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium border border-blue-200 shadow-lg animate-fade-in-up">
-                <GlobeAltIcon className="w-4 h-4" />
-                <span>Onchain Project Portfolios</span>
+                <SparklesIcon className="w-4 h-4" />
+                <span>AI-Analyzed Builder Credit</span>
               </div>
             </div>
 
             <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-primary mb-4 sm:mb-6 leading-tight tracking-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              Predictive Credit:
+              Builder Credit:
               <br />
               <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                Backer-Funded,
+                Backers Stake,
               </span>
               <br />
-              <span className="text-secondary">Prize-Collateralized</span>
+              <span className="text-secondary">AI Analyzes</span>
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
-              The first liquidity loop where market confidence in your ability to ship 
-              directly determines your credit limit. Borrow against your future prizes.
+              Your on-chain reputation sets your credit limit. AI agents analyze per-query. 
+              Backers stake on your success to boost your liquidity. Ship milestones, unlock funding.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
@@ -248,7 +248,7 @@ export default function LandingPage() {
                 className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-primary-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
               >
                 <SparklesIconOutline className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                Create your portfolio
+                Get Your Credit Score
                 <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
               </Button>
 
@@ -425,8 +425,7 @@ export default function LandingPage() {
             Ready to Start Building?
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
-            Join builders who are securing funding, tracking progress, and
-            shipping successful projects through hackathons.
+            Join builders earning credit from their reputation. AI agents analyze, backers stake, builders ship.
           </p>
 
           <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
@@ -434,7 +433,7 @@ export default function LandingPage() {
               onClick={handleGetStarted}
               className="bg-surface text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
             >
-              ✨ Create Your Portfolio
+              ✨ Get Your Credit Score
             </Button>
 
             <Button

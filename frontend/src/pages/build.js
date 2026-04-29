@@ -325,7 +325,7 @@ export default function BuildPage() {
               <ul className="space-y-2 text-sm text-secondary">
                 <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Complete project milestones to increase reputation</li>
                 <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Get backers to stake on your projects</li>
-                <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Pledge expected prizes as collateral</li>
+                <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Win prizes to repay backers and boost your reputation</li>
                 <li className="flex items-center gap-2"><CheckCircleIcon className="w-4 h-4 text-success-500" /> Ship consistently across hackathons</li>
               </ul>
             </Card>

@@ -100,6 +100,7 @@ interface WalletContextType {
    // Builder Credit
    creditProfile: CreditProfile | null;
    repayLoan: (amount: string | number, projectPda?: PublicKey) => Promise<void>;
+   postCheckIn: (projectId: number, metadata: string) => Promise<any>;
    loadCreditProfile: () => Promise<void>;
    requestFunding: (projectData: any) => Promise<any>;
 
@@ -885,6 +886,15 @@ export const useBuilderCredit = () => {
     creditProfile: wallet.creditProfile,
     repayLoan: wallet.repayLoan,
     loadCreditProfile: wallet.loadCreditProfile,
+    postCheckIn: async (projectId: number, metadata: string) => {
+      if (wallet.activeChainFamily === 'solana') {
+        throw new Error('Check-ins not yet implemented on Solana');
+      }
+      const { creditService } = await import('@/services/creditService');
+      if (!wallet.chainId || !wallet.signer) throw new Error('Wallet not connected');
+      const numericChainId = typeof wallet.chainId === 'number' ? wallet.chainId : parseInt(wallet.chainId as string, 10);
+      return creditService.postCheckIn(numericChainId, wallet.signer, projectId, metadata);
+    },
     requestFunding: wallet.requestFunding,
     activeChainFamily: wallet.activeChainFamily,
     // Circle Wallet for contract interactions

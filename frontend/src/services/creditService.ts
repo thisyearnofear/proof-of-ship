@@ -76,6 +76,13 @@ class CreditService {
         return await tx.wait();
     }
 
+    async postCheckIn(chainId: number, signer: Signer, projectId: number, metadata: string) {
+        const contracts = this.getContracts(chainId, signer);
+        if (!contracts) throw new Error("Contracts not found");
+        const tx = await contracts.core.postCheckIn(projectId, metadata);
+        return await tx.wait();
+    }
+
     async getProjectBackingData(chainId: number, signer: Signer, projectId: string | number): Promise<ProjectBackingData> {
         const contracts = this.getContracts(chainId, signer);
         if (!contracts) throw new Error("Contracts not found");

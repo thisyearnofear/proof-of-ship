@@ -64,6 +64,11 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         bool completed;
         uint256 completedAt;
     }
+
+    struct CheckIn {
+        uint256 timestamp;
+        string metadata; // e.g., "Updated UI", "Fixed bug", or a link to a demo
+    }
     
     struct TeamMember {
         address member;
@@ -87,6 +92,7 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     // Storage
     mapping(uint256 => Project) public projects;
     mapping(uint256 => Backing[]) public projectBackings;
+    mapping(uint256 => CheckIn[]) public projectCheckIns;
     mapping(uint256 => uint256) public totalProjectBacking;
     mapping(uint256 => uint256) public projectPledgedPrize;
     mapping(uint256 => Milestone[]) public projectMilestones;
@@ -110,6 +116,12 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         address indexed backer, 
         uint256 amount, 
         uint256 multiplier
+    );
+
+    event CheckInPosted(
+        uint256 indexed projectId,
+        uint256 timestamp,
+        string metadata
     );
 
     event PrizePledged(
@@ -675,6 +687,29 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
     }
 
     /**
+     * @dev Posts a project check-in (Proof of Activity)
+     * @param projectId ID of the project
+     * @param metadata Metadata describing the check-in
+     */
+    function postCheckIn(uint256 projectId, string calldata metadata) external {
+        require(projects[projectId].developer == msg.sender, "Only developer can check-in");
+        require(projects[projectId].isActive, "Project is not active");
+        
+        projectCheckIns[projectId].push(CheckIn({
+            timestamp: block.timestamp,
+            metadata: metadata
+        }));
+
+        // Boost reputation slightly for consistent check-ins
+        creditLines[msg.sender].reputation += 1;
+        if (creditLines[msg.sender].reputation > MAX_CREDIT_SCORE) {
+            creditLines[msg.sender].reputation = MAX_CREDIT_SCORE;
+        }
+
+        emit CheckInPosted(projectId, block.timestamp, metadata);
+    }
+
+    /**
      * @dev Calculates boosted funding amount including backer confidence
      * @param creditScore Credit score of the developer
      * @param projectId ID of the project
@@ -774,6 +809,19 @@ contract BuilderCreditCore is AccessControl, ReentrancyGuard, Pausable {
         returns (Milestone[] memory) 
     {
         return projectMilestones[projectId];
+    }
+
+    /**
+     * @dev Gets all check-ins for a project
+     * @param projectId ID of the project
+     * @return Array of check-ins
+     */
+    function getProjectCheckIns(uint256 projectId) 
+        external 
+        view 
+        returns (CheckIn[] memory) 
+    {
+        return projectCheckIns[projectId];
     }
     
     /**

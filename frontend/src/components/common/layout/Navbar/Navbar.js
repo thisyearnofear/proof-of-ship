@@ -13,7 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useNanopayment, useWallet } from "@/contexts/WalletContext";
 import { Fragment } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
@@ -56,6 +56,13 @@ export default function Navbar() {
   const pathname = router.asPath;
   const { currentUser, logout } = useUser();
   const { isInitialized: nanopayReady, balance } = useNanopayment();
+  const { disconnect: disconnectEvm, disconnectSolana } = useWallet();
+
+  const handleLogout = async () => {
+    disconnectEvm();
+    disconnectSolana();
+    await logout();
+  };
 
   const githubUsername =
     currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid ||
@@ -276,7 +283,7 @@ export default function Navbar() {
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  logout();
+                                  handleLogout();
                                 }}
                                 className={classNames(
                                   active ? "bg-gray-100" : "",

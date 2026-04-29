@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
+import { useWallet } from '@/contexts/WalletContext';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { db } from '@/lib/firebase/clientApp';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -7,10 +9,10 @@ import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 
 export default function UserProfile() {
-  const { currentUser, logout, userPermissions } = useUser();
+  const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet } = useUser();
+  const { disconnect: disconnectEvm, disconnectSolana } = useWallet();
 
   const [githubUsername, setGithubUsername] = useState('');
-  const [walletAddress, setWalletAddress] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -19,10 +21,11 @@ export default function UserProfile() {
   const [ethosLoading, setEthosLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isFrame, setIsFrame] = useState(false);
+  const [unlinking, setUnlinking] = useState(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsFrame(true); // Simplified for this environment
+      setIsFrame(true);
     }
   }, []);
 
@@ -38,21 +41,6 @@ export default function UserProfile() {
           const data = snap.data();
           setGithubUsername(String(data.githubUsername || ''));
           setNotificationsEnabled(!!data.notificationsEnabled);
-          const wallet = String(data.walletAddress || '');
-          setWalletAddress(wallet);
-          
-          // Fetch Ethos score if wallet address exists
-          if (wallet && !cancelled) {
-            setEthosLoading(true);
-            try {
-              const ethosData = await ethosService.getScoresByAddress(wallet);
-              if (!cancelled) setEthosUser(ethosData);
-            } catch (e) {
-              console.error('Failed to fetch Ethos score:', e);
-            } finally {
-              if (!cancelled) setEthosLoading(false);
-            }
-          }
         }
       } catch (e) {
         if (!cancelled) setError('Failed to load profile');
@@ -64,8 +52,40 @@ export default function UserProfile() {
     return () => { cancelled = true; };
   }, [currentUser?.uid]);
 
+  // Fetch Ethos score when linked wallets change
+  useEffect(() => {
+    if (linkedWallets.length === 0) { setEthosUser(null); return; }
+    let cancelled = false;
+    const primary = linkedWallets[0];
+    setEthosLoading(true);
+    ethosService.getScoresByAddress(primary.address)
+      .then(data => { if (!cancelled) setEthosUser(data); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setEthosLoading(false); });
+    return () => { cancelled = true; };
+  }, [linkedWallets]);
+
   const handleLogout = async () => {
-    try { await logout(); } catch (error) { console.error('Failed to log out', error); }
+    try {
+      disconnectEvm();
+      disconnectSolana();
+      await logout();
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
+
+  const handleUnlink = async (address) => {
+    try {
+      setUnlinking(address);
+      setError(null);
+      await unlinkWallet(address);
+      setSuccess('Wallet unlinked');
+    } catch (e) {
+      setError('Failed to unlink wallet');
+    } finally {
+      setUnlinking(null);
+    }
   };
 
   const onSave = async (e) => {
@@ -73,16 +93,9 @@ export default function UserProfile() {
     if (!currentUser?.uid) return;
     try {
       setSaving(true); setError(null); setSuccess(null);
-      // Basic validation
       const gh = githubUsername.trim();
-      const wa = walletAddress.trim();
       if (gh && !/^([A-Za-z0-9-]{1,39})$/.test(gh)) {
         setError('Invalid GitHub username format');
-        setSaving(false);
-        return;
-      }
-      if (wa && !/^0x[a-fA-F0-9]{40}$/.test(wa)) {
-        setError('Invalid wallet address');
         setSaving(false);
         return;
       }
@@ -90,26 +103,10 @@ export default function UserProfile() {
       const userRef = doc(db, 'users', currentUser.uid);
       await setDoc(userRef, {
         githubUsername: gh || null,
-        walletAddress: wa || null,
         notificationsEnabled,
       }, { merge: true });
 
       setSuccess('Profile updated');
-      
-      // Fetch Ethos score for new wallet address
-      if (wa) {
-        setEthosLoading(true);
-        try {
-          const ethosData = await ethosService.getScoresByAddress(wa);
-          setEthosUser(ethosData);
-        } catch (e) {
-          console.error('Failed to fetch Ethos score:', e);
-        } finally {
-          setEthosLoading(false);
-        }
-      } else {
-        setEthosUser(null);
-      }
     } catch (e) {
       console.error(e);
       setError('Failed to save profile');
@@ -121,11 +118,8 @@ export default function UserProfile() {
   const handleToggleNotifications = async () => {
     try {
       if (!notificationsEnabled) {
-        // miniapp-sdk: context is a direct object with user info
         const context = sdk.context;
-        // miniapp-sdk: addMiniApp prompts user to add miniapp
-        const result = await sdk.actions.addMiniApp();
-        
+        await sdk.actions.addMiniApp();
         const userRef = doc(db, 'users', currentUser.uid);
         await setDoc(userRef, {
           notificationsEnabled: true,
@@ -135,9 +129,7 @@ export default function UserProfile() {
         setSuccess('Farcaster notifications enabled');
       } else {
         const userRef = doc(db, 'users', currentUser.uid);
-        await setDoc(userRef, {
-          notificationsEnabled: false,
-        }, { merge: true });
+        await setDoc(userRef, { notificationsEnabled: false }, { merge: true });
         setNotificationsEnabled(false);
         setSuccess('Notifications disabled');
       }
@@ -145,6 +137,11 @@ export default function UserProfile() {
       console.error('Notification toggle failed:', e);
       setError('Failed to update notification settings');
     }
+  };
+
+  const formatAddress = (addr, chainFamily) => {
+    if (chainFamily === 'solana') return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
   if (!currentUser) return null;
@@ -163,34 +160,21 @@ export default function UserProfile() {
               Portfolio: <a href={`/u/${githubUsername}`} className="text-blue-600 underline">/u/{githubUsername}</a>
             </p>
           )}
-          
-          {/* Ethos Credibility Score */}
-          {walletAddress && (
-            <div className="mt-2">
-              {ethosLoading ? (
-                <div className="text-sm text-gray-500">Loading Ethos score...</div>
-              ) : ethosUser ? (
-                <div className="flex items-center gap-2">
-                  <EthosScoreBadge 
-                    score={ethosUser.score} 
-                    ethosUser={ethosUser}
-                    size="sm"
-                  />
-                  <EthosProfileLink 
-                    address={walletAddress}
-                    username={ethosUser.username}
-                    className="text-xs"
-                  >
-                    View Details
-                  </EthosProfileLink>
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500">
-                  <EthosScoreBadge score={null} size="sm" />
-                </div>
-              )}
+
+          {ethosLoading ? (
+            <div className="text-sm text-gray-500 mt-2">Loading Ethos score...</div>
+          ) : ethosUser ? (
+            <div className="flex items-center gap-2 mt-2">
+              <EthosScoreBadge score={ethosUser.score} ethosUser={ethosUser} size="sm" />
+              <EthosProfileLink address={linkedWallets[0]?.address} username={ethosUser.username} className="text-xs">
+                View Details
+              </EthosProfileLink>
             </div>
-          )}
+          ) : linkedWallets.length > 0 ? (
+            <div className="mt-2">
+              <EthosScoreBadge score={null} size="sm" />
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -209,15 +193,40 @@ export default function UserProfile() {
           <p className="text-xs text-gray-500 mt-1">Used for your portfolio subdomain and project ownership verification.</p>
         </div>
 
+        {/* Linked Wallets */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Wallet address</label>
-          <input
-            className="mt-1 block w-full border rounded p-2 font-mono"
-            placeholder="0x..."
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-          />
-          <p className="text-xs text-gray-500 mt-1">Saved for payouts and auto-fill in approvals.</p>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Linked Wallets</label>
+          {linkedWallets.length === 0 ? (
+            <div className="text-sm text-gray-500 py-3">
+              No wallets linked.{' '}
+              <Link href="/login" className="text-blue-600 underline">Link a wallet</Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {linkedWallets.map((w) => (
+                <div key={w.address} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${w.chainFamily === 'solana' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                      {w.chainFamily === 'solana' ? 'Solana' : 'EVM'}
+                    </span>
+                    <span className="font-mono text-sm">{formatAddress(w.address, w.chainFamily)}</span>
+                    <span className="text-xs text-gray-400">Linked {new Date(w.linkedAt).toLocaleDateString()}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUnlink(w.address)}
+                    disabled={unlinking === w.address}
+                    className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                  >
+                    {unlinking === w.address ? 'Removing...' : 'Unlink'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {linkedWallets.length > 0 && (
+            <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 underline">Link another wallet</Link>
+          )}
         </div>
 
         {isFrame && (
@@ -230,8 +239,8 @@ export default function UserProfile() {
               type="button"
               onClick={handleToggleNotifications}
               className={`px-3 py-1 rounded text-xs font-medium ${
-                notificationsEnabled 
-                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                notificationsEnabled
+                  ? 'bg-green-100 text-green-800 border border-green-200'
                   : 'bg-blue-600 text-white'
               }`}
             >

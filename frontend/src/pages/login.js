@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { useWallet } from "@/contexts/WalletContext";
 import Head from "next/head";
 
 export default function LoginPage() {
-  const { currentUser, signInWithGithub, linkWallet, loading: authLoading } = useUser();
+  const { currentUser, signInWithGithub, linkWallet, linkedWallets, loading: authLoading } = useUser();
   const {
     connected: evmConnected,
     address: evmAddress,
@@ -30,6 +31,7 @@ export default function LoginPage() {
 
   const anyWalletConnected = evmConnected || solanaConnected;
   const activeWalletAddress = walletFamily === 'solana' ? solanaAddress : evmAddress;
+  const alreadyLinked = activeWalletAddress && linkedWallets.some(w => w.address.toLowerCase() === activeWalletAddress.toLowerCase());
   const isFullyAuthed = !!currentUser && anyWalletConnected && linked;
 
   useEffect(() => {
@@ -188,11 +190,16 @@ export default function LoginPage() {
             </div>
 
             {/* Step 3: Link */}
-            <div className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${isFullyAuthed ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+            <div className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${isFullyAuthed || alreadyLinked ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
               {isFullyAuthed ? (
                 <div className="space-y-2">
                   <p className="text-sm font-bold text-green-700">Identities Linked Successfully!</p>
                   <p className="text-xs text-green-600">Redirecting to dashboard...</p>
+                </div>
+              ) : alreadyLinked ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-green-700">This wallet is already linked to your account.</p>
+                  <Link href="/profile" className="text-xs text-blue-600 underline">Manage wallets in your profile</Link>
                 </div>
               ) : (
                 <div className="space-y-4">

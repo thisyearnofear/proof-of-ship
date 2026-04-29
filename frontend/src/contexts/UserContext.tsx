@@ -39,6 +39,14 @@ interface Permission {
   grantedAt: any;
 }
 
+interface LinkedWallet {
+  address: string;
+  chainFamily: 'evm' | 'solana';
+  signature: string;
+  message: string;
+  linkedAt: string;
+}
+
 interface UserProfile {
   address?: string;
   profiles?: {
@@ -74,7 +82,9 @@ interface UserContextType {
   };
   
   // Wallet Linking
+  linkedWallets: LinkedWallet[];
   linkWallet: (walletAddress: string, signature: string, message: string, chainFamily?: 'evm' | 'solana') => Promise<void>;
+  unlinkWallet: (walletAddress: string) => Promise<void>;
   
   // Profile Actions
   completeOnboarding: (profile: UserProfile, creditData: any) => Promise<void>;
@@ -119,6 +129,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [creditData, setCreditData] = useState<any | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [linkedWallets, setLinkedWallets] = useState<LinkedWallet[]>([]);
   
   // Decentralized auth instance (lazy loaded)
   const [decentralizedAuth, setDecentralizedAuth] = useState<any>(null);
@@ -205,7 +216,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await checkPendingPermissions(user);
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
-          setUserPermissions(userDoc.data().permissions || []);
+          const data = userDoc.data();
+          setUserPermissions(data.permissions || []);
+          
+          // Load linked wallets — migrate from old single-wallet format if needed
+          if (data.wallets && Array.isArray(data.wallets)) {
+            setLinkedWallets(data.wallets);
+          } else if (data.wallet?.address) {
+            // Migrate legacy single wallet to array format
+            const migrated = [data.wallet];
+            setLinkedWallets(migrated);
+            await setDoc(doc(db, 'users', user.uid), { wallets: migrated }, { merge: true });
+          } else {
+            setLinkedWallets([]);
+          }
         }
         
         // Load decentralized profile if available
@@ -218,6 +242,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setCreditData(null);
         setIsAuthenticated(false);
         setOnboardingComplete(false);
+        setLinkedWallets([]);
       }
       
       setLoading(false);
@@ -267,16 +292,32 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const linkWallet = async (walletAddress: string, signature: string, message: string, chainFamily: 'evm' | 'solana' = 'evm') => {
     if (!currentUser) throw new Error('Must be authenticated to link wallet');
     
+    const entry: LinkedWallet = {
+      address: walletAddress,
+      chainFamily,
+      signature,
+      message,
+      linkedAt: new Date().toISOString(),
+    };
+    
+    // Deduplicate: replace if same address exists, otherwise append
+    const updated = [...linkedWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase()), entry];
+    
     const userDocRef = doc(db, 'users', currentUser.uid);
-    await setDoc(userDocRef, {
-      wallet: {
-        address: walletAddress,
-        chainFamily,
-        signature,
-        message,
-        linkedAt: new Date().toISOString(),
-      }
-    }, { merge: true });
+    // Write wallets array + legacy walletAddress for backward compat with portfolio/API readers
+    await setDoc(userDocRef, { wallets: updated, walletAddress: walletAddress }, { merge: true });
+    setLinkedWallets(updated);
+  };
+  
+  const unlinkWallet = async (walletAddress: string) => {
+    if (!currentUser) throw new Error('Must be authenticated');
+    
+    const updated = linkedWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase());
+    
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    // Update wallets array + legacy walletAddress (use next available or null)
+    await setDoc(userDocRef, { wallets: updated, walletAddress: updated[0]?.address || null }, { merge: true });
+    setLinkedWallets(updated);
   };
   
   // Profile management
@@ -406,6 +447,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setCreditData(null);
     setIsAuthenticated(false);
     setOnboardingComplete(false);
+    setLinkedWallets([]);
     
     if (typeof window !== 'undefined') {
       localStorage.removeItem('pos_user_profile');
@@ -456,7 +498,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     loading,
     logout,
     signInWithGithub,
+    linkedWallets,
     linkWallet,
+    unlinkWallet,
     
     // User Permissions
     userPermissions,

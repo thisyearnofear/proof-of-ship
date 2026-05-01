@@ -1,23 +1,58 @@
 /**
  * Real Circle API Service
- * Actual implementation using Circle's APIs
+ * TypeScript implementation using Circle's SDK
  */
 
 import { Circle, CircleEnvironments } from "@circle-fin/circle-sdk";
 import { TESTNET_USDC_ADDRESSES, ARC_TESTNET_CHAIN_ID } from "../config/tokens";
 
+interface WalletConfig {
+  name?: string;
+  description?: string;
+  userId?: string;
+  metadata?: Record<string, any>;
+}
+
+interface TransactionConfig {
+  walletId: string;
+  blockchain?: string;
+  tokenId?: string;
+  amount: string;
+  destinationAddress: string;
+  feeLevel?: string;
+  metadata?: Record<string, any>;
+}
+
+interface FundingResult {
+  success: boolean;
+  walletId: string;
+  fundingAmount: number;
+  creditScore: number;
+  message: string;
+  mock?: boolean;
+}
+
+interface CircleResponse<T = any> {
+  success: boolean;
+  data: T;
+}
+
 class RealCircleService {
+  private circle: Circle | null = null;
+  private readonly environment: string;
+  private readonly apiKey: string | undefined;
+  private readonly walletSetId: string | undefined;
+  private readonly entitySecret: string | undefined;
+
   constructor() {
-    this.circle = null;
     this.environment = process.env.CIRCLE_ENVIRONMENT || "sandbox";
     this.apiKey = process.env.CIRCLE_API_KEY;
     this.walletSetId = process.env.CIRCLE_WALLET_SET_ID;
     this.entitySecret = process.env.CIRCLE_ENTITY_SECRET;
-
     this.initialize();
   }
 
-  initialize() {
+  private initialize(): void {
     if (!this.apiKey) {
       console.warn("Circle API key not configured");
       return;
@@ -28,14 +63,14 @@ class RealCircleService {
         ? CircleEnvironments.PRODUCTION
         : CircleEnvironments.SANDBOX;
 
-    this.circle = new Circle(this.apiKey, circleEnvironment);
+    this.circle = new Circle(this.apiKey, circleEnvironment as string);
   }
 
-  isConfigured() {
+  isConfigured(): boolean {
     return !!(this.circle && this.apiKey && this.walletSetId);
   }
 
-  generateIdempotencyKey(prefix = "tx") {
+  generateIdempotencyKey(prefix = "tx"): string {
     return `${prefix}-${Date.now()}-${Math.random()
       .toString(36)
       .substring(2, 15)}`;
@@ -44,7 +79,7 @@ class RealCircleService {
   /**
    * Create a new Circle wallet
    */
-  async createWallet(config = {}) {
+  async createWallet(config: WalletConfig = {}): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
@@ -52,7 +87,7 @@ class RealCircleService {
     const idempotencyKey = this.generateIdempotencyKey("wallet");
 
     try {
-      const response = await this.circle.wallets.create({
+      const response = await (this.circle as any).wallets.create({
         idempotencyKey,
         entitySecretCiphertext: this.entitySecret,
         walletSetId: this.walletSetId,
@@ -66,12 +101,8 @@ class RealCircleService {
         },
       });
 
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to create wallet:", error);
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Wallet creation failed: ${error.message}`);
     }
   }
@@ -79,22 +110,18 @@ class RealCircleService {
   /**
    * Get all wallets for the wallet set
    */
-  async getWallets(walletSetId = null) {
+  async getWallets(walletSetId: string | null = null): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
     try {
-      const response = await this.circle.wallets.list({
+      const response = await (this.circle as any).wallets.list({
         walletSetId: walletSetId || this.walletSetId,
       });
 
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to get wallets:", error);
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Get wallets failed: ${error.message}`);
     }
   }
@@ -102,20 +129,15 @@ class RealCircleService {
   /**
    * Get wallet by ID
    */
-  async getWalletById(walletId) {
+  async getWalletById(walletId: string): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
     try {
-      const response = await this.circle.wallets.get({ id: walletId });
-
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to get wallet:", error);
+      const response = await (this.circle as any).wallets.get({ id: walletId });
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Get wallet failed: ${error.message}`);
     }
   }
@@ -123,22 +145,15 @@ class RealCircleService {
   /**
    * Get wallet balances
    */
-  async getWalletBalances(walletId) {
+  async getWalletBalances(walletId: string): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
     try {
-      const response = await this.circle.wallets.getBalance({
-        id: walletId,
-      });
-
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to get wallet balances:", error);
+      const response = await (this.circle as any).wallets.getBalance({ id: walletId });
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Get wallet balances failed: ${error.message}`);
     }
   }
@@ -146,7 +161,7 @@ class RealCircleService {
   /**
    * Create a transaction (transfer)
    */
-  async createTransaction(config) {
+  async createTransaction(config: TransactionConfig): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
@@ -154,23 +169,19 @@ class RealCircleService {
     const idempotencyKey = this.generateIdempotencyKey("tx");
 
     try {
-      const response = await this.circle.transactions.create({
+      const response = await (this.circle as any).transactions.create({
         idempotencyKey,
         walletId: config.walletId,
         blockchain: config.blockchain || "ARC",
-        tokenId: config.tokenId || TESTNET_USDC_ADDRESSES[ARC_TESTNET_CHAIN_ID], // Default to Arc Testnet USDC
+        tokenId: config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID],
         amount: config.amount,
         destinationAddress: config.destinationAddress,
         feeLevel: config.feeLevel || "HIGH",
         metadata: config.metadata || {},
       });
 
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to create transaction:", error);
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Transaction creation failed: ${error.message}`);
     }
   }
@@ -178,22 +189,15 @@ class RealCircleService {
   /**
    * Get transaction status
    */
-  async getTransactionStatus(transactionId) {
+  async getTransactionStatus(transactionId: string): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
     try {
-      const response = await this.circle.transactions.get({
-        id: transactionId,
-      });
-
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to get transaction status:", error);
+      const response = await (this.circle as any).transactions.get({ id: transactionId });
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Get transaction status failed: ${error.message}`);
     }
   }
@@ -201,19 +205,15 @@ class RealCircleService {
   /**
    * Test API connection
    */
-  async ping() {
+  async ping(): Promise<CircleResponse> {
     if (!this.isConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
     try {
-      const response = await this.circle.ping.ping();
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      console.error("Failed to ping Circle API:", error);
+      const response = await (this.circle as any).ping.ping();
+      return { success: true, data: response.data };
+    } catch (error: any) {
       throw new Error(`Ping failed: ${error.message}`);
     }
   }
@@ -221,44 +221,38 @@ class RealCircleService {
   /**
    * Process developer funding
    */
-  async processDeveloperFunding(developerAddress, creditScore, metadata = {}) {
+  async processDeveloperFunding(
+    developerAddress: string,
+    creditScore: number,
+    metadata: Record<string, any> = {}
+  ): Promise<FundingResult> {
     if (!this.isConfigured()) {
       console.warn("Circle API not configured, using mock funding");
       return this.mockFunding(developerAddress, creditScore, metadata);
     }
 
     try {
-      // Calculate funding amount based on credit score
       const fundingAmount = this.calculateFundingAmount(creditScore);
 
       if (fundingAmount <= 0) {
         throw new Error("Not eligible for funding");
       }
 
-      // Create a wallet for the developer if needed
       const wallet = await this.createWallet({
         name: `Developer Wallet - ${metadata.githubUsername || "Unknown"}`,
         description: `Funding wallet for developer ${developerAddress}`,
         userId: developerAddress,
-        metadata: {
-          creditScore,
-          developerAddress,
-          ...metadata,
-        },
+        metadata: { creditScore, developerAddress, ...metadata },
       });
 
-      // For now, we'll just return the wallet creation
-      // In a real implementation, you'd fund the wallet from a treasury
       return {
         success: true,
         walletId: wallet.data.wallets[0].id,
         fundingAmount,
         creditScore,
-        message:
-          "Wallet created successfully. Funding will be processed separately.",
+        message: "Wallet created successfully. Funding will be processed separately.",
       };
-    } catch (error) {
-      console.error("Failed to process developer funding:", error);
+    } catch (error: any) {
       throw new Error(`Developer funding failed: ${error.message}`);
     }
   }
@@ -266,7 +260,11 @@ class RealCircleService {
   /**
    * Mock funding for when Circle API is not configured
    */
-  mockFunding(developerAddress, creditScore, metadata = {}) {
+  mockFunding(
+    developerAddress: string,
+    creditScore: number,
+    metadata: Record<string, any> = {}
+  ): FundingResult {
     const fundingAmount = this.calculateFundingAmount(creditScore);
 
     return {
@@ -282,7 +280,7 @@ class RealCircleService {
   /**
    * Calculate funding amount based on credit score
    */
-  calculateFundingAmount(creditScore) {
+  calculateFundingAmount(creditScore: number): number {
     if (creditScore < 400) return 0;
     if (creditScore >= 800) return 5000;
 

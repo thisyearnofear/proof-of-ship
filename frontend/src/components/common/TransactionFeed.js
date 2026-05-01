@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useNanopayment } from "@/contexts/WalletContext";
 
 const AGENT_LABELS = {
-  underwrite: { icon: "🤖", name: "AI Underwriter", color: "text-blue-600" },
-  scout: { icon: "🔍", name: "AI Scout", color: "text-teal-600" },
-  verify: { icon: "✅", name: "Verifier", color: "text-purple-600" },
-  rebalance: { icon: "🔄", name: "Rebalance", color: "text-orange-600" },
+  underwrite: { icon: "🤖", name: "AI Underwriter", snsDomain: "pos-underwriter.sol", color: "text-blue-600" },
+  scout: { icon: "🔍", name: "AI Scout", snsDomain: "pos-scout.sol", color: "text-teal-600" },
+  verify: { icon: "✅", name: "Verifier", snsDomain: "pos-verifier.sol", color: "text-purple-600" },
+  rebalance: { icon: "🔄", name: "Rebalance", snsDomain: "pos-rebalance.sol", color: "text-orange-600" },
 };
 
 function timeAgo(dateStr) {
@@ -74,9 +74,9 @@ export default function TransactionFeed({ maxItems = 8, compact = false }) {
                 >
                   {agent.name}
                 </p>
-                {!compact && tx.description && (
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate">
-                    {tx.description}
+                {!compact && agent.snsDomain && (
+                  <p className="text-[10px] text-purple-500 dark:text-purple-400 font-mono">
+                    {agent.snsDomain}
                   </p>
                 )}
               </div>

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-05-02 — SNS Identity Track Integration
+
+- Added SNS (Solana Name Service) integration for human-readable .sol domain identities
+- Created `SnsService.ts` — resolves .sol names from wallet addresses with 5-min cache
+- Created `useSnsName` React hook — lazy resolution with loading state and fallback
+- Created `SnsIdentityBadge` component — displays .sol name with purple verification icon
+- Updated `UserProfile.js` — linked Solana wallets show .sol names instead of truncated addresses
+- Updated `login.js` — connected Solana wallet displays resolved .sol name
+- Updated `UserContext.tsx` — backer wallet sign-in resolves .sol names for display names
+- Created `lib/agentIdentity.ts` — defines .sol domain identities for all 4 AI agents
+- Updated agent API responses (scout, underwrite, verify) to include `agent.snsDomain` field
+- Updated `TransactionFeed.js` — agent transactions display .sol domain identities
+- Updated snap-server Farcaster manifest with `agentIdentities` object
+- Installed `@bonfida/spl-name-service` dependency
+
 ## 2026-04-24 — AI Chat Widget + Featherless AI + Docs Update
 
 - Added floating AI Chat Assistant widget (`AIChatWidget.js`) accessible from every page

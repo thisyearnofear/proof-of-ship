@@ -72,6 +72,7 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] AI Chat Assistant (`/api/agent/chat` - 0.005 USDC, Featherless → AIsa → contextual fallback)
 - [x] Agent-to-agent x402 payment loops (our agents → AIsa Perplexity Sonar)
 - [x] Dual AI provider chain: Featherless AI (DeepSeek-V3) primary, AIsa x402 fallback
+- [x] SNS Identity integration — builders and agents display .sol domain names (pos-scout.sol, etc.)
 - [x] Frontend NanopaymentContext (`src/contexts/NanopaymentContext.tsx`)
 - [x] NanopaymentService (`src/services/nanopaymentService.ts`)
 - [x] NanopaymentWidget (`src/components/common/NanopaymentWidget.js`)

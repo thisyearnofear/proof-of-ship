@@ -333,11 +333,27 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const updated = [...existingWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase()), entry];
     
     const userDocRef = doc(db, 'users', uid);
+    // Resolve .sol name for Solana wallets
+    let displayName = existingData.displayName;
+    if (!displayName) {
+      if (chainFamily === 'solana') {
+        try {
+          const { snsService } = await import('@/services/SnsService');
+          const snsName = await snsService.resolveAddressToName(walletAddress);
+          displayName = snsName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+        } catch {
+          displayName = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+        }
+      } else {
+        displayName = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+      }
+    }
+
     await setDoc(userDocRef, {
       wallets: updated,
       walletAddress,
       userRole: 'backer',
-      displayName: existingData.displayName || `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`,
+      displayName,
     }, { merge: true });
     
     setLinkedWallets(updated);

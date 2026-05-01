@@ -28,7 +28,7 @@ if (!admin.apps.length) {
 
 export const db = admin.firestore();
 
-// Manifest route for Farcaster Snap
+// Manifest route for Farcaster Snap — includes SNS agent identities
 app.get('/.well-known/farcaster.json', (c) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proofofship.xyz';
   return c.json({
@@ -47,6 +47,14 @@ app.get('/.well-known/farcaster.json', (c) => {
       splashImageUrl: `${baseUrl}/splash.png`,
       splashBackgroundColor: "#000000",
       webhookUrl: `${baseUrl}/api/webhook`
+    },
+    // SNS identities for Proof of Ship AI agents
+    // Each agent has a .sol domain providing human-readable on-chain identity
+    agentIdentities: {
+      scout: { snsDomain: "pos-scout.sol", displayName: "Scout Agent" },
+      underwriter: { snsDomain: "pos-underwriter.sol", displayName: "Underwriter Agent" },
+      verifier: { snsDomain: "pos-verifier.sol", displayName: "Verifier Agent" },
+      rebalance: { snsDomain: "pos-rebalance.sol", displayName: "Rebalance Agent" },
     }
   });
 });

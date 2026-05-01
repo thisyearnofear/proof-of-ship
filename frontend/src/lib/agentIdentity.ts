@@ -1,0 +1,67 @@
+/**
+ * Agent Identity — SNS-based identities for Proof of Ship AI agents.
+ *
+ * Each agent (Scout, Underwriter, Verifier, Portfolio Manager) has a .sol domain
+ * identity that provides human-readable on-chain identity, satisfying the SNS
+ * Identity Track requirement for "AI agents with distinct on-chain identities."
+ *
+ * Tracks: Superteam SNS Identity Track
+ */
+
+export const AGENT_IDENTITIES = {
+  scout: {
+    domain: 'pos-scout.sol',
+    displayName: 'Scout Agent',
+    description: 'Evaluates projects and recommends micro-backings',
+    icon: '🔭',
+  },
+  underwrite: {
+    domain: 'pos-underwriter.sol',
+    displayName: 'Underwriter Agent',
+    description: 'Analyzes project health and creditworthiness',
+    icon: '🤖',
+  },
+  verify: {
+    domain: 'pos-verifier.sol',
+    displayName: 'Verifier Agent',
+    description: 'Reviews and verifies milestone PR code',
+    icon: '✅',
+  },
+  rebalance: {
+    domain: 'pos-rebalance.sol',
+    displayName: 'Rebalance Agent',
+    description: 'Manages portfolio allocation across expeditions',
+    icon: '⚖️',
+  },
+} as const;
+
+export type AgentType = keyof typeof AGENT_IDENTITIES;
+
+/**
+ * Get the identity metadata for a given agent type.
+ */
+export function getAgentIdentity(agentType: string) {
+  return AGENT_IDENTITIES[agentType as AgentType] || {
+    domain: `${agentType}.agent.sol`,
+    displayName: `${agentType} Agent`,
+    description: 'AI agent',
+    icon: '🤖',
+  };
+}
+
+/**
+ * Build a standardized agent identity block for API responses.
+ * Include this in any agent endpoint response so the frontend can
+ * display the agent's .sol identity.
+ */
+export function agentIdentityResponse(agentType: string) {
+  const identity = getAgentIdentity(agentType);
+  return {
+    agent: {
+      type: agentType,
+      snsDomain: identity.domain,
+      displayName: identity.displayName,
+      icon: identity.icon,
+    },
+  };
+}

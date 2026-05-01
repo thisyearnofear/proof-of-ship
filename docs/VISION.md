@@ -48,7 +48,7 @@ For builders winning prizes through registered hackathons.
 
 ## The Agentic Layer (cross-rail)
 
-Three AI agents price, scout, and verify across all three rails. Each charges via x402 nanopayments on Arc.
+Three AI agents price, scout, and verify across all three rails. Each charges via x402 nanopayments on Arc. Each agent has a `.sol` domain identity (e.g., `pos-scout.sol`) via Solana Name Service, providing human-readable on-chain identity that makes the system legible to users and ecosystem participants.
 
 | Agent | Rail 1 (Bags) output | Rail 2 (Credit) output | Rail 3 (Prize) output |
 |---|---|---|---|

@@ -15,6 +15,7 @@ import { withNanopayment } from "@/lib/nanopayment";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
+import { agentIdentityResponse } from "@/lib/agentIdentity";
 
 async function scoutHandler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -139,6 +140,7 @@ async function scoutHandler(req, res) {
     }
 
     const result = {
+      ...agentIdentityResponse('scout'),
       success: true,
       agentInfo: {
         name: "AI Scout",

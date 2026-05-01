@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase/clientApp';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
+import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
 
 export default function UserProfile() {
   const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet, userRole } = useUser();
@@ -227,7 +228,13 @@ export default function UserProfile() {
                     <span className={`px-2 py-0.5 text-xs font-medium rounded ${w.chainFamily === 'solana' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
                       {w.chainFamily === 'solana' ? 'Phantom' : 'MetaMask'}
                     </span>
-                    <span className="font-mono text-sm">{formatAddress(w.address, w.chainFamily)}</span>
+                    <SnsIdentityBadge
+                      address={w.address}
+                      chainFamily={w.chainFamily}
+                      showFallback={true}
+                      showLoading={true}
+                      className="text-sm"
+                    />
                   </div>
                   <button
                     type="button"

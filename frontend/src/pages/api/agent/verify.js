@@ -11,6 +11,7 @@
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
+import { agentIdentityResponse } from "@/lib/agentIdentity";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
@@ -173,6 +174,7 @@ async function handler(req, res) {
     }
 
     const result = {
+      ...agentIdentityResponse('verify'),
       success: true,
       agentInfo: {
         name: "Verifier Agent",

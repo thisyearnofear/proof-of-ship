@@ -12,6 +12,7 @@ import { computeScore, getRecommendation, computeStrategicAdvice } from "@/lib/s
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
+import { agentIdentityResponse } from "@/lib/agentIdentity";
 
 async function handler(req, res) {
   if (req.method !== "GET") {
@@ -98,6 +99,7 @@ async function handler(req, res) {
 
     // 4. Build result
     const result = {
+      ...agentIdentityResponse('underwrite'),
       success: true,
       agentInfo: {
         name: "AI Underwriter",

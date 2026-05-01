@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { useWallet } from "@/contexts/WalletContext";
 import Head from "next/head";
+import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
+import { snsService } from "@/services/SnsService";
 
 export default function LoginPage() {
   const { currentUser, signInWithGithub, signInWithWallet, linkWallet, linkedWallets, userRole } = useUser();
@@ -33,8 +35,18 @@ export default function LoginPage() {
   const [mounted, setMounted] = useState(false);
   const [evmProviders, setEvmProviders] = useState([]); // EIP-6963 discovered EVM wallets
   const [evmPickerOpen, setEvmPickerOpen] = useState(false);
+  const [connectedSnsName, setConnectedSnsName] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Resolve .sol name when a Solana wallet connects
+  useEffect(() => {
+    if (walletFamily === 'solana' && solanaAddress) {
+      snsService.resolveAddressToName(solanaAddress).then(setConnectedSnsName).catch(() => {});
+    } else {
+      setConnectedSnsName(null);
+    }
+  }, [walletFamily, solanaAddress]);
 
   // EIP-6963 multi-wallet discovery for EVM. Many users have Rabby/Coinbase/Brave/etc.
   // alongside MetaMask; relying on `window.ethereum` alone is unreliable.
@@ -305,7 +317,7 @@ export default function LoginPage() {
                     <div className="ml-3">
                       <p className="text-sm font-bold text-primary">Your Wallet</p>
                       <p className="text-xs text-secondary">
-                        {anyWalletConnected && activeWalletAddress ? `Connected: ${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}` : 'Where you receive funds'}
+                        {anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funds'}
                       </p>
                     </div>
                   </div>
@@ -385,7 +397,7 @@ export default function LoginPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-bold text-primary">Wallet</p>
-                    <p className="text-xs text-secondary">{anyWalletConnected && activeWalletAddress ? `Connected: ${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}` : 'Where you receive funding payouts.'}</p>
+                    <p className="text-xs text-secondary">{anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funding payouts.'}</p>
                   </div>
                 </div>
                 {!anyWalletConnected && renderWalletButtons()}

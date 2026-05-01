@@ -66,6 +66,7 @@ export default function AIChatWidget() {
     }
   }, [open]);
 
+  // Try QVAC local inference first, fall back to cloud API
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || loading) return;
@@ -77,54 +78,86 @@ export default function AIChatWidget() {
     setPaymentError(null);
 
     try {
-      const res = await fetch("/api/agent/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-demo-key": "demo",
-        },
-        body: JSON.stringify({
-          message: trimmed,
-          history: messagesRef.current.slice(-6),
-        }),
-      });
+      // Attempt QVAC local-first inference (project data stays on-device)
+      let reply = null;
+      let source = "cloud";
 
-      // Handle 402 Payment Required with interactive card
-      if (res.status === 402) {
-        const data = await res.json();
-        setPaymentError({
-          message: data.message || "Payment required to use AI assistant",
-          amount: data.priceUSD || 0.005,
-          demo: data.demo,
-          instructions: data.instructions,
-        });
-        
-        // Show payment error in chat
-        setMessages((prev) => [
-          ...prev,
-          { 
-            role: "assistant", 
-            content: "💳 This AI assistant requires a nanopayment to use. Each message costs ~$0.005 USDC.",
-            type: "payment_required",
+      try {
+        const { qvacService } = await import("@/services/QvacService");
+        const status = await qvacService.getStatus();
+        if (status.available) {
+          const result = await qvacService.complete({
+            prompt: trimmed,
+            systemPrompt: "You are the Proof of Ship AI assistant. Be concise and helpful.",
+          });
+          if (result.text) {
+            reply = result.text;
+            source = "local";
+          }
+        }
+      } catch {
+        // QVAC not available, fall through to cloud API
+      }
+
+      // Cloud fallback (Featherless -> AIsa -> contextual)
+      if (!reply) {
+        const res = await fetch("/api/agent/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-demo-key": "demo",
           },
-        ]);
-        setLoading(false);
-        return;
+          body: JSON.stringify({
+            message: trimmed,
+            history: messagesRef.current.slice(-6),
+          }),
+        });
+
+        // Handle 402 Payment Required with interactive card
+        if (res.status === 402) {
+          const data = await res.json();
+          setPaymentError({
+            message: data.message || "Payment required to use AI assistant",
+            amount: data.priceUSD || 0.005,
+            demo: data.demo,
+            instructions: data.instructions,
+          });
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: "💳 This AI assistant requires a nanopayment to use. Each message costs ~$0.005 USDC.",
+              type: "payment_required",
+            },
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+        if (data.success && data.reply) {
+          reply = data.reply;
+          source = "cloud";
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: data.error || "Sorry, I couldn't process that. Try again!" },
+          ]);
+          setLoading(false);
+          return;
+        }
       }
 
-      const data = await res.json();
-
-      if (data.success && data.reply) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.reply, cost: data.agentInfo?.cost },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.error || "Sorry, I couldn&apos;t process that. Try again!" },
-        ]);
-      }
+      // Display the reply with source indicator
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: reply,
+          source,
+        },
+      ]);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -275,6 +308,12 @@ export default function AIChatWidget() {
               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
               {msg.cost && (
                 <p className="text-[10px] mt-1 opacity-60">⚡ {msg.cost}</p>
+              )}
+              {msg.source === "local" && (
+                <p className="text-[10px] mt-1 opacity-60 flex items-center gap-1">
+                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  on-device (QVAC)
+                </p>
               )}
             </div>
           </div>

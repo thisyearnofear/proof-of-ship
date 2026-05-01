@@ -213,10 +213,10 @@ Focus on what the score means for their borrowing capacity and what would improv
     if (qvacModule) return qvacModule;
 
     try {
-      // Dynamic import — only works if @qvac/sdk is installed.
+      // Dynamic import with webpack ignore — only works if @qvac/sdk is installed.
       // The SDK has large native GPU binaries (~500MB) so it may not
-      // be present in all environments.
-      qvacModule = await import('@qvac/sdk');
+      // be present in all environments. Webpack ignore prevents build-time resolution.
+      qvacModule = await import(/* webpackIgnore: true */ '@qvac/sdk');
       return qvacModule;
     } catch {
       // QVAC SDK not installed — service degrades gracefully

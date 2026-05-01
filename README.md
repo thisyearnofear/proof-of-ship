@@ -7,6 +7,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 - **Explore** — Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism) with search & filtering
 - **AI Agents** — Underwriter ($0.05), Scout ($0.01), Verifier ($0.01) analyze projects via x402 micropayments
 - **SNS Identity** — Builders and AI agents display .sol domain names (pos-scout.sol, pos-underwriter.sol, etc.) via Solana Name Service integration
+- **Private Staking** — Backers can shield stake amounts from public explorers via Cloak (UTXO shielded pool on Solana)
 - **AI Chat Assistant** — Floating helper widget powered by Featherless AI (DeepSeek-V3) with AIsa fallback, collapsible/dismissable
 - **Submit Projects** — GitHub auto-populate, collapsible optional sections, localStorage draft saving
 - **Back Projects** — Nanopayment widget with live transaction feed and balance tracking

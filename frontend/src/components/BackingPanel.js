@@ -14,6 +14,7 @@ import {
   ShieldCheckIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
+import PrivatePaymentsToggle from './common/PrivatePaymentsToggle';
 
 export default function BackingPanel({ projectId, developerAddress }) {
   const wallet = useWallet();
@@ -29,6 +30,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
   const [totalBacking, setTotalBacking] = useState('0');
   const [backerCount, setBackerCount] = useState(0);
   const [maxAllowedMultiplier, setMaxAllowedMultiplier] = useState(300);
+  const [privateMode, setPrivateMode] = useState(false);
 
   const loadUserBalance = async () => {
     try {
@@ -119,10 +121,23 @@ export default function BackingPanel({ projectId, developerAddress }) {
       setError(null);
       setSuccess(null);
 
-      // Use the backProject function from useBuilderCredit (handles approval + tx)
-      const txHash = await backProjectFn(projectId, multiplier, amount);
+      if (privateMode && wallet.solanaWallet) {
+        // Cloak shielded staking — hide amounts from public ledger
+        const { cloakPaymentService } = await import('@/services/CloakPaymentService');
+        const amountLamports = BigInt(Math.round(parseFloat(amount) * 1_000_000)); // USDC has 6 decimals
+        const recipient = new (await import('@solana/web3.js')).PublicKey(developerAddress);
+        const result = await cloakPaymentService.privateStake(
+          wallet.solanaWallet,
+          amountLamports,
+          recipient,
+        );
+        setSuccess(`Private stake sent! Amount shielded via Cloak.`);
+      } else {
+        // Standard public staking
+        const txHash = await backProjectFn(projectId, multiplier, amount);
+        setSuccess(`Successfully backed project! Transaction: ${txHash.slice(0, 10)}...`);
+      }
 
-      setSuccess(`Successfully backed project! Transaction: ${txHash.slice(0, 10)}...`);
       setAmount('');
       loadUserBalance();
       // Reload project backing data after successful backing
@@ -226,6 +241,16 @@ export default function BackingPanel({ projectId, developerAddress }) {
         <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100">
           {success}
         </div>
+      )}
+
+      {/* Cloak Private Payments Toggle — only shown for Solana wallets */}
+      {wallet.solanaConnected && (
+        <PrivatePaymentsToggle
+          enabled={privateMode}
+          onChange={setPrivateMode}
+          disabled={loading}
+          className="mb-4"
+        />
       )}
 
       <Button

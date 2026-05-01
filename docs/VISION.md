@@ -22,6 +22,7 @@ For builders who don't yet have a hackathon prize pipeline or contractual milest
 For builders shipping toward concrete deliverables.
 - **Instrument:** USDC credit line collateralized by future hackathon prizes & milestone evidence.
 - **Capital source:** backers staking USDC at 1.5x / 2x / 3x multipliers.
+- **Privacy option:** Cloak shielded transfers hide stake amounts and counterparties from the public Solana ledger.
 - **Backer yield:** principal + multiplier on prize repayment.
 - **Risk:** repayment-driven; tied to milestone verification.
 - **When recommended:** projects with verifiable milestones and prize pipelines.

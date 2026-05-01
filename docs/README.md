@@ -67,6 +67,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 
 - **MetaMask SDK** — wallet connection
 - **Solana Name Service (SNS)** — .sol domain identity for builders and AI agents
+- **Cloak** — Private (shielded) USDC transfers for backer staking
 - **Circle** — USDC programmable wallets and funding
 - **LI.FI** — cross-chain transfers
 - **Firebase** — auth, Firestore, hosting

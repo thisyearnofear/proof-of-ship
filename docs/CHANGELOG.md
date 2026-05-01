@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-02 — Cloak Private Payments Integration
+
+- Added Cloak SDK integration for shielded USDC transfers on Solana
+- Created `CloakPaymentService` — deposit, withdraw, partial withdraw, batch payout, compliance scan
+- Created `PrivatePaymentsToggle` component — purple shield toggle for Solana wallets
+- Updated `BackingPanel.js` — backers can opt into shielded staking; amounts hidden from public explorers
+- Supports backer staking, builder payouts, and batch treasury disbursements
+- Viewing key support for compliance/audit without exposing transaction amounts
+
 ## 2026-05-02 — SNS Identity Track Integration
 
 - Added SNS (Solana Name Service) integration for human-readable .sol domain identities

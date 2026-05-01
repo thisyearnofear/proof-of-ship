@@ -29,6 +29,7 @@ import {
   LightBulbIcon,
   SparklesIcon as SparklesIconOutline,
   BookOpenIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 // Lazy-loaded component sections - code-split for better performance

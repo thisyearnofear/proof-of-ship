@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-02 — QVAC Local-First AI Integration + Colosseum Submission
+
+- Created `QvacService` — local-first AI inference via Tether's QVAC SDK
+- Lazy-loaded @qvac/sdk with graceful degradation when not installed
+- Local project analysis, credit score explanation, and general completion
+- Falls back to cloud providers (Featherless -> AIsa) when QVAC unavailable
+- Created Colosseum Frontier Hackathon Public Goods submission narrative
+
 ## 2026-05-02 — Cloak Private Payments Integration
 
 - Added Cloak SDK integration for shielded USDC transfers on Solana

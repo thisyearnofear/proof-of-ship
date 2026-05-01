@@ -51,6 +51,8 @@ For builders winning prizes through registered hackathons.
 
 Three AI agents price, scout, and verify across all three rails. Each charges via x402 nanopayments on Arc. Each agent has a `.sol` domain identity (e.g., `pos-scout.sol`) via Solana Name Service, providing human-readable on-chain identity that makes the system legible to users and ecosystem participants.
 
+When QVAC (Tether's local-first AI SDK) is available, agent inference runs on-device — project data never leaves the user's machine. This aligns with the platform's decentralization philosophy: no central point of failure, no third-party data exposure. When QVAC is not installed, the existing cloud provider chain (Featherless AI -> AIsa Perplexity Sonar) handles inference.
+
 | Agent | Rail 1 (Bags) output | Rail 2 (Credit) output | Rail 3 (Prize) output |
 |---|---|---|---|
 | **Underwriter** ($0.05) | Token launch params (initial buy, fee split, supply curve) | Credit line size, interest rate, collateral ratio | Prize-win probability, expected payout |

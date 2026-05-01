@@ -9,6 +9,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 - **SNS Identity** — Builders and AI agents display .sol domain names (pos-scout.sol, pos-underwriter.sol, etc.) via Solana Name Service integration
 - **Private Staking** — Backers can shield stake amounts from public explorers via Cloak (UTXO shielded pool on Solana)
 - **AI Chat Assistant** — Floating helper widget powered by Featherless AI (DeepSeek-V3) with AIsa fallback, collapsible/dismissable
+- **Local-First AI** — QVAC (Tether) on-device inference option keeps project data private; falls back to cloud providers when unavailable
 - **Submit Projects** — GitHub auto-populate, collapsible optional sections, localStorage draft saving
 - **Back Projects** — Nanopayment widget with live transaction feed and balance tracking
 - **Onboarding** — Dismissible 3-step walkthrough for first-time visitors

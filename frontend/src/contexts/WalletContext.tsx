@@ -7,11 +7,13 @@
  * - NanopaymentContext.tsx (AI agent nanopayments on Arc)
  * 
  * Provides unified wallet management for all blockchain interactions.
+ *
+ * Types: @see ./wallet/types.ts
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { MetaMaskProvider, useSDK } from '@metamask/sdk-react';
-import { useWallet as useSolanaWallet, WalletContextState } from '@solana/wallet-adapter-react';
+import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { Connection, LAMPORTS_PER_SOL, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
@@ -20,109 +22,14 @@ import { getUSDCAddress } from '../config/networks';
 import { walletService } from '../services/walletService';
 import { nanopaymentService } from '@/services/nanopaymentService';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-interface NetworkConfig {
-  chainId: string;
-  chainName: string;
-  nativeCurrency: { name: string; symbol: string; decimals: number };
-  rpcUrls: string[];
-  blockExplorerUrls: string[];
-}
-
-interface CreditProfile {
-  usedAmount: string;
-  totalAmount: string;
-  baseAmount: string;
-  marketBoost: string;
-  reputation: number;
-}
-
-interface NanopaymentTransaction {
-  id: string;
-  type: string;
-  agentName: string;
-  amount: number;
-  status: string;
-  timestamp: string;
-  txHash?: string;
-  projectName?: string;
-}
-
-interface WalletContextType {
-  // MetaMask integration
-  connect: () => Promise<void>;
-  disconnect: () => void;
-  account: string | undefined;
-  chainId: number | string | null;
-  balance: string | null;
-  networkName: string;
-  ethersProvider: providers.Web3Provider | null;
-  signer: Signer | null;
-  connected: boolean;
-  connecting: boolean;
-  loading: boolean;
-  error: string | null;
-  activeProvider: any;
-  provider: any;
-  getBalance: (showLoading?: boolean) => Promise<string | null>;
-  getTokenBalance: (tokenAddress: string, decimals?: number) => Promise<string>;
-  switchNetwork: (chainId: number) => Promise<void>;
-  addToken: (tokenAddress: string, symbol: string, decimals?: number) => Promise<void>;
-  getUSDCBalance: () => Promise<string>;
-  addUSDCToken: () => Promise<boolean>;
-  networkConfigs: Record<number, NetworkConfig>;
-  getCurrentUSDCAddress: () => string | null;
-  
-  // Circle Wallet integration
-  circleWallets: any[];
-  circleConfig: any;
-  createCircleWallet: (config?: any) => Promise<any>;
-  refreshCircleWallets: () => Promise<void>;
-  transferUSDC: (amount: number, destinationAddress: string, walletId: string, reason?: string) => Promise<any>;
-  
-  // Nanopayment integration
-  nanopaymentInitialized: boolean;
-  nanopaymentBalance: { available: string; locked: string };
-  nanopaymentAddress: string | null;
-  nanopaymentTransactions: NanopaymentTransaction[];
-  initializeNanopayment: (privateKey: string | `0x${string}`) => Promise<void>;
-  initializeNanopaymentDemo: () => void;
-  depositNanopayment: (amountUSDC: number) => Promise<any>;
-  payForAgent: (agentType: string, params?: any) => Promise<any>;
-  payForHealthScore: (projectId: string, baseUrl?: string, projectName?: string) => Promise<any>;
-  payForScout: (baseUrl?: string) => Promise<any>;
-  payForVerification: (prId: string, lines: number, baseUrl?: string) => Promise<any>;
-  payForRebalance: (baseUrl?: string) => Promise<any>;
-  
-   // Builder Credit
-   creditProfile: CreditProfile | null;
-   repayLoan: (amount: string | number, projectPda?: PublicKey) => Promise<void>;
-   postCheckIn: (projectId: number, metadata: string) => Promise<any>;
-   loadCreditProfile: () => Promise<void>;
-   requestFunding: (projectData: any) => Promise<any>;
-
-   // Solana integration (Phase 1 preparation)
-   solanaAddress: string | null;
-   solanaConnected: boolean;
-   solanaConnecting: boolean;
-   solanaBalance: string | null;
-   solanaWallet: WalletContextState | null;
-  connectSolana: () => Promise<void>;
-  disconnectSolana: () => void;
-  activeChainFamily: 'evm' | 'solana';
-  setActiveChainFamily: (family: 'evm' | 'solana') => void;
-  // EIP-6963 multi-wallet support
-  syncEip6963Account: (provider: any) => Promise<void>;
-}
+import type { WalletContextType, CreditProfile, NanopaymentTransaction, NetworkConfig } from './wallet/types';
+export type { WalletContextType, CreditProfile, NanopaymentTransaction } from './wallet/types';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-const AGENT_PRICES: Record<string, number> = {
+export const AGENT_PRICES: Record<string, number> = {
   underwrite: 0.05,
   scout: 0.01,
   verify: 0.001,

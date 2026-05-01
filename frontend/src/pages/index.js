@@ -1,23 +1,15 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
 
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
-import ScoreBar from "@/components/common/ScoreBar";
+import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import {
   ChartBarIcon,
-  CreditCardIcon,
-  GlobeAltIcon,
-  UserGroupIcon,
-  SparklesIcon,
+  SparklesIcon as SparklesIconOutline,
   ArrowRightIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  EyeIcon,
-  RocketLaunchIcon,
-  BoltIcon,
   PlusCircleIcon,
   ChatBubbleLeftRightIcon,
   FlagIcon,
@@ -26,9 +18,8 @@ import {
   BanknotesIcon,
   CubeIcon,
   MapIcon,
-  LightBulbIcon,
-  SparklesIcon as SparklesIconOutline,
-  BookOpenIcon,
+  EyeIcon,
+  RocketLaunchIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
@@ -55,10 +46,6 @@ export default function LandingPage() {
   const router = useRouter();
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState("developers");
-  const [previewUsername, setPreviewUsername] = useState('');
-  const [previewResult, setPreviewResult] = useState(null);
-  const [previewError, setPreviewError] = useState(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
 
   const features = [
     {
@@ -190,30 +177,6 @@ export default function LandingPage() {
     router.push("/explore");
   };
 
-  const handlePreviewScore = async (e) => {
-    e.preventDefault();
-    const username = previewUsername.trim();
-    if (!username) return;
-
-    setPreviewLoading(true);
-    setPreviewError(null);
-    setPreviewResult(null);
-
-    try {
-      const res = await fetch(`/api/score/preview?username=${encodeURIComponent(username)}`);
-      const data = await res.json();
-      if (!data.success) {
-        setPreviewError(data.error || 'Could not fetch score');
-        return;
-      }
-      setPreviewResult(data.data);
-    } catch (err) {
-      setPreviewError('Failed to connect. Please try again.');
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-surface-secondary wave-pattern">
       {/* Hero Section */}
@@ -223,7 +186,7 @@ export default function LandingPage() {
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium border border-blue-200 shadow-lg animate-fade-in-up">
-                <SparklesIcon className="w-4 h-4" />
+                <SparklesIconOutline className="w-4 h-4" />
                 <span>AI-Analyzed Builder Credit</span>
               </div>
             </div>
@@ -264,62 +227,10 @@ export default function LandingPage() {
             </div>
 
             {/* Score Preview */}
-            <div className="mt-8 sm:mt-10 max-w-md mx-auto px-4 sm:px-0">
-              <form onSubmit={handlePreviewScore} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter GitHub username"
-                  value={previewUsername}
-                  onChange={(e) => setPreviewUsername(e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-lg border border-default bg-surface text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                  disabled={previewLoading}
-                />
-                <Button
-                  type="submit"
-                  disabled={!previewUsername.trim() || previewLoading}
-                  className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-5 py-3 text-sm font-semibold whitespace-nowrap"
-                >
-                  {previewLoading ? '...' : '🔍 Preview'}
-                </Button>
-              </form>
-
-              {/* Score Result */}
-              {previewResult && (
-                <Card className="mt-4 p-4 text-left border border-default bg-surface/80 backdrop-blur-sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="text-xs text-secondary">Estimated Credit Score</p>
-                      <p className="text-2xl font-bold text-primary">{previewResult.estimatedScore}</p>
-                    </div>
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      previewResult.estimatedScore >= 700 ? 'bg-success-50 text-success-700' :
-                      previewResult.estimatedScore >= 550 ? 'bg-warning-50 text-warning-700' :
-                      'bg-surface-secondary text-secondary'
-                    }`}>
-                      {previewResult.tier}
-                    </span>
-                  </div>
-                  <ScoreBar score={previewResult.estimatedScore} />
-                  <div className="flex justify-between text-xs text-secondary mt-1 mb-3">
-                    <span>400</span><span>550</span><span>700</span><span>850</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-secondary">
-                    <span>📦 {previewResult.stats.publicRepos} repos</span>
-                    <span>⭐ {previewResult.stats.totalStars} stars</span>
-                  </div>
-                  <button
-                    onClick={handleGetStarted}
-                    className="mt-3 w-full text-center text-sm font-semibold text-primary hover:text-primary-600"
-                  >
-                    Connect to unlock your full credit profile →
-                  </button>
-                </Card>
-              )}
-
-              {previewError && (
-                <p className="mt-2 text-sm text-red-600">{previewError}</p>
-              )}
-            </div>
+            <ScorePreviewCard
+              className="mt-8 sm:mt-10 max-w-md mx-auto px-4 sm:px-0"
+              onGetStarted={handleGetStarted}
+            />
           </div>
         </div>
       </div>

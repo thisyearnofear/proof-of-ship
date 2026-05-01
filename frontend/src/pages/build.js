@@ -10,7 +10,6 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useBuilderCredit } from "@/contexts/WalletContext";
 import { FinancialProvider } from "@/contexts/FinancialContext";
 
-
 import FundingInterface from "@/components/FundingInterface";
 import DeveloperDashboard from "@/components/DeveloperDashboard";
 import CrossChainTransfer from "@/components/CrossChainTransfer";
@@ -18,19 +17,13 @@ import TransferHistory from "@/components/TransferHistory";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
+import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import {
   ChartBarIcon,
   CurrencyDollarIcon,
   RocketLaunchIcon,
   ShieldCheckIcon,
   ArrowTrendingUpIcon,
-  GlobeAltIcon,
-  CubeIcon,
-  StarIcon,
-  FolderIcon,
-  CalendarIcon,
-  UserGroupIcon,
-  SparklesIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
@@ -50,35 +43,9 @@ export default function BuildPage() {
   } = useWallet();
   const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = useBuilderCredit();
   const [activeTab, setActiveTab] = useState("credit");
-  const [previewUsername, setPreviewUsername] = useState('');
-  const [previewResult, setPreviewResult] = useState(null);
-  const [previewError, setPreviewError] = useState(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
 
   const isActuallyConnected = activeChainFamily === 'solana' ? solanaConnected : connected;
   const handleConnect = activeChainFamily === 'solana' ? connectSolana : connect;
-
-  const handlePreviewScore = async (e) => {
-    e.preventDefault();
-    const username = previewUsername.trim();
-    if (!username) return;
-    setPreviewLoading(true);
-    setPreviewError(null);
-    setPreviewResult(null);
-    try {
-      const res = await fetch(`/api/score/preview?username=${encodeURIComponent(username)}`);
-      const data = await res.json();
-      if (!data.success) {
-        setPreviewError(data.error || 'Could not fetch score');
-        return;
-      }
-      setPreviewResult(data.data);
-    } catch (err) {
-      setPreviewError('Failed to connect. Please try again.');
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
 
   const loading = metaMaskLoading || contractLoading;
 
@@ -131,58 +98,7 @@ export default function BuildPage() {
             <p className="text-sm text-secondary mb-4">
               Enter your GitHub username to see an estimated credit score — no login required.
             </p>
-            <form onSubmit={handlePreviewScore} className="flex gap-2">
-              <input
-                type="text"
-                placeholder="GitHub username"
-                value={previewUsername}
-                onChange={(e) => setPreviewUsername(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-lg border border-default bg-surface text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                disabled={previewLoading}
-              />
-              <Button
-                type="submit"
-                disabled={!previewUsername.trim() || previewLoading}
-                className="whitespace-nowrap"
-              >
-                {previewLoading ? '...' : 'Preview'}
-              </Button>
-            </form>
-
-            {previewResult && (
-              <Card className="mt-4 p-5 text-left">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-xs text-secondary">Estimated Credit Score</p>
-                    <p className="text-3xl font-bold text-primary">{previewResult.estimatedScore}</p>
-                  </div>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    previewResult.estimatedScore >= 700 ? 'bg-success-50 text-success-700' :
-                    previewResult.estimatedScore >= 550 ? 'bg-warning-50 text-warning-700' :
-                    'bg-surface-secondary text-secondary'
-                  }`}>
-                    {previewResult.tier}
-                  </span>
-                </div>
-                <ScoreBar score={previewResult.estimatedScore} />
-                <div className="flex justify-between text-xs text-secondary mt-1 mb-3">
-                  <span>400</span><span>550</span><span>700</span><span>850</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 text-sm text-secondary">
-                  <span className="flex items-center gap-1"><FolderIcon className="w-4 h-4" /> {previewResult.stats.publicRepos} repos</span>
-                  <span className="flex items-center gap-1"><StarIcon className="w-4 h-4" /> {previewResult.stats.totalStars} stars</span>
-                  <span className="flex items-center gap-1"><UserGroupIcon className="w-4 h-4" /> {previewResult.stats.followers} followers</span>
-                  <span className="flex items-center gap-1"><CalendarIcon className="w-4 h-4" /> {Math.floor(previewResult.stats.accountAgeDays / 365)}y on GitHub</span>
-                </div>
-                <p className="mt-4 text-xs text-secondary italic">
-                  This is an estimate based on public data. Connect your wallet to unlock your full credit profile with activity and community scores.
-                </p>
-              </Card>
-            )}
-
-            {previewError && (
-              <p className="mt-2 text-sm text-error-600">{previewError}</p>
-            )}
+            <ScorePreviewCard />
           </div>
         </div>
       </>

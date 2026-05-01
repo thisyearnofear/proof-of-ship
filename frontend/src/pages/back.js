@@ -50,7 +50,19 @@ export default function BackPage() {
             className="mb-6"
           />
 
-          {tab === "discover" ? <DiscoverTab /> : tab === "portfolio" ? <PortfolioTab setTab={setTab} /> : <EconomyTab />}
+          {tab === "discover" ? (
+            <ErrorBoundary name="DiscoverTab" errorMessage="Failed to load projects. Please try again.">
+              <DiscoverTab />
+            </ErrorBoundary>
+          ) : tab === "portfolio" ? (
+            <ErrorBoundary name="PortfolioTab" errorMessage="Failed to load positions. Please try again.">
+              <PortfolioTab setTab={setTab} />
+            </ErrorBoundary>
+          ) : (
+            <ErrorBoundary name="EconomyTab" errorMessage="Failed to load AI agents. Please try again.">
+              <EconomyTab />
+            </ErrorBoundary>
+          )}
         </div>
       </div>
     </ErrorBoundary>

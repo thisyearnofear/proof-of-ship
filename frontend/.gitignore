@@ -4,7 +4,7 @@ out/
 next-env.d.ts
 
 # Build files
-build/
+/build/
 dist/
 
 # Environment variables

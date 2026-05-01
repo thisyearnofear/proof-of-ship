@@ -75,9 +75,9 @@ lerna-debug.log*
 # ============================================
 # Build output
 # ============================================
-build/
-dist/
-out/
+/build/
+/dist/
+/out/
 .next/
 .vercel/
 public/sw.js

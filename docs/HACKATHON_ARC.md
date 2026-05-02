@@ -88,8 +88,12 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] Buyer + AIsa wallets funded on Arc Testnet (20 / 10 USDC)
 - [x] Featherless AI primary chat provider wired
 - [x] AIsa x402 agent-to-agent loop wired (OWS_MNEMONIC configured)
+- [x] Anchor program deployed to Solana devnet (`14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K`)
+- [x] 7 confirmed on-chain transactions (Treasury, Projects, Backings, Milestone, Repay)
 - [x] Cloak private (shielded) USDC transfers for backer staking via CloakPaymentService
 - [x] QVAC local-first AI inference option in chat widget (Tether SDK, graceful fallback)
+- [x] SNS Identity integration — builders and agents display .sol domain names (pos-scout.sol, etc.)
+- [x] Agent identities wired into all API responses + 6 UI components
 - [ ] 50+ real on-chain transactions on Arc testnet
 - [ ] Transaction flow demo video
 

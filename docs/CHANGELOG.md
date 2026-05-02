@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-05-02 — Solana Devnet Deployment + 7 Confirmed On-Chain Transactions
+
+- Deployed Anchor program to Solana devnet: `14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K`
+- IDL uploaded on-chain: `HGBAP7xUeuR3Nt99z8d2AhNDFGK5iN5sVdGd4W9jrdHr`
+- Created `devnet-transactions.ts` — full transaction runner: treasury init, project creation, backer staking, milestone verification, loan repayment
+- 7 confirmed transactions on Solana Explorer (devnet)
+- Fixed Cloak Keypair/wallet-adapter mismatch — BackingPanel now generates ephemeral Keypair, funds via browser wallet
+- Wired agent SNS identities into API responses (scout, underwrite, verify, chat)
+- SnsIdentityBadge added to FundingInterface, ProjectDetails, DiscoverTab, PortfolioTab, ExpeditionCard
+- Added blockchain-solana to pnpm workspace
+- Frontend uses `NEXT_PUBLIC_SOLANA_PROGRAM_ID` env var for program address
+
 ## 2026-05-02 — QVAC Local-First AI Integration + Colosseum Submission
 
 - Created `QvacService` — local-first AI inference via Tether's QVAC SDK

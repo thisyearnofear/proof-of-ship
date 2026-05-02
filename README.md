@@ -31,6 +31,13 @@ npm run dev          # frontend dev server
 npm run blockchain:test  # run contract tests
 ```
 
+## On-Chain (Solana Devnet)
+
+**Program:** `14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K` ([Explorer](https://explorer.solana.com/address/14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K?cluster=devnet))
+**IDL:** `HGBAP7xUeuR3Nt99z8d2AhNDFGK5iN5sVdGd4W9jrdHr`
+
+7 confirmed transactions on devnet — Treasury init, 2 projects created, 2 backings, milestone verification, loan repayment. Run `cd blockchain-solana && npm run tx:devnet` to reproduce.
+
 ## Environment Variables
 
 ```env

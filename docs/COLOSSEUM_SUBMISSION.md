@@ -102,6 +102,27 @@ Zero-gas nanopayments for AI agents. x402 on Arc enables per-call pricing at $0.
 
 ---
 
+## On-Chain Proof (Solana Devnet)
+
+The Anchor program is deployed and all core flows are confirmed on-chain:
+
+**Program:** [`14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K`](https://explorer.solana.com/address/14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K?cluster=devnet)
+**IDL Account:** `HGBAP7xUeuR3Nt99z8d2AhNDFGK5iN5sVdGd4W9jrdHr`
+
+| # | Action | Transaction |
+|---|--------|-------------|
+| 1 | Initialize Treasury | [`52cABYik...`](https://explorer.solana.com/tx/52cABYiksd61xwer2NRZjCeJeuQHddczoUTw4FerT3B9zSH3RQXY4fxR1CeLFzUUA32T8EUZorXQDGkN9ZREh5Qj?cluster=devnet) |
+| 2 | Create Project (2 milestones) | [`VHg3MJrL...`](https://explorer.solana.com/tx/VHg3MJrLC13PwQdkzfEmKLURgoXJuLwKy9YpFPCA9R379Vwb5SBzgUXWYZKNCJdddG9QRC3EuHhUf1KGz87z8WH?cluster=devnet) |
+| 3 | Back Project (5 USDC, 2x) | [`5NrNXSct...`](https://explorer.solana.com/tx/5NrNXSctnrzZizR1WrPVAJcXrVrnd5uEkJJT8b5UZR3gjfqvuCDBaJ7GSPJJjTPVrwj2SkVf4hHGUqMcUyjg5iLc?cluster=devnet) |
+| 4 | Verify Milestone + Pay Dev | [`DUPX3M7q...`](https://explorer.solana.com/tx/DUPX3M7q7AfZCDMJ3MDEaa3n5id4VD35AX6hheD97FbnBsPkobLSyjqwoJMSK6YriZXUnbMwxuZdNj8vWpC7f9W?cluster=devnet) |
+| 5 | Repay Loan to Treasury | [`4Bw4e8z7...`](https://explorer.solana.com/tx/4Bw4e8z7P2M9Zun854MtL1XXcJ2UDhXiZAMPyn75a4GbR7Pp2jbzniTHv6DQbDSkMwejSXNjAiWUHiav3RHpxGFv?cluster=devnet) |
+| 6 | Create Project 2 (3 milestones) | [`5d4uUk8g...`](https://explorer.solana.com/tx/5d4uUk8gKRBdnBTV9qEHPZL8DKW7fNwGmcPHexRXRL61rkZFwH7p6rptGKW9n3kDBWC5bUtgGsMPA13q9LRWkryh?cluster=devnet) |
+| 7 | Back Project 2 (3 USDC, 3x) | [`4WCdiM9N...`](https://explorer.solana.com/tx/4WCdiM9NB98pYTWWbt3YUc5dfwDVZBJ7QjRt8D4zTVvKQZNfyqVfhEgcGxHJZsXL1p9ioyZDq9Zryqc3mLiU9exF?cluster=devnet) |
+
+All transactions verifiable on Solana Explorer. Run `cd blockchain-solana && npm run tx:devnet` to reproduce.
+
+---
+
 ## Files & Links
 
 - **Live:** [proofofship.web.app](https://proofofship.web.app)

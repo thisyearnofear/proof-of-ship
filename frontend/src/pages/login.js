@@ -91,7 +91,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isFullyAuthed) {
-      const dest = redirect || (role === 'backer' ? '/credit' : '/build');
+      const dest = redirect || (role === 'backer' ? '/back' : '/build');
       const timer = setTimeout(() => router.push(dest), 1500);
       return () => clearTimeout(timer);
     }

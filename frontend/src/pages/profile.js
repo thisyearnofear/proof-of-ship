@@ -5,13 +5,15 @@ import { useUser } from '@/contexts/UserContext';
 import { useNanopayment } from '@/contexts/WalletContext';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
+import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 export default function ProfilePage() {
-  const { currentUser, loading } = useUser();
+  const { currentUser, loading, userRole } = useUser();
   const { isInitialized, balance, transactions } = useNanopayment();
   const router = useRouter();
   const [myProjects, setMyProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const isBacker = userRole === 'backer';
 
   useEffect(() => {
     if (!loading && !currentUser) {
@@ -20,7 +22,7 @@ export default function ProfilePage() {
   }, [currentUser, loading, router]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || isBacker) return;
     let cancelled = false;
     async function fetchMyProjects() {
       setLoadingProjects(true);
@@ -40,7 +42,7 @@ export default function ProfilePage() {
     }
     fetchMyProjects();
     return () => { cancelled = true; };
-  }, [currentUser]);
+  }, [currentUser, isBacker]);
 
   if (loading) {
     return (
@@ -62,7 +64,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-        Your Profile
+        {isBacker ? 'Your Portfolio' : 'Your Profile'}
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -70,49 +72,83 @@ export default function ProfilePage() {
         <div className="lg:col-span-2 space-y-6">
           <UserProfile />
 
-          {/* My Projects */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                📦 My Projects
-              </h2>
-              <Link href="/build" className="text-xs text-teal-600 hover:text-teal-700 font-medium">
-                + New Project
-              </Link>
-            </div>
-            {loadingProjects ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : myProjects.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">You haven&apos;t submitted any projects yet.</p>
-                <Link href="/build" className="inline-block px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700">
-                  Submit Your First Project
+          {/* My Projects - Builders only */}
+          {!isBacker && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  📦 My Projects
+                </h2>
+                <Link href="/build" className="text-xs text-teal-600 hover:text-teal-700 font-medium">
+                  + New Project
                 </Link>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {myProjects.map((p) => (
-                  <Link key={p.id} href={`/projects/${p.ecosystem}/${p.slug || p.id}`} className="block p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{p.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{p.ecosystem} · {p.category}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        {p.status || 'pending'}
-                      </span>
-                    </div>
+              {loadingProjects ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+              ) : myProjects.length === 0 ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">You haven&apos;t submitted any projects yet.</p>
+                  <Link href="/build" className="inline-block px-4 py-2 bg-teal-600 text-white text-sm rounded-lg hover:bg-teal-700">
+                    Submit Your First Project
                   </Link>
-                ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {myProjects.map((p) => (
+                    <Link key={p.id} href={`/projects/${p.ecosystem}/${p.slug || p.id}`} className="block p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{p.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{p.ecosystem} · {p.category}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                          {p.status || 'pending'}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Backer Quick Actions */}
+          {isBacker && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                📊 Quick Actions
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Link href="/explore" className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">Explore Builders</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Find projects to back</p>
+                  </div>
+                </Link>
+                <Link href="/back?tab=economy" className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors">
+                  <ChartBarIcon className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">AI Analysis</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Evaluate projects with AI</p>
+                  </div>
+                </Link>
+                <Link href="/back?tab=discover" className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-teal-300 dark:hover:border-teal-700 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-colors">
+                  <BanknotesIcon className="w-5 h-5 text-teal-600 dark:text-teal-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">Stake & Earn</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Back builders with USDC</p>
+                  </div>
+                </Link>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Nanopayment Stats */}
           {isInitialized && (
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
               <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                ⚡ Nanopayment Activity
+                ⚡ AI Agent Activity
               </h2>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
@@ -128,7 +164,7 @@ export default function ProfilePage() {
                     {transactions.length}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Total Queries
+                    {isBacker ? 'Projects Analyzed' : 'Total Queries'}
                   </p>
                 </div>
                 <div className="text-center">

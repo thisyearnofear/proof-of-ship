@@ -2,10 +2,12 @@
  * Build Page — unified Credit Profile + Dashboard for builders
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { useWallet } from "@/contexts/WalletContext";
 import { useBuilderCredit } from "@/contexts/WalletContext";
+import { useUser } from "@/contexts/UserContext";
+import { useRouter } from "next/router";
 import { FinancialProvider } from "@/contexts/FinancialContext";
 
 import DeveloperDashboard from "@/components/DeveloperDashboard";
@@ -22,6 +24,20 @@ import TabBar from "@/components/common/TabBar";
 import CreditTab from "@/components/build/CreditTab";
 
 export default function BuildPage() {
+  const { userRole } = useUser();
+  const router = useRouter();
+
+  // Backers should be on /back, not /build
+  useEffect(() => {
+    if (userRole === 'backer') {
+      router.replace('/back');
+    }
+  }, [userRole, router]);
+
+  if (userRole === 'backer') {
+    return null; // Redirecting
+  }
+
   const { 
     connected, 
     connect, 

@@ -29,6 +29,7 @@ const navigation = [
     href: "/build", 
     icon: CreditCardIcon,
     auth: true,
+    builderOnly: true,
   },
   { 
     name: "Back", 
@@ -105,7 +106,11 @@ export default function Navbar() {
                   <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
                     {navigation
                       .filter(
-                        (item) => !item.auth || (item.auth && currentUser)
+                        (item) => {
+                          if (item.auth && !currentUser) return false;
+                          if (item.builderOnly && userRole === 'backer') return false;
+                          return true;
+                        }
                       )
                       .map((item) => (
                         <Link
@@ -389,7 +394,11 @@ export default function Navbar() {
                 <div className="space-y-1 px-2 py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
                   {navigation
                     .filter(
-                      (item) => !item.auth || (item.auth && currentUser)
+                      (item) => {
+                        if (item.auth && !currentUser) return false;
+                        if (item.builderOnly && userRole === 'backer') return false;
+                        return true;
+                      }
                     )
                     .map((item) => (
                     <Disclosure.Button

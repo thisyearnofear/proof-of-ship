@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile --filter ./frontend
+      - name: Lint
+        run: pnpm --filter frontend run lint
+        continue-on-error: true
+      - name: Test
+        run: pnpm --filter frontend run test -- --run --reporter=verbose
+      - name: Build
+        run: pnpm --filter frontend run build
+        env:
+          NEXT_PUBLIC_DEMO_MODE: 'true'
+          NEXT_PUBLIC_SOLANA_CLUSTER: 'devnet'
+          NEXT_PUBLIC_SOLANA_PROGRAM_ID: '14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K'

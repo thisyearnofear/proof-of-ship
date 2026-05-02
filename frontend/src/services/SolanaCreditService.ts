@@ -1,10 +1,12 @@
-import { Connection, PublicKey, SystemProgram, Keypair } from '@solana/web3.js';
+import { Connection, PublicKey, SystemProgram, Keypair, Ed25519Program, SYSVAR_INSTRUCTIONS_PUBKEY } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { Program, BN } from '@coral-xyz/anchor';
 import { SOLANA_MAINNET_USDC, SOLANA_DEVNET_USDC } from '../config/tokens';
 import IDL from '../idl/blockchain_solana.json';
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { BagsSDK } from '@bagsfm/bags-sdk';
+import { getDomainKeySync } from '@bonfida/spl-name-service';
+import { snsService } from './SnsService';
 
 /**
  * Solana Credit Service
@@ -27,6 +29,8 @@ interface ProjectData {
     milestoneDescriptions: string[];
     milestoneAmounts: string[] | number[];
     verifier?: string;
+    builderSnsDomain?: string;
+    builderSnsNameAccount?: string;
     launchOnBags?: boolean;
     bagsTokenMetadata?: {
         name: string;
@@ -48,12 +52,16 @@ interface ProjectDetails {
     fundingAmount: string;
     milestonesCompleted: number;
     milestonesCount: number;
+    builderSnsDomain?: string;
+    builderSnsNameAccount?: string;
     bagsTokenAddress?: string;
 }
 
 class SolanaCreditService {
     // Program ID is injected via env in production. Fall back to the current IDL address
-    // so local/devnet reads do not crash when the env var is missing.
+    // Program ID from env var, falling back to the IDL's deployed address.
+    // IDL address is baked at build time from the deployed program — safe for devnet.
+    // For mainnet: always set NEXT_PUBLIC_SOLANA_PROGRAM_ID explicitly in env.
     private PROGRAM_ID = new PublicKey(
         process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || (IDL as any).address
     );
@@ -161,6 +169,22 @@ class SolanaCreditService {
         // For PDA owners, call with allowOwnerOffCurve=true via getVaultTokenAccount / getTreasuryTokenAccount.
         // This helper is for regular (non-PDA) owners only.
         return getAssociatedTokenAddressSync(usdcMint, owner);
+    }
+
+    private normalizeSnsDomain(domain: string): string {
+        return domain.endsWith('.sol') ? domain : `${domain}.sol`;
+    }
+
+    private buildIdentityClaimMessage(
+        developer: PublicKey,
+        snsNameAccount: PublicKey,
+        builderSnsDomain: string,
+        projectName: string,
+        githubUrl: string
+    ): Uint8Array {
+        return new TextEncoder().encode(
+            `proof-of-ship:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`
+        );
     }
 
     // ── Instructions ─────────────────────────────────────────────────
@@ -278,6 +302,32 @@ class SolanaCreditService {
             const vaultTokenAccount = this.getVaultTokenAccount(usdcMint, vaultAuthorityPda);
 
             const verifier = new PublicKey(projectData.verifier || publicKey.toBase58());
+            if (!wallet.signMessage) {
+                throw new Error('Connected Solana wallet must support message signing for SNS identity proof.');
+            }
+
+            const resolvedSnsDomain = projectData.builderSnsDomain
+                || await snsService.resolveAddressToName(publicKey.toBase58());
+
+            if (!resolvedSnsDomain) {
+                throw new Error('A registered .sol identity is required to create a Solana project. Connect a wallet that owns an SNS domain first.');
+            }
+
+            const builderSnsDomain = this.normalizeSnsDomain(resolvedSnsDomain);
+            const { pubkey: snsNameAccount } = getDomainKeySync(builderSnsDomain);
+            const identityMessage = this.buildIdentityClaimMessage(
+                publicKey,
+                snsNameAccount,
+                builderSnsDomain,
+                projectData.projectName,
+                projectData.githubUrl
+            );
+            const identitySignature = await wallet.signMessage(identityMessage);
+            const identityProofIx = Ed25519Program.createInstructionWithPublicKey({
+                publicKey: publicKey.toBytes(),
+                message: identityMessage,
+                signature: identitySignature,
+            });
 
             const tx = await program.methods.requestFunding(
                 projectData.hackathonIds.map(id => new BN(id)),
@@ -285,7 +335,9 @@ class SolanaCreditService {
                 projectData.projectName,
                 projectData.milestoneDescriptions,
                 projectData.milestoneAmounts.map(amt => new BN(amt)),
-                verifier
+                verifier,
+                builderSnsDomain,
+                Array.from(identitySignature)
             ).accounts({
                 project: projectPda,
                 creditLine: creditLinePda,
@@ -293,10 +345,12 @@ class SolanaCreditService {
                 usdcMint,
                 vaultTokenAccount,
                 developer: publicKey,
+                snsNameAccount,
+                instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
                 systemProgram: SystemProgram.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            }).rpc();
+            }).preInstructions([identityProofIx]).rpc();
 
             return {
                 success: true,
@@ -304,6 +358,8 @@ class SolanaCreditService {
                 projectPda: projectPda.toBase58(),
                 projectData: {
                     ...projectData,
+                    builderSnsDomain,
+                    builderSnsNameAccount: snsNameAccount.toBase58(),
                     bagsTokenAddress
                 }
             };
@@ -558,7 +614,11 @@ class SolanaCreditService {
                 creditScore,
                 fundingAmount: projectAccount.fundingAmount.toString(),
                 milestonesCompleted: projectAccount.milestonesCompleted,
-                milestonesCount: projectAccount.milestonesCount
+                milestonesCount: projectAccount.milestonesCount,
+                builderSnsDomain: projectAccount.builderSnsDomain || undefined,
+                builderSnsNameAccount: projectAccount.builderSnsNameAccount
+                    ? projectAccount.builderSnsNameAccount.toBase58()
+                    : undefined,
             };
         } catch (error) {
             console.error('Error fetching Solana project details:', error);

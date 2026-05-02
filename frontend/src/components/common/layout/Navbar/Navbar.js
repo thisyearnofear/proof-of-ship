@@ -7,6 +7,7 @@ import {
   CreditCardIcon,
   ChartBarIcon,
   GlobeAltIcon,
+  CalculatorIcon,
   ShieldCheckIcon,
   BoltIcon,
 } from "@heroicons/react/24/outline";

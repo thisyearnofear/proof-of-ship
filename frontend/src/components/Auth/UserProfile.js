@@ -152,7 +152,7 @@ export default function UserProfile() {
   const displayName = currentUser.displayName || (primaryWallet ? formatAddress(primaryWallet, linkedWallets[0]?.chainFamily) : 'User');
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6">
       <div className="flex items-center space-x-4 mb-6">
         {currentUser.photoURL ? (
           <img src={currentUser.photoURL} alt={displayName} className="w-16 h-16 rounded-full" />
@@ -163,22 +163,22 @@ export default function UserProfile() {
         ) : null}
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold">{displayName}</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{displayName}</h2>
             {userRole && (
-              <span className={`px-2 py-0.5 text-xs font-medium rounded ${isBacker ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+              <span className={`px-2 py-0.5 text-xs font-medium rounded ${isBacker ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'}`}>
                 {isBacker ? 'Backer' : 'Builder'}
               </span>
             )}
           </div>
-          {!isBacker && currentUser.email && <p className="text-gray-600">{currentUser.email}</p>}
+          {!isBacker && currentUser.email && <p className="text-gray-600 dark:text-gray-400">{currentUser.email}</p>}
           {githubUsername && (
-            <p className="text-sm text-gray-500">
-              Portfolio: <a href={`/u/${githubUsername}`} className="text-blue-600 underline">/u/{githubUsername}</a>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Portfolio: <a href={`/u/${githubUsername}`} className="text-blue-600 dark:text-blue-400 underline">/u/{githubUsername}</a>
             </p>
           )}
 
           {ethosLoading ? (
-            <div className="text-sm text-gray-500 mt-2">Loading Ethos score...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading Ethos score...</div>
           ) : ethosUser ? (
             <div className="flex items-center gap-2 mt-2">
               <EthosScoreBadge score={ethosUser.score} ethosUser={ethosUser} size="sm" />
@@ -195,37 +195,37 @@ export default function UserProfile() {
       </div>
 
       <form onSubmit={onSave} className="space-y-4 mb-6">
-        {error && <div className="text-sm text-red-600">{error}</div>}
-        {success && <div className="text-sm text-green-700">{success}</div>}
+        {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
+        {success && <div className="text-sm text-green-700 dark:text-green-400">{success}</div>}
 
         {!isBacker && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">GitHub username</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">GitHub username</label>
             <input
-              className="mt-1 block w-full border rounded p-2"
+              className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="e.g. thisyearnofear"
               value={githubUsername}
               onChange={(e) => setGithubUsername(e.target.value)}
             />
-            <p className="text-xs text-gray-500 mt-1">Used for your portfolio subdomain and project ownership verification.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Used for your portfolio subdomain and project ownership verification.</p>
           </div>
         )}
 
         {/* Verified Wallets */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Verified Wallets</label>
-          <p className="text-xs text-gray-400 mb-2">These were verified during sign-in. Used for payouts and identity.</p>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Verified Wallets</label>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">These were verified during sign-in. Used for payouts and identity.</p>
           {linkedWallets.length === 0 ? (
-            <div className="text-sm text-gray-500 py-3">
+            <div className="text-sm text-gray-500 dark:text-gray-400 py-3">
               No wallets verified yet.{' '}
-              <Link href="/login" className="text-blue-600 underline">Connect a wallet</Link>
+              <Link href="/login" className="text-blue-600 dark:text-blue-400 underline">Connect a wallet</Link>
             </div>
           ) : (
             <div className="space-y-2">
               {linkedWallets.map((w) => (
-                <div key={w.address} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+                <div key={w.address} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${w.chainFamily === 'solana' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                    <span className={`px-2 py-0.5 text-xs font-medium rounded ${w.chainFamily === 'solana' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'}`}>
                       {w.chainFamily === 'solana' ? 'Phantom' : 'MetaMask'}
                     </span>
                     <SnsIdentityBadge
@@ -240,7 +240,7 @@ export default function UserProfile() {
                     type="button"
                     onClick={() => handleUnlink(w.address)}
                     disabled={unlinking === w.address}
-                    className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                    className="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50"
                   >
                     {unlinking === w.address ? 'Removing...' : 'Remove'}
                   </button>
@@ -249,22 +249,22 @@ export default function UserProfile() {
             </div>
           )}
           {linkedWallets.length > 0 && (
-            <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 underline">Add another wallet</Link>
+            <Link href="/login" className="inline-block mt-2 text-sm text-blue-600 dark:text-blue-400 underline">Add another wallet</Link>
           )}
         </div>
 
         {isFrame && (
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600">
             <div>
-              <h4 className="text-sm font-medium">Farcaster Notifications</h4>
-              <p className="text-xs text-gray-500">Get notified when your ships are verified</p>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">Farcaster Notifications</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Get notified when your ships are verified</p>
             </div>
             <button
               type="button"
               onClick={handleToggleNotifications}
               className={`px-3 py-1 rounded text-xs font-medium ${
                 notificationsEnabled
-                  ? 'bg-green-100 text-green-800 border border-green-200'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800'
                   : 'bg-blue-600 text-white'
               }`}
             >
@@ -275,20 +275,20 @@ export default function UserProfile() {
 
         <div className="flex items-center gap-3">
           <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Saving...' : 'Save'}
           </button>
-          <button type="button" onClick={handleLogout} className="px-4 py-2 bg-gray-200 text-gray-800 rounded">Sign Out</button>
+          <button type="button" onClick={handleLogout} className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded">Sign Out</button>
         </div>
       </form>
 
       {Array.isArray(userPermissions) && userPermissions.length > 0 && (
         <div className="mb-2">
-          <h3 className="text-lg font-medium mb-2">Your Projects</h3>
+          <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">Your Projects</h3>
           <ul className="space-y-2">
             {userPermissions.map((permission) => (
               <li key={permission.projectSlug} className="flex items-center justify-between">
-                <span>{permission.projectName}</span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{permission.role}</span>
+                <span className="text-gray-900 dark:text-gray-100">{permission.projectName}</span>
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full">{permission.role}</span>
               </li>
             ))}
           </ul>

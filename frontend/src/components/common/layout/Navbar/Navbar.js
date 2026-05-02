@@ -49,9 +49,11 @@ function classNames(...classes) {
 export default function Navbar() {
   const router = useRouter();
   const pathname = router.asPath;
-  const { currentUser, logout } = useUser();
+  const { currentUser, logout, userRole, linkedWallets } = useUser();
   const { isInitialized: nanopayReady, balance } = useNanopayment();
-  const { disconnect: disconnectEvm, disconnectSolana } = useWallet();
+  const wallet = useWallet();
+  const { disconnect: disconnectEvm, disconnectSolana, solanaAddress, account } = wallet;
+  const githubUsername = currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid || null;
 
   const handleLogout = async () => {
     disconnectEvm();
@@ -189,14 +191,40 @@ export default function Navbar() {
                         leaveFrom="transform opacity-100 scale-100"
                         leaveTo="transform opacity-0 scale-95"
                       >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-48 sm:w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div className="px-4 py-2 border-b border-gray-100">
-                            <p className="text-sm font-medium text-gray-900">
-                              {currentUser.displayName || 'Developer'}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {currentUser.email}
-                            </p>
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-64 sm:w-72 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100 dark:border-gray-700">
+                          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                {currentUser.displayName || 'User'}
+                              </p>
+                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">
+                                {userRole === 'backer' ? 'Backer' : 'Builder'}
+                              </span>
+                            </div>
+                            
+                            {/* GitHub Identity */}
+                            {githubUsername && (
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">GitHub:</span> 
+                                <span className="truncate">{githubUsername}</span>
+                              </div>
+                            )}
+                            
+                            {/* Wallet Identity */}
+                            {solanaAddress ? (
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="w-3.5 h-3.5 flex items-center justify-center text-purple-500">{'\u{1F47B}'}</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">Solana:</span>
+                                <span className="truncate">{solanaAddress.slice(0, 4)}...{solanaAddress.slice(-4)}</span>
+                              </div>
+                            ) : account ? (
+                              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                <span className="w-3.5 h-3.5 flex items-center justify-center text-orange-500">{'\u{1F98A}'}</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">Ethereum:</span>
+                                <span className="truncate">{account.slice(0, 6)}...{account.slice(-4)}</span>
+                              </div>
+                            ) : null}
                           </div>
 
                           {githubUsername && (
@@ -205,11 +233,11 @@ export default function Navbar() {
                                 <Link
                                   href={`/u/${githubUsername}`}
                                   className={classNames(
-                                    active ? "bg-gray-100" : "",
-                                    "flex items-center px-4 py-2 text-sm text-gray-700"
+                                    active ? "bg-gray-100 dark:bg-gray-700" : "",
+                                    "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
                                   )}
                                 >
-                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400" />
+                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                                   My Portfolio
                                 </Link>
                               )}
@@ -221,11 +249,11 @@ export default function Navbar() {
                               <Link
                                 href="/build"
                                 className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "flex items-center px-4 py-2 text-sm text-gray-700"
+                                  active ? "bg-gray-100 dark:bg-gray-700" : "",
+                                  "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
                                 )}
                               >
-                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400" />
+                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                                 Credit Dashboard
                               </Link>
                             )}
@@ -235,11 +263,11 @@ export default function Navbar() {
                               <Link
                                 href="/profile"
                                 className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "flex items-center px-4 py-2 text-sm text-gray-700"
+                                  active ? "bg-gray-100 dark:bg-gray-700" : "",
+                                  "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
                                 )}
                               >
-                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400" />
+                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                                 Your Profile
                               </Link>
                             )}
@@ -249,11 +277,11 @@ export default function Navbar() {
                               <Link
                                 href="/admin/war-room"
                                 className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "flex items-center px-4 py-2 text-sm text-gray-700 font-bold text-orange-600"
+                                  active ? "bg-orange-50 dark:bg-orange-900/20" : "",
+                                  "flex items-center px-4 py-2 text-sm font-bold text-orange-600 dark:text-orange-400"
                                 )}
                               >
-                                <ShieldCheckIcon className="mr-3 h-4 w-4 text-orange-500" />
+                                <ShieldCheckIcon className="mr-3 h-4 w-4 text-orange-500 dark:text-orange-400" />
                                 Verification War Room
                               </Link>
                             )}
@@ -263,11 +291,11 @@ export default function Navbar() {
                               <Link
                                 href="/admin/payout-simulation"
                                 className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "flex items-center px-4 py-2 text-sm text-gray-700 font-semibold text-blue-600 border-t border-gray-100"
+                                  active ? "bg-blue-50 dark:bg-blue-900/20" : "",
+                                  "flex items-center px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 border-t border-gray-100 dark:border-gray-700"
                                 )}
                               >
-                                <CalculatorIcon className="mr-3 h-4 w-4 text-blue-500" />
+                                <CalculatorIcon className="mr-3 h-4 w-4 text-blue-500 dark:text-blue-400" />
                                 Payout Simulator
                               </Link>
                             )}
@@ -281,8 +309,8 @@ export default function Navbar() {
                                   handleLogout();
                                 }}
                                 className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "block px-4 py-2 text-sm text-gray-700"
+                                  active ? "bg-gray-100 dark:bg-gray-700" : "",
+                                  "block px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
                                 )}
                               >
                                 Sign out

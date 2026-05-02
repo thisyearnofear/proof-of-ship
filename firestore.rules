@@ -157,6 +157,15 @@ service cloud.firestore {
       allow read: if isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Wallet index — maps wallet addresses to Firebase UIDs.
+    // Used by signInWithWallet to look up existing accounts.
+    // Authenticated users can read any entry (to find their own wallet).
+    // Only server-side scripts should write (or authenticated users via setDoc).
+    match /wallet_index/{walletAddress} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
     // Agent cache - public read/write for hackathon demo
     // NOTE: For production, restrict write to authenticated users only
     match /agentCache/{cacheId} {

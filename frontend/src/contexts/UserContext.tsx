@@ -296,7 +296,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     // Sign in anonymously to get a Firebase session for Firestore rules
     const credential = await signInAnonymously(auth);
     const uid = credential.user.uid;
-    
+
     const entry: LinkedWallet = {
       address: walletAddress,
       chainFamily,
@@ -304,34 +304,34 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       message,
       linkedAt: new Date().toISOString(),
     };
-    
-    // Check if this wallet is already linked to an existing account
-    const existingQuery = await getDocs(
-      query(collection(db, 'users'), where('walletAddress', '==', walletAddress))
-    );
-    
+
+    // Look up existing account via wallet_index (not collection query on users)
+    const walletKey = walletAddress.toLowerCase();
+    const indexRef = doc(db, 'wallet_index', walletKey);
+    const indexDoc = await getDoc(indexRef);
+
     let existingData: any = {};
     let existingWallets: LinkedWallet[] = [];
-    
-    if (!existingQuery.empty) {
-      // Found existing account — read its data
-      const existingDoc = existingQuery.docs[0];
-      existingData = existingDoc.data();
-      existingWallets = existingData.wallets || [];
-      
+
+    if (indexDoc.exists()) {
+      const existingUid = indexDoc.data().uid;
+      const existingDocRef = doc(db, 'users', existingUid);
+      const existingUserDoc = await getDoc(existingDocRef);
+
+      if (existingUserDoc.exists()) {
+        existingData = existingUserDoc.data();
+        existingWallets = existingData.wallets || [];
+      }
+
       // If the existing doc is under a different UID, migrate it to the new anonymous UID
-      if (existingDoc.id !== uid) {
-        const oldDocRef = doc(db, 'users', existingDoc.id);
-        const oldData = (await getDoc(oldDocRef)).data() || {};
-        
-        // Write old data to new UID
-        await setDoc(doc(db, 'users', uid), { ...oldData, uid }, { merge: true });
+      if (existingUid !== uid && existingUserDoc.exists()) {
+        await setDoc(doc(db, 'users', uid), { ...existingData, uid }, { merge: true });
       }
     }
-    
+
     // Deduplicate
     const updated = [...existingWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase()), entry];
-    
+
     const userDocRef = doc(db, 'users', uid);
     // Resolve .sol name for Solana wallets
     let displayName = existingData.displayName;
@@ -355,7 +355,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       userRole: 'backer',
       displayName,
     }, { merge: true });
-    
+
+    // Write wallet_index so future logins can find this account
+    await setDoc(doc(db, 'wallet_index', walletKey), {
+      uid,
+      walletAddress,
+      chainFamily,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
     setLinkedWallets(updated);
     setUserRole('backer');
   };
@@ -382,6 +390,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const userDocRef = doc(db, 'users', currentUser.uid);
     // Write wallets array + legacy walletAddress for backward compat with portfolio/API readers
     await setDoc(userDocRef, { wallets: updated, walletAddress: walletAddress }, { merge: true });
+
+    // Write wallet_index for wallet login lookups
+    await setDoc(doc(db, 'wallet_index', walletAddress.toLowerCase()), {
+      uid: currentUser.uid,
+      walletAddress,
+      chainFamily,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
     setLinkedWallets(updated);
   };
   

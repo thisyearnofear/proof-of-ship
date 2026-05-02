@@ -35,11 +35,6 @@ const navigation = [
     href: "/back", 
     icon: ChartBarIcon,
   },
-  { 
-    name: "Transactions", 
-    href: "/transactions", 
-    icon: BoltIcon,
-  },
 ];
 
 function classNames(...classes) {
@@ -54,6 +49,12 @@ export default function Navbar() {
   const wallet = useWallet();
   const { disconnect: disconnectEvm, disconnectSolana, solanaAddress, account } = wallet;
   const githubUsername = currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid || null;
+
+  const activeWallet = solanaAddress
+    ? { label: `${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`, color: 'purple' }
+    : account
+      ? { label: `${account.slice(0, 6)}...${account.slice(-4)}`, color: 'orange' }
+      : null;
 
   const handleLogout = async () => {
     disconnectEvm();
@@ -136,13 +137,13 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <div className="hidden sm:ml-4 sm:flex sm:items-center gap-2 sm:gap-4">
-                  {/* Mini balance indicator */}
-                  {nanopayReady && (
+                <div className="hidden sm:ml-4 sm:flex sm:items-center gap-2 sm:gap-3">
+                  {/* Balance indicator */}
+                  {nanopayReady && currentUser && (
                     <Link
                       href="/back"
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-700 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors text-xs"
-                      title="Nanopayment balance"
+                      title="AI agent balance"
                     >
                       <BoltIcon className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                       <span className="font-semibold text-teal-700 dark:text-teal-300">
@@ -150,201 +151,220 @@ export default function Navbar() {
                       </span>
                     </Link>
                   )}
-                  <a
-                    href="https://github.com/thisyearnofear/proof-of-ship"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-white dark:bg-gray-800 p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors min-w-touch min-h-touch flex items-center justify-center"
-                    title="View on GitHub"
-                  >
-                    <span className="sr-only">View GitHub repository</span>
-                    <GithubIcon />
-                  </a>
 
-                  {/* Profile dropdown */}
+                  <ThemeToggle />
+
                   {currentUser ? (
+                    /* ── Logged-in: avatar + name/role, dropdown with identity ── */
                     <Menu as="div" className="relative">
-                      <div>
-                        <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 border-2 border-gray-200 hover:border-blue-300 transition-colors min-w-touch min-h-touch items-center justify-center">
-                          <span className="sr-only">Open user menu</span>
-                          {currentUser.photoURL ? (
-                            <img
-                              className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
-                              src={currentUser.photoURL}
-                              alt={currentUser.displayName || "User"}
-                            />
-                          ) : (
-                            <UserCircleIcon className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 p-0.5" />
-                          )}
-                        </Menu.Button>
-                      </div>
-                      <Transition
-                        as={Fragment}
-                        enter="transition ease-out duration-200"
-                        enterFrom="transform opacity-0 scale-95"
-                        enterTo="transform opacity-100 scale-100"
-                        leave="transition ease-in duration-75"
-                        leaveFrom="transform opacity-100 scale-100"
-                        leaveTo="transform opacity-0 scale-95"
-                      >
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-64 sm:w-72 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none border border-gray-100 dark:border-gray-700">
-                          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                                {currentUser.displayName || 'User'}
-                              </p>
-                              <span className="shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">
-                                {userRole === 'backer' ? 'Backer' : 'Builder'}
-                              </span>
+                      <Menu.Button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+                        {currentUser.photoURL ? (
+                          <img className="h-7 w-7 rounded-full ring-2 ring-blue-500/30" src={currentUser.photoURL} alt="" />
+                        ) : (
+                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-blue-500/30">
+                            {userRole === 'backer' ? 'B' : 'U'}
+                          </div>
+                        )}
+                        <div className="hidden md:flex flex-col items-start text-left leading-tight">
+                          <span className="text-xs font-semibold text-gray-900 dark:text-white truncate max-w-[100px]">
+                            {currentUser.displayName || (activeWallet ? activeWallet.label : 'User')}
+                          </span>
+                          <span className={`text-[10px] font-medium ${userRole === 'backer' ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                            {userRole === 'backer' ? 'Backer' : 'Builder'}
+                          </span>
+                        </div>
+                      </Menu.Button>
+
+                      <Transition as={Fragment}
+                        enter="transition ease-out duration-200" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 focus:outline-none border border-gray-200 dark:border-gray-700 overflow-hidden">
+                          {/* Identity header */}
+                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/80 border-b border-gray-100 dark:border-gray-700">
+                            <div className="flex items-center gap-3">
+                              {currentUser.photoURL ? (
+                                <img src={currentUser.photoURL} alt="" className="w-10 h-10 rounded-full" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                                  {userRole === 'backer' ? 'B' : 'U'}
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{currentUser.displayName || 'User'}</p>
+                                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                  <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${userRole === 'backer' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'}`}>
+                                    {userRole === 'backer' ? 'Backer' : 'Builder'}
+                                  </span>
+                                  {githubUsername && <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate">gh/{githubUsername}</span>}
+                                  {activeWallet && <span className={`text-[10px] font-mono ${activeWallet.color === 'purple' ? 'text-purple-500' : 'text-orange-500'}`}>{activeWallet.label}</span>}
+                                </div>
+                              </div>
                             </div>
-                            
-                            {/* GitHub Identity */}
-                            {githubUsername && (
-                              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">GitHub:</span> 
-                                <span className="truncate">{githubUsername}</span>
-                              </div>
-                            )}
-                            
-                            {/* Wallet Identity */}
-                            {solanaAddress ? (
-                              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                <span className="w-3.5 h-3.5 flex items-center justify-center text-purple-500">{'\u{1F47B}'}</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">Solana:</span>
-                                <span className="truncate">{solanaAddress.slice(0, 4)}...{solanaAddress.slice(-4)}</span>
-                              </div>
-                            ) : account ? (
-                              <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                <span className="w-3.5 h-3.5 flex items-center justify-center text-orange-500">{'\u{1F98A}'}</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">Ethereum:</span>
-                                <span className="truncate">{account.slice(0, 6)}...{account.slice(-4)}</span>
-                              </div>
-                            ) : null}
+                            <div className="mt-2 flex gap-2 flex-wrap">
+                              {githubUsername ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  GitHub connected
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-amber-500 dark:text-amber-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                  No GitHub linked
+                                </span>
+                              )}
+                              {activeWallet ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  Wallet connected
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-amber-500 dark:text-amber-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" /></svg>
+                                  No wallet linked
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {githubUsername && (
-                            <Menu.Item>
-                              {({ active }) => (
-                                <Link
-                                  href={`/u/${githubUsername}`}
-                                  className={classNames(
-                                    active ? "bg-gray-100 dark:bg-gray-700" : "",
-                                    "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
-                                  )}
-                                >
-                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                  My Portfolio
+                          {/* Menu items */}
+                          <div className="py-1">
+                            {githubUsername && (
+                              <Menu.Item>{({ active }) => (
+                                <Link href={`/u/${githubUsername}`}
+                                  className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200")}>
+                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" /> My Portfolio
                                 </Link>
-                              )}
-                            </Menu.Item>
-                          )}
-
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/build"
-                                className={classNames(
-                                  active ? "bg-gray-100 dark:bg-gray-700" : "",
-                                  "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
-                                )}
-                              >
-                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                Credit Dashboard
-                              </Link>
+                              )}</Menu.Item>
                             )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/profile"
-                                className={classNames(
-                                  active ? "bg-gray-100 dark:bg-gray-700" : "",
-                                  "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
-                                )}
-                              >
-                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                Your Profile
+                            <Menu.Item>{({ active }) => (
+                              <Link href="/profile"
+                                className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200")}>
+                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" /> Profile &amp; Wallets
                               </Link>
-                            )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/admin/war-room"
-                                className={classNames(
-                                  active ? "bg-orange-50 dark:bg-orange-900/20" : "",
-                                  "flex items-center px-4 py-2 text-sm font-bold text-orange-600 dark:text-orange-400"
-                                )}
-                              >
-                                <ShieldCheckIcon className="mr-3 h-4 w-4 text-orange-500 dark:text-orange-400" />
-                                Verification War Room
+                            )}</Menu.Item>
+                            <Menu.Item>{({ active }) => (
+                              <Link href="/build"
+                                className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200")}>
+                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" /> Credit Dashboard
                               </Link>
+                            )}</Menu.Item>
+                            {userRole !== 'backer' && (
+                              <Menu.Item>{({ active }) => (
+                                <Link href="/admin/war-room"
+                                  className={classNames(active ? "bg-orange-50 dark:bg-orange-900/20" : "", "flex items-center px-4 py-2 text-sm text-orange-700 dark:text-orange-400 font-semibold")}>
+                                  <ShieldCheckIcon className="mr-3 h-4 w-4" /> Verification War Room
+                                </Link>
+                              )}</Menu.Item>
                             )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <Link
-                                href="/admin/payout-simulation"
-                                className={classNames(
-                                  active ? "bg-blue-50 dark:bg-blue-900/20" : "",
-                                  "flex items-center px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 border-t border-gray-100 dark:border-gray-700"
-                                )}
-                              >
-                                <CalculatorIcon className="mr-3 h-4 w-4 text-blue-500 dark:text-blue-400" />
-                                Payout Simulator
-                              </Link>
+                            {userRole !== 'backer' && (
+                              <Menu.Item>{({ active }) => (
+                                <Link href="/admin/payout-simulation"
+                                  className={classNames(active ? "bg-blue-50 dark:bg-blue-900/20" : "", "flex items-center px-4 py-2 text-sm text-blue-700 dark:text-blue-400 font-medium")}>
+                                  <CalculatorIcon className="mr-3 h-4 w-4" /> Payout Simulator
+                                </Link>
+                              )}</Menu.Item>
                             )}
-                          </Menu.Item>
-                          <Menu.Item>
-                            {({ active }) => (
-                              <a
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleLogout();
-                                }}
-                                className={classNames(
-                                  active ? "bg-gray-100 dark:bg-gray-700" : "",
-                                  "block px-4 py-2 text-sm text-gray-700 dark:text-gray-200"
-                                )}
-                              >
+                          </div>
+                          <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                            <Menu.Item>{({ active }) => (
+                              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}
+                                className={classNames(active ? "bg-red-50 dark:bg-red-900/20" : "", "flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400")}>
                                 Sign out
                               </a>
-                            )}
-                          </Menu.Item>
+                            )}</Menu.Item>
+                          </div>
                         </Menu.Items>
                       </Transition>
                     </Menu>
                   ) : (
+                    /* ── Signed-out: clear CTA buttons ── */
                     <div className="flex items-center gap-2">
-                      <Link
-                        href="/login"
-                        className="text-gray-600 hover:text-gray-900 text-xs sm:text-sm font-medium"
-                      >
+                      <Link href="/login"
+                        className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                         Sign in
                       </Link>
-                      <Link
-                        href="/build"
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
-                      >
-                        Get Funded
+                      <Link href="/login"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all min-h-touch flex items-center justify-center shadow-sm">
+                        Get Started
                       </Link>
                     </div>
                   )}
-                  <ThemeToggle />
                 </div>
 
                 <div className="flex sm:hidden items-center gap-1">
-                  {!currentUser && (
-                    <Link
-                      href="/build"
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-medium hover:from-blue-700 hover:to-purple-700 transition-all min-w-touch min-h-touch flex items-center justify-center"
-                    >
-                      Get Funded
+                  {currentUser ? (
+                    <Menu as="div" className="relative">
+                      <Menu.Button className="flex items-center">
+                        {currentUser.photoURL ? (
+                          <img className="h-7 w-7 rounded-full ring-2 ring-blue-500/30" src={currentUser.photoURL} alt="" />
+                        ) : (
+                          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-blue-500/30">
+                            {userRole === 'backer' ? 'B' : 'U'}
+                          </div>
+                        )}
+                      </Menu.Button>
+                      <Transition as={Fragment}
+                        enter="transition ease-out duration-200" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100"
+                        leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 focus:outline-none border border-gray-200 dark:border-gray-700 overflow-hidden">
+                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/80 border-b border-gray-100 dark:border-gray-700">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{currentUser.displayName || 'User'}</p>
+                            <div className="flex gap-1.5 mt-1 flex-wrap">
+                              <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${userRole === 'backer' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'}`}>
+                                {userRole === 'backer' ? 'Backer' : 'Builder'}
+                              </span>
+                              {githubUsername && <span className="text-[10px] text-gray-500 dark:text-gray-400">gh/{githubUsername}</span>}
+                              {activeWallet && <span className={`text-[10px] font-mono ${activeWallet.color === 'purple' ? 'text-purple-500' : 'text-orange-500'}`}>{activeWallet.label}</span>}
+                            </div>
+                            {/* Identity status */}
+                            <div className="mt-1.5 flex gap-2 flex-wrap">
+                              {githubUsername ? (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-green-600 dark:text-green-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  GitHub
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-500">No GitHub</span>
+                              )}
+                              {activeWallet ? (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-green-600 dark:text-green-400">
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  Wallet
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-500">No wallet</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="py-1">
+                            <Menu.Item>{({ active }) => (
+                              <Link href="/profile" className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200")}>
+                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400" /> Profile &amp; Wallets
+                              </Link>
+                            )}</Menu.Item>
+                            <Menu.Item>{({ active }) => (
+                              <Link href="/build" className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200")}>
+                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400" /> Credit Dashboard
+                              </Link>
+                            )}</Menu.Item>
+                          </div>
+                          <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                            <Menu.Item>{({ active }) => (
+                              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}
+                                className={classNames(active ? "bg-red-50 dark:bg-red-900/20" : "", "flex items-center px-4 py-2.5 text-sm text-red-600 dark:text-red-400")}>
+                                Sign out
+                              </a>
+                            )}</Menu.Item>
+                          </div>
+                        </Menu.Items>
+                      </Transition>
+                    </Menu>
+                  ) : (
+                    <Link href="/login" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-semibold min-h-touch flex items-center justify-center">
+                      Get Started
                     </Link>
                   )}
-                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-touch min-h-touch">
+                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-touch min-h-touch">
                     <span className="sr-only">Open main menu</span>
                     {open ? (
                       <XMarkIcon className="block h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />

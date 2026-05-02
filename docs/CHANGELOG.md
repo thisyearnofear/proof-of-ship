@@ -3,10 +3,12 @@
 ## 2026-05-02 — QVAC Local-First AI Integration + Colosseum Submission
 
 - Created `QvacService` — local-first AI inference via Tether's QVAC SDK
-- Lazy-loaded @qvac/sdk with graceful degradation when not installed
+- Lazy-loaded @qvac/sdk with `webpackIgnore: true` for build-time safety
 - Local project analysis, credit score explanation, and general completion
 - Falls back to cloud providers (Featherless -> AIsa) when QVAC unavailable
+- Wired QVAC into AI chat widget as first-choice provider with "on-device" badge
 - Created Colosseum Frontier Hackathon Public Goods submission narrative
+- Fixed lockfile drift from partial QVAC SDK install
 
 ## 2026-05-02 — Cloak Private Payments Integration
 

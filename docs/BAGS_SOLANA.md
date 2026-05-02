@@ -71,6 +71,9 @@ Proof of Ship supports many ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethere
 - [x] Enhance `SolanaCreditService.ts` to include an optional `BagsClient` (constructor wires it when `NEXT_PUBLIC_BAGS_API_KEY` is set).
 - [x] Update `ServiceManager.js` to register the Solana service and surface cluster in health check.
 - [x] Scaffold `launchBagsToken()`, `getClaimableFees()`, `claimFees()` on `SolanaCreditService`.
+- [x] SNS Identity integration — `.sol` domain names for builders and agents via `SnsService.ts`
+- [x] Cloak Private Payments — shielded USDC transfers via `CloakPaymentService.ts`
+- [x] QVAC Local-First AI — on-device inference via `QvacService.ts` with cloud fallback
 - [ ] Introduce `EcosystemPreferenceContext` (React context) backed by localStorage + Firebase user profile.
 - [ ] End-to-end devnet test: launch a token via the SDK and confirm signature on-chain.
 

@@ -88,6 +88,8 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] Buyer + AIsa wallets funded on Arc Testnet (20 / 10 USDC)
 - [x] Featherless AI primary chat provider wired
 - [x] AIsa x402 agent-to-agent loop wired (OWS_MNEMONIC configured)
+- [x] Cloak private (shielded) USDC transfers for backer staking via CloakPaymentService
+- [x] QVAC local-first AI inference option in chat widget (Tether SDK, graceful fallback)
 - [ ] 50+ real on-chain transactions on Arc testnet
 - [ ] Transaction flow demo video
 

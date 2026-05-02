@@ -3,6 +3,8 @@
 Decentralized platform where backers fund builders and hackathon prizes collateralize credit.
 
 > **New:** See [VISION.md](./VISION.md) for the unified capital-stack narrative (Bags Token → x402 Credit → Prize Routing) and how the agentic layer prices, scouts, and verifies across all three rails.
+>
+> **Hackathon:** See [COLOSSEUM_SUBMISSION.md](./COLOSSEUM_SUBMISSION.md) for the Frontier Hackathon Public Goods submission, including SNS Identity, Cloak Privacy, and QVAC Local-First AI track eligibility.
 
 ## How It Works
 
@@ -23,7 +25,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 │       ├── hooks/        # Custom hooks
 │       ├── lib/          # Integrations (LiFi, Dune, GitHub analytics)
 │       ├── pages/        # Next.js pages + API routes
-│       ├── services/     # Business logic (Circle, data, social)
+│       ├── services/     # Business logic (Circle, Solana credit, Cloak privacy, SNS identity, QVAC local AI)
 │       └── utils/        # Utilities
 │
 ├── blockchain/           # Hardhat workspace

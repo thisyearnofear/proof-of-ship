@@ -9,7 +9,7 @@
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getDomainKeySync, NameRegistryState, getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
+import { getDomainKeySync, NameRegistryState, getDomainKeysWithReverses, getAllDomains } from '@bonfida/spl-name-service';
 import { getSolanaConnection } from '@/contexts/wallet/constants';
 
 // Cache: address -> .sol name (avoids repeated RPC calls)
@@ -33,6 +33,8 @@ class SnsService {
 
   /**
    * Resolve a Solana address to its .sol domain name.
+   * Uses the official SNS reverse lookup API (getDomainKeysWithReverses)
+   * to find all .sol domains owned by the address, then returns the primary.
    * Returns null if no .sol name is registered for that address.
    */
   async resolveAddressToName(address: string): Promise<string | null> {
@@ -46,46 +48,14 @@ class SnsService {
 
     try {
       const pubkey = new PublicKey(address);
-      // The reverse lookup uses the .sol TLD authority to find names pointing to this address
-      // We use the Name Registry to find all accounts owned by this key
-      const filters = [
-        { dataSize: NameRegistryState.HEADER_LEN + 64 }, // reasonable size for .sol names
-        { memcmp: { offset: 32, bytes: pubkey.toBase58() } }, // owner field
-      ];
+      // Use the official SNS API: gets all .sol domains for this owner
+      // and resolves their human-readable names via reverse lookup accounts.
+      const domains = await getDomainKeysWithReverses(this.connection, pubkey);
 
-      const accounts = await this.connection.getProgramAccounts(
-        new PublicKey('namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawR9Y'), // SNS program
-        { filters }
-      );
-
-      let resolvedName: string | null = null;
-
-      for (const account of accounts) {
-        try {
-          const state = NameRegistryState.deserialize(account.account.data);
-          if (state && state.parentName) {
-            // Check if this is a .sol name (parent is the .sol TLD)
-            // SNS .sol TLD parent key — public constant, not a secret
-            const SOL_TLD = '58PwtjSDuFHuUkwardTo98CdZDBe1pc7PRsoPaSTVcX';
-            const parentKey = String(state.parentName);
-            if (parentKey === SOL_TLD) {
-              // Extract the name from the account data
-              const nameBytes = account.account.data.slice(
-                NameRegistryState.HEADER_LEN,
-                NameRegistryState.HEADER_LEN + (state.name?.length || 32)
-              );
-              const name = new TextDecoder().decode(nameBytes).replace(/\0/g, '');
-              if (name) {
-                resolvedName = `${name}.sol`;
-                break;
-              }
-            }
-          }
-        } catch {
-          // Some accounts may not deserialize correctly, skip
-          continue;
-        }
-      }
+      // Return the first resolved domain name (primary domain)
+      const resolvedName = domains.length > 0 && domains[0].domain
+        ? domains[0].domain
+        : null;
 
       nameCache.set(cacheKey, { name: resolvedName, ts: Date.now() });
       return resolvedName;

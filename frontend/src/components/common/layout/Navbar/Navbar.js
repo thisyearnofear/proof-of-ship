@@ -7,7 +7,6 @@ import {
   CreditCardIcon,
   ChartBarIcon,
   GlobeAltIcon,
-  CalculatorIcon,
   ShieldCheckIcon,
   BoltIcon,
 } from "@heroicons/react/24/outline";
@@ -23,11 +22,6 @@ const navigation = [
     name: "Explore", 
     href: "/explore", 
     icon: GlobeAltIcon,
-  },
-  { 
-    name: "Compare", 
-    href: "/compare", 
-    icon: CalculatorIcon,
   },
   { 
     name: "Build", 

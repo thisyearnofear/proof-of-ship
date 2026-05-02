@@ -6,21 +6,11 @@ import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
+import { LANDING_FEATURES, USER_JOURNEYS } from "@/config/landingContent";
 import {
-  ChartBarIcon,
-  SparklesIcon as SparklesIconOutline,
   ArrowRightIcon,
-  PlusCircleIcon,
-  ChatBubbleLeftRightIcon,
-  FlagIcon,
-  UsersIcon,
   MagnifyingGlassIcon,
-  BanknotesIcon,
-  CubeIcon,
-  MapIcon,
-  EyeIcon,
-  RocketLaunchIcon,
-  ShieldCheckIcon,
+  SparklesIcon as SparklesIconOutline,
 } from "@heroicons/react/24/outline";
 
 // Lazy-loaded component sections - code-split for better performance
@@ -47,33 +37,6 @@ export default function LandingPage() {
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState("developers");
 
-  const features = [
-    {
-      icon: ChartBarIcon,
-      title: "Reputation-Backed Credit",
-      description:
-        "Your credit limit isn't just a score—it's backed by reputation. Backer stakes directly scale your available credit line.",
-    },
-    {
-      icon: ShieldCheckIcon,
-      title: "Reputation Collateral",
-      description:
-        "AI agents analyze your shipping history and GitHub activity to form your credit foundation. No traditional collateral needed.",
-    },
-    {
-      icon: BanknotesIcon,
-      title: "Multiplier Staking",
-      description:
-        "Backers stake USDC with 1.5x, 2x, or 3x reward tiers. Higher backer confidence unlocks better credit terms for builders.",
-    },
-    {
-      icon: RocketLaunchIcon,
-      title: "Ship to Unlock Credit",
-      description:
-        "Deliver milestones to verify backer stakes and unlock the next tier of credit. A virtuous cycle of shipping and funding.",
-    },
-  ];
-
   const ecosystems = Object.values(ECOSYSTEM_CONFIGS).map((eco) => ({
     id: eco.id,
     name: `${eco.icon} ${eco.shortName}`,
@@ -84,86 +47,7 @@ export default function LandingPage() {
     icon: eco.icon,
   }));
 
-  const userJourneys = {
-    developers: {
-      title: "For Builders",
-      subtitle: "Build your portfolio, get feedback, and grow your reputation",
-      steps: [
-        {
-          icon: PlusCircleIcon,
-          title: "Showcase Your Portfolio",
-          desc: "Create your builder portfolio with subdomain routing to showcase your projects",
-        },
-        {
-          icon: ChatBubbleLeftRightIcon,
-          title: "Collect User Feedback",
-          desc: "Get valuable feedback with screen recordings to improve your projects",
-        },
-        {
-          icon: FlagIcon,
-          title: "Track Hackathons",
-          desc: "Follow hackathons, track participation, and showcase your wins",
-        },
-        {
-          icon: UsersIcon,
-          title: "Grow Your Community",
-          desc: "Connect with other builders and grow your project community",
-        },
-      ],
-    },
-    organizers: {
-      title: "For Organizers",
-      subtitle: "Track builders, manage hackathons, and recognize achievements",
-      steps: [
-        {
-          icon: EyeIcon,
-          title: "Track Builder Progress",
-          desc: "Monitor builder participation and project progress in real-time",
-        },
-        {
-          icon: MapIcon,
-          title: "Manage Hackathons",
-          desc: "Organize and track hackathon participation across your ecosystem",
-        },
-        {
-          icon: ChatBubbleLeftRightIcon,
-          title: "Collect Feedback",
-          desc: "Gather valuable feedback from builders to improve your programs",
-        },
-        {
-          icon: FlagIcon,
-          title: "Recognize Achievements",
-          desc: "Highlight successful builders and projects in your ecosystem",
-        },
-      ],
-    },
-    sponsors: {
-      title: "For Backers",
-      subtitle: "Scout talent, back builders, and earn from their success",
-      steps: [
-        {
-          icon: MagnifyingGlassIcon,
-          title: "Scout Talent",
-          desc: "Find promising builders by analyzing their GitHub history and onchain reputation",
-        },
-        {
-          icon: BanknotesIcon,
-          title: "Stake on Builders",
-          desc: "Back builders you believe in by staking USDC with 1.5x–3x reward multipliers",
-        },
-        {
-          icon: ChartBarIcon,
-          title: "Backer Confidence",
-          desc: "Your stake increases the builder's credit limit—more confidence, more credit",
-        },
-        {
-          icon: CubeIcon,
-          title: "Shared Rewards",
-          desc: "Earn a portion of the hackathon prizes when your backed builders win",
-        },
-      ],
-    },
-  };
+  const userJourneys = USER_JOURNEYS;
 
   const handleGetStarted = () => {
     if (currentUser) {
@@ -192,18 +76,16 @@ export default function LandingPage() {
             </div>
 
             <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-primary mb-4 sm:mb-6 leading-tight tracking-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              Builder Credit:
+              Ship Code,
               <br />
               <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                Backers Stake,
+                Unlock Credit
               </span>
-              <br />
-              <span className="text-secondary">AI Analyzes</span>
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
-              Your on-chain reputation sets your credit limit. AI agents analyze per-query. 
-              Backers stake on your success to boost your liquidity. Ship milestones, unlock funding.
+              On-chain reputation collateralized by hackathon prizes. Backers stake USDC,
+              AI agents analyze your projects per-query. Ship milestones, unlock funding.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
@@ -212,7 +94,7 @@ export default function LandingPage() {
                 className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-primary-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
               >
                 <SparklesIconOutline className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                Get Your Credit Score
+                {currentUser ? "Get Funded" : "Start Shipping"}
                 <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
               </Button>
 
@@ -251,7 +133,7 @@ export default function LandingPage() {
           </div>
         </div>
       }>
-        <FeaturesSection features={features} />
+        <FeaturesSection features={LANDING_FEATURES} />
       </Suspense>
 
       {/* How x402 Nanopayments Work */}
@@ -334,10 +216,10 @@ export default function LandingPage() {
       <div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-12 sm:py-16 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 text-center relative">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
-            Ready to Start Building?
+            Ready to Ship?
           </h2>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
-            Join builders earning credit from their reputation. AI agents analyze, backers stake, builders ship.
+            Join builders earning credit from their reputation. Backers stake, AI agents analyze, builders ship.
           </p>
 
           <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
@@ -345,7 +227,7 @@ export default function LandingPage() {
               onClick={handleGetStarted}
               className="bg-surface text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
             >
-              ✨ Get Your Credit Score
+              ✨ Start Shipping
             </Button>
 
             <Button

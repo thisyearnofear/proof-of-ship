@@ -10,9 +10,9 @@ import React from "react";
  */
 export function UserJourney({ userJourneys = {}, activeTab = "developers", onTabChange = () => {} }) {
   const tabs = [
-    { key: "developers", label: "Developers" },
+    { key: "developers", label: "Builders" },
+    { key: "backers", label: "Backers" },
     { key: "organizers", label: "Organizers" },
-    { key: "sponsors", label: "Sponsors" },
   ];
 
   const currentJourney = userJourneys[activeTab] || userJourneys.developers || {};

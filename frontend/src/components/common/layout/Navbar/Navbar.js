@@ -61,10 +61,6 @@ export default function Navbar() {
     await logout();
   };
 
-  const githubUsername =
-    currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid ||
-    null;
-
   const GithubIcon = () => {
     return (
       <svg

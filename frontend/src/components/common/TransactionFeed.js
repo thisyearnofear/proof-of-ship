@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useNanopayment } from "@/contexts/WalletContext";
 
 const AGENT_LABELS = {
-  underwrite: { icon: "🤖", name: "AI Underwriter", snsDomain: "pos-underwriter.sol", color: "text-blue-600" },
-  scout: { icon: "🔍", name: "AI Scout", snsDomain: "pos-scout.sol", color: "text-teal-600" },
-  verify: { icon: "✅", name: "Verifier", snsDomain: "pos-verifier.sol", color: "text-purple-600" },
-  rebalance: { icon: "🔄", name: "Rebalance", snsDomain: "pos-rebalance.sol", color: "text-orange-600" },
+  underwrite: { icon: "🤖", name: "pos-underwriter.sol", humanName: "Underwriter Agent", snsDomain: "pos-underwriter.sol", color: "text-blue-600" },
+  scout: { icon: "🔍", name: "pos-scout.sol", humanName: "Scout Agent", snsDomain: "pos-scout.sol", color: "text-teal-600" },
+  verify: { icon: "✅", name: "pos-verifier.sol", humanName: "Verifier Agent", snsDomain: "pos-verifier.sol", color: "text-purple-600" },
+  rebalance: { icon: "🔄", name: "pos-rebalance.sol", humanName: "Rebalance Agent", snsDomain: "pos-rebalance.sol", color: "text-orange-600" },
 };
 
 function timeAgo(dateStr) {
@@ -74,9 +74,9 @@ export default function TransactionFeed({ maxItems = 8, compact = false }) {
                 >
                   {agent.name}
                 </p>
-                {!compact && agent.snsDomain && (
-                  <p className="text-[10px] text-purple-500 dark:text-purple-400 font-mono">
-                    {agent.snsDomain}
+                {!compact && agent.humanName && (
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                    {agent.humanName}
                   </p>
                 )}
               </div>

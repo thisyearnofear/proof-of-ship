@@ -145,10 +145,19 @@ async function chatHandler(req, res) {
     }
 
     return res.status(200).json({
+      agent: {
+        type: "assistant",
+        snsDomain: "pos-scout.sol",
+        displayName: "pos-scout.sol",
+        humanName: "Platform Assistant",
+        icon: "🔭",
+        description: "Platform helper assistant",
+      },
       success: true,
       reply,
       agentInfo: {
-        name: "Platform Assistant",
+        name: "pos-scout.sol",
+        humanName: "Platform Assistant",
         cost: "0.005 USDC",
         txHash: req.nanopayment?.txHash,
         network: "arc",

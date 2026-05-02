@@ -15,6 +15,7 @@ import TransferHistory from "@/components/TransferHistory";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
+import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
@@ -112,6 +113,18 @@ export default function BuildPage() {
     <>
       <Head><title>Build | Builder Credit</title></Head>
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {activeChainFamily === 'solana' && solanaConnected && solanaAddress && (
+          <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900">
+            Connected builder identity:{" "}
+            <SnsIdentityBadge
+              address={solanaAddress}
+              chainFamily="solana"
+              showFallback={true}
+              showLoading={true}
+              className="text-sm"
+            />
+          </div>
+        )}
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
 
         {activeTab === "credit" && (

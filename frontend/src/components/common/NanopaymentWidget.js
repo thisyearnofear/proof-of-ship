@@ -40,7 +40,8 @@ function formatUSDC(amount) {
 const AGENT_SERVICES = [
   {
     id: "underwrite",
-    name: "AI Underwriter",
+    name: "pos-underwriter.sol",
+    humanName: "Underwriter Agent",
     description: "Project health scoring",
     price: 0.05,
     icon: "🤖",
@@ -48,7 +49,8 @@ const AGENT_SERVICES = [
   },
   {
     id: "scout",
-    name: "AI Scout",
+    name: "pos-scout.sol",
+    humanName: "Scout Agent",
     description: "Portfolio recommendations",
     price: 0.01,
     icon: "🔭",
@@ -56,7 +58,8 @@ const AGENT_SERVICES = [
   },
   {
     id: "verify",
-    name: "Verifier Agent",
+    name: "pos-verifier.sol",
+    humanName: "Verifier Agent",
     description: "Code verification (per 10 LOC)",
     price: 0.001,
     icon: "✅",
@@ -64,7 +67,8 @@ const AGENT_SERVICES = [
   },
   {
     id: "rebalance",
-    name: "AI Portfolio Manager",
+    name: "pos-rebalance.sol",
+    humanName: "Rebalance Agent",
     description: "Auto-rebalancing",
     price: 0.01,
     icon: "⚖️",
@@ -391,7 +395,9 @@ function ServiceCard({ service, loading, onClick, disabled }) {
           <span className="text-xl">{service.icon}</span>
           <div>
             <p className="text-sm font-medium text-gray-900">{service.name}</p>
-            <p className="text-xs text-gray-500">{service.description}</p>
+            <p className="text-xs text-gray-500">
+              {service.humanName ? `${service.humanName} · ` : ''}{service.description}
+            </p>
           </div>
         </div>
         <div className="text-right">

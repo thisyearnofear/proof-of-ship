@@ -15,7 +15,7 @@ import { withNanopayment } from "@/lib/nanopayment";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
-import { agentIdentityResponse } from "@/lib/agentIdentity";
+import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
 
 async function scoutHandler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -23,6 +23,7 @@ async function scoutHandler(req, res) {
   }
 
   try {
+    const identity = getAgentIdentity('scout');
     // Check cache for GET requests (skip for POST/execute)
     if (req.method === "GET" && req.query.fresh !== "1") {
       const cached = await getCachedResult("scout", { ecosystem: req.query.ecosystem || "all" });
@@ -143,7 +144,8 @@ async function scoutHandler(req, res) {
       ...agentIdentityResponse('scout'),
       success: true,
       agentInfo: {
-        name: "AI Scout",
+        name: identity.domain,
+        humanName: identity.displayName,
         feePaid: req.nanopayment?.amount || 0,
         txHash: req.nanopayment?.txHash,
         network: "arc",

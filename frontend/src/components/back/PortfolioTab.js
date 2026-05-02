@@ -4,6 +4,8 @@ import { useWallet, useBuilderCredit } from "@/contexts/WalletContext";
 import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
+import { isValidSolanaAddress } from "@/utils/common";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import {
   BanknotesIcon,
@@ -171,7 +173,19 @@ export default function PortfolioTab({ setTab }) {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-bold text-gray-900">{project.name}</h3>
-                    <p className="text-xs text-gray-500 font-mono truncate max-w-[180px]">{project.developer}</p>
+                    <div className="text-xs text-gray-500 max-w-[220px]">
+                      {isValidSolanaAddress(project.developer) ? (
+                        <SnsIdentityBadge
+                          address={project.developer}
+                          chainFamily="solana"
+                          showFallback={true}
+                          showLoading={true}
+                          className="text-xs"
+                        />
+                      ) : (
+                        <p className="font-mono truncate max-w-[180px]">{project.developer}</p>
+                      )}
+                    </div>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${project.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
                     {project.isActive ? "Active" : "Done"}

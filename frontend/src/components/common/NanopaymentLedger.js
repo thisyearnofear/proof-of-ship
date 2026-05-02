@@ -27,25 +27,29 @@ const STATUS_CONFIG = {
 
 const TYPE_CONFIG = {
   "underwrite": {
-    label: "AI Underwriter",
+    label: "pos-underwriter.sol",
+    humanName: "Underwriter Agent",
     description: "Project health score analysis",
     icon: "🤖",
     color: "indigo",
   },
   "scout": {
-    label: "AI Scout",
+    label: "pos-scout.sol",
+    humanName: "Scout Agent",
     description: "Portfolio recommendations",
     icon: "🔭",
     color: "blue",
   },
   "verify": {
-    label: "Verifier Agent",
+    label: "pos-verifier.sol",
+    humanName: "Verifier Agent",
     description: "Code verification",
     icon: "✅",
     color: "green",
   },
   "rebalance": {
-    label: "AI Portfolio Manager",
+    label: "pos-rebalance.sol",
+    humanName: "Rebalance Agent",
     description: "Auto-rebalancing",
     icon: "⚖️",
     color: "purple",
@@ -182,7 +186,7 @@ function TransactionRow({ transaction }) {
               {agentName || typeConfig?.label || type}
             </p>
             <p className="text-xs text-gray-500">
-              {typeConfig?.description || transaction.description}
+              {typeConfig?.humanName ? `${typeConfig.humanName} · ` : ''}{typeConfig?.description || transaction.description}
             </p>
           </div>
         </div>

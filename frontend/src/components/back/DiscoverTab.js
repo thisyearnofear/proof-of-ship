@@ -4,9 +4,11 @@ import { useBuilderCredit } from "@/contexts/WalletContext";
 import { useNanopayment } from "@/contexts/WalletContext";
 import { useExpeditionData } from "@/hooks/useExpeditionData";
 import ExpeditionCard from "@/components/expedition/ExpeditionCard";
+import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
+import { isValidSolanaAddress } from "@/utils/common";
 import {
   MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
@@ -64,6 +66,10 @@ export default function DiscoverTab() {
       return matchesSearch && matchesMultiplier;
     });
   }, [projects, searchQuery, filterMultiplier]);
+
+  const backingProjectShowsSolName =
+    !!backingProject?.developer &&
+    (backingProject?.ecosystem === "solana" || isValidSolanaAddress(backingProject.developer));
 
   const handleBackProject = (project) => {
     if (!connected) { connect(); return; }
@@ -181,6 +187,19 @@ export default function DiscoverTab() {
             ) : (
               <>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Back {backingProject.name}</h3>
+                {backingProjectShowsSolName && (
+                  <p className="text-sm text-gray-600 mb-3">
+                    You&apos;re backing{" "}
+                    <SnsIdentityBadge
+                      address={backingProject.developer}
+                      chainFamily="solana"
+                      showFallback={true}
+                      showLoading={true}
+                      className="text-sm"
+                    />{" "}
+                    on {backingProject.name}.
+                  </p>
+                )}
                 {connected && account?.toLowerCase() === backingProject.developer?.toLowerCase() ? (
                   <div className="flex items-center gap-2 mb-4 p-2 bg-green-50 border border-green-100 rounded-lg">
                     <span className="text-lg">💎</span>

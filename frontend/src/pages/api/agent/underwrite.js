@@ -12,7 +12,7 @@ import { computeScore, getRecommendation, computeStrategicAdvice } from "@/lib/s
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
-import { agentIdentityResponse } from "@/lib/agentIdentity";
+import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
 
 async function handler(req, res) {
   if (req.method !== "GET") {
@@ -26,6 +26,7 @@ async function handler(req, res) {
   }
 
   try {
+    const identity = getAgentIdentity('underwrite');
     // 0. Check cache (skip if ?fresh=1)
     if (fresh !== "1") {
       const cached = await getCachedResult("underwrite", { projectId });
@@ -102,7 +103,8 @@ async function handler(req, res) {
       ...agentIdentityResponse('underwrite'),
       success: true,
       agentInfo: {
-        name: "AI Underwriter",
+        name: identity.domain,
+        humanName: identity.displayName,
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: "arc",

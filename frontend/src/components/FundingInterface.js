@@ -8,6 +8,7 @@ import { useWallet, useCircleWallet, useBuilderCredit } from '../contexts/Wallet
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
+import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
 import {
   CurrencyDollarIcon,
   WalletIcon,
@@ -271,11 +272,23 @@ export default function FundingInterface({
       {/* Environment Notice */}
       {activeChainFamily === 'solana' ? (
         <Card className="p-4 bg-purple-50 border-purple-200">
-          <div className="flex items-center space-x-2">
-            <InformationCircleIcon className="w-5 h-5 text-purple-600" />
-            <span className="text-purple-800 text-sm">
-              Running on Solana Devnet. Cross-chain funding enabled.
-            </span>
+          <div className="flex items-start space-x-2">
+            <InformationCircleIcon className="w-5 h-5 text-purple-600 mt-0.5" />
+            <div className="text-purple-800 text-sm">
+              <div>Running on Solana Devnet. Cross-chain funding enabled.</div>
+              {wallet.solanaAddress && (
+                <div className="mt-1">
+                  Creating projects as{" "}
+                  <SnsIdentityBadge
+                    address={wallet.solanaAddress}
+                    chainFamily="solana"
+                    showFallback={true}
+                    showLoading={true}
+                    className="text-sm"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </Card>
       ) : environment === 'sandbox' && (

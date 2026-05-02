@@ -7,6 +7,8 @@ import React from 'react';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import ProjectHealthChart from './ProjectHealthChart';
+import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
+import { isValidSolanaAddress } from '@/utils/common';
 import { 
   CurrencyDollarIcon, 
   ArrowTrendingUpIcon,
@@ -17,6 +19,9 @@ import {
 
 export default function ExpeditionCard({ project, onBack, scoutScore }) {
   const progress = (project.totalBacked / project.targetFunding) * 100;
+  const showSolanaIdentity =
+    !!project?.developer &&
+    (project?.ecosystem === 'solana' || isValidSolanaAddress(project.developer));
   
   return (
     <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 border-t-4 border-blue-500">
@@ -54,6 +59,18 @@ export default function ExpeditionCard({ project, onBack, scoutScore }) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="font-bold text-xl text-gray-900 line-clamp-1">{project.name || project.slug}</h3>
+            {showSolanaIdentity && (
+              <div className="mt-1 text-sm text-gray-600">
+                <span className="mr-1">by</span>
+                <SnsIdentityBadge
+                  address={project.developer}
+                  chainFamily="solana"
+                  showFallback={true}
+                  showLoading={true}
+                  className="text-sm"
+                />
+              </div>
+            )}
             <span className="text-xs font-medium px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
               {project.category}
             </span>

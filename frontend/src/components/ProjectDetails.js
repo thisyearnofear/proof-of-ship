@@ -8,6 +8,8 @@ import { useWallet } from '../contexts/WalletContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
+import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
+import { isValidSolanaAddress } from '@/utils/common';
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -185,6 +187,18 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
         <div className="flex items-start justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{project.name}</h2>
+            {isValidSolanaAddress(project.developer || '') && (
+              <div className="mt-1 text-sm text-gray-600">
+                Builder{" "}
+                <SnsIdentityBadge
+                  address={project.developer}
+                  chainFamily="solana"
+                  showFallback={true}
+                  showLoading={true}
+                  className="text-sm"
+                />
+              </div>
+            )}
             <div className="flex items-center mt-2 text-gray-600">
               <CalendarIcon className="w-5 h-5 mr-1" />
               <span>Funded on {formatDate(project.fundedAt)}</span>

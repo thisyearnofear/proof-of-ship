@@ -8,6 +8,8 @@ import { useWallet, useBuilderCredit } from '../contexts/WalletContext';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner, MarketConfidenceSkeleton } from './common/LoadingStates';
+import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
+import { isValidSolanaAddress } from '@/utils/common';
 import {
   BanknotesIcon,
   RocketLaunchIcon,
@@ -19,6 +21,7 @@ import PrivatePaymentsToggle from './common/PrivatePaymentsToggle';
 export default function BackingPanel({ projectId, developerAddress }) {
   const wallet = useWallet();
   const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
+  const showBuilderIdentity = isValidSolanaAddress(developerAddress || '');
 
   const [amount, setAmount] = useState('');
   const [multiplier, setMultiplier] = useState(200); // Default 2x (200)
@@ -123,11 +126,29 @@ export default function BackingPanel({ projectId, developerAddress }) {
 
       if (privateMode && wallet.solanaWallet) {
         // Cloak shielded staking — hide amounts from public ledger
+        // Cloak's Groth16 proof generation requires a Keypair (not browser wallet adapter)
+        // So we: 1) Generate ephemeral Keypair, 2) Fund it via browser wallet, 3) Use with Cloak
         const { cloakPaymentService } = await import('@/services/CloakPaymentService');
+        const { Keypair: KP, SystemProgram, Transaction: Tx } = await import('@solana/web3.js');
+        const ephemeral = KP.generate();
         const amountLamports = BigInt(Math.round(parseFloat(amount) * 1_000_000)); // USDC has 6 decimals
         const recipient = new (await import('@solana/web3.js')).PublicKey(developerAddress);
+
+        // Fund the ephemeral keypair with SOL for tx fees via browser wallet
+        const fundTx = new Tx().add(
+          SystemProgram.transfer({
+            fromPubkey: wallet.solanaWallet.publicKey,
+            toPubkey: ephemeral.publicKey,
+            lamports: 0.01 * 1e9, // 0.01 SOL for fees
+          })
+        );
+        fundTx.recentBlockhash = (await wallet.solanaWallet.connection?.getRecentBlockhash?.())?.recentBlockhash;
+        const signedFundTx = await wallet.solanaWallet.signTransaction(fundTx);
+        const conn = (await import('@/contexts/wallet/constants')).getSolanaConnection();
+        await conn.sendRawTransaction(signedFundTx.serialize());
+
         const result = await cloakPaymentService.privateStake(
-          wallet.solanaWallet,
+          ephemeral,
           amountLamports,
           recipient,
         );
@@ -160,7 +181,21 @@ export default function BackingPanel({ projectId, developerAddress }) {
     <Card className="p-6">
       <div className="flex items-center mb-4">
         <RocketLaunchIcon className="w-6 h-6 text-indigo-600 mr-2" />
-        <h3 className="text-lg font-bold text-gray-900">Stake on This Builder</h3>
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">Stake on This Builder</h3>
+          {showBuilderIdentity && (
+            <div className="text-sm text-gray-600 mt-1">
+              Backing{" "}
+              <SnsIdentityBadge
+                address={developerAddress}
+                chainFamily="solana"
+                showFallback={true}
+                showLoading={true}
+                className="text-sm"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <p className="text-sm text-gray-600 mb-6">

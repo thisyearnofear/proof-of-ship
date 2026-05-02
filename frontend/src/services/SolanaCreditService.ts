@@ -52,11 +52,10 @@ interface ProjectDetails {
 }
 
 class SolanaCreditService {
-    // Program id is injected via env in production. Fallback is the scaffold default.
+    // Program ID is injected via env in production. Fall back to the current IDL address
+    // so local/devnet reads do not crash when the env var is missing.
     private PROGRAM_ID = new PublicKey(
-        // Deployed program ID — set via NEXT_PUBLIC_SOLANA_PROGRAM_ID env var
-        // Devnet: 14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K
-        process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || ''
+        process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || (IDL as any).address
     );
 
     private bagsClient: BagsSDK | null = null;
@@ -89,7 +88,11 @@ class SolanaCreditService {
         const provider = new anchor.AnchorProvider(connection, wallet, {
             preflightCommitment: 'processed',
         });
-        return new Program(IDL as anchor.Idl, provider);
+        const idlWithAddress = {
+            ...(IDL as any),
+            address: this.PROGRAM_ID.toBase58(),
+        };
+        return new Program(idlWithAddress as anchor.Idl, provider);
     }
 
     private getReadOnlyProgram(connection: Connection) {
@@ -101,7 +104,11 @@ class SolanaCreditService {
         } as any, {
             preflightCommitment: 'processed',
         });
-        return new Program(IDL as anchor.Idl, provider);
+        const idlWithAddress = {
+            ...(IDL as any),
+            address: this.PROGRAM_ID.toBase58(),
+        };
+        return new Program(idlWithAddress as anchor.Idl, provider);
     }
 
     // ── PDA helpers ──────────────────────────────────────────────────
@@ -272,7 +279,7 @@ class SolanaCreditService {
 
             const verifier = new PublicKey(projectData.verifier || publicKey.toBase58());
 
-            const tx = await program.methods.request_funding(
+            const tx = await program.methods.requestFunding(
                 projectData.hackathonIds.map(id => new BN(id)),
                 projectData.githubUrl,
                 projectData.projectName,

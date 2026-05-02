@@ -12,7 +12,6 @@
 
 import {
   CLOAK_PROGRAM_ID,
-  NATIVE_SOL_MINT,
   createUtxo,
   createZeroUtxo,
   fullWithdraw,

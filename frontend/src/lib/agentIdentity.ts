@@ -60,8 +60,10 @@ export function agentIdentityResponse(agentType: string) {
     agent: {
       type: agentType,
       snsDomain: identity.domain,
-      displayName: identity.displayName,
+      displayName: identity.domain,
+      humanName: identity.displayName,
       icon: identity.icon,
+      description: identity.description,
     },
   };
 }

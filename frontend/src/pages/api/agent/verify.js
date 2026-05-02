@@ -11,17 +11,19 @@
 import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
-import { agentIdentityResponse } from "@/lib/agentIdentity";
+import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import bs58 from "bs58";
 import IDL from "@/idl/blockchain_solana.json";
 
+const DEFAULT_DEVNET_USDC = "4zMMC9srtvSqzRLsS51uVtoQpYp5yFdC8PYy8Y79zNLX";
 const PROGRAM_ID = new PublicKey(
   process.env.SOLANA_PROGRAM_ID ||
-    process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID
+    process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID ||
+    IDL.address
 );
 
 async function handler(req, res) {
@@ -45,6 +47,7 @@ async function handler(req, res) {
   }
 
   try {
+    const identity = getAgentIdentity('verify');
     // Check cache
     if (fresh !== "1") {
       const cached = await getCachedResult("verify", { prId });
@@ -124,36 +127,33 @@ async function handler(req, res) {
           const program = new Program(idlWithAddress, provider);
 
           const projectPubkey = new PublicKey(projectPda);
-          const [configPda] = PublicKey.findProgramAddressSync([Buffer.from("config")], PROGRAM_ID);
-          const configAcct = await program.account.config.fetch(configPda);
-          const usdcMint = new PublicKey(configAcct.usdcMint);
+          const usdcMint = new PublicKey(
+            process.env.SOLANA_USDC_MINT || DEFAULT_DEVNET_USDC
+          );
 
           const [vaultAuthority] = PublicKey.findProgramAddressSync(
             [Buffer.from("vault_authority"), projectPubkey.toBuffer()],
             PROGRAM_ID
           );
 
-          const payoutVault = anchor.utils.token.associatedAddress({
-            mint: usdcMint,
-            owner: vaultAuthority,
-          });
+          const vaultTokenAccount = getAssociatedTokenAddressSync(
+            usdcMint,
+            vaultAuthority,
+            true
+          );
 
           const projectAcct = await program.account.project.fetch(projectPubkey);
           const developerPk = new PublicKey(projectAcct.developer);
-          const developerAta = anchor.utils.token.associatedAddress({
-            mint: usdcMint,
-            owner: developerPk,
-          });
+          const developerAta = getAssociatedTokenAddressSync(usdcMint, developerPk);
 
           const tx = await program.methods
             .verifyMilestone(parseInt(milestoneIndex || 0))
             .accounts({
-              config: configPda,
               project: projectPubkey,
               developerTokenAccount: developerAta,
-              usdcMint,
-              payoutVault,
+              vaultTokenAccount,
               vaultAuthority,
+              usdcMint,
               verifier: keypair.publicKey,
               tokenProgram: TOKEN_PROGRAM_ID,
             })
@@ -176,7 +176,8 @@ async function handler(req, res) {
       ...agentIdentityResponse('verify'),
       success: true,
       agentInfo: {
-        name: "Verifier Agent",
+        name: identity.domain,
+        humanName: identity.displayName,
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: network || "arc",

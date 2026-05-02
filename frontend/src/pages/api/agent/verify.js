@@ -21,8 +21,7 @@ import IDL from "@/idl/blockchain_solana.json";
 
 const PROGRAM_ID = new PublicKey(
   process.env.SOLANA_PROGRAM_ID ||
-    process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID ||
-    "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+    process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID
 );
 
 async function handler(req, res) {

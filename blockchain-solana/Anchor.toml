@@ -6,14 +6,16 @@ skip-lint = false
 init-if-needed = []
 
 [programs.localnet]
-blockchain_solana = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
-# NOTE: Replace the program ID above with the actual deployed ID before mainnet.
+blockchain_solana = "14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K"
+
+[programs.devnet]
+blockchain_solana = "14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

@@ -54,7 +54,9 @@ interface ProjectDetails {
 class SolanaCreditService {
     // Program id is injected via env in production. Fallback is the scaffold default.
     private PROGRAM_ID = new PublicKey(
-        process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS'
+        // Deployed program ID — set via NEXT_PUBLIC_SOLANA_PROGRAM_ID env var
+        // Devnet: 14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K
+        process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || ''
     );
 
     private bagsClient: BagsSDK | null = null;

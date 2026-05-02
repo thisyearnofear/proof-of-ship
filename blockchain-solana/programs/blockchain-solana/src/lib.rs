@@ -2,9 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use anchor_spl::associated_token::AssociatedToken;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
-// NOTE: This is the Anchor scaffold default program ID.
-// Replace with the actual deployed ID before mainnet deployment.
+declare_id!("14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K");
 
 // ── Space constants ──────────────────────────────────────────────
 // All Vec and String fields are bounded so the account fits in a

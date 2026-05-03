@@ -45,6 +45,12 @@ export default function LoginPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Computed wallet state — must be above useEffects that reference these
+  const anyWalletConnected = evmConnected || solanaConnected;
+  const activeWalletAddress = walletFamily === 'solana' ? solanaAddress : evmAddress;
+  const alreadyLinked = activeWalletAddress && linkedWallets.some(w => w.address.toLowerCase() === activeWalletAddress.toLowerCase());
+  const isFullyAuthed = !!currentUser && anyWalletConnected && linked;
+
   // Auto-detect walletFamily when wallet is already connected (nav showed it)
   useEffect(() => {
     if (!walletFamily) {
@@ -89,30 +95,11 @@ export default function LoginPage() {
     return () => window.removeEventListener('eip6963:announceProvider', onAnnounce);
   }, []);
 
-  const anyWalletConnected = evmConnected || solanaConnected;
-  const activeWalletAddress = walletFamily === 'solana' ? solanaAddress : evmAddress;
-  const alreadyLinked = activeWalletAddress && linkedWallets.some(w => w.address.toLowerCase() === activeWalletAddress.toLowerCase());
-  const isFullyAuthed = !!currentUser && anyWalletConnected && linked;
+  useEffect(() => {
+    if (userRole && !role) setRole(userRole);
+  }, [userRole, role]);
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-  if (evmPickerOpen) return (
-    <>
-      <Head><title>Choose Wallet - Proof of Ship</title></Head>
-      {renderEvmPicker()}
-    </>
-  );
-
-  // ─── Helpers used in render ────────────────────────────────────────────────
-  const hasInjectedEvm = mounted && typeof window !== 'undefined' && !!window.ethereum;
-  const evmWalletCount = Math.max(evmProviders.length, hasInjectedEvm ? 1 : 0);
-
-  // Determine active address/provider for sign flows. When connected via EIP-6963
-  // directly, the provider is not wrapped by the SDK, so we read from window.ethereum.
-  const getEip6963Provider = () => {
-    if (walletFamily !== 'evm') return null;
-    return window.ethereum;
-  };
-
+  // Redirect returning users or fully-authed users to their dashboard
   useEffect(() => {
     if (isFullyAuthed || (alreadyLinked && currentUser)) {
       const dest = redirect || (role === 'backer' ? '/back' : '/build');
@@ -121,9 +108,12 @@ export default function LoginPage() {
     }
   }, [isFullyAuthed, alreadyLinked, currentUser, redirect, router, role]);
 
-  useEffect(() => {
-    if (userRole && !role) setRole(userRole);
-  }, [userRole, role]);
+  // Determine active address/provider for sign flows. When connected via EIP-6963
+  // directly, the provider is not wrapped by the SDK, so we read from window.ethereum.
+  const getEip6963Provider = () => {
+    if (walletFamily !== 'evm') return null;
+    return window.ethereum;
+  };
 
   const signWalletMessage = useCallback(async () => {
     if (!anyWalletConnected || !activeWalletAddress) throw new Error('No wallet connected');
@@ -143,6 +133,18 @@ export default function LoginPage() {
     }
     return { signature, message };
   }, [anyWalletConnected, activeWalletAddress, currentUser, walletFamily, solanaWallet, provider]);
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+  if (evmPickerOpen) return (
+    <>
+      <Head><title>Choose Wallet - Proof of Ship</title></Head>
+      {renderEvmPicker()}
+    </>
+  );
+
+  // ─── Helpers used in render ────────────────────────────────────────────────
+  const hasInjectedEvm = mounted && typeof window !== 'undefined' && !!window.ethereum;
+  const evmWalletCount = Math.max(evmProviders.length, hasInjectedEvm ? 1 : 0);
 
   const handleGithubLogin = async () => {
     try { setError(null); setIsSigningIn(true); await signInWithGithub(); }

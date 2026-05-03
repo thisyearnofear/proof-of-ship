@@ -56,6 +56,13 @@ export default function LoginPage() {
     }
   }, [solanaConnected, solanaAddress, evmConnected, evmAddress, walletFamily]);
 
+  // If wallet is already linked (returning user), mark as linked so redirect works
+  useEffect(() => {
+    if (alreadyLinked && currentUser && !linked) {
+      setLinked(true);
+    }
+  }, [alreadyLinked, currentUser, linked]);
+
   // Resolve .sol name when a Solana wallet connects
   useEffect(() => {
     if (walletFamily === 'solana' && solanaAddress) {
@@ -107,12 +114,12 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (isFullyAuthed) {
+    if (isFullyAuthed || (alreadyLinked && currentUser)) {
       const dest = redirect || (role === 'backer' ? '/back' : '/build');
       const timer = setTimeout(() => router.push(dest), 1500);
       return () => clearTimeout(timer);
     }
-  }, [isFullyAuthed, redirect, router, role]);
+  }, [isFullyAuthed, alreadyLinked, currentUser, redirect, router, role]);
 
   useEffect(() => {
     if (userRole && !role) setRole(userRole);

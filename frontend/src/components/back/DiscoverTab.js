@@ -15,13 +15,34 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 
+const ECOSYSTEM_OPTIONS = [
+  { value: "all", label: "All Ecosystems" },
+  { value: "solana", label: "Solana" },
+  { value: "celo", label: "Celo" },
+  { value: "arc", label: "Arc" },
+  { value: "base", label: "Base" },
+  { value: "linea", label: "Linea" },
+  { value: "arbitrum", label: "Arbitrum" },
+  { value: "ethereum", label: "Ethereum" },
+  { value: "optimism", label: "Optimism" },
+];
+
+const SORT_OPTIONS = [
+  { value: "health", label: "Health" },
+  { value: "confidence", label: "Confidence" },
+  { value: "multiplier", label: "Multiplier" },
+  { value: "newest", label: "Newest" },
+];
+
 export default function DiscoverTab() {
   const { projects, loading, error, refresh } = useExpeditionData();
   const { connected, connect, account } = useWallet();
   const { backProject } = useBuilderCredit();
   const { payForScout, loading: nanopaymentLoading } = useNanopayment();
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterEcosystem, setFilterEcosystem] = useState("all");
   const [filterMultiplier, setFilterMultiplier] = useState("all");
+  const [sortBy, setSortBy] = useState("health");
   const [backingProject, setBackingProject] = useState(null);
   const [backingAmount, setBackingAmount] = useState("");
   const [backingMultiplier, setBackingMultiplier] = useState("150");
@@ -59,13 +80,44 @@ export default function DiscoverTab() {
   };
 
   const filteredProjects = useMemo(() => {
-    return projects.filter((p) => {
-      const matchesSearch = p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesMultiplier = filterMultiplier === "all" || p.activeMultiplier >= parseFloat(filterMultiplier);
-      return matchesSearch && matchesMultiplier;
+    let filtered = projects.filter((p) => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !q
+        || p.name?.toLowerCase().includes(q)
+        || p.description?.toLowerCase().includes(q)
+        || p.category?.toLowerCase().includes(q)
+        || p.ecosystem?.toLowerCase().includes(q);
+
+      const matchesMultiplier = filterMultiplier === "all"
+        || p.activeMultiplier >= parseFloat(filterMultiplier);
+
+      const matchesEcosystem = filterEcosystem === "all"
+        || p.ecosystem === filterEcosystem;
+
+      return matchesSearch && matchesMultiplier && matchesEcosystem;
     });
-  }, [projects, searchQuery, filterMultiplier]);
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "health":
+          return (b.health || 0) - (a.health || 0);
+        case "confidence":
+          return (b.confidence || 0) - (a.confidence || 0);
+        case "multiplier":
+          return (b.activeMultiplier || 0) - (a.activeMultiplier || 0);
+        case "newest": {
+          const aDate = a.createdAt?.toDate?.() || new Date(a.createdAt || 0);
+          const bDate = b.createdAt?.toDate?.() || new Date(b.createdAt || 0);
+          return bDate - aDate;
+        }
+        default:
+          return (b.health || 0) - (a.health || 0);
+      }
+    });
+
+    return filtered;
+  }, [projects, searchQuery, filterMultiplier, filterEcosystem, sortBy]);
 
   const backingProjectShowsSolName =
     !!backingProject?.developer &&
@@ -99,6 +151,7 @@ export default function DiscoverTab() {
 
   return (
     <>
+      {/* AI Scout Bar */}
       <Card className="p-3 mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -142,29 +195,68 @@ export default function DiscoverTab() {
         </div>
       </Card>
 
-      <div className="flex flex-col md:flex-row gap-3 mb-8 items-center">
-        <div className="relative w-full md:max-w-md">
+      {/* Filters Row */}
+      <div className="flex flex-col md:flex-row gap-3 mb-6 items-start md:items-center">
+        {/* Search */}
+        <div className="relative w-full md:max-w-sm">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500" />
         </div>
+
+        {/* Ecosystem */}
         <div className="flex items-center gap-2 text-sm">
-          <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500" />
-          <span className="text-gray-600">Min multiplier:</span>
+          <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          <select value={filterEcosystem} onChange={(e) => setFilterEcosystem(e.target.value)}
+            className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
+            {ECOSYSTEM_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Multiplier */}
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-500">Min:</span>
           <select value={filterMultiplier} onChange={(e) => setFilterMultiplier(e.target.value)}
-            className="border border-gray-300 rounded text-sm px-2 py-1 font-medium">
-            <option value="all">Any</option>
+            className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
+            <option value="all">Any multiplier</option>
             <option value="1.5">1.5x+</option>
             <option value="2.0">2.0x+</option>
             <option value="3.0">3.0x</option>
           </select>
         </div>
+
+        {/* Sort */}
+        <div className="flex items-center gap-2 text-sm md:ml-auto">
+          <span className="text-gray-500">Sort:</span>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+            className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
+            {SORT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Results count */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-500">
+          {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+          {filterEcosystem !== 'all' ? ` in ${filterEcosystem}` : ''}
+        </p>
       </div>
 
       {filteredProjects.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <p>No projects found.</p>
-          <button onClick={() => { setSearchQuery(""); setFilterMultiplier("all"); }} className="text-blue-600 hover:underline text-sm mt-2">Clear filters</button>
+          <p className="text-lg mb-1">No projects match your filters.</p>
+          <p className="text-sm text-gray-400 mb-4">
+            {projects.length === 0
+              ? "Projects need a description, GitHub link, and ecosystem to appear here."
+              : "Try broadening your search."}
+          </p>
+          <button onClick={() => { setSearchQuery(""); setFilterMultiplier("all"); setFilterEcosystem("all"); }}
+            className="text-blue-600 hover:underline text-sm">Clear filters</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -192,6 +284,7 @@ export default function DiscoverTab() {
                     You&apos;re backing{" "}
                     <SnsIdentityBadge
                       address={backingProject.developer}
+                      snsNameOverride={backingProject.builderSnsDomain || null}
                       chainFamily="solana"
                       showFallback={true}
                       showLoading={true}

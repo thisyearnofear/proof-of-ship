@@ -14,62 +14,88 @@ import {
 const NOW = new Date('2026-05-01T12:00:00Z').getTime();
 
 describe('calculateHealth', () => {
-  it('returns baseline 50 for empty project', () => {
-    expect(calculateHealth({}, NOW)).toBe(50);
+  it('returns ~30-37 baseline for empty project (with stable hash variation)', () => {
+    const h = calculateHealth({}, NOW);
+    expect(h).toBeGreaterThanOrEqual(30);
+    expect(h).toBeLessThanOrEqual(37);
   });
 
-  it('adds 15 for active project', () => {
-    expect(calculateHealth({ stats: { isActive: true } }, NOW)).toBe(65);
+  it('adds 20 for active project', () => {
+    const base = calculateHealth({}, NOW);
+    const withActive = calculateHealth({ stats: { isActive: true } }, NOW);
+    expect(withActive - base).toBe(20);
   });
 
   it('adds 10+5 for 50+ commits', () => {
-    expect(calculateHealth({ stats: { commits: 60 } }, NOW)).toBe(65);
+    const base = calculateHealth({}, NOW);
+    const result = calculateHealth({ stats: { commits: 60 } }, NOW);
+    expect(result - base).toBe(15);
   });
 
   it('adds 10 for 10-50 commits', () => {
-    expect(calculateHealth({ stats: { commits: 15 } }, NOW)).toBe(60);
+    const base = calculateHealth({}, NOW);
+    const result = calculateHealth({ stats: { commits: 15 } }, NOW);
+    expect(result - base).toBe(10);
   });
 
   it('adds 15 for commit within 7 days', () => {
+    const base = calculateHealth({}, NOW);
     const recent = new Date(NOW - 2 * 24 * 60 * 60 * 1000).toISOString();
-    expect(calculateHealth({ stats: { lastCommit: recent } }, NOW)).toBe(65);
+    const result = calculateHealth({ stats: { lastCommit: recent } }, NOW);
+    expect(result - base).toBe(15);
   });
 
-  it('adds 5 for commit within 30 days', () => {
+  it('adds 10 for commit within 30 days', () => {
+    const base = calculateHealth({}, NOW);
     const recent = new Date(NOW - 15 * 24 * 60 * 60 * 1000).toISOString();
-    expect(calculateHealth({ stats: { lastCommit: recent } }, NOW)).toBe(55);
+    const result = calculateHealth({ stats: { lastCommit: recent } }, NOW);
+    expect(result - base).toBe(10);
   });
 
-  it('subtracts 10 for stale commit (>30 days)', () => {
+  it('adds 5 for stale commit (30-90 days)', () => {
+    const base = calculateHealth({}, NOW);
     const stale = new Date(NOW - 60 * 24 * 60 * 60 * 1000).toISOString();
-    expect(calculateHealth({ stats: { lastCommit: stale } }, NOW)).toBe(40);
+    const result = calculateHealth({ stats: { lastCommit: stale } }, NOW);
+    expect(result - base).toBe(5);
   });
 
-  it('averages with existing healthScore', () => {
-    // baseline 50 + active(15) = 65, avg with 80 = 73
-    expect(calculateHealth({ stats: { isActive: true, healthScore: 80 } }, NOW)).toBe(73);
+  it('gives bonus for long description', () => {
+    const base = calculateHealth({}, NOW);
+    const result = calculateHealth({ description: 'A'.repeat(200) }, NOW);
+    expect(result).toBeGreaterThan(base);
   });
 
   it('clamps to 0-100 range', () => {
-    // All signals on: 50+15+10+5+15=95, avg with 100=98
     const recent = new Date(NOW - 1 * 24 * 60 * 60 * 1000).toISOString();
     expect(calculateHealth({ stats: { isActive: true, commits: 100, lastCommit: recent, healthScore: 100 } }, NOW)).toBeLessThanOrEqual(100);
   });
 });
 
 describe('calculateConfidence', () => {
-  it('returns 10 for zero backers and zero backing', () => {
-    expect(calculateConfidence({})).toBe(10);
-    expect(calculateConfidence({ backerCount: 0, totalBacked: 0 })).toBe(10);
+  it('returns a completeness-based baseline for zero backers (not flat 10)', () => {
+    const bare = calculateConfidence({});
+    expect(bare).toBeGreaterThanOrEqual(5);
+    expect(bare).toBeLessThanOrEqual(15);
+
+    // More complete project → higher confidence
+    const complete = calculateConfidence({
+      description: 'A'.repeat(100),
+      githubUrl: 'https://github.com/owner/repo',
+      ecosystem: 'solana',
+      category: 'defi',
+      socials: { website: 'https://example.com' },
+      founders: ['alice', 'bob'],
+    });
+    expect(complete).toBeGreaterThan(bare + 20);
   });
 
-  it('scales with backer count up to 10 backers', () => {
+  it('scales with backer count when backer data exists', () => {
     const c5 = calculateConfidence({ backerCount: 5, totalBacked: 5000 });
     const c10 = calculateConfidence({ backerCount: 10, totalBacked: 5000 });
     expect(c5).toBeLessThan(c10);
   });
 
-  it('scales with funding progress', () => {
+  it('scales with funding progress when backer data exists', () => {
     const low = calculateConfidence({ backerCount: 5, totalBacked: 1000 });
     const high = calculateConfidence({ backerCount: 5, totalBacked: 8000 });
     expect(low).toBeLessThan(high);
@@ -77,12 +103,6 @@ describe('calculateConfidence', () => {
 
   it('caps at 100', () => {
     const result = calculateConfidence({ backerCount: 100, totalBacked: 50000, targetFunding: 10000 });
-    expect(result).toBeLessThanOrEqual(100);
-  });
-
-  it('handles missing targetFunding', () => {
-    const result = calculateConfidence({ backerCount: 5, totalBacked: 5000 });
-    expect(result).toBeGreaterThan(10);
     expect(result).toBeLessThanOrEqual(100);
   });
 });
@@ -96,9 +116,23 @@ describe('deriveMultiplier', () => {
     expect(deriveMultiplier({ backingMultiplier: 200 })).toBe(2);
   });
 
-  it('defaults to 1.5x for zero backers', () => {
-    expect(deriveMultiplier({})).toBe(1.5);
-    expect(deriveMultiplier({ backerCount: 0 })).toBe(1.5);
+  it('derives from completeness when no backers or explicit value', () => {
+    // Bare project → lowest tier (1.2)
+    const bare = deriveMultiplier({});
+    expect(bare).toBe(1.2);
+
+    // Complete project → higher tier
+    const complete = deriveMultiplier({
+      description: 'A'.repeat(200),
+      githubUrl: 'https://github.com/owner/repo',
+      owner: 'owner',
+      repo: 'repo',
+      ecosystem: 'solana',
+      category: 'defi',
+      socials: { website: 'https://example.com' },
+      founders: ['alice'],
+    });
+    expect(complete).toBeGreaterThanOrEqual(2.0);
   });
 
   it('returns 1.5x for 1-4 backers', () => {
@@ -141,20 +175,28 @@ describe('deriveLastCheckIn', () => {
       stats: { lastCommit: tenHoursAgo },
     }, NOW)).toBe(1);
   });
+
+  it('falls back to createdAt for activity signal', () => {
+    const recentDate = new Date(NOW - 48 * 60 * 60 * 1000).toISOString();
+    const result = deriveLastCheckIn({ createdAt: recentDate }, NOW);
+    expect(result).toBe(48);
+  });
 });
 
 describe('enhanceProject', () => {
   it('returns a complete enhanced project object', () => {
-    const result = enhanceProject({ name: 'Test', stats: { isActive: true, commits: 20 } }, NOW);
+    const result = enhanceProject({ name: 'Test', description: 'A'.repeat(200), ecosystem: 'solana', category: 'defi', stats: { isActive: true, commits: 20 } }, NOW);
     expect(result.name).toBe('Test');
-    expect(result.confidence).toBeGreaterThanOrEqual(10);
-    expect(result.health).toBeGreaterThanOrEqual(50);
-    expect(result.activeMultiplier).toBe(1.5);
-    expect(result.projectedROI).toBe(50);
+    expect(result.confidence).toBeGreaterThanOrEqual(5);
+    expect(result.health).toBeGreaterThanOrEqual(30);
+    expect(result.activeMultiplier).toBeGreaterThanOrEqual(1.2);
+    expect(result.projectedROI).toBeGreaterThanOrEqual(0);
     expect(result.totalBacked).toBe(0);
     expect(result.targetFunding).toBe(10000);
     expect(result.founderStaked).toBe(false);
-    expect(result.category).toBe('Infrastructure');
+    expect(result.category).toBe('defi');
+    expect(result.submissionQuality).toBeGreaterThanOrEqual(0);
+    expect(result.shortDescription).toBeTruthy();
   });
 
   it('detects founder staked', () => {
@@ -173,9 +215,27 @@ describe('enhanceProject', () => {
     expect(result.category).toBe('Payments');
   });
 
+  it('defaults to General when no category', () => {
+    const result = enhanceProject({});
+    expect(result.category).toBe('General');
+  });
+
   it('preserves original project fields', () => {
     const result = enhanceProject({ id: 'abc', slug: 'test-proj', name: 'Test' });
     expect(result.id).toBe('abc');
     expect(result.slug).toBe('test-proj');
+  });
+
+  it('truncates long descriptions', () => {
+    const result = enhanceProject({ description: 'A'.repeat(300) });
+    expect(result.shortDescription.length).toBeLessThanOrEqual(120);
+    expect(result.shortDescription).toContain('...');
+  });
+
+  it('produces varied scores for different projects', () => {
+    const a = enhanceProject({ slug: 'project-alpha', description: 'Short desc', ecosystem: 'solana' });
+    const b = enhanceProject({ slug: 'project-beta', description: 'Different project description that is much longer and more detailed', ecosystem: 'celo', githubUrl: 'https://github.com/x/y', category: 'defi' });
+    // They should NOT all be identical
+    expect(a.health === b.health && a.confidence === b.confidence && a.activeMultiplier === b.activeMultiplier).toBe(false);
   });
 });

@@ -237,6 +237,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             setLinkedWallets([]);
           }
           setUserRole(data.userRole || (data.githubUsername ? 'builder' : null));
+
+          // If stored as 'builder' but no GitHub, treat as incomplete — clear the role
+          // so the user is prompted to complete setup instead of being a phantom builder.
+          if (data.userRole === 'builder' && !data.githubUsername) {
+            setUserRole(null);
+            // Persist the correction so we don't re-correct every load
+            await setDoc(doc(db, 'users', user.uid), { userRole: null }, { merge: true });
+          }
         }
         
         // Load decentralized profile if available

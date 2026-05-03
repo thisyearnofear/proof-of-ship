@@ -30,14 +30,31 @@ export default function LoginPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const [linked, setLinked] = useState(false);
-  const [walletFamily, setWalletFamily] = useState(null);
+  const [walletFamily, setWalletFamily] = useState(() => {
+    // Auto-detect wallet family from already-connected wallet
+    if (typeof window !== 'undefined') {
+      // Will be properly set once mounted and wallet state syncs
+    }
+    return null;
+  });
   const [role, setRole] = useState(null);
   const [mounted, setMounted] = useState(false);
-  const [evmProviders, setEvmProviders] = useState([]); // EIP-6963 discovered EVM wallets
+  const [evmProviders, setEvmProviders] = useState([]);
   const [evmPickerOpen, setEvmPickerOpen] = useState(false);
   const [connectedSnsName, setConnectedSnsName] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Auto-detect walletFamily when wallet is already connected (nav showed it)
+  useEffect(() => {
+    if (!walletFamily) {
+      if (solanaConnected && solanaAddress) {
+        setWalletFamily('solana');
+      } else if (evmConnected && evmAddress) {
+        setWalletFamily('evm');
+      }
+    }
+  }, [solanaConnected, solanaAddress, evmConnected, evmAddress, walletFamily]);
 
   // Resolve .sol name when a Solana wallet connects
   useEffect(() => {

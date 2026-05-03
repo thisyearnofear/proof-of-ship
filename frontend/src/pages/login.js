@@ -8,18 +8,20 @@ import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import { snsService } from "@/services/SnsService";
 
 export default function LoginPage() {
-  const { currentUser, signInWithGithub, signInWithWallet, linkWallet, linkedWallets, userRole } = useUser();
+  const { currentUser, signInWithGithub, signInWithWallet, linkWallet, linkedWallets, userRole, logout } = useUser();
   const {
     connected: evmConnected,
     address: evmAddress,
     connect: connectEvm,
     connecting: evmConnecting,
+    disconnect: disconnectEvm,
     provider,
     solanaConnected,
     solanaAddress,
     connectSolana,
     solanaConnecting,
     solanaWallet,
+    disconnectSolana,
     syncEip6963Account,
   } = useWallet();
 
@@ -133,6 +135,18 @@ export default function LoginPage() {
     }
     return { signature, message };
   }, [anyWalletConnected, activeWalletAddress, currentUser, walletFamily, solanaWallet, provider]);
+
+  const handleStartOver = async () => {
+    try {
+      if (solanaConnected) await disconnectSolana();
+      if (evmConnected) disconnectEvm();
+    } catch (_) { /* ignore */ }
+    if (currentUser) await logout();
+    setRole(null);
+    setLinked(false);
+    setError(null);
+    setConnectedSnsName(null);
+  };
 
   // ─── Render ───────────────────────────────────────────────────────────────
   if (evmPickerOpen) return (
@@ -375,7 +389,10 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'\u2190'} Back</button>
+              <div className="flex items-center justify-between">
+                <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'\u2190'} Back</button>
+                <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600">Start over</button>
+              </div>
             </div>
           </div>
         </div>
@@ -454,7 +471,10 @@ export default function LoginPage() {
               )}
             </div>
 
-            <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'\u2190'} Back</button>
+            <div className="flex items-center justify-between">
+              <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'\u2190'} Back</button>
+              <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600">Start over</button>
+            </div>
           </div>
         </div>
       </div>

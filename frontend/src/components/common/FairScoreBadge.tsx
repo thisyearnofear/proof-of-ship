@@ -16,7 +16,9 @@ interface FairScoreBadgeProps {
     score: number | null;
     tier: string;
     tierColor: string;
-    badges?: string[];
+    fairscoreBase?: number | null;
+    socialScore?: number | null;
+    badges?: Array<{ id?: string; label?: string; tier?: string } | string>;
     isDemo?: boolean;
   } | null;
   /** Show the numeric score alongside the tier label */
@@ -139,8 +141,14 @@ export default function FairScoreBadge({
         {showBadges && scoreData?.badges && scoreData.badges.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-0.5">
             {scoreData.badges.map((badge, i) => (
-              <span key={i} className="text-[10px] px-1 py-0.5 bg-gray-100 text-gray-500 rounded">
-                {badge}
+              <span key={i} className={`text-[10px] px-1 py-0.5 rounded ${
+                typeof badge === 'object' && badge.tier === 'platinum'
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : typeof badge === 'object' && badge.tier === 'gold'
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-gray-100 text-gray-500'
+              }`}>
+                {typeof badge === 'object' ? (badge.label || badge.id || '?') : badge}
               </span>
             ))}
           </div>

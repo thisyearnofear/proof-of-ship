@@ -3,46 +3,35 @@
  *
  * Integrates FairScale's Solana reputation API for wallet-level trust signals.
  * Shows backers a pre-commitment trust signal for builders based on real
- * on-chain activity — capital flow, conviction, tempo, bot-likelihood, diversity.
+ * on-chain activity: portfolio flow, capital conviction, tempo, bot-likelihood,
+ * diversity, earned badges, and humanity signals.
  *
- * When FAIRSCALE_API_KEY is set, calls the real FairScale API.
- * Otherwise, generates scores from on-chain signals we already track,
- * so the demo works and the architecture is correct.
+ * API spec: https://swagger.api.fairscale.xyz
+ * Auth: fairkey header
+ * Endpoint: GET /score?wallet=<address> on api2.fairscale.xyz
+ * Response: fairscore (combined), fairscore_base (wallet-only), social_score,
+ *           tier (bronze/silver/gold/platinum), badges, features (15 signals)
  *
- * Tracks: Solana ecosystem reputation infrastructure
- * @see https://docs.fairscale.xyz
+ * When FAIRSCALE_API_KEY is set, calls the real API.
+ * Otherwise, generates deterministic demo scores from address hash.
  */
 
-const FAIRSCALE_API = 'https://api.fairscale.xyz';
-const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes (matches FairScale's cache)
-const MAX_BATCH = 25;
+const FAIRSCALE_API = 'https://api2.fairscale.xyz';
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // In-memory cache: address -> { data, timestamp }
 const scoreCache = new Map();
 
-/**
- * @typedef {Object} FairScoreResult
- * @property {string} address - Wallet address
- * @property {number|null} score - FairScore (0-100)
- * @property {string} tier - Human-readable tier
- * @property {string[]} badges - Earned badges
- * @property {Object|null} features - On-chain fingerprint (when available)
- * @property {boolean} isDemo - True if generated from local signals, not FairScale API
- */
+// Map FairScale's tier enum to human-readable labels and colors
+const TIER_MAP = {
+  platinum: { label: 'Excellent', color: 'green' },
+  gold:     { label: 'Good', color: 'blue' },
+  silver:   { label: 'Neutral', color: 'gray' },
+  bronze:   { label: 'Questionable', color: 'orange' },
+};
 
-const TIERS = [
-  { min: 85, label: 'Excellent', color: 'green' },
-  { min: 70, label: 'Good', color: 'blue' },
-  { min: 50, label: 'Neutral', color: 'gray' },
-  { min: 30, label: 'Questionable', color: 'orange' },
-  { min: 0, label: 'Untrustworthy', color: 'red' },
-];
-
-function getTier(score) {
-  if (score === null || score === undefined) {
-    return { label: 'New', color: 'gray' };
-  }
-  return TIERS.find(t => score >= t.min) || TIERS[TIERS.length - 1];
+function mapTier(tier) {
+  return TIER_MAP[tier] || { label: 'Unknown', color: 'gray' };
 }
 
 class FairScoreService {
@@ -77,7 +66,8 @@ class FairScoreService {
   }
 
   /**
-   * Get FairScores for multiple addresses in a single call.
+   * Get FairScores for multiple addresses.
+   * FairScale has no batch endpoint — parallel individual requests with concurrency cap.
    * @param {string[]} addresses - Array of Solana wallet addresses
    * @returns {Promise<Map<string, FairScoreResult>>}
    */
@@ -96,20 +86,13 @@ class FairScoreService {
 
     if (uncached.length === 0) return results;
 
-    // Batch into groups of MAX_BATCH
-    const batches = [];
-    for (let i = 0; i < uncached.length; i += MAX_BATCH) {
-      batches.push(uncached.slice(i, i + MAX_BATCH));
-    }
-
-    for (const batch of batches) {
-      let batchResults;
-      if (this.apiKey) {
-        batchResults = await this._fetchBatchFromAPI(batch);
-      } else {
-        batchResults = batch.map(addr => this._generateFromSignals(addr));
-      }
-
+    // Parallel fetch with concurrency cap (avoid hammering API)
+    const CONCURRENCY = 5;
+    for (let i = 0; i < uncached.length; i += CONCURRENCY) {
+      const batch = uncached.slice(i, i + CONCURRENCY);
+      const batchResults = await Promise.all(
+        batch.map(addr => this.apiKey ? this._fetchFromAPI(addr) : this._generateFromSignals(addr))
+      );
       for (const r of batchResults) {
         results.set(r.address, r);
         scoreCache.set(r.address, { data: r, ts: Date.now() });
@@ -123,7 +106,12 @@ class FairScoreService {
    * Get tier metadata for a score value.
    */
   getTier(score) {
-    return getTier(score);
+    if (score === null || score === undefined) return { label: 'New', color: 'gray' };
+    if (score >= 80) return { label: 'Excellent', color: 'green' };
+    if (score >= 60) return { label: 'Good', color: 'blue' };
+    if (score >= 40) return { label: 'Neutral', color: 'gray' };
+    if (score >= 20) return { label: 'Questionable', color: 'orange' };
+    return { label: 'Untrustworthy', color: 'red' };
   }
 
   /**
@@ -134,18 +122,16 @@ class FairScoreService {
   }
 
   /**
-   * Fetch score from FairScale Human Score API.
+   * Fetch complete score from FairScale API.
+   * GET /score?wallet=<address> with fairkey header.
    * @private
    */
   async _fetchFromAPI(address) {
     try {
-      const res = await fetch(`${FAIRSCALE_API}/v1/score`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'fairkey': this.apiKey,
-        },
-        body: JSON.stringify({ addresses: [address] }),
+      const url = `${FAIRSCALE_API}/score?wallet=${encodeURIComponent(address)}`;
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'fairkey': this.apiKey },
       });
 
       if (!res.ok) {
@@ -154,20 +140,20 @@ class FairScoreService {
       }
 
       const data = await res.json();
-      const wallet = data.scores?.[0] || data[0];
 
-      if (!wallet) return this._generateFromSignals(address);
-
-      const score = wallet.score ?? wallet.fairScore ?? null;
-      const tier = getTier(score);
+      // FairScale returns: fairscore, fairscore_base, social_score, tier, badges, features
+      const score = data.fairscore ?? data.fair_score ?? null;
+      const tierMeta = mapTier(data.tier);
 
       return {
         address,
-        score,
-        tier: tier.label,
-        tierColor: tier.color,
-        badges: wallet.badges || [],
-        features: wallet.features || null,
+        score: score !== null ? Math.round(score) : null,
+        tier: tierMeta.label,
+        tierColor: tierMeta.color,
+        fairscoreBase: data.fairscore_base ?? null,
+        socialScore: data.social_score ?? null,
+        badges: Array.isArray(data.badges) ? data.badges : [],
+        features: data.features || null,
         isDemo: false,
       };
     } catch (err) {
@@ -177,74 +163,26 @@ class FairScoreService {
   }
 
   /**
-   * Batch fetch from FairScale API.
-   * @private
-   */
-  async _fetchBatchFromAPI(addresses) {
-    try {
-      const res = await fetch(`${FAIRSCALE_API}/v1/score`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'fairkey': this.apiKey,
-        },
-        body: JSON.stringify({ addresses }),
-      });
-
-      if (!res.ok) {
-        return addresses.map(a => this._generateFromSignals(a));
-      }
-
-      const data = await res.json();
-      const scores = data.scores || data || [];
-
-      return addresses.map((addr, i) => {
-        const wallet = scores[i];
-        if (!wallet) return this._generateFromSignals(addr);
-
-        const score = wallet.score ?? wallet.fairScore ?? null;
-        const tier = getTier(score);
-
-        return {
-          address: addr,
-          score,
-          tier: tier.label,
-          tierColor: tier.color,
-          badges: wallet.badges || [],
-          features: wallet.features || null,
-          isDemo: false,
-        };
-      });
-    } catch (err) {
-      console.warn('[FairScale] Batch API call failed:', err.message);
-      return addresses.map(a => this._generateFromSignals(a));
-    }
-  }
-
-  /**
-   * Generate a score from signals we already have locally.
-   * This is the demo/fallback path — same quality gate logic as expeditionMetrics
-   * but applied to a wallet address. Returns a deterministic score.
+   * Generate a score from address hash — deterministic demo/fallback.
    * @private
    */
   _generateFromSignals(address) {
-    // Stable hash from address for deterministic but varied scores
     let hash = 0;
     for (let i = 0; i < address.length; i++) {
       hash = ((hash << 5) - hash + address.charCodeAt(i)) | 0;
     }
     const absHash = Math.abs(hash);
 
-    // Generate a score in the 40-85 range (neutral to good)
-    // Real FairScale scores would come from actual on-chain data
     const score = 40 + (absHash % 46);
-    const tier = getTier(score);
+    const tier = this.getTier(score);
 
     return {
       address,
       score,
       tier: tier.label,
       tierColor: tier.color,
+      fairscoreBase: null,
+      socialScore: null,
       badges: [],
       features: null,
       isDemo: true,
@@ -261,6 +199,8 @@ class FairScoreService {
       score: null,
       tier: 'Unknown',
       tierColor: 'gray',
+      fairscoreBase: null,
+      socialScore: null,
       badges: [],
       features: null,
       isDemo: true,

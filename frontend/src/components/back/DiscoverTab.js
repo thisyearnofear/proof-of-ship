@@ -9,6 +9,7 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { isValidSolanaAddress } from "@/utils/common";
+import { PrivacyBadge } from "@/components/common/PrivacyShield";
 import {
   MagnifyingGlassIcon,
   AdjustmentsHorizontalIcon,
@@ -255,6 +256,14 @@ export default function DiscoverTab() {
               ? "Projects need a description, GitHub link, and ecosystem to appear here."
               : "Try broadening your search."}
           </p>
+          {projects.length === 0 && (
+            <div className="inline-flex items-center gap-2 text-xs text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200 mb-4">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              When projects appear, your stakes are shielded by default
+            </div>
+          )}
           <button onClick={() => { setSearchQuery(""); setFilterMultiplier("all"); setFilterEcosystem("all"); }}
             className="text-blue-600 hover:underline text-sm">Clear filters</button>
         </div>
@@ -333,6 +342,14 @@ export default function DiscoverTab() {
                   )}
 
                   {backingError && <p className="text-sm text-red-600">{backingError}</p>}
+
+                  {/* Privacy guarantee inline */}
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 text-xs text-purple-800">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    <span className="font-medium">Your stake amount is shielded — other users won't see your position</span>
+                  </div>
 
                   <div className="flex gap-2">
                     <button onClick={() => setBackingProject(null)} disabled={backingStatus === "pending"}

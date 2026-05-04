@@ -5,16 +5,31 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useUser } from "@/contexts/UserContext";
 import TabBar from "@/components/common/TabBar";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import DiscoverTab from "@/components/back/DiscoverTab";
 import PortfolioTab from "@/components/back/PortfolioTab";
 import EconomyTab from "@/components/back/EconomyTab";
+import { PrivacyOnboarding, PrivacyBadge } from "@/components/common/PrivacyShield";
+
+const PRIVACY_STORAGE_KEY = 'pos_privacy_onboarding_dismissed';
 
 export default function BackPage() {
   const router = useRouter();
-  // Use state + useEffect to ensure proper re-render when tab changes
+  const { userRole } = useUser();
   const [tab, setTabState] = useState("discover");
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  // Show privacy onboarding for first-time backers
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const dismissed = localStorage.getItem(PRIVACY_STORAGE_KEY);
+      if (!dismissed && userRole === 'backer') {
+        setShowPrivacy(true);
+      }
+    }
+  }, [userRole]);
 
   // Sync state with router query on mount and when router changes
   useEffect(() => {
@@ -31,6 +46,11 @@ export default function BackPage() {
     router.replace({ pathname: router.pathname, query: t === "discover" ? {} : { tab: t } }, undefined, { shallow: true });
   };
 
+  const dismissPrivacy = () => {
+    setShowPrivacy(false);
+    localStorage.setItem(PRIVACY_STORAGE_KEY, '1');
+  };
+
   const tabs = [
     { id: 'discover', label: 'Discover' },
     { id: 'portfolio', label: 'My Positions' },
@@ -42,6 +62,19 @@ export default function BackPage() {
       <Head><title>Back | Builder Credit</title></Head>
       <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Privacy onboarding — shown to first-time backers */}
+          {showPrivacy && (
+            <PrivacyOnboarding onDismiss={dismissPrivacy} className="mb-6" />
+          )}
+
+          {/* Page header with privacy badge */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900">Back Builders</h1>
+              <PrivacyBadge />
+            </div>
+          </div>
+
           <TabBar
             tabs={tabs}
             activeTab={tab}

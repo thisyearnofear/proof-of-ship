@@ -16,9 +16,9 @@ import {
   ShieldCheckIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
-import PrivatePaymentsToggle from './common/PrivatePaymentsToggle';
+import { PrivacyInline, PrivacyBadge } from './common/PrivacyShield';
 
-export default function BackingPanel({ projectId, developerAddress }) {
+export default function BackingPanel({ projectId, developerAddress, builderSnsDomain }) {
   const wallet = useWallet();
   const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
   const showBuilderIdentity = isValidSolanaAddress(developerAddress || '');
@@ -188,6 +188,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
               Backing{" "}
               <SnsIdentityBadge
                 address={developerAddress}
+                snsNameOverride={builderSnsDomain || null}
                 chainFamily="solana"
                 showFallback={true}
                 showLoading={true}
@@ -199,7 +200,7 @@ export default function BackingPanel({ projectId, developerAddress }) {
       </div>
 
       <p className="text-sm text-gray-600 mb-6">
-        Boost this builder&apos;s credit limit and earn rewards. Your stake is repaid with interest when the builder wins prizes.
+        Boost this builder&apos;s credit limit and earn rewards. Your stake is repaid with interest when the builder wins prizes. Position amounts are shielded via Cloak.
       </p>
 
       <div className="mb-6">
@@ -278,14 +279,9 @@ export default function BackingPanel({ projectId, developerAddress }) {
         </div>
       )}
 
-      {/* Cloak Private Payments Toggle — only shown for Solana wallets */}
+      {/* Privacy guarantee for Solana wallets — positions are shielded by default */}
       {wallet.solanaConnected && (
-        <PrivatePaymentsToggle
-          enabled={privateMode}
-          onChange={setPrivateMode}
-          disabled={loading}
-          className="mb-4"
-        />
+        <PrivacyInline isPrivate={true} className="mb-4" />
       )}
 
       <Button

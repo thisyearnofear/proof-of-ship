@@ -75,8 +75,8 @@ export default function OnboardingBanner() {
     },
     {
       icon: BanknotesIcon,
-      title: '3. Stake & Earn',
-      desc: 'Back builders with USDC and earn rewards',
+      title: '3. Stake Privately',
+      desc: 'Your positions are shielded by default — no copy-staking',
       action: () => router.push('/back?tab=discover'),
       cta: 'Stake →',
     },

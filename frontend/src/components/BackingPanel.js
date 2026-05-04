@@ -9,6 +9,8 @@ import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner, MarketConfidenceSkeleton } from './common/LoadingStates';
 import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
+import FairScoreBadge from '@/components/common/FairScoreBadge';
+import { useFairScore } from '@/hooks/useFairScore';
 import { isValidSolanaAddress } from '@/utils/common';
 import {
   BanknotesIcon,
@@ -22,6 +24,9 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
   const wallet = useWallet();
   const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
   const showBuilderIdentity = isValidSolanaAddress(developerAddress || '');
+
+  // FairScore for builder's Solana address — pre-commitment trust signal
+  const { data: fairScore } = useFairScore(showBuilderIdentity ? developerAddress : null);
 
   const [amount, setAmount] = useState('');
   const [multiplier, setMultiplier] = useState(200); // Default 2x (200)
@@ -181,10 +186,10 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
     <Card className="p-6">
       <div className="flex items-center mb-4">
         <RocketLaunchIcon className="w-6 h-6 text-indigo-600 mr-2" />
-        <div>
+        <div className="flex-1">
           <h3 className="text-lg font-bold text-gray-900">Stake on This Builder</h3>
           {showBuilderIdentity && (
-            <div className="text-sm text-gray-600 mt-1">
+            <div className="text-sm text-gray-600 mt-1 flex items-center gap-2">
               Backing{" "}
               <SnsIdentityBadge
                 address={developerAddress}
@@ -194,6 +199,15 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
                 showLoading={true}
                 className="text-sm"
               />
+              {fairScore && fairScore.score !== null && (
+                <FairScoreBadge
+                  address={developerAddress}
+                  scoreData={fairScore}
+                  compact
+                  showScore={true}
+                  className="text-xs"
+                />
+              )}
             </div>
           )}
         </div>

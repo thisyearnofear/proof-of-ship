@@ -70,15 +70,51 @@ async function handler(req, res) {
         return res.status(403).json({ error: "Forbidden" });
       }
 
-      // Delete from main collection
+      // Soft-delete: if active backings exist, enter 30-day winding down period.
+      // This protects backers who committed capital.
+      const backingsSnap = await db.collection('backings')
+        .where('projectSlug', '==', slug)
+        .where('status', '==', 'active')
+        .get();
+
+      const activeBackings = backingsSnap.size;
+
+      if (activeBackings > 0) {
+        const now = new Date();
+        const expiry = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        const update = {
+          status: 'winding_down',
+          windingDownAt: now.toISOString(),
+          windingDownExpiry: expiry.toISOString(),
+          windingDownReason: existing.windingDownReason || 'Builder requested deletion',
+          updatedAt: now.toISOString(),
+        };
+
+        await projectRef.update(update);
+
+        if (existing.ecosystem) {
+          await db.collection(`projects_${existing.ecosystem}`).doc(slug)
+            .update(update).catch(() => {});
+        }
+
+        return res.status(200).json({
+          success: true,
+          status: 'winding_down',
+          activeBackings,
+          expiresAt: expiry.toISOString(),
+          message: `Project has ${activeBackings} active backer(s). It has been hidden and will be fully removed in 30 days, giving backers time to close positions.`,
+        });
+      }
+
+      // No active backings — hard delete immediately
       await projectRef.delete();
 
-      // Delete from ecosystem sub-collection
       if (existing.ecosystem) {
         await db.collection(`projects_${existing.ecosystem}`).doc(slug).delete().catch(() => {});
       }
 
-      return res.status(200).json({ success: true });
+      return res.status(200).json({ success: true, status: 'deleted' });
     } catch (error) {
       console.error("Error deleting project:", error);
       return res.status(500).json({ error: "Internal server error" });

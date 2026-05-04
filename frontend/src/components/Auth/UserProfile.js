@@ -8,6 +8,8 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
+import FairScoreBadge from '@/components/common/FairScoreBadge';
+import { useFairScore } from '@/hooks/useFairScore';
 
 export default function UserProfile() {
   const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet, userRole } = useUser();
@@ -23,6 +25,10 @@ export default function UserProfile() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isFrame, setIsFrame] = useState(false);
   const [unlinking, setUnlinking] = useState(null);
+
+  // FairScore for primary Solana wallet
+  const primarySolanaWallet = linkedWallets.find(w => w.chainFamily === 'solana')?.address;
+  const { data: fairScore } = useFairScore(primarySolanaWallet);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -191,6 +197,18 @@ export default function UserProfile() {
               <EthosScoreBadge score={null} size="sm" />
             </div>
           ) : null}
+
+          {/* FairScore — Solana on-chain reputation */}
+          {primarySolanaWallet && fairScore && fairScore.score !== null && (
+            <div className="mt-2">
+              <FairScoreBadge
+                address={primarySolanaWallet}
+                scoreData={fairScore}
+                showScore={true}
+                showBadges={true}
+              />
+            </div>
+          )}
         </div>
       </div>
 

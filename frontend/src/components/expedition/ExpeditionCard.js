@@ -8,6 +8,8 @@ import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import ProjectHealthChart from './ProjectHealthChart';
 import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
+import FairScoreBadge from '@/components/common/FairScoreBadge';
+import { useFairScore } from '@/hooks/useFairScore';
 import { isValidSolanaAddress } from '@/utils/common';
 import { 
   CurrencyDollarIcon, 
@@ -46,6 +48,11 @@ export default function ExpeditionCard({ project, onBack, scoutScore }) {
   const builderName = project.githubUrl
     ? project.githubUrl.split('/').slice(-2, -1)[0] || null
     : project.owner || null;
+
+  // FairScore for builder's Solana address
+  const builderAddress = (project.ecosystem === 'solana' || isValidSolanaAddress(project.developer || ''))
+    ? project.developer : null;
+  const { data: fairScore } = useFairScore(builderAddress);
   
   return (
     <Card className={`h-full flex flex-col hover:shadow-xl transition-all duration-300 border-t-4 ${borderClass}`}>
@@ -88,6 +95,16 @@ export default function ExpeditionCard({ project, onBack, scoutScore }) {
             }`} />
             {project.lastCheckIn < 24 ? 'Active' : project.lastCheckIn < 72 ? 'Recent' : 'Stale'}
           </span>
+
+          {/* FairScore — on-chain builder reputation */}
+          {fairScore && fairScore.score !== null && (
+            <FairScoreBadge
+              address={builderAddress}
+              scoreData={fairScore}
+              compact
+              showScore={false}
+            />
+          )}
         </div>
 
         {/* Project Name + Builder */}

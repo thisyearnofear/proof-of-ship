@@ -28,6 +28,7 @@ function isBackerReady(project) {
   const hasGithub = !!(project.githubUrl || (project.owner && project.repo));
   const hasEcosystem = !!(project.ecosystem || '').trim();
   const hasCategory = !!(project.category || '').trim();
+  const status = (project.status || 'submitted').trim();
 
   // Must have a name
   if (!name) return false;
@@ -40,6 +41,9 @@ function isBackerReady(project) {
 
   // Must have at least a GitHub URL or owner/repo for code verification
   if (!hasGithub) return false;
+
+  // Exclude projects that are winding down (protected deletion period)
+  if (status === 'winding_down') return false;
 
   // Bonus: category presence indicates a more complete submission
   // but we don't require it — some real projects omit it

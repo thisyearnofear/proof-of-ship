@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-05-04 — Privacy as Platform Feature (Cloak Redesign)
+
+- Reframed Cloak privacy from a buried toggle to a platform guarantee
+- Created `PrivacyShield.js` with three exports:
+  - `PrivacyOnboarding`: 3-step interactive explainer (The Problem → How We Protect You → It's Automatic) with visual comparisons of public vs shielded explorer views
+  - `PrivacyInline`: compact purple callout for BackingPanel
+  - `PrivacyBadge`: "Positions Shielded" badge for headers
+- `back.js`: First-time backers see PrivacyOnboarding walkthrough on /back, PrivacyBadge in page header
+- `BackingPanel.js`: Replaced PrivatePaymentsToggle with PrivacyInline guarantee (automatic, no toggle)
+- `DiscoverTab.js`: Empty state shows privacy message; inline backing modal shows privacy guarantee before confirm
+- `OnboardingBanner.js`: Backer step 3 changed from "Stake & Earn" to "Stake Privately"
+- Cleared 16 skeleton projects from generic `projects` collection (zero descriptions, no ecosystem/GitHub)
+- Platform now clean for user-driven submissions only
+
 ## 2026-05-04 — SNS Agent Domain Registration on Devnet
 
 - Registered 4 agent .sol domains on Solana devnet: pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol

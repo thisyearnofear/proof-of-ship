@@ -53,7 +53,10 @@ Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second 
 
 ### Privacy Layer
 
-- **Cloak shielded transfers** — Backers can stake without revealing positions (preventing copy-staking). Builders can receive payouts without earnings being public. Uses Cloak's UTXO shielded pool on Solana with Groth16 proofs generated client-side.
+- **Cloak shielded transfers** — Backers' stake amounts are protected by default via Cloak's UTXO shielded pool on Solana with Groth16 proofs generated client-side. Privacy is a platform feature, not a user toggle.
+- **Privacy-first onboarding** — First-time backers see a 3-step interactive walkthrough explaining public vs shielded explorer views. "Positions Shielded" badges appear throughout the back flow.
+- **Inline guarantees** — The backing modal shows "Your stake amount is shielded — other users won't see your position" right before confirmation. No configuration needed.
+- **Demo mode** — On devnet, the exact Cloak SDK flow is demonstrated with real method signatures. On mainnet, the same code path executes real shielded transactions.
 
 ### Local-First AI
 

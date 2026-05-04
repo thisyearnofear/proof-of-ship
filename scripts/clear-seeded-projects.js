@@ -17,12 +17,15 @@
  *   - Only deletes projects with empty descriptions
  *   - Preserves any project that has a real description (>15 chars)
  *   - Logs every deletion for audit
+ *   - Requires --confirm flag to actually delete (default is dry run)
+ *
+ * Authentication:
+ *   Uses firebase-admin with Application Default Credentials (gcloud auth)
+ *   or FIREBASE_PRIVATE_KEY env var.
  */
 
 const path = require('path');
 
-// Load Firebase Admin from the frontend's server-side setup
-// or from environment variables
 let admin;
 try {
   admin = require('firebase-admin');
@@ -31,33 +34,25 @@ try {
   process.exit(1);
 }
 
-// Initialize Firebase Admin
 if (!admin.apps.length) {
-  const serviceAccount = {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  };
+  // Try loading from env vars first
+  require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
+  require('dotenv').config({ path: path.join(__dirname, '..', 'frontend', '.env.local') });
 
-  if (!serviceAccount.projectId) {
-    // Try loading from .env.local
-    try {
-      require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
-      require('dotenv').config({ path: path.join(__dirname, '..', 'frontend', '.env.local') });
-      serviceAccount.projectId = process.env.FIREBASE_PROJECT_ID;
-      serviceAccount.clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-      serviceAccount.privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-    } catch {}
+  const projectId = process.env.FIREBASE_PROJECT_ID || 'proofofship';
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+  if (clientEmail && privateKey) {
+    admin.initializeApp({
+      credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
+    });
+    console.log('Initialized with service account credentials.');
+  } else {
+    // Fall back to Application Default Credentials (gcloud auth)
+    admin.initializeApp({ projectId });
+    console.log('Initialized with Application Default Credentials (gcloud auth).');
   }
-
-  if (!serviceAccount.projectId) {
-    console.error('Missing FIREBASE_PROJECT_ID. Set env vars or create frontend/.env.local');
-    process.exit(1);
-  }
-
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
 }
 
 const db = admin.firestore();
@@ -74,10 +69,8 @@ async function main() {
   for (const doc of snapshot.docs) {
     const data = doc.data();
     const description = (data.description || '').trim();
-    const hasEcosystem = !!(data.ecosystem || '').trim();
     const hasGithub = !!(data.githubUrl || (data.owner && data.repo));
 
-    // Project is "seeded" (skeleton) if it lacks description or ecosystem
     if (description.length < 15 && !hasGithub) {
       toDelete.push({ id: doc.id, name: data.name, description: description.slice(0, 50) });
     } else {
@@ -89,7 +82,7 @@ async function main() {
   console.log(`Projects to keep (real data): ${toKeep.length}\n`);
 
   if (toDelete.length === 0) {
-    console.log('Nothing to delete. All projects have real data.');
+    console.log('Nothing to delete.');
     return;
   }
 
@@ -98,14 +91,15 @@ async function main() {
     console.log(`  - ${p.id} (${p.name || 'unnamed'})${p.description ? `: "${p.description}..."` : ''}`);
   }
 
-  console.log('\nWill keep:');
-  for (const p of toKeep) {
-    console.log(`  - ${p.id} (${p.name || 'unnamed'})`);
+  if (toKeep.length > 0) {
+    console.log('\nWill keep:');
+    for (const p of toKeep) {
+      console.log(`  - ${p.id} (${p.name || 'unnamed'})`);
+    }
   }
 
-  // Safety: require --confirm flag
   if (!process.argv.includes('--confirm')) {
-    console.log('\n⚠️  Dry run. To actually delete, run:');
+    console.log('\nDry run. To delete, add --confirm:');
     console.log('  node scripts/clear-seeded-projects.js --confirm');
     return;
   }

@@ -8,8 +8,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
-import FairScoreBadge from '@/components/common/FairScoreBadge';
-import { useFairScore } from '@/hooks/useFairScore';
+import { BuilderTrustFull } from '@/components/common/BuilderTrust';
 
 export default function UserProfile() {
   const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet, userRole } = useUser();
@@ -26,9 +25,8 @@ export default function UserProfile() {
   const [isFrame, setIsFrame] = useState(false);
   const [unlinking, setUnlinking] = useState(null);
 
-  // FairScore for primary Solana wallet
+  // Primary Solana wallet for trust display
   const primarySolanaWallet = linkedWallets.find(w => w.chainFamily === 'solana')?.address;
-  const { data: fairScore } = useFairScore(primarySolanaWallet);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -199,14 +197,9 @@ export default function UserProfile() {
           ) : null}
 
           {/* FairScore — Solana on-chain reputation */}
-          {primarySolanaWallet && fairScore && fairScore.score !== null && (
-            <div className="mt-2">
-              <FairScoreBadge
-                address={primarySolanaWallet}
-                scoreData={fairScore}
-                showScore={true}
-                showBadges={true}
-              />
+          {primarySolanaWallet && (
+            <div className="mt-3">
+              <BuilderTrustFull address={primarySolanaWallet} />
             </div>
           )}
         </div>

@@ -36,6 +36,11 @@ const navigation = [
     href: "/back", 
     icon: ChartBarIcon,
   },
+  { 
+    name: "Analyze", 
+    href: "/analyze", 
+    icon: CalculatorIcon,
+  },
 ];
 
 function classNames(...classes) {

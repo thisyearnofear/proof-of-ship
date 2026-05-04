@@ -2,6 +2,7 @@ import React from "react";
 import { Card } from "@/components/common/Card";
 import NanopaymentWidget from "@/components/common/NanopaymentWidget";
 import TransactionFeed from "@/components/common/TransactionFeed";
+import CloakDemoPanel from "@/components/common/CloakDemoPanel";
 
 export default function EconomyTab() {
   return (
@@ -28,6 +29,9 @@ export default function EconomyTab() {
           ))}
         </div>
       </Card>
+
+      {/* Cloak Privacy Demo */}
+      <CloakDemoPanel />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>

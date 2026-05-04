@@ -25,20 +25,33 @@ export default function PrivatePaymentsToggle({
   className = '',
 }: PrivatePaymentsToggleProps) {
   const [available, setAvailable] = useState<boolean | null>(null);
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
-    cloakPaymentService.isAvailable().then(setAvailable).catch(() => setAvailable(false));
+    cloakPaymentService.isAvailable().then((avail) => {
+      setAvailable(avail);
+      // Show in demo mode when Cloak isn't deployed (devnet)
+      if (!avail) setDemoMode(true);
+    }).catch(() => {
+      setAvailable(false);
+      setDemoMode(true);
+    });
   }, []);
 
-  // Don't render if Cloak isn't available on this cluster
-  if (available === false) return null;
+  // Show demo indicator when Cloak isn't available on this cluster
+  const cluster = process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet';
+  const isMainnet = cluster === 'mainnet' || cluster === 'mainnet-beta';
 
   return (
-    <div className={`p-3 rounded-lg border transition-all ${enabled ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'} ${className}`}>
+    <div className={`p-3 rounded-lg border transition-all ${
+      enabled ? 'border-purple-300 bg-purple-50' : 
+      demoMode ? 'border-purple-200 bg-purple-50/50' : 
+      'border-gray-200 bg-gray-50'
+    } ${className}`}>
       <label className="flex items-center justify-between cursor-pointer">
         <div className="flex items-center gap-2">
           <svg
-            className={`w-4 h-4 ${enabled ? 'text-purple-600' : 'text-gray-400'}`}
+            className={`w-4 h-4 ${enabled ? 'text-purple-600' : demoMode ? 'text-purple-400' : 'text-gray-400'}`}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -47,13 +60,27 @@ export default function PrivatePaymentsToggle({
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <div>
-            <span className={`text-sm font-medium ${enabled ? 'text-purple-800' : 'text-gray-700'}`}>
-              Private Stake
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-sm font-medium ${enabled ? 'text-purple-800' : 'text-gray-700'}`}>
+                Private Stake
+              </span>
+              {demoMode && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-600 uppercase">
+                  Demo
+                </span>
+              )}
+              {!demoMode && available && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-green-100 text-green-600 uppercase">
+                  Live
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-gray-500 mt-0.5">
               {enabled
                 ? 'Amounts hidden via Cloak shielded pool'
-                : 'Shield your stake from public explorers'}
+                : demoMode
+                  ? 'Simulate Cloak privacy (mainnet only)'
+                  : 'Shield your stake from public explorers'}
             </p>
           </div>
         </div>

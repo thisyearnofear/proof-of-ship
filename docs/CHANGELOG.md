@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-05-05 — QVAC Service Rewrite (Honest Local-First Architecture)
+
+- Rewrote QvacService.ts from scratch — removed fake browser-based `import('@qvac/sdk')` that never worked
+- New architecture: QVAC runs as a local HTTP server (`qvac serve`), service calls `localhost:PORT/v1/chat/completions` (OpenAI-compatible)
+- Auto-detects local QVAC server via `/v1/models` health check with 10s cooldown cache
+- Provider chain: QVAC local → Featherless cloud → AIsa → Rule-based fallback (same prompts, same structure)
+- Updated /analyze page: removed fake "Load Model" button, added honest dual-path UI with "Retry Connection" and `qvac serve` instructions
+- Source badge shows "On-Device (QVAC)" vs "Cloud API (Featherless)" — transparent about where inference runs
+- Updated COLOSSEUM_SUBMISSION.md Local-First AI section with accurate architecture description
+- Updated BuilderTrust component with score ring, tier, and behavioral signal chips
+- Updated FairScoreService to match real FairScale API spec (GET-based, api2.fairscale.xyz, correct response shape)
+
+## 2026-05-05 — Trust Infrastructure Redesign
+
+- Created BuilderTrust.tsx — single source of truth for trust display across all surfaces
+- BuilderTrustCompact: compact pill in ExpeditionCard badge row (score ring + tier + top behavioral signal)
+- BuilderTrustFull: dedicated trust panel in BackingPanel before stake button (score, tier, badges, signal chips)
+- BuilderTrustSkeleton: loading state so cards don't pop in jarringly
+- deriveSignals() maps FairScale's 15-signal features to human-readable chips (active days, wallet age, conviction, dump history)
+- BackingPanel: trust panel between description and multiplier selector — first thing backer sees before committing capital
+- UserProfile: BuilderTrustFull below Ethos score
+- Replaced FairScoreBadge usage across ExpeditionCard, BackingPanel, UserProfile
+
+## 2026-05-05 — Soft-Delete with Grace Period
+
+- DELETE handler checks for active backings before hard-deleting
+- If backings exist, sets status to winding_down with 30-day expiry
+- Quality gate in useExpeditionData filters out winding_down projects
+- New /api/projects/winding-down endpoint: GET to list, POST to process expired projects (auto-extends if backings still active)
+- Created FairScoreService.js, FairScoreBadge.tsx, useFairScore.ts hook, /api/reputation/score endpoint
+
 ## 2026-05-04 — Privacy as Platform Feature (Cloak Redesign)
 
 - Reframed Cloak privacy from a buried toggle to a platform guarantee

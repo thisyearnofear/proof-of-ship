@@ -60,7 +60,7 @@ Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second 
 
 ### Local-First AI
 
-- **QVAC by Tether** — AI analysis runs locally on the user's device when possible, keeping project data private. Score analysis, project health checks, and GitHub data processing don't require routing through cloud APIs.
+- **QVAC by Tether** — Our inference layer is provider-agnostic with QVAC as the preferred provider. When a user runs `qvac serve` locally, analysis runs on their GPU via an OpenAI-compatible HTTP API — project data never leaves their machine. When QVAC isn't running, the same prompts and scoring structure are served by Featherless cloud. The `/analyze` page auto-detects which provider is available and shows a clear "On-Device (QVAC)" vs "Cloud API (Featherless)" badge. The same architecture powers the AI agents (Scout, Underwriter, Verifier).
 
 ---
 
@@ -154,7 +154,7 @@ The Cloak integration includes an interactive demo panel on the Back page that w
 
 **QVAC /analyze Page**
 
-A standalone `/analyze` page demonstrates on-device AI analysis via QVAC. It loads real projects from Firestore, runs structured analysis (score, strengths, risks, recommendation), and shows a credit score explanation — all using `qvacService.analyzeProject()` and `explainCreditScore()`. When QVAC SDK isn't installed, it falls back to the cloud API with the same prompts.
+A standalone `/analyze` page demonstrates local-first AI analysis via QVAC. It loads real projects from Firestore and runs structured analysis (score, strengths, risks, recommendation) plus credit score explanation. The page auto-detects whether a local QVAC server is running (`qvac serve` on localhost) and routes inference there — project data never leaves the user's machine. When QVAC isn't available, it falls back to the Featherless cloud API with identical prompts and output structure. A source badge shows "On-Device (QVAC)" vs "Cloud API (Featherless)" so the user always knows where inference ran. The same provider chain powers the AI agent chat widget and the agent API endpoints.
 
 To reproduce the latest flow locally after rebuilding and redeploying the Anchor program:
 

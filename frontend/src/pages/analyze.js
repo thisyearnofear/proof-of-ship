@@ -1,12 +1,16 @@
 /**
- * /analyze — Standalone QVAC On-Device Analysis Page
+ * /analyze — AI Project Analysis with Local-First Inference
  *
- * Demonstrates QVAC (Tether's on-device AI) for project analysis and credit
- * score explanation. When @qvac/sdk is installed, inference runs entirely on
- * the user's device — no data leaves the browser. Falls back to the cloud
- * API with the same prompts when QVAC isn't available.
+ * Demonstrates the QVAC provider chain for project analysis and credit
+ * score explanation. When a local QVAC server is running, inference happens
+ * on the user's machine — project data never leaves the browser's localhost.
+ * Falls back to cloud APIs (Featherless) with identical prompts when QVAC
+ * isn't available.
+ *
+ * Provider chain: QVAC local → Featherless cloud → Rule-based fallback
  *
  * Tracks: Tether Frontier Track ($10K)
+ * @see https://docs.qvac.tether.io/http-server/
  */
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -17,10 +21,9 @@ import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { qvacService } from "@/services/QvacService";
 
 export default function AnalyzePage() {
-  // QVAC status
+  // QVAC status — detected automatically, no manual "load model"
   const [qvacStatus, setQvacStatus] = useState({ available: false, modelLoaded: false, modelId: null, error: null });
-  const [modelLoading, setModelLoading] = useState(false);
-  const [modelProgress, setModelProgress] = useState(null);
+  const [qvacChecking, setQvacChecking] = useState(true);
 
   // Project analysis state
   const [selectedProject, setSelectedProject] = useState(null);
@@ -36,9 +39,15 @@ export default function AnalyzePage() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
 
-  // Check QVAC status on mount
+  // Check QVAC status on mount — tries to reach localhost:3000
   useEffect(() => {
-    qvacService.getStatus().then(setQvacStatus).catch(() => {});
+    let mounted = true;
+    setQvacChecking(true);
+    qvacService.getStatus()
+      .then(status => { if (mounted) setQvacStatus(status); })
+      .catch(() => {})
+      .finally(() => { if (mounted) setQvacChecking(false); });
+    return () => { mounted = false; };
   }, []);
 
   // Load projects from Firestore
@@ -48,7 +57,6 @@ export default function AnalyzePage() {
         const { db } = await import("@/lib/firebase/clientApp");
         const { collection, getDocs, query, where, limit: fbLimit } = await import("firebase/firestore");
 
-        // Try loading from ecosystem collections
         const ecosystems = ['solana', 'celo', 'arc', 'base'];
         const all = [];
 
@@ -78,22 +86,11 @@ export default function AnalyzePage() {
     loadProjects();
   }, []);
 
-  const handleLoadModel = async () => {
-    setModelLoading(true);
-    setModelProgress('Downloading model (Llama 3.2 1B, ~700MB)...');
-    try {
-      const ok = await qvacService.initialize();
-      if (ok) {
-        setQvacStatus(await qvacService.getStatus());
-        setModelProgress('Model loaded — ready for on-device inference.');
-      } else {
-        setModelProgress('QVAC SDK not available. Install @qvac/sdk for local inference.');
-      }
-    } catch (err) {
-      setModelProgress(`Failed: ${err.message}`);
-    } finally {
-      setModelLoading(false);
-    }
+  const handleRetryQvac = async () => {
+    setQvacChecking(true);
+    const status = await qvacService.refreshStatus();
+    setQvacStatus(status);
+    setQvacChecking(false);
   };
 
   const handleAnalyze = async (project) => {
@@ -103,9 +100,12 @@ export default function AnalyzePage() {
     setAnalysisResult(null);
 
     try {
+      // Re-check QVAC availability in case user started server since page load
+      const currentStatus = await qvacService.getStatus();
       let result;
-      if (qvacStatus.available && qvacStatus.modelLoaded) {
-        // On-device via QVAC
+
+      if (currentStatus.available) {
+        // Local-first: QVAC server on user's machine
         result = await qvacService.analyzeProject({
           name: project.name,
           description: project.description || '',
@@ -113,7 +113,7 @@ export default function AnalyzePage() {
           ecosystem: project.ecosystem || '',
         });
       } else {
-        // Cloud fallback — call the same analysis via our API
+        // Cloud fallback: same prompts, same structure
         const res = await fetch('/api/agent/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -158,8 +158,10 @@ export default function AnalyzePage() {
         milestonesTotal: 5,
       };
 
+      const currentStatus = await qvacService.getStatus();
       let result;
-      if (qvacStatus.available && qvacStatus.modelLoaded) {
+
+      if (currentStatus.available) {
         result = await qvacService.explainCreditScore(scoreData);
       } else {
         const res = await fetch('/api/agent/analyze', {
@@ -191,7 +193,7 @@ export default function AnalyzePage() {
     if (source === 'cloud-fallback') {
       return (
         <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
-          Cloud API
+          Cloud API (Featherless)
         </span>
       );
     }
@@ -201,8 +203,8 @@ export default function AnalyzePage() {
   return (
     <>
       <Head>
-        <title>Analyze — On-Device AI | Proof of Ship</title>
-        <meta name="description" content="AI-powered project analysis running on your device via QVAC. Privacy-preserving inference — your data never leaves the browser." />
+        <title>Analyze — Local-First AI | Proof of Ship</title>
+        <meta name="description" content="AI-powered project analysis with local-first inference via QVAC. When a local server is running, your data never leaves your machine." />
       </Head>
 
       <div className="min-h-screen bg-gray-50">
@@ -210,72 +212,68 @@ export default function AnalyzePage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              On-Device AI Analysis
+              AI Project Analysis
             </h1>
             <p className="text-gray-600">
-              Privacy-preserving project analysis powered by QVAC. When the model runs locally,
-              your data never leaves the browser.
+              Analyze projects with local-first inference. When QVAC is running on your machine,
+              analysis happens locally — your data never leaves your device.
             </p>
           </div>
 
           {/* QVAC Status Card */}
-          <Card className="p-5 mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <Card className={`p-5 mb-6 border ${
+            qvacStatus.available
+              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+              : 'bg-gradient-to-r from-slate-50 to-gray-50 border-gray-200'
+          }`}>
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-lg">🔒</span>
                   <h2 className="text-lg font-bold text-gray-900">QVAC Status</h2>
-                  {qvacStatus.available && qvacStatus.modelLoaded && (
+                  {qvacChecking && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-400 text-white uppercase tracking-wider animate-pulse">
+                      Checking...
+                    </span>
+                  )}
+                  {!qvacChecking && qvacStatus.available && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500 text-white uppercase tracking-wider">
-                      Active
+                      Local Server Active
                     </span>
                   )}
-                  {qvacStatus.available && !qvacStatus.modelLoaded && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500 text-white uppercase tracking-wider">
-                      SDK Installed — Model Not Loaded
-                    </span>
-                  )}
-                  {!qvacStatus.available && (
+                  {!qvacChecking && !qvacStatus.available && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wider">
                       Cloud Fallback
                     </span>
                   )}
                 </div>
 
-                {qvacStatus.available && qvacStatus.modelLoaded && (
+                {qvacStatus.available && (
                   <p className="text-sm text-green-700">
-                    Running Llama 3.2 1B locally. Analysis runs on your GPU — no data sent to servers.
+                    Connected to local QVAC server. Analysis runs on your GPU — project data stays on your machine.
                   </p>
                 )}
-                {qvacStatus.available && !qvacStatus.modelLoaded && (
-                  <p className="text-sm text-yellow-700">
-                    QVAC SDK is installed but the model hasn't been loaded yet.
-                  </p>
-                )}
-                {!qvacStatus.available && (
-                  <p className="text-sm text-blue-700">
-                    Using cloud API for analysis. Install @qvac/sdk and load the model for on-device inference.
-                  </p>
-                )}
-
-                {modelProgress && (
-                  <p className="text-xs text-gray-600 mt-2 font-mono bg-gray-100 px-2 py-1 rounded">
-                    {modelProgress}
-                  </p>
+                {!qvacChecking && !qvacStatus.available && (
+                  <div className="text-sm text-gray-600">
+                    <p>No local QVAC server detected. Analysis uses our cloud API (Featherless).</p>
+                    <p className="mt-2 text-xs text-gray-500">
+                      To enable local inference: install QVAC and start the server — your project data will never leave your machine.
+                    </p>
+                    <div className="mt-2 p-2 bg-gray-100 rounded font-mono text-xs text-gray-700">
+                      <div>npm install -g @qvac/sdk</div>
+                      <div>qvac serve</div>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {qvacStatus.available && !qvacStatus.modelLoaded && (
+              {!qvacChecking && !qvacStatus.available && (
                 <Button
-                  onClick={handleLoadModel}
-                  disabled={modelLoading}
-                  className="flex items-center gap-2 text-sm"
+                  variant="outline"
+                  onClick={handleRetryQvac}
+                  className="text-xs flex-shrink-0"
                 >
-                  {modelLoading ? (
-                    <><LoadingSpinner size="sm" /> Loading...</>
-                  ) : (
-                    <><span>🧠</span> Load Model</>
-                  )}
+                  Retry Connection
                 </Button>
               )}
             </div>
@@ -288,7 +286,7 @@ export default function AnalyzePage() {
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                   <span>📊</span> Credit Score Explanation
                 </h2>
-                <p className="text-sm text-gray-600">See how QVAC explains a builder's credit profile</p>
+                <p className="text-sm text-gray-600">See how AI explains a builder's credit profile</p>
               </div>
               <Button
                 variant="outline"
@@ -306,8 +304,8 @@ export default function AnalyzePage() {
                   {creditResult.text}
                 </div>
                 {creditResult.source === 'qvac-local' && (
-                  <p className="text-[11px] text-green-600 mt-1">
-                    This analysis ran entirely on your device. No financial data was sent to any server.
+                  <p className="text-[11px] text-green-600 mt-1 flex items-center gap-1">
+                    <span>🔒</span> This analysis ran on your machine. No financial data was sent to any server.
                   </p>
                 )}
               </div>
@@ -320,8 +318,8 @@ export default function AnalyzePage() {
               <span>🔍</span> Project Analysis
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Select a project to analyze. {qvacStatus.available && qvacStatus.modelLoaded
-                ? 'Analysis will run on your device.'
+              Select a project to analyze. {qvacStatus.available
+                ? 'Analysis will run locally via QVAC — your data stays on your machine.'
                 : 'Analysis uses the cloud API with the same prompts.'}
             </p>
 
@@ -370,9 +368,9 @@ export default function AnalyzePage() {
                 <div>
                   <p className="font-medium text-gray-900">Analyzing {selectedProject?.name}...</p>
                   <p className="text-sm text-gray-500">
-                    {qvacStatus.available && qvacStatus.modelLoaded
-                      ? 'Running on your device via QVAC'
-                      : 'Sending to cloud API'}
+                    {qvacStatus.available
+                      ? 'Running on your machine via QVAC'
+                      : 'Sending to cloud API (Featherless)'}
                   </p>
                 </div>
               </div>
@@ -456,7 +454,7 @@ export default function AnalyzePage() {
               {analysisResult.source === 'qvac-local' && (
                 <p className="text-[11px] text-green-600 mt-3 flex items-center gap-1">
                   <span>🔒</span>
-                  This analysis ran entirely on your device. No project data was sent to any server.
+                  This analysis ran on your machine via QVAC. No project data was sent to any server.
                 </p>
               )}
             </Card>
@@ -464,23 +462,23 @@ export default function AnalyzePage() {
 
           {/* How it works */}
           <Card className="p-5 bg-gray-50 border-gray-200">
-            <h3 className="font-bold text-gray-900 mb-3">How On-Device AI Works</h3>
+            <h3 className="font-bold text-gray-900 mb-3">How Local-First AI Works</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 {
                   icon: '🧠',
-                  title: 'Load Model',
-                  desc: 'Llama 3.2 1B (Q4_0) downloads to your browser. ~700MB, runs on WebGPU.',
+                  title: 'Start QVAC Server',
+                  desc: 'Install @qvac/sdk and run qvac serve. Llama 3.2 1B loads on your GPU. ~700MB download, runs via Vulkan/Metal.',
                 },
                 {
                   icon: '🔒',
                   title: 'Private Inference',
-                  desc: 'Project data stays on your device. No API calls, no telemetry, no tracking.',
+                  desc: 'When QVAC is detected, analysis runs locally. Project data never leaves your machine. No API calls, no telemetry.',
                 },
                 {
                   icon: '☁️',
                   title: 'Cloud Fallback',
-                  desc: 'When QVAC isn\'t available, the same prompts are sent to our cloud API.',
+                  desc: 'When QVAC isn\'t running, the same prompts go to our cloud API (Featherless). Same output structure, different privacy guarantees.',
                 },
               ].map((step) => (
                 <div key={step.title} className="p-3 bg-white rounded-lg border border-gray-200">
@@ -489,6 +487,14 @@ export default function AnalyzePage() {
                   <p className="text-xs text-gray-600 mt-0.5">{step.desc}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-600">
+                <strong>Architecture:</strong> QvacService is provider-agnostic. The same analysis prompts and
+                scoring structure are used regardless of where inference runs. When QVAC adds browser WebGPU
+                support, or when users adopt the CLI, the integration is ready — no code changes needed.
+              </p>
             </div>
           </Card>
         </div>

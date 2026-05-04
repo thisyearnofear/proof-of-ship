@@ -93,8 +93,8 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] 7 confirmed on-chain transactions (Treasury, Projects, Backings, Milestone, Repay)
 - [x] Cloak private (shielded) USDC transfers for backer staking via CloakPaymentService
 - [x] Cloak interactive demo panel (5-step flow with technical toggle) on Back page AI Agents tab
-- [x] QVAC local-first AI inference option in chat widget (Tether SDK, graceful fallback)
-- [x] QVAC standalone /analyze page with project selector, structured analysis, credit explanation
+- [x] QVAC local-first AI inference option in chat widget (auto-detect local server, graceful fallback)
+- [x] QVAC standalone /analyze page with project selector, structured analysis, credit explanation, dual-path provider detection
 - [x] SNS Identity integration — builders and agents display .sol domain names (pos-scout.sol, etc.)
 - [x] Agent identities wired into all API responses + 6 UI components
 - [x] Agent .sol domains registered on devnet: pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol

@@ -47,8 +47,9 @@ Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second 
 
 ### Identity Layer
 
-- **SNS (.sol domains)** — Builders and agents display human-readable on-chain identities via Solana Name Service integration. A builder named `alice.sol` is more legible than `7xKX...4pQr`.
-- **Agent identities** — Each AI agent has a registered .sol domain (`pos-scout.sol`, etc.) providing on-chain identity for machine-to-machine transactions.
+- **SNS (.sol domains)** — Builders and agents use human-readable on-chain identities via Solana Name Service integration. A builder named `alice.sol` is more legible than `7xKX...4pQr`.
+- **Anchored builder identity proof** — In the latest Solana project-creation flow, the builder signs an SNS identity-claim message, the transaction prepends an `Ed25519Program` verification instruction, and the Anchor program stores the claimed `.sol` domain, SNS name-account reference, and proof signature on the `Project` account.
+- **Agent identities** — Each AI agent has a registered .sol domain on devnet (`pos-scout.sol`, `pos-underwriter.sol`, `pos-verifier.sol`, `pos-rebalance.sol`) providing verifiable on-chain identity for machine-to-machine transactions. All 4 registered by the project wallet.
 
 ### Privacy Layer
 
@@ -119,7 +120,55 @@ The Anchor program is deployed and all core flows are confirmed on-chain:
 | 6 | Create Project 2 (3 milestones) | [`5d4uUk8g...`](https://explorer.solana.com/tx/5d4uUk8gKRBdnBTV9qEHPZL8DKW7fNwGmcPHexRXRL61rkZFwH7p6rptGKW9n3kDBWC5bUtgGsMPA13q9LRWkryh?cluster=devnet) |
 | 7 | Back Project 2 (3 USDC, 3x) | [`4WCdiM9N...`](https://explorer.solana.com/tx/4WCdiM9NB98pYTWWbt3YUc5dfwDVZBJ7QjRt8D4zTVvKQZNfyqVfhEgcGxHJZsXL1p9ioyZDq9Zryqc3mLiU9exF?cluster=devnet) |
 
-All transactions verifiable on Solana Explorer. Run `cd blockchain-solana && npm run tx:devnet` to reproduce.
+All transactions above are verifiable on Solana Explorer.
+
+### Latest Repo Revision
+
+Since those proof transactions were recorded, the Solana funding flow has been upgraded to make SNS identity load-bearing:
+
+1. The builder resolves or supplies a `.sol` domain.
+2. The wallet signs a canonical SNS identity-claim message.
+3. The transaction prepends an `Ed25519Program` verification instruction.
+4. The Anchor program validates the SNS name account owner/header and stores:
+   - `builder_sns_domain`
+   - `builder_sns_name_account`
+   - `builder_identity_signature`
+
+**Agent SNS Domain Registrations (devnet)**
+
+All 4 AI agents have registered .sol domains on Solana devnet, owned by the project wallet:
+
+| Agent | Domain | Registration TX |
+|-------|--------|----------------|
+| Scout | `pos-scout.sol` | [`3jaZHfX...`](https://explorer.solana.com/tx/3jaZHfXVkhsqths28JiHsVbzY1kSo1ZjFSwDF58vAQDrt2AF83Ty5PCav1CWVHaMSposVhAjtkz3RdFZNeVDhfGD?cluster=devnet) |
+| Underwriter | `pos-underwriter.sol` | [`395H3j1...`](https://explorer.solana.com/tx/395H3j1BSFD5vk55Jcf43jqrjmYKfj9qeSrVf68WLVqAUL1gptyewwBXubtq5X6j3HXWj849cv332SaJDNSDYbkH?cluster=devnet) |
+| Verifier | `pos-verifier.sol` | [`4Fa3cmL...`](https://explorer.solana.com/tx/4Fa3cmLRNznWUXPLDgvQkaQx6bAMFf4ruz9e6ZaiqHnQ8FPm4AXMzFDAdLUsBeNcan6kp8AktnLkgSWihFg2RxtL?cluster=devnet) |
+| Rebalance | `pos-rebalance.sol` | [`5JYxfPs...`](https://explorer.solana.com/tx/5JYxfPsavQhdHrMkXWW4RiVJPeF2xGQm6WahQMYwva8THvhdjo8A5igqAbPdzf3Ro9YdAY9LtQsFfjTSZHHc1FSx?cluster=devnet) |
+
+**Cloak Demo Mode**
+
+The Cloak integration includes an interactive demo panel on the Back page that walks through the 5-step privacy flow (generate keypair, create UTXO, generate Groth16 ZK proof, submit to Solana, confirm). The demo uses the actual SDK method signatures and shows a technical toggle with code details. On mainnet, where the Cloak program is deployed, the same code path executes real shielded transactions.
+
+**QVAC /analyze Page**
+
+A standalone `/analyze` page demonstrates on-device AI analysis via QVAC. It loads real projects from Firestore, runs structured analysis (score, strengths, risks, recommendation), and shows a credit score explanation — all using `qvacService.analyzeProject()` and `explainCreditScore()`. When QVAC SDK isn't installed, it falls back to the cloud API with the same prompts.
+
+To reproduce the latest flow locally after rebuilding and redeploying the Anchor program:
+
+```bash
+cd blockchain-solana
+anchor build
+npm run idl:copy
+npm run treasury:init
+SNS_DOMAIN=your-name.sol npm run tx:devnet
+```
+
+For the updated SNS-aware tests, also set:
+
+```bash
+SNS_DOMAIN=your-name.sol
+SNS_NAME_ACCOUNT=your_sns_name_account_pubkey
+```
 
 ---
 

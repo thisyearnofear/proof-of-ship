@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-05-04 — SNS Agent Domain Registration on Devnet
+
+- Registered 4 agent .sol domains on Solana devnet: pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol
+- All domains owned by project wallet (G33naaudTAyEWFnfLET51aWGNLry5BwUtZt6KwcniFoj)
+- Created `scripts/register-agent-domains.js` — registers all 4 domains via `createNameRegistry`, idempotent (skips existing)
+- Created `scripts/verify-agent-domains.ts` — verifies domain ownership and prints explorer links
+- Results written to `docs/agent-domain-results.json`
+
+## 2026-05-04 — Cloak Demo Mode + Interactive Panel
+
+- Added `getIntegrationStatus()`, `isMainnet()`, and `runDemoFlow()` to CloakPaymentService
+- Created `CloakDemoPanel.js` — interactive 5-step demo with step-by-step progress, technical toggle (shows SDK method names), and run/reset controls
+- `PrivatePaymentsToggle` now shows Demo/Live badge instead of hiding when Cloak isn't deployed on devnet
+- Integrated CloakDemoPanel into the Back page AI Agents tab
+- Created `/api/cloak/status` endpoint returning integration health, cluster, demo mode flag, and feature list
+
+## 2026-05-04 — QVAC Standalone /analyze Page
+
+- Created `/analyze` page — standalone project analysis with QVAC status indicator, project selector from Firestore, structured results (score/strengths/risks/recommendation), and credit score explanation via `qvacService.explainCreditScore()` (previously unused)
+- Created `/api/agent/analyze` — cloud fallback endpoint using Featherless -> AIsa provider chain, includes rule-based analysis when no API keys set
+- Added /analyze to Navbar navigation
+
+## 2026-05-04 — Quality-Gated Backer Discovery
+
+- `useExpeditionData` now loads from ecosystem collections (projects_solana, projects_celo, etc.) instead of sparse `projects` collection
+- Quality gate filters out skeleton projects: must have name, 15+ char description, ecosystem, and GitHub URL
+- `expeditionMetrics` derives meaningful variation from real project fields: description quality, GitHub presence, socials, team size, recency, stable hash variation
+- Health baseline lowered to 30 (was 50), multiplier ranges 1.2x-2.5x based on completeness
+- ExpeditionCard shows ecosystem badge, category, description preview, builder identity, Code/Website links
+- DiscoverTab adds ecosystem filter, sort by Health/Confidence/Multiplier/Newest
+- Updated 33 metric unit tests
+
+## 2026-05-04 — Login & Auth Fixes
+
+- Fixed TDZ error in login.js: moved computed vars and hooks above early returns (Rules of Hooks)
+- Added 'Start over' button on login page: disconnects wallet, logs out, resets state
+- Auto-detect walletFamily from connected state; auto-redirect returning users
+- Clear phantom 'builder' role when no GitHub connected
+
+## 2026-05-02 — SNS Ownership Proof Anchored On-Chain
+
+- Extended the Solana `Project` account to store:
+  - `builder_sns_domain`
+  - `builder_sns_name_account`
+  - `builder_identity_signature`
+- Updated `request_funding` so project creation now requires:
+  - a real SNS name account
+  - a canonical builder identity-claim message
+  - a preceding `Ed25519Program` verification instruction
+- Updated `SolanaCreditService` to:
+  - resolve the builder's primary `.sol`
+  - derive the SNS name-account key
+  - sign the identity-claim message with the connected wallet
+  - prepend the Ed25519 proof instruction automatically
+- Updated `devnet-transactions.ts` to require `SNS_DOMAIN` and reproduce the proof-aware Solana flow
+- Updated Solana tests to exercise the SNS-aware requestFunding path using `SNS_DOMAIN` and `SNS_NAME_ACCOUNT`
+- Updated frontend project persistence/read paths so `builderSnsDomain` and `builderSnsNameAccount` are stored and displayed directly
+
 ## 2026-05-02 — Solana Devnet Deployment + 7 Confirmed On-Chain Transactions
 
 - Deployed Anchor program to Solana devnet: `14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K`

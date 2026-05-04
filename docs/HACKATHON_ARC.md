@@ -73,6 +73,7 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] Agent-to-agent x402 payment loops (our agents → AIsa Perplexity Sonar)
 - [x] Dual AI provider chain: Featherless AI (DeepSeek-V3) primary, AIsa x402 fallback
 - [x] SNS Identity integration — builders and agents display .sol domain names (pos-scout.sol, etc.)
+- [x] Solana SNS proof flow — project creation can anchor a signed builder `.sol` ownership proof on-chain
 - [x] Frontend NanopaymentContext (`src/contexts/NanopaymentContext.tsx`)
 - [x] NanopaymentService (`src/services/nanopaymentService.ts`)
 - [x] NanopaymentWidget (`src/components/common/NanopaymentWidget.js`)
@@ -91,9 +92,14 @@ Similarly, traditional blockchains (Ethereum/Polygon) have gas fees that far exc
 - [x] Anchor program deployed to Solana devnet (`14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K`)
 - [x] 7 confirmed on-chain transactions (Treasury, Projects, Backings, Milestone, Repay)
 - [x] Cloak private (shielded) USDC transfers for backer staking via CloakPaymentService
+- [x] Cloak interactive demo panel (5-step flow with technical toggle) on Back page AI Agents tab
 - [x] QVAC local-first AI inference option in chat widget (Tether SDK, graceful fallback)
+- [x] QVAC standalone /analyze page with project selector, structured analysis, credit explanation
 - [x] SNS Identity integration — builders and agents display .sol domain names (pos-scout.sol, etc.)
 - [x] Agent identities wired into all API responses + 6 UI components
+- [x] Agent .sol domains registered on devnet: pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol
+- [x] Quality-gated backer discovery — loads from ecosystem collections, filters by description/GitHub/ecosystem
+- [x] DiscoverTab: ecosystem filter, sort by Health/Confidence/Multiplier/Newest
 - [ ] 50+ real on-chain transactions on Arc testnet
 - [ ] Transaction flow demo video
 

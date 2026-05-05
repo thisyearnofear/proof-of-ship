@@ -23,6 +23,7 @@ const DEFAULT_CATEGORIES = [
 
 export default function ProjectEditor({ projectSlug }) {
   const { currentUser, hasProjectPermission } = useUser();
+  const githubUsername = currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid || null;
   const { requestFunding, connected, activeChainFamily } = useBuilderCredit();
 
   const isEditMode = Boolean(projectSlug);
@@ -49,7 +50,7 @@ export default function ProjectEditor({ projectSlug }) {
     name: draft?.name || "",
     description: draft?.description || "",
     githubUrl: draft?.githubUrl || "",
-    ecosystem: draft?.ecosystem || "base",
+    ecosystem: draft?.ecosystem || (activeChainFamily === "solana" ? "solana" : "base"),
     category: draft?.category || "",
     contractAddress: draft?.contractAddress || "",
     deploymentTxHash: draft?.deploymentTxHash || "",
@@ -225,11 +226,18 @@ export default function ProjectEditor({ projectSlug }) {
     }));
   };
 
-  // Auto-populate from GitHub URL
+  // Auto-populate from GitHub URL — limited to authenticated user's repos
   const fetchGithubInfo = useCallback(async (url) => {
     const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
     if (!match) return;
     const [, owner, repo] = match;
+
+    // Validate repo belongs to the authenticated GitHub user
+    if (githubUsername && owner.toLowerCase() !== githubUsername.toLowerCase()) {
+      setError(`This project must be under your GitHub account (${githubUsername}). You can only submit repos you own.`);
+      return;
+    }
+
     setFetchingGithub(true);
     try {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo.replace(".git", "")}`);
@@ -245,7 +253,7 @@ export default function ProjectEditor({ projectSlug }) {
     } catch {} finally {
       setFetchingGithub(false);
     }
-  }, []);
+  }, [githubUsername]);
 
   const githubUrlRef = useRef(form.githubUrl);
   useEffect(() => {
@@ -261,6 +269,12 @@ export default function ProjectEditor({ projectSlug }) {
     if (!form.description.trim()) return "Description is required";
     if (!form.githubUrl.trim() || !form.githubUrl.includes("github.com")) {
       return "A valid GitHub URL is required";
+    }
+    if (githubUsername) {
+      const match = form.githubUrl.match(/github\.com\/([^/]+)\//);
+      if (match && match[1].toLowerCase() !== githubUsername.toLowerCase()) {
+        return `GitHub URL must be under your account (${githubUsername})`;
+      }
     }
     if (!form.ecosystem) return "Chain / ecosystem is required";
     if (!form.category) return "Category is required";

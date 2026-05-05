@@ -165,7 +165,14 @@ export default function Navbar() {
                   <ThemeToggle />
 
                   {currentUser ? (
-                    /* ── Logged-in: avatar + name/role, dropdown with identity ── */
+                    /* ── Logged-in: wallet indicator + avatar + name/role, dropdown with identity ── */
+                    <div className="flex items-center gap-2">
+                      {activeWallet && (
+                        <div className={`hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-mono ${activeWallet.color === 'purple' ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${activeWallet.color === 'purple' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                          {activeWallet.label}
+                        </div>
+                      )}
                     <Menu as="div" className="relative">
                       <Menu.Button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                         {currentUser.photoURL ? (
@@ -286,6 +293,7 @@ export default function Navbar() {
                         </Menu.Items>
                       </Transition>
                     </Menu>
+                    </div>
                   ) : activeWallet ? (
                     /* ── Wallet connected but not authenticated ── */
                     <div className="flex items-center gap-2">

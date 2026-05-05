@@ -346,17 +346,17 @@ export default function LoginPage() {
           <div className="bg-surface py-8 px-4 shadow-xl border border-gray-100 sm:rounded-xl sm:px-10">
             {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">{error}</div>}
             <div className="space-y-6">
-              <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+              <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 dark:border-green-600 bg-green-100 dark:bg-green-900/40' : 'border-gray-200 dark:border-gray-700'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center">
-                    <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-600 dark:bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
                       {anyWalletConnected ? (
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       ) : <span className="text-xs font-bold">1</span>}
                     </div>
                     <div className="ml-3">
                       <p className="text-sm font-bold text-primary">Your Wallet</p>
-                      <p className="text-xs text-secondary">
+                      <p className={`text-xs ${anyWalletConnected ? 'text-green-800 dark:text-green-200 font-medium' : 'text-secondary'}`}>
                         {anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funds'}
                       </p>
                     </div>
@@ -432,15 +432,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
+            <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 dark:border-green-600 bg-green-100 dark:bg-green-900/40' : 'border-gray-200 dark:border-gray-700'}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center">
-                  <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                  <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-600 dark:bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
                     {anyWalletConnected ? <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> : <span className="text-xs font-bold">2</span>}
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-bold text-primary">Wallet</p>
-                    <p className="text-xs text-secondary">{anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funding payouts.'}</p>
+                    <p className={`text-xs ${anyWalletConnected ? 'text-green-800 dark:text-green-200 font-medium' : 'text-secondary'}`}>{anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funding payouts.'}</p>
                   </div>
                 </div>
                 {!anyWalletConnected && renderWalletButtons()}

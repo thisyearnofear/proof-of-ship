@@ -286,6 +286,18 @@ export default function Navbar() {
                         </Menu.Items>
                       </Transition>
                     </Menu>
+                  ) : activeWallet ? (
+                    /* ── Wallet connected but not authenticated ── */
+                    <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-mono ${activeWallet.color === 'purple' ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300'}`}>
+                        <span className={`w-2 h-2 rounded-full animate-pulse ${activeWallet.color === 'purple' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                        {activeWallet.label}
+                      </div>
+                      <Link href="/login"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all min-h-touch flex items-center justify-center shadow-sm">
+                        Complete setup
+                      </Link>
+                    </div>
                   ) : (
                     /* ── Signed-out: clear CTA buttons ── */
                     <div className="flex items-center gap-2">
@@ -369,6 +381,10 @@ export default function Navbar() {
                         </Menu.Items>
                       </Transition>
                     </Menu>
+                  ) : activeWallet ? (
+                    <Link href="/login" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-semibold min-h-touch flex items-center justify-center">
+                      Complete setup
+                    </Link>
                   ) : (
                     <Link href="/login" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-semibold min-h-touch flex items-center justify-center">
                       Get Started
@@ -452,11 +468,17 @@ export default function Navbar() {
                   
                   {!currentUser && (
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      {activeWallet && (
+                        <div className={`flex items-center gap-2 px-3 py-2 mb-2 rounded-md text-xs font-mono ${activeWallet.color === 'purple' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'}`}>
+                          <span className={`w-2 h-2 rounded-full animate-pulse ${activeWallet.color === 'purple' ? 'bg-purple-500' : 'bg-orange-500'}`} />
+                          {activeWallet.label}
+                        </div>
+                      )}
                       <Link
                         href="/login"
                         className="block bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
-                        Sign in
+                        {activeWallet ? 'Complete setup' : 'Sign in'}
                       </Link>
                     </div>
                   )}

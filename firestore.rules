@@ -70,6 +70,11 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Drafts — per-user project drafts for auto-save persistence
+    match /drafts/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
     // Admin queue - authenticated users can add entries for their submissions
     match /admin_queue/{queueId} {
       allow read: if isAdminUser();

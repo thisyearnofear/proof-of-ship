@@ -195,6 +195,32 @@ async function handler(req, res) {
       ecosystem: projectData.ecosystem
     });
 
+    // Torque event — fire and forget
+    if (process.env.TORQUE_API_KEY) {
+      try {
+        await fetch("https://ingest.torque.so/events", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.TORQUE_API_KEY}`,
+          },
+          body: JSON.stringify({
+            eventName: "project_submitted",
+            userPubkey: userId,
+            timestamp: new Date().toISOString(),
+            data: {
+              project_name: projectData.name,
+              ecosystem: projectData.ecosystem,
+              category: projectData.category,
+              project_slug: slug,
+            },
+          }),
+        });
+      } catch (e) {
+        console.warn("[Torque] project_submitted event failed (non-blocking):", e.message);
+      }
+    }
+
     res.status(201).json({
       success: true,
       projectSlug: slug,

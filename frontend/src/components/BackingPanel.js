@@ -164,6 +164,13 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
       loadUserBalance();
       // Reload project backing data after successful backing
       loadProjectBackingData();
+      // Torque event — fire and forget
+      import('@/services/TorqueService').then(({ torqueService }) => {
+        torqueService.trackProjectBacked(wallet.account, {
+          projectId,
+          amountUsdc: amount,
+        });
+      }).catch(() => {});
     } catch (err) {
       console.error("Backing failed:", err);
       setError(err.message || "Failed to back project");

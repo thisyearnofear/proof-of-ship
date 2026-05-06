@@ -10,6 +10,7 @@ import {
   CalculatorIcon,
   ShieldCheckIcon,
   BoltIcon,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
@@ -40,6 +41,11 @@ const navigation = [
     name: "Analyze", 
     href: "/analyze", 
     icon: CalculatorIcon,
+  },
+  { 
+    name: "Leaderboard", 
+    href: "/leaderboard", 
+    icon: TrophyIcon,
   },
 ];
 

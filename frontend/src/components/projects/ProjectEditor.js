@@ -531,6 +531,15 @@ export default function ProjectEditor({ projectSlug }) {
         setSuccess("Project submitted");
 
         const createdSlug = result.projectSlug;
+        // Torque event — fire and forget
+        import('@/services/TorqueService').then(({ torqueService }) => {
+          torqueService.trackProjectSubmitted(form.ecosystem === 'solana' && connected ? 'solana-wallet' : 'unknown', {
+            name: cleaned.name,
+            ecosystem: cleaned.ecosystem,
+            category: cleaned.category,
+            slug: createdSlug,
+          });
+        }).catch(() => {});
         setTimeout(() => {
           window.location.href = `/projects/${cleaned.ecosystem}/${createdSlug}`;
         }, 600);

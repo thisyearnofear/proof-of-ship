@@ -177,6 +177,7 @@ export default function PortfolioTab({ setTab }) {
                       {isValidSolanaAddress(project.developer) ? (
                         <SnsIdentityBadge
                           address={project.developer}
+                          snsNameOverride={project.builderSnsDomain || null}
                           chainFamily="solana"
                           showFallback={true}
                           showLoading={true}

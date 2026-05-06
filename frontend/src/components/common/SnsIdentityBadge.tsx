@@ -11,6 +11,8 @@ import { useSnsName } from '@/hooks/useSnsName';
 interface SnsIdentityBadgeProps {
   /** Solana wallet address */
   address: string;
+  /** Optional pre-resolved .sol name to display directly */
+  snsNameOverride?: string | null;
   /** Show the truncated address as fallback when no .sol name is found */
   showFallback?: boolean;
   /** Additional CSS classes */
@@ -23,6 +25,7 @@ interface SnsIdentityBadgeProps {
 
 export default function SnsIdentityBadge({
   address,
+  snsNameOverride,
   showFallback = true,
   className = '',
   showLoading = false,
@@ -50,7 +53,8 @@ export default function SnsIdentityBadge({
     );
   }
 
-  const hasSolName = !!snsName;
+  const effectiveName = snsNameOverride || snsName;
+  const hasSolName = !!effectiveName;
 
   return (
     <span
@@ -68,7 +72,7 @@ export default function SnsIdentityBadge({
         </svg>
       )}
       <span className={hasSolName ? 'font-medium text-purple-700' : 'font-mono text-sm'}>
-        {showFallback ? displayName : (snsName || null)}
+        {showFallback ? (effectiveName || displayName) : (effectiveName || null)}
       </span>
     </span>
   );

@@ -192,6 +192,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
                 Builder{" "}
                 <SnsIdentityBadge
                   address={project.developer}
+                  snsNameOverride={project.builderSnsDomain || null}
                   chainFamily="solana"
                   showFallback={true}
                   showLoading={true}
@@ -292,7 +293,11 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
 
       {/* Backer Panel */}
       {!isProjectOwner && (
-        <BackingPanel projectId={projectId} developerAddress={project.developer} />
+        <BackingPanel
+          projectId={projectId}
+          developerAddress={project.developer}
+          builderSnsDomain={project.builderSnsDomain}
+        />
       )}
 
       {/* Success Message */}

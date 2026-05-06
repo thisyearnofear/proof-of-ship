@@ -125,6 +125,11 @@ const FleetMap = () => {
                           <Card className="bg-slate-800 border-slate-700 p-2 shadow-2xl">
                             <h4 className="font-bold text-xs truncate">{project.name}</h4>
                             <p className="text-[10px] text-slate-400 uppercase tracking-tighter mt-1">{project.ecosystem}</p>
+                            {project.builderSnsDomain && (
+                              <p className="text-[10px] text-purple-300 mt-1 truncate">
+                                {project.builderSnsDomain}
+                              </p>
+                            )}
                             <div className="flex justify-between mt-2 pt-2 border-t border-slate-700">
                               <span className="text-[9px] text-slate-500">COMMITS: {project.stats?.commits || 0}</span>
                               <span className="text-[9px] text-slate-500">STAKES: {project.totalStaked || 0}</span>

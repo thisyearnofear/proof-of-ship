@@ -14,7 +14,7 @@ import { snsService } from './SnsService';
  * Enhanced with Bags SDK for creator finance integrations.
  *
  * Account names match the on-chain IDL exactly:
- *   request_funding: project, creditLine, vaultAuthority, usdcMint, vaultTokenAccount, developer, systemProgram, tokenProgram, associatedTokenProgram
+ *   request_funding: project, creditLine, vaultAuthority, usdcMint, vaultTokenAccount, developer, snsNameAccount, instructionsSysvar, systemProgram, tokenProgram, associatedTokenProgram
  *   back_project:   project, developerCreditLine, backer, backerTokenAccount, vaultTokenAccount, vaultAuthority, usdcMint, tokenProgram
  *   verify_milestone: project, developerTokenAccount, vaultTokenAccount, vaultAuthority, verifier, usdcMint, tokenProgram
  *   claim_reward:   project, backer, backerTokenAccount, vaultTokenAccount, vaultAuthority, usdcMint, tokenProgram

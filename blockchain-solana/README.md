@@ -12,9 +12,10 @@ After you deploy the Anchor program to devnet, use this sequence:
 2. Initialize the treasury ATA:
    `npm run treasury:init`
 3. Run the devnet flow to generate real transaction links:
-   `npm run tx:devnet`
+   `SNS_DOMAIN=your-name.sol npm run tx:devnet`
 
 ### Notes
 - `scripts/init-config.ts` is a legacy filename, but it now initializes the treasury ATA for the current program.
-- `scripts/devnet-transactions.ts` is the transaction driver for the Colosseum proof run.
+- `scripts/devnet-transactions.ts` is the transaction driver for the Colosseum proof run and now requires `SNS_DOMAIN` to be set to a `.sol` domain owned by the funded devnet wallet.
 - The frontend falls back to the program address embedded in `frontend/src/idl/blockchain_solana.json` if `NEXT_PUBLIC_SOLANA_PROGRAM_ID` is not set.
+- After changing the Anchor instruction shape, rebuild and re-copy the IDL before testing the frontend funding flow.

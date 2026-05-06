@@ -1,7 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
 import { assert } from "chai";
-import { Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  Ed25519Program,
+  Keypair,
+  PublicKey,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  SystemProgram,
+} from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -12,21 +17,66 @@ import {
   mintTo,
 } from "@solana/spl-token";
 
-import { BlockchainSolana } from "../target/types/blockchain_solana";
-
 describe("blockchain-solana", () => {
+  // SNS-aware requestFunding tests need a real devnet .sol domain because the program
+  // validates the passed SNS name account against the actual SNS program owner/header.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.BlockchainSolana as Program<BlockchainSolana>;
+  const program = anchor.workspace.BlockchainSolana as any;
   const payer = (provider.wallet as any).payer;
 
   // Shared state across tests
   let usdcMint: PublicKey;
   let treasuryAuthority: PublicKey;
   let treasuryTokenAccount: PublicKey;
+  let builderSnsNameAccount: PublicKey;
+  const builderSnsDomain = process.env.SNS_DOMAIN || "";
+
+  const requireSnsTestConfig = () => {
+    const snsNameAccount = process.env.SNS_NAME_ACCOUNT;
+    if (!builderSnsDomain || !snsNameAccount) {
+      throw new Error(
+        "Set SNS_DOMAIN and SNS_NAME_ACCOUNT to a real devnet .sol domain and its name account before running the Solana tests.",
+      );
+    }
+    return new PublicKey(snsNameAccount);
+  };
+
+  const buildIdentityClaimMessage = (
+    developer: PublicKey,
+    snsNameAccount: PublicKey,
+    projectName: string,
+    githubUrl: string,
+  ) =>
+    Buffer.from(
+      `proof-of-ship:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`,
+      "utf8",
+    );
+
+  const buildIdentityProof = (
+    developerKeypair: Keypair,
+    snsNameAccount: PublicKey,
+    projectName: string,
+    githubUrl: string,
+  ) => {
+    const message = buildIdentityClaimMessage(
+      developerKeypair.publicKey,
+      snsNameAccount,
+      projectName,
+      githubUrl,
+    );
+    const ed25519Ix = Ed25519Program.createInstructionWithPrivateKey({
+      privateKey: developerKeypair.secretKey,
+      message,
+    });
+    const signature = Array.from(ed25519Ix.data.slice(48, 112));
+    return { ed25519Ix, signature };
+  };
 
   before(async () => {
+    builderSnsNameAccount = requireSnsTestConfig();
+
     // Create a mock USDC mint (6 decimals)
     usdcMint = await createMint(
       provider.connection,
@@ -67,6 +117,7 @@ describe("blockchain-solana", () => {
 
   it("creates a project with vault", async () => {
     const projectName = "demo-project";
+    const githubUrl = "https://github.com/example/repo";
 
     const [project] = PublicKey.findProgramAddressSync(
       [Buffer.from("project"), provider.wallet.publicKey.toBuffer(), Buffer.from(projectName)],
@@ -81,15 +132,23 @@ describe("blockchain-solana", () => {
       program.programId,
     );
     const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+    const { ed25519Ix, signature } = buildIdentityProof(
+      payer,
+      builderSnsNameAccount,
+      projectName,
+      githubUrl,
+    );
 
     await program.methods
       .requestFunding(
         [new anchor.BN(1)],
-        "https://github.com/example/repo",
+        githubUrl,
         projectName,
         ["Build MVP"],
         [new anchor.BN(1_000_000)],
         provider.wallet.publicKey,
+        builderSnsDomain,
+        signature,
       )
       .accounts({
         project,
@@ -98,16 +157,22 @@ describe("blockchain-solana", () => {
         usdcMint,
         vaultTokenAccount,
         developer: provider.wallet.publicKey,
+        snsNameAccount: builderSnsNameAccount,
+        instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       })
+      .preInstructions([ed25519Ix])
       .rpc();
 
-    const projectAcct = await program.account.project.fetch(project);
+    const projectAcct = await program.account.project.fetch(project) as any;
     assert.equal(projectAcct.isActive, true);
     assert.equal(projectAcct.milestonesCount, 1);
     assert.equal(projectAcct.totalBacking.toNumber(), 0);
+    assert.equal(projectAcct.builderSnsDomain, builderSnsDomain);
+    assert.equal(projectAcct.builderSnsNameAccount.toBase58(), builderSnsNameAccount.toBase58());
+    assert.equal(projectAcct.builderIdentitySignature.length, 64);
 
     // Vault ATA should now exist
     const vaultAcct = await getAccount(provider.connection, vaultTokenAccount);
@@ -140,7 +205,7 @@ describe("blockchain-solana", () => {
     );
     await mintTo(provider.connection, payer, usdcMint, backerAta, provider.wallet.publicKey, 2_000_000);
 
-    const projectAcct = await program.account.project.fetch(project);
+    const projectAcct = await program.account.project.fetch(project) as any;
     const [developerCreditLine] = PublicKey.findProgramAddressSync(
       [Buffer.from("credit_line"), projectAcct.developer.toBuffer()],
       program.programId,
@@ -162,7 +227,7 @@ describe("blockchain-solana", () => {
       .signers([backer])
       .rpc();
 
-    const updated = await program.account.project.fetch(project);
+    const updated = await program.account.project.fetch(project) as any;
     assert.equal(updated.totalBacking.toNumber(), 1_000_000);
     assert.equal(updated.backings.length, 1);
     assert.equal(updated.backings[0].multiplier.toNumber(), 150);
@@ -205,7 +270,7 @@ describe("blockchain-solana", () => {
       })
       .rpc();
 
-    const projectAcct = await program.account.project.fetch(project);
+    const projectAcct = await program.account.project.fetch(project) as any;
     assert.equal(projectAcct.milestonesCompleted, 1);
     assert.equal(projectAcct.milestones[0].completed, true);
 
@@ -275,15 +340,24 @@ describe("blockchain-solana", () => {
       program.programId,
     );
     const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+    const githubUrl = "https://github.com/example/repo2";
+    const { ed25519Ix, signature } = buildIdentityProof(
+      payer,
+      builderSnsNameAccount,
+      projectName,
+      githubUrl,
+    );
 
     await program.methods
       .requestFunding(
         [],
-        "https://github.com/example/repo2",
+        githubUrl,
         projectName,
         ["Ship it"],
         [new anchor.BN(2_000_000)],
         provider.wallet.publicKey,
+        builderSnsDomain,
+        signature,
       )
       .accounts({
         project,
@@ -292,10 +366,13 @@ describe("blockchain-solana", () => {
         usdcMint,
         vaultTokenAccount,
         developer: provider.wallet.publicKey,
+        snsNameAccount: builderSnsNameAccount,
+        instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
       })
+      .preInstructions([ed25519Ix])
       .rpc();
 
     // Create backer + fund their ATA

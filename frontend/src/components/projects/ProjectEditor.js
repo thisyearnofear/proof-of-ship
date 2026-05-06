@@ -72,22 +72,83 @@ export default function ProjectEditor({ projectSlug }) {
   const [deleting, setDeleting] = useState(false);
   const [fetchingGithub, setFetchingGithub] = useState(false);
   const [hasDraft, setHasDraft] = useState(Boolean(draft));
+  const [draftSaved, setDraftSaved] = useState(null); // 'local' | 'cloud' | null
+  const [lastCloudSave, setLastCloudSave] = useState(null);
 
-  // Auto-save draft to localStorage (new projects only)
+  // Auto-save draft to localStorage immediately, then debounce Firestore save
   useEffect(() => {
     if (isEditMode) return;
-    const timer = setTimeout(() => {
+    // Save to localStorage every second (instant fallback)
+    const localTimer = setTimeout(() => {
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
         setHasDraft(true);
+        setDraftSaved('local');
       } catch {}
     }, 1000);
-    return () => clearTimeout(timer);
+    return () => clearTimeout(localTimer);
   }, [form, isEditMode]);
+
+  // Debounced Firestore save (every 8s when form changes, only for new projects)
+  useEffect(() => {
+    if (isEditMode || !currentUser?.uid) return;
+    const cloudTimer = setTimeout(async () => {
+      try {
+        const { db } = await import('@/lib/firebase/clientApp');
+        const { doc, setDoc } = await import('firebase/firestore');
+        await setDoc(doc(db, 'drafts', currentUser.uid), {
+          form,
+          updatedAt: new Date().toISOString(),
+          projectId: projectSlug || null,
+        }, { merge: true });
+        setDraftSaved('cloud');
+        setLastCloudSave(new Date());
+      } catch (e) {
+        console.warn('Cloud draft save failed:', e);
+      }
+    }, 8000);
+    return () => clearTimeout(cloudTimer);
+  }, [form, isEditMode, currentUser?.uid, projectSlug]);
+
+  // Load cloud draft on mount (fallback if localStorage is empty)
+  useEffect(() => {
+    if (isEditMode || !currentUser?.uid) return;
+    if (draft) return; // localStorage already has a draft
+    let cancelled = false;
+    async function loadCloudDraft() {
+      try {
+        const { db } = await import('@/lib/firebase/clientApp');
+        const { doc, getDoc } = await import('firebase/firestore');
+        const snap = await getDoc(doc(db, 'drafts', currentUser.uid));
+        if (!cancelled && snap.exists()) {
+          const data = snap.data();
+          if (data.form && !isEditMode) {
+            // Restore from cloud
+            setForm(data.form);
+            setHasDraft(true);
+            setDraftSaved('cloud');
+          }
+        }
+      } catch (e) {
+        console.warn('Cloud draft load failed:', e);
+      }
+    }
+    loadCloudDraft();
+    return () => { cancelled = true; };
+  }, [currentUser?.uid, isEditMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearDraft = () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch {}
     setHasDraft(false);
+    setDraftSaved(null);
+    // Also clear cloud draft
+    if (currentUser?.uid) {
+      import('@/lib/firebase/clientApp').then(({ db }) => {
+        import('firebase/firestore').then(({ doc, deleteDoc }) => {
+          deleteDoc(doc(db, 'drafts', currentUser.uid)).catch(() => {});
+        });
+      });
+    }
   };
 
   const ecosystemOptions = useMemo(() => {
@@ -507,19 +568,58 @@ export default function ProjectEditor({ projectSlug }) {
     );
   }
 
+  // Progress checklist — tracks required fields for submission
+  const checklist = [
+    { label: "Project name", done: Boolean(form.name?.trim()) },
+    { label: "Description", done: Boolean(form.description?.trim() && form.description.trim().length >= 20) },
+    { label: "GitHub repo", done: Boolean(form.githubUrl?.trim() && form.githubUrl.includes("github.com")) },
+    { label: "Ecosystem", done: Boolean(form.ecosystem) },
+    { label: "Category", done: Boolean(form.category) },
+  ];
+  const completedCount = checklist.filter(c => c.done).length;
+  const allRequired = checklist.every(c => c.done);
+
   return (
     <form onSubmit={handleSave} className="space-y-6">
       <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="flex-1">
             <h2 className="text-xl font-semibold text-gray-900">
               {isEditMode ? "Edit project" : "Add a project"}
             </h2>
             <p className="text-gray-600 mt-1">
               Keep it crisp. Links + contract address are the minimum viable proof.
             </p>
+            {/* Draft status indicator */}
+            {!isEditMode && draftSaved && (
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className={`w-1.5 h-1.5 rounded-full ${draftSaved === 'cloud' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                <span className="text-[11px] text-gray-500">
+                  {draftSaved === 'cloud'
+                    ? `Draft saved${lastCloudSave ? ` at ${lastCloudSave.toLocaleTimeString()}` : ''}`
+                    : 'Draft saved locally'}
+                </span>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Progress checklist */}
+            {!isEditMode && (
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  {checklist.map((item, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-colors ${item.done ? 'bg-green-500' : 'bg-gray-300'}`}
+                      title={item.label}
+                    />
+                  ))}
+                </div>
+                <span className={`text-xs font-medium ${allRequired ? 'text-green-600' : 'text-gray-500'}`}>
+                  {completedCount}/{checklist.length}
+                </span>
+              </div>
+            )}
             <Button type="submit" loading={saving}>
               {isEditMode ? "Save" : "Submit"}
             </Button>
@@ -952,6 +1052,21 @@ export default function ProjectEditor({ projectSlug }) {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
+          {/* Mobile progress checklist (hidden on sm+) */}
+          {!isEditMode && (
+            <div className="flex sm:hidden items-center gap-1.5">
+              {checklist.map((item, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-colors ${item.done ? 'bg-green-500' : 'bg-gray-300'}`}
+                  title={item.label}
+                />
+              ))}
+              <span className={`text-xs font-medium ml-1 ${allRequired ? 'text-green-600' : 'text-gray-500'}`}>
+                {completedCount}/{checklist.length}
+              </span>
+            </div>
+          )}
           {isEditMode && (
             <Button type="button" variant="outline" onClick={handleDelete} loading={deleting} className="text-red-600 border-red-300 hover:bg-red-50">
               Delete Project
@@ -963,7 +1078,7 @@ export default function ProjectEditor({ projectSlug }) {
             </button>
           )}
         </div>
-        <Button type="submit" loading={saving}>
+        <Button type="submit" loading={saving} disabled={!isEditMode && !allRequired}>
           {isEditMode ? "Save changes" : "Submit project"}
         </Button>
       </div>

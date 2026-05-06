@@ -4,7 +4,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 
 > **New:** See [VISION.md](./VISION.md) for the unified capital-stack narrative (Bags Token → x402 Credit → Prize Routing) and how the agentic layer prices, scouts, and verifies across all three rails.
 >
-> **Hackathon:** See [COLOSSEUM_SUBMISSION.md](./COLOSSEUM_SUBMISSION.md) for the Frontier Hackathon Public Goods submission, including SNS Identity, Cloak Privacy, and QVAC Local-First AI track eligibility.
+> **Hackathon:** See [COLOSSEUM_SUBMISSION.md](./COLOSSEUM_SUBMISSION.md) for the Frontier Hackathon Public Goods submission, including the new on-chain SNS identity-proof flow, Cloak Privacy, and QVAC Local-First AI track eligibility.
 
 ## How It Works
 
@@ -68,7 +68,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 ### Integrations
 
 - **MetaMask SDK** — wallet connection
-- **Solana Name Service (SNS)** — .sol domain identity for builders and AI agents
+- **Solana Name Service (SNS)** — .sol domain identity for builders and AI agents, including signed ownership proof in the Solana project-creation flow
 - **Cloak** — Private (shielded) USDC transfers for backer staking
 - **QVAC** — Local-first on-device AI inference (Tether) for privacy-preserving project analysis
 - **Circle** — USDC programmable wallets and funding
@@ -111,7 +111,27 @@ NEXT_PUBLIC_LIFI_API_KEY=
 # Blockchain
 PRIVATE_KEY=
 INFURA_API_KEY=
+
+# Solana / SNS
+NEXT_PUBLIC_SOLANA_PROGRAM_ID=
+NEXT_PUBLIC_SOLANA_RPC_URL=
+SNS_DOMAIN=your-name.sol
+SNS_NAME_ACCOUNT=
 ```
+
+### Solana Proof Flow
+
+For the latest proof-aware Solana flow:
+
+```bash
+cd blockchain-solana
+anchor build
+npm run idl:copy
+npm run treasury:init
+SNS_DOMAIN=your-name.sol npm run tx:devnet
+```
+
+The updated Solana tests also expect `SNS_DOMAIN` and `SNS_NAME_ACCOUNT` so they can validate a real SNS name account instead of a UI-only alias.
 
 ### Install & Run
 

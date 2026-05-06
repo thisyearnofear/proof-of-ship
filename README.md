@@ -6,7 +6,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 
 - **Explore** — Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism) with search & filtering
 - **AI Agents** — Underwriter ($0.05), Scout ($0.01), Verifier ($0.01) analyze projects via x402 micropayments
-- **SNS Identity** — Builders and AI agents display .sol domain names (pos-scout.sol, pos-underwriter.sol, etc.) via Solana Name Service integration
+- **SNS Identity** — Builders and AI agents use .sol domain names (pos-scout.sol, pos-underwriter.sol, etc.) via Solana Name Service integration, and Solana project creation can anchor a signed SNS ownership proof on-chain
 - **Private Staking** — Backers can shield stake amounts from public explorers via Cloak (UTXO shielded pool on Solana)
 - **AI Chat Assistant** — Floating helper widget powered by Featherless AI (DeepSeek-V3) with AIsa fallback, collapsible/dismissable
 - **Local-First AI** — QVAC (Tether) on-device inference option keeps project data private; falls back to cloud providers when unavailable
@@ -36,7 +36,22 @@ npm run blockchain:test  # run contract tests
 **Program:** `14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K` ([Explorer](https://explorer.solana.com/address/14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K?cluster=devnet))
 **IDL:** `HGBAP7xUeuR3Nt99z8d2AhNDFGK5iN5sVdGd4W9jrdHr`
 
-7 confirmed transactions on devnet — Treasury init, 2 projects created, 2 backings, milestone verification, loan repayment. Run `cd blockchain-solana && npm run tx:devnet` to reproduce.
+7 confirmed transactions on devnet — Treasury init, 2 projects created, 2 backings, milestone verification, loan repayment.
+
+Latest local Solana flow:
+
+```bash
+cd blockchain-solana
+anchor build
+npm run idl:copy
+npm run treasury:init
+SNS_DOMAIN=your-name.sol npm run tx:devnet
+```
+
+The latest Anchor revision also stores:
+- `builder_sns_domain`
+- `builder_sns_name_account`
+- `builder_identity_signature`
 
 ## Environment Variables
 
@@ -50,6 +65,12 @@ CIRCLE_GATEWAY_WALLET_ADDRESS=0x...
 PRIVATE_KEY=0x...
 NEXT_PUBLIC_DEMO_MODE=true                  # true for testing without real keys
 
+# Solana / SNS
+NEXT_PUBLIC_SOLANA_PROGRAM_ID=
+NEXT_PUBLIC_SOLANA_RPC_URL=
+SOLANA_USDC_MINT=                           # optional; defaults to devnet USDC in supported paths
+SNS_DOMAIN=your-name.sol                    # used by the devnet runner
+
 # Firebase
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
@@ -61,7 +82,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 - `frontend/` — Next.js app (pages, components, contexts, services)
 - `blockchain/` — Hardhat workspace (Solidity contracts, deploy scripts, tests)
 - `snap-server/` — Farcaster Snap server (scout + celebration snaps)
-- `docs/` — [Documentation](./docs/README.md), [hackathon submission](./docs/HACKATHON_ARC.md), [changelog](./docs/CHANGELOG.md)
+- `docs/` — [Documentation](./docs/README.md), [Colosseum submission](./docs/COLOSSEUM_SUBMISSION.md), [hackathon submission](./docs/HACKATHON_ARC.md), [changelog](./docs/CHANGELOG.md)
 
 ## Links
 

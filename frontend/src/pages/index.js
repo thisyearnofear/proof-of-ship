@@ -68,13 +68,6 @@ export default function LandingPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 relative">
           <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium border border-blue-200 shadow-lg animate-fade-in-up">
-                <SparklesIconOutline className="w-4 h-4" />
-                <span>AI-Analyzed Builder Credit</span>
-              </div>
-            </div>
-
             <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-primary mb-4 sm:mb-6 leading-tight tracking-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               Ship Code,
               <br />
@@ -83,9 +76,9 @@ export default function LandingPage() {
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
-              On-chain reputation collateralized by hackathon prizes. Backers stake USDC,
-              AI agents analyze your projects per-query. Ship milestones, unlock funding.
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
+              Your on-chain reputation becomes collateral. Ship milestones, AI agents
+              verify, backers stake USDC — no traditional collateral needed.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>

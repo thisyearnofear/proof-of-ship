@@ -106,7 +106,7 @@ export default async function handler(req, res) {
     if (process.env.TORQUE_API_KEY) {
       try {
         const torqueRes = await fetch("https://api.torque.so/leaderboard", {
-          headers: { Authorization: `Bearer ${process.env.TORQUE_API_KEY}` },
+          headers: { "x-api-key": process.env.TORQUE_API_KEY },
         });
         if (torqueRes.ok) {
           const torqueData = await torqueRes.json();

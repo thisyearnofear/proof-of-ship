@@ -13,7 +13,7 @@
 export interface TorqueEvent {
   eventName: string;
   userPubkey: string;
-  timestamp: string;
+  timestamp: number;
   data: Record<string, unknown>;
 }
 
@@ -57,7 +57,7 @@ class TorqueService {
     return this.track({
       eventName: "project_submitted",
       userPubkey: wallet,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       data: {
         project_name: project.name,
         ecosystem: project.ecosystem,
@@ -75,7 +75,7 @@ class TorqueService {
     return this.track({
       eventName: "project_backed",
       userPubkey: wallet,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       data: {
         project_id: backing.projectId,
         amount_usdc: backing.amountUsdc,
@@ -92,7 +92,7 @@ class TorqueService {
     return this.track({
       eventName: "ai_agent_used",
       userPubkey: wallet,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       data: {
         agent_type: usage.agentType,
         project_id: usage.projectId,
@@ -108,7 +108,7 @@ class TorqueService {
     return this.track({
       eventName: "milestone_completed",
       userPubkey: wallet,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       data: {
         project_id: milestone.projectId,
         milestone_description: milestone.milestoneDescription,

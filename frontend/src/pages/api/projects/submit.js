@@ -202,12 +202,12 @@ async function handler(req, res) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.TORQUE_API_KEY}`,
+            "x-api-key": process.env.TORQUE_API_KEY,
           },
           body: JSON.stringify({
             eventName: "project_submitted",
             userPubkey: userId,
-            timestamp: new Date().toISOString(),
+            timestamp: Date.now(),
             data: {
               project_name: projectData.name,
               ecosystem: projectData.ecosystem,

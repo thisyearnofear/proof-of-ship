@@ -34,12 +34,12 @@ export default async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
       },
       body: JSON.stringify({
         eventName,
         userPubkey,
-        timestamp: timestamp || new Date().toISOString(),
+        timestamp: timestamp || Date.now(),
         data: data || {},
       }),
     });

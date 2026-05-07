@@ -78,7 +78,7 @@ class TorqueService {
       timestamp: Date.now(),
       data: {
         project_id: backing.projectId,
-        amount_usdc: backing.amountUsdc,
+        amount_usdc: parseFloat(backing.amountUsdc) || 0,
         ecosystem: backing.ecosystem || "unknown",
       },
     });
@@ -96,7 +96,7 @@ class TorqueService {
       data: {
         agent_type: usage.agentType,
         project_id: usage.projectId,
-        cost_usdc: usage.costUsdc || "0",
+        cost_usdc: parseFloat(usage.costUsdc) || 0,
       },
     });
   }

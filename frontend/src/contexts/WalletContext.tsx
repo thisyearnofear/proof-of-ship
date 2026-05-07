@@ -672,6 +672,15 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     payForAgent, payForHealthScore, payForScout, payForVerification, payForRebalance,
     // Builder Credit
     creditProfile, repayLoan, loadCreditProfile, requestFunding,
+    postCheckIn: async (projectId: number, metadata: string) => {
+      if (activeChainFamily === 'solana') {
+        throw new Error('Check-ins not yet implemented on Solana');
+      }
+      const { creditService } = await import('@/services/creditService');
+      if (!chainId || !signer) throw new Error('Wallet not connected');
+      const numericChainId = typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10);
+      return creditService.postCheckIn(numericChainId, signer, projectId, metadata);
+    },
     // Solana (Phase 1)
     solanaAddress, solanaConnected, solanaConnecting, solanaBalance, solanaWallet,
     connectSolana, disconnectSolana, activeChainFamily, setActiveChainFamily,

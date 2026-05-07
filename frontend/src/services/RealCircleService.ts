@@ -60,8 +60,8 @@ class RealCircleService {
 
     const circleEnvironment =
       this.environment === "production"
-        ? CircleEnvironments.PRODUCTION
-        : CircleEnvironments.SANDBOX;
+        ? (CircleEnvironments as any).production || "production"
+        : (CircleEnvironments as any).sandbox || "sandbox";
 
     this.circle = new Circle(this.apiKey, circleEnvironment as string);
   }

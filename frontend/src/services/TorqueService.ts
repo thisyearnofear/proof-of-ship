@@ -96,7 +96,7 @@ class TorqueService {
       data: {
         agent_type: usage.agentType,
         project_id: usage.projectId,
-        cost_usdc: parseFloat(usage.costUsdc) || 0,
+        cost_usdc: parseFloat(usage.costUsdc || "0") || 0,
       },
     });
   }

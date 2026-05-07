@@ -33,7 +33,7 @@ export function PaymentFlow() {
             How AI Agents Analyze Your Projects
           </h2>
           <p className="text-sm sm:text-base text-secondary max-w-2xl mx-auto">
-            Per-query AI agents assess builder quality — paid instantly via x402 nanopayments on Circle's Arc L2
+            Per-query AI agents assess builder quality — paid instantly via x402 nanopayments on Circle&apos;s Arc L2
           </p>
         </div>
 

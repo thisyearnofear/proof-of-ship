@@ -76,9 +76,10 @@ class SnsService {
 
     try {
       const { pubkey } = getDomainKeySync(cleanDomain);
-      const registry = await NameRegistryState.retrieve(this.connection, pubkey);
-      if (registry && registry.owner) {
-        return registry.owner.toBase58();
+      const result = await NameRegistryState.retrieve(this.connection, pubkey);
+      const owner = (result as any).nftOwner || (result as any).registry?.owner || (result as any).owner;
+      if (owner?.toBase58) {
+        return owner.toBase58();
       }
       return null;
     } catch (err) {

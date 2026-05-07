@@ -639,11 +639,11 @@ export default function ProjectEditor({ projectSlug }) {
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm font-semibold text-blue-900 mb-2">What makes your project look great to backers:</p>
             <ul className="text-sm text-blue-800 space-y-1 list-disc pl-5">
-              <li><strong>Clear description</strong> — What does it do, who is it for, what's onchain? (2-3 sentences minimum)</li>
+              <li><strong>Clear description</strong> — What does it do, who is it for, what&apos;s onchain? (2-3 sentences minimum)</li>
               <li><strong>GitHub repo</strong> — Public repos with recent commits boost your health score significantly</li>
-              <li><strong>Correct ecosystem</strong> — Pick the chain you're building on so backers can filter to you</li>
+              <li><strong>Correct ecosystem</strong> — Pick the chain you&apos;re building on so backers can filter to you</li>
               <li><strong>Website or Twitter</strong> — Social links increase backer confidence by up to 10 points</li>
-              <li><strong>Milestones</strong> — Concrete deliverables backers can track ("Ship v1 by May 10" not "Build stuff")</li>
+              <li><strong>Milestones</strong> — Concrete deliverables backers can track (&ldquo;Ship v1 by May 10&rdquo; not &ldquo;Build stuff&rdquo;)</li>
             </ul>
           </div>
         )}

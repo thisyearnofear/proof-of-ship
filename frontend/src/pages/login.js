@@ -368,7 +368,7 @@ export default function LoginPage() {
               <div className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${isFullyAuthed ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
                 {isFullyAuthed ? (
                   <div className="space-y-2">
-                    <p className="text-sm font-bold text-green-700">You're in!</p>
+                    <p className="text-sm font-bold text-green-700">You&apos;re in!</p>
                     <p className="text-xs text-green-600">Taking you to your dashboard...</p>
                   </div>
                 ) : alreadyLinked ? (

@@ -26,6 +26,22 @@ import CreditTab from "@/components/build/CreditTab";
 export default function BuildPage() {
   const { userRole } = useUser();
   const router = useRouter();
+  const wallet = useWallet();
+  const builderCredit = useBuilderCredit();
+  const [activeTab, setActiveTab] = useState("credit");
+
+  const {
+    connected,
+    connect,
+    loading: metaMaskLoading,
+    activeChainFamily,
+    setActiveChainFamily,
+    solanaConnected,
+    connectSolana,
+    disconnectSolana,
+    solanaAddress
+  } = wallet;
+  const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = builderCredit;
 
   // Backers should be on /back, not /build
   useEffect(() => {
@@ -37,20 +53,6 @@ export default function BuildPage() {
   if (userRole === 'backer') {
     return null; // Redirecting
   }
-
-  const { 
-    connected, 
-    connect, 
-    loading: metaMaskLoading,
-    activeChainFamily,
-    setActiveChainFamily,
-    solanaConnected,
-    connectSolana,
-    disconnectSolana,
-    solanaAddress
-  } = useWallet();
-  const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = useBuilderCredit();
-  const [activeTab, setActiveTab] = useState("credit");
 
   const isActuallyConnected = activeChainFamily === 'solana' ? solanaConnected : connected;
   const handleConnect = activeChainFamily === 'solana' ? connectSolana : connect;

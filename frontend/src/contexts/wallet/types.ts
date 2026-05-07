@@ -10,7 +10,7 @@ import { PublicKey } from '@solana/web3.js';
 export interface NetworkConfig {
   chainId: string;
   chainName: string;
-  nativeCurrency: { name: 'Ether' | 'MATIC' | 'USD Coin'; symbol: string; decimals: number };
+  nativeCurrency: { name: string; symbol: string; decimals: number };
   rpcUrls: string[];
   blockExplorerUrls: string[];
 }

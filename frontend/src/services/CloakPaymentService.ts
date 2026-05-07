@@ -280,7 +280,7 @@ class CloakPaymentService {
     const report = toComplianceReport(scan);
 
     return {
-      summary: report.summary,
+      summary: typeof report.summary === 'string' ? report.summary : JSON.stringify(report.summary),
       totalSent: '0', // Extracted from report
       totalReceived: '0', // Extracted from report
       transactionCount: scan.transactions?.length || 0,

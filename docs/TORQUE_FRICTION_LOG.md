@@ -15,7 +15,7 @@ Proof of Ship integrates Torque to track builder shipping velocity and backer en
 | # | Category | Description | Severity |
 |---|----------|-------------|----------|
 | 1 | **Documentation** | No explicit REST API docs for ingestion — had to infer from quickstart + MCP examples. Would benefit from a standalone API reference page. | Medium |
-| 2 | **Event Schemas** | Custom event schemas require manual creation via MCP or platform UI. No bulk import or schema-as-code option. Would love a CLI/SDK for schema management. | Medium |
+| 2 | **Event Schemas** | Custom event schemas require creation via MCP tools or the server REST API (`POST https://server.torque.so/events` with `name` + `fields`). No bulk import or schema-as-code option. Discovered the server API through trial-and-error — not documented. | Medium |
 | 3 | **Error Responses** | When sending malformed events, error messages could be more descriptive. Currently returns generic 4xx without field-level validation hints. | Low |
 | 4 | **Leaderboard API** | No documented leaderboard retrieval API. We built our own from Firestore data + Torque events. A `GET /leaderboard` endpoint with velocity scores would save significant effort. | High |
 | 5 | **Authentication** | Bearer token auth is simple but no mention of token rotation, scoping, or rate limits in docs. Would benefit from API key scopes (read-only, write-only, etc.). | Low |
@@ -43,8 +43,10 @@ All Torque tracking is fire-and-forget. If the API key is missing or the request
 - **AI Engagement**: Tracks which AI agents (underwriter, QVAC analysis) are most used
 
 ## Next Steps
-- [ ] Sign up at platform.torque.so and create project
-- [ ] Create custom event schemas for all 4 event types
-- [ ] Add `TORQUE_API_KEY` to Vercel environment variables
+- [x] Sign up at platform.torque.so and create project
+- [x] Create custom event schemas for all 4 event types
+- [ ] Add `TORQUE_API_KEY`, `TORQUE_API_TOKEN`, `TORQUE_PROJECT_ID` to Vercel environment variables
+- [ ] Create an active incentive program via Torque MCP to power the BackingPanel banner
 - [ ] Build richer leaderboard with time-windowed velocity (7d, 30d, all-time)
+- [ ] Attach custom events to project via MCP (required for query builder / incentive targeting)
 - [ ] Add real-time leaderboard updates via Torque webhooks (if available)

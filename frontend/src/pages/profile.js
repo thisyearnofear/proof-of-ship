@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
-import { useNanopayment } from '@/contexts/WalletContext';
+import { useNanopayment, useWallet } from '@/contexts/WalletContext';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
 import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';
@@ -10,6 +10,7 @@ import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@her
 export default function ProfilePage() {
   const { currentUser, loading, userRole } = useUser();
   const { isInitialized, balance, transactions } = useNanopayment();
+  const wallet = useWallet();
   const router = useRouter();
   const [myProjects, setMyProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
@@ -175,6 +176,58 @@ export default function ProfilePage() {
                     Total Spent
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Circle Wallet */}
+          {(wallet.account || wallet.solanaAddress) && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                🔐 Wallet
+              </h2>
+              <div className="space-y-3">
+                {wallet.solanaAddress && (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Solana</p>
+                      <p className="text-sm font-mono text-gray-900 dark:text-gray-100">
+                        {wallet.solanaAddress.slice(0, 6)}...{wallet.solanaAddress.slice(-4)}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800">
+                      Connected
+                    </span>
+                  </div>
+                )}
+                {wallet.account && (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">EVM</p>
+                      <p className="text-sm font-mono text-gray-900 dark:text-gray-100">
+                        {wallet.account.slice(0, 6)}...{wallet.account.slice(-4)}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800">
+                      Connected
+                    </span>
+                  </div>
+                )}
+                {wallet.circleWallets && wallet.circleWallets.length > 0 && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Circle Wallets</p>
+                    {wallet.circleWallets.map((cw, i) => (
+                      <div key={cw.id || i} className="flex items-center justify-between py-1">
+                        <p className="text-sm font-mono text-gray-900 dark:text-gray-100">
+                          {cw.address ? `${cw.address.slice(0, 6)}...${cw.address.slice(-4)}` : `Wallet ${i + 1}`}
+                        </p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          {cw.blockchain || "EVM"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

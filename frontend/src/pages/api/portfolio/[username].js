@@ -104,6 +104,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Error loading portfolio:", error);
-    res.status(500).json({ error: "Internal server error", message: error.message, code: error.code });
+    res.status(500).json({ error: "Internal server error" });
   }
 }

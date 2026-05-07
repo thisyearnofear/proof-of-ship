@@ -11,6 +11,7 @@ import { LoadingSpinner, MarketConfidenceSkeleton } from './common/LoadingStates
 import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
 import { BuilderTrustFull } from '@/components/common/BuilderTrust';
 import { isValidSolanaAddress } from '@/utils/common';
+import { useTorqueIncentives } from '@/hooks/useTorqueIncentives';
 import {
   BanknotesIcon,
   RocketLaunchIcon,
@@ -22,6 +23,7 @@ import { PrivacyInline, PrivacyBadge } from './common/PrivacyShield';
 export default function BackingPanel({ projectId, developerAddress, builderSnsDomain }) {
   const wallet = useWallet();
   const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
+  const { incentives } = useTorqueIncentives();
   const showBuilderIdentity = isValidSolanaAddress(developerAddress || '');
 
   const [amount, setAmount] = useState('');
@@ -214,6 +216,28 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
       {/* Trust signal — on-chain reputation before committing capital */}
       {showBuilderIdentity && (
         <BuilderTrustFull address={developerAddress} className="mb-5" />
+      )}
+
+      {/* Active Torque incentives — show what backers can earn */}
+      {incentives.length > 0 && (
+        <div className="mb-5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+              Earn Rewards
+            </span>
+          </div>
+          {incentives.slice(0, 2).map((inc) => (
+            <div key={inc.id || inc.name} className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-200 mb-1 last:mb-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+              <span className="font-medium">{inc.name || inc.title || "Active incentive"}</span>
+              {inc.rewardToken && (
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 ml-auto">
+                  {inc.rewardToken}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
       <div className="mb-6">

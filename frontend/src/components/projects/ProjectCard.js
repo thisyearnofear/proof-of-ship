@@ -6,6 +6,7 @@
 import React from 'react';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
+import VelocityBadge from '../common/VelocityBadge';
 import { getEcosystemConfig, getEcosystemClasses } from '../../config/ecosystems';
 import { getGitHubUrl, calculateScoutingFlags, calculateProjectBoost } from '../../utils/projectUtils';
 import ChainBadges from '../showcase/ChainBadges';
@@ -86,9 +87,12 @@ export const ProjectPreviewCard = ({ project, onClick }) => {
         <h4 className="font-semibold text-gray-900 truncate flex-1 pr-2">
           {project.name || project.slug}
         </h4>
-        {project.stats?.isActive && (
-          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-        )}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <VelocityBadge velocity={project.stats?.velocity} />
+          {project.stats?.isActive && (
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          )}
+        </div>
       </div>
       
       <div className="flex items-center justify-between text-sm text-gray-500">
@@ -451,6 +455,7 @@ export const ProjectGridCard = ({ project, onClick }) => {
               {project.name || project.slug}
             </h4>
             <span title={tier.name}>{tier.icon}</span>
+            <VelocityBadge velocity={project.stats?.velocity} />
           </div>
           {ecosystemConfig && (
             <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${ecosystemConfig.bgColor} ${ecosystemConfig.textColor}`}>

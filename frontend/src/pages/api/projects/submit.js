@@ -129,6 +129,7 @@ async function handler(req, res) {
         commits: 0,
         issues: 0,
         pulls: 0,
+        velocity: 5 + (Array.isArray(projectData.milestones) ? projectData.milestones.length : 0) * 10,
       },
     };
 

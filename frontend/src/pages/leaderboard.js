@@ -42,8 +42,8 @@ export default function LeaderboardPage() {
         const data = await res.json();
         if (!cancelled) {
           setEntries({
-            builders: data.builders || [],
-            backers: data.backers || [],
+            builders: (data.builders || []).map((b) => ({ ...b, source: b.source || "firestore" })),
+            backers: (data.backers || []).map((b) => ({ ...b, source: b.source || "firestore" })),
           });
         }
       } catch (err) {
@@ -173,6 +173,11 @@ function LeaderboardRow({ entry, rank, type }) {
         <p className="text-xs text-text-tertiary">
           {type === "builders" ? "shipping velocity" : "backing score"}
         </p>
+        {entry.source === "torque" && (
+          <span className="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">
+            Torque
+          </span>
+        )}
       </div>
 
       {/* Address link */}

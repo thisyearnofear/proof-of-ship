@@ -116,6 +116,7 @@ export default async function handler(req, res) {
               const local = builders.find((b) => b.address === tBuilder.address);
               if (local) {
                 local.velocity += tBuilder.velocity || 0;
+                local.source = "torque";
               }
             }
             builders.sort((a, b) => b.velocity - a.velocity);
@@ -125,6 +126,7 @@ export default async function handler(req, res) {
               const local = backers.find((b) => b.address === tBacker.address);
               if (local) {
                 local.score += tBacker.score || 0;
+                local.source = "torque";
               }
             }
             backers.sort((a, b) => b.score - a.score);

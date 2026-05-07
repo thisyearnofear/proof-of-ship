@@ -17,6 +17,25 @@ export default async function handler(req, res) {
       .limit(1)
       .get();
 
+    // Fallback: look up by numeric GitHub user ID
+    if (userSnapshot.empty) {
+      userSnapshot = await db
+        .collection("users")
+        .where("githubId", "==", username)
+        .limit(1)
+        .get();
+    }
+
+    // Fallback: look up by document ID (Firebase UID)
+    if (userSnapshot.empty) {
+      try {
+        const docSnap = await db.collection("users").doc(username).get();
+        if (docSnap.exists) {
+          userSnapshot = { docs: [docSnap], empty: false };
+        }
+      } catch { /* not a valid doc ID */ }
+    }
+
     // Fallback: look up by wallet address (for backer/wallet-only users)
     if (userSnapshot.empty && /^0x[a-fA-F0-9]{40}$/.test(username)) {
       userSnapshot = await db
@@ -33,38 +52,45 @@ export default async function handler(req, res) {
     const userDoc = userSnapshot.docs[0];
     const user = userDoc.data();
 
-    const ownersQuery = db
-      .collection("projects")
-      .where("owners", "array-contains", userDoc.id)
-      .get();
+    let projects = [];
 
-    const submittedByQuery = db
-      .collection("projects")
-      .where("submittedBy", "==", userDoc.id)
-      .get();
+    try {
+      const ownersQuery = db
+        .collection("projects")
+        .where("owners", "array-contains", userDoc.id)
+        .get();
 
-    const [ownersSnapshot, submittedSnapshot] = await Promise.all([
-      ownersQuery,
-      submittedByQuery,
-    ]);
+      const submittedByQuery = db
+        .collection("projects")
+        .where("submittedBy", "==", userDoc.id)
+        .get();
 
-    const projectMap = new Map();
+      const [ownersSnapshot, submittedSnapshot] = await Promise.all([
+        ownersQuery,
+        submittedByQuery,
+      ]);
 
-    for (const docSnap of ownersSnapshot.docs) {
-      projectMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
-    }
+      const projectMap = new Map();
 
-    for (const docSnap of submittedSnapshot.docs) {
-      if (!projectMap.has(docSnap.id)) {
+      for (const docSnap of ownersSnapshot.docs) {
         projectMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
       }
-    }
 
-    const projects = Array.from(projectMap.values()).sort((a, b) => {
-      const dateA = a.updatedAt || a.createdAt || a.submittedAt || "";
-      const dateB = b.updatedAt || b.createdAt || b.submittedAt || "";
-      return String(dateB).localeCompare(String(dateA));
-    });
+      for (const docSnap of submittedSnapshot.docs) {
+        if (!projectMap.has(docSnap.id)) {
+          projectMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+        }
+      }
+
+      projects = Array.from(projectMap.values()).sort((a, b) => {
+        const dateA = a.updatedAt || a.createdAt || a.submittedAt || "";
+        const dateB = b.updatedAt || b.createdAt || b.submittedAt || "";
+        return String(dateB).localeCompare(String(dateA));
+      });
+    } catch (projectErr) {
+      // Projects query can fail if Firestore indexes are missing — don't fail the whole request
+      console.warn("Portfolio projects query failed:", projectErr.message);
+    }
 
     res.status(200).json({
       user: {

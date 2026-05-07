@@ -116,7 +116,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await (this.circle as any).wallets.list({
+      const response = await (this.circle as any).wallets.listWallets({
         walletSetId: walletSetId || this.walletSetId,
       });
 

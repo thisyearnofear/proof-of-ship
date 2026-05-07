@@ -21,12 +21,16 @@ if (!admin.apps.length) {
   try {
     // In production (Vercel, Firebase Cloud Functions, etc.)
     // credentials come from environment or service account
-    if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+    // Normalize private key: handle escaped newlines and base64 encoding
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY
+      ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').trim()
+      : undefined;
+    if (privateKey && process.env.FIREBASE_CLIENT_EMAIL) {
       admin.initializeApp({
         credential: admin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID || 'proofofship',
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          privateKey,
         }),
       });
     } else {

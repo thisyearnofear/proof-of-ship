@@ -58,6 +58,20 @@ service cloud.firestore {
       allow delete: if isAdminUser();
     }
 
+    match /projects_solana/{projectId} {
+      allow read: if isProjectApproved('projects_solana', projectId) || isProjectPublic('projects_solana', projectId) || isProjectOwner('projects_solana', projectId) || isAdminUser();
+      allow update: if isProjectOwner('projects_solana', projectId) || isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
+      allow delete: if isAdminUser();
+    }
+
+    match /projects_arc/{projectId} {
+      allow read: if isProjectApproved('projects_arc', projectId) || isProjectPublic('projects_arc', projectId) || isProjectOwner('projects_arc', projectId) || isAdminUser();
+      allow update: if isProjectOwner('projects_arc', projectId) || isAdminUser();
+      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
+      allow delete: if isAdminUser();
+    }
+
     match /projects_linea/{projectId} {
       allow read: if isProjectApproved('projects_linea', projectId) || isProjectPublic('projects_linea', projectId) || isProjectOwner('projects_linea', projectId) || isAdminUser();
       allow update: if isProjectOwner('projects_linea', projectId) || isAdminUser();
@@ -65,9 +79,10 @@ service cloud.firestore {
       allow delete: if isAdminUser();
     }
 
-    // User profiles are readable by the user themselves
+    // User profiles — public read for portfolio pages, self-write only
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if true;
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // Drafts — per-user project drafts for auto-save persistence

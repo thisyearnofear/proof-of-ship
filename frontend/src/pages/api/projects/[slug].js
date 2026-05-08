@@ -25,7 +25,9 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "featured",
   "status",
   "testerTasks", // minimal tester tasks config allowed
-
+  "imageUrl",
+  "liveUrl",
+  "otherCategoryDetail",
 ]);
 
 async function handler(req, res) {

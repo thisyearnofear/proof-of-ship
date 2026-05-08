@@ -355,8 +355,8 @@ export default function ProjectEditor({ projectSlug }) {
     try {
       // Resize to consistent dimensions (1200x630 — OG image standard)
       const img = new window.Image();
-      const dataUrl = await new Promise((resolve, reject) => {
-        img.onload = () => resolve(img);
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
         img.onerror = reject;
         img.src = URL.createObjectURL(file);
       });
@@ -376,16 +376,20 @@ export default function ProjectEditor({ projectSlug }) {
 
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
 
-      // Upload to Firebase Storage
-      const { storage } = await import("@/lib/firebase/clientApp");
-      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+      // Upload to Grove (Lens decentralized storage — free, no auth required)
+      const resp = await fetch("https://api.grove.storage/?chain_id=37111", {
+        method: "POST",
+        headers: { "Content-Type": "image/jpeg" },
+        body: blob,
+      });
 
-      const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 30) || "project";
-      const storageRef = ref(storage, `project-images/${currentUser.uid}/${slug}-${Date.now()}.jpg`);
-      await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
-      const url = await getDownloadURL(storageRef);
+      if (!resp.ok) {
+        throw new Error(`Grove upload failed: ${resp.status}`);
+      }
 
-      setImageUrl(url);
+      const data = await resp.json();
+      // Use gatewayUrl for direct access (works in <img> tags)
+      setImageUrl(data.gateway_url || `https://api.grove.storage/${data.storage_key}`);
     } catch (err) {
       console.error("Image upload failed:", err);
       setImageError("Upload failed. Please try again.");

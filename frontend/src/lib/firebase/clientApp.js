@@ -1,7 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 import config from "@/config/publicConfig";
 
 // Use environment configuration
@@ -21,9 +20,6 @@ export const auth = getAuth(firebaseApp);
 
 // Initialize Firestore with standard configuration
 export const db = getFirestore(firebaseApp);
-
-// Storage export for file uploads (project images, etc.)
-export const storage = getStorage(firebaseApp);
 
 // Add error handling for Firestore operations
 if (typeof window !== "undefined") {

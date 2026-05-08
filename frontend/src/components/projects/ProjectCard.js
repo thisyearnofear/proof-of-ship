@@ -11,6 +11,7 @@ import { getEcosystemConfig, getEcosystemClasses } from '../../config/ecosystems
 import { getGitHubUrl, calculateScoutingFlags, calculateProjectBoost } from '../../utils/projectUtils';
 import ChainBadges from '../showcase/ChainBadges';
 import SectorBadges from '../showcase/SectorBadges';
+import AgentVerifiedBadge from '../common/AgentVerifiedBadge';
 import {
   StarIcon,
   CodeBracketIcon,
@@ -135,6 +136,9 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
               {tier.icon}
               <span className="ml-1">{tier.name}</span>
             </span>
+            {(project.stats?.healthScore > 80 || project.verifiedByAgent) && (
+              <AgentVerifiedBadge size="sm" agentName={project.stats?.healthScore > 90 ? 'Underwriter' : 'Verifier'} />
+            )}
           </div>
           {showEcosystem && ecosystemConfig && (
             <div className="flex items-center space-x-2">

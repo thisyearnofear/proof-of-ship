@@ -15,8 +15,10 @@ import {
   GlobeAltIcon,
   SparklesIcon,
   ArrowRightIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
+import Confetti from '../common/Confetti';
 
 const ONBOARDING_STEPS = [
   {
@@ -429,36 +431,38 @@ export default function OnboardingFlow({ onComplete }) {
     if (!creditData) return null;
 
     return (
-      <Card className="p-8 text-center">
+      <Card className="p-8 text-center animate-fade-in-up relative overflow-hidden">
+        <Confetti duration={5000} count={80} />
         <div className="mb-6">
           <div className="relative inline-block">
+            <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur opacity-20 animate-pulse"></div>
             <CircularProgress
               value={creditData.totalScore}
               max={850}
-              size={120}
-              strokeWidth={8}
-              className="text-blue-600"
+              size={140}
+              strokeWidth={10}
+              className="text-blue-600 relative"
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-4xl font-black text-gray-900">
                   {creditData.totalScore}
                 </div>
-                <div className="text-sm text-gray-600">Score</div>
+                <div className="text-xs uppercase tracking-widest font-bold text-gray-500">Reputation</div>
               </div>
             </div>
           </div>
         </div>
 
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-          Your Credit Score is Ready!
+        <h3 className="text-3xl font-bold text-gray-900 mb-2">
+          ✨ You&apos;re Ready to Ship! ✨
         </h3>
         
-        <p className="text-gray-600 mb-6">
+        <p className="text-lg text-gray-600 mb-8">
           {creditData.fundingEligible ? (
-            <>You qualify for up to <span className="font-bold text-green-600">${creditData.fundingAmount.toLocaleString()} USDC</span> in funding!</>
+            <>You qualify for up to <span className="font-bold text-green-600 underline decoration-2 underline-offset-4">${creditData.fundingAmount.toLocaleString()} USDC</span> in credit!</>
           ) : (
-            'Complete more profile connections to become eligible for funding.'
+            'Your reputation profile is live. Connect more platforms to unlock higher credit limits.'
           )}
         </p>
 

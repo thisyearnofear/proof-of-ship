@@ -121,6 +121,28 @@ module.exports = {
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'wave': 'wave 10s ease-in-out infinite',
+        'float': 'float 3s ease-in-out infinite',
+        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+        'confetti-fall': 'confettiFall 3s ease-out forwards',
+      },
+      keyframes: {
+        wave: {
+          '0%, 100%': { transform: 'translateX(0) translateY(0)' },
+          '50%': { transform: 'translateX(-25px) translateY(5px)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        confettiFall: {
+          '0%': { transform: 'translateY(-100vh) rotate(0deg)', opacity: '1' },
+          '100%': { transform: 'translateY(100vh) rotate(720deg)', opacity: '0' },
+        }
       },
     },
   },

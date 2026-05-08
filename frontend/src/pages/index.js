@@ -5,6 +5,7 @@ import { useUser } from "@/contexts/UserContext";
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
+import LiveActivityFeed from "@/components/common/LiveActivityFeed";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import { LANDING_FEATURES, USER_JOURNEYS } from "@/config/landingContent";
 import {
@@ -62,50 +63,64 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-secondary wave-pattern">
+    <div className="min-h-screen bg-surface-secondary wave-pattern overflow-x-hidden">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
+          <div className="absolute top-20 left-[10%] w-64 h-64 bg-blue-400 rounded-full blur-[100px] animate-wave"></div>
+          <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-cyan-400 rounded-full blur-[120px] animate-wave" style={{ animationDelay: '-5s' }}></div>
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 relative">
-          <div className="text-center">
+          <div className="text-center relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-6 animate-fade-in-up">
+              <span className="animate-ping w-2 h-2 bg-blue-500 rounded-full"></span>
+              Mainnet Live on Arc & Solana
+            </div>
             <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-primary mb-4 sm:mb-6 leading-tight tracking-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               Ship Code,
               <br />
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent drop-shadow-sm">
                 Unlock Credit
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
               Your on-chain reputation becomes collateral. Ship milestones, AI agents
               verify, backers stake USDC — no traditional collateral needed.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              <Button
-                onClick={handleGetStarted}
-                className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-primary-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
-              >
-                <SparklesIconOutline className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                {currentUser ? "Get Funded" : "Start Shipping"}
-                <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                <Button
+                  onClick={handleGetStarted}
+                  className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg border border-primary-200 tide-button maritime-depth min-h-touch w-full sm:w-auto"
+                >
+                  <SparklesIconOutline className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
+                  {currentUser ? "Get Funded" : "Start Shipping"}
+                  <ArrowRightIcon className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
+                </Button>
 
-              <Button
-                onClick={handleExploreFleet}
-                variant="outline"
-                className="px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
-              >
-                <MagnifyingGlassIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                Explore projects
-              </Button>
+                <Button
+                  onClick={handleExploreFleet}
+                  variant="outline"
+                  className="px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
+                >
+                  <MagnifyingGlassIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
+                  Explore projects
+                </Button>
+              </div>
             </div>
 
-            {/* Score Preview */}
-            <ScorePreviewCard
-              className="mt-8 sm:mt-10 max-w-md mx-auto px-4 sm:px-0"
-              onGetStarted={handleGetStarted}
-            />
+            {/* Score Preview & Live Feed */}
+            <div className="mt-8 sm:mt-12 flex flex-col lg:flex-row gap-8 items-center justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+              <ScorePreviewCard
+                className="max-w-md w-full"
+                onGetStarted={handleGetStarted}
+              />
+              <LiveActivityFeed />
+            </div>
           </div>
         </div>
       </div>

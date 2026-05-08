@@ -62,7 +62,9 @@ async function walletsHandler(req, res) {
 
     return res.status(500).json({
       success: false,
-      error: error.message || "Internal server error",
+      error: error.message?.includes("403") || error.message?.includes("Request failed with status code 403")
+        ? "Circle API key accepted but wallet set not found in production. Create a new wallet set at https://developers.circle.com."
+        : error.message || "Internal server error",
       details: error.details || {},
     });
   }

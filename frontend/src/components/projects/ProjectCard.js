@@ -163,6 +163,18 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
         </div>
       </div>
 
+      {/* Project Image */}
+      {project.imageUrl && (
+        <div className="mb-4 rounded-lg overflow-hidden border border-gray-100">
+          <img
+            src={project.imageUrl}
+            alt={project.name}
+            className="w-full h-40 object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
+
       {/* AI Scouting Flags & Trade Winds */}
       {(scoutFlags.highVelocity || scoutFlags.underBacked || boost > 1) && (
         <div className="flex flex-wrap gap-2 mb-3">
@@ -445,6 +457,17 @@ export const ProjectGridCard = ({ project, onClick }) => {
             <span className="animate-pulse">🌬️</span>
             {boost}x
           </div>
+        </div>
+      )}
+      {/* Project Image */}
+      {project.imageUrl && (
+        <div className="mb-3 -mx-5 -mt-5 overflow-hidden border-b border-gray-100">
+          <img
+            src={project.imageUrl}
+            alt={project.name}
+            className="w-full h-32 object-cover"
+            loading="lazy"
+          />
         </div>
       )}
       {/* Header */}

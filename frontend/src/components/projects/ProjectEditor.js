@@ -9,7 +9,7 @@ import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
 import { submitProject } from "@/services/DataService";
 
-import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon } from "@heroicons/react/24/outline";
 
 const DEFAULT_CATEGORIES = [
   { id: "defi", name: "DeFi" },
@@ -79,6 +79,9 @@ export default function ProjectEditor({ projectSlug }) {
   const [hasDraft, setHasDraft] = useState(Boolean(draft));
   const [draftSaved, setDraftSaved] = useState(null); // 'local' | 'cloud' | null
   const [lastCloudSave, setLastCloudSave] = useState(null);
+  const [imageUrl, setImageUrl] = useState(draft?.imageUrl || "");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState(null);
 
   // Auto-save draft to localStorage immediately, then debounce Firestore save
   useEffect(() => {
@@ -86,13 +89,13 @@ export default function ProjectEditor({ projectSlug }) {
     // Save to localStorage every second (instant fallback)
     const localTimer = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...form, imageUrl }));
         setHasDraft(true);
         setDraftSaved('local');
       } catch {}
     }, 1000);
     return () => clearTimeout(localTimer);
-  }, [form, isEditMode]);
+  }, [form, imageUrl, isEditMode]);
 
   // Debounced Firestore save (every 8s when form changes, only for new projects)
   useEffect(() => {
@@ -332,6 +335,64 @@ export default function ProjectEditor({ projectSlug }) {
     }
   }, [form.githubUrl, fetchGithubInfo]);
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError(null);
+
+    // Validate dimensions and size
+    if (!file.type.startsWith("image/")) {
+      setImageError("Please upload an image file");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setImageError("Image must be under 2MB");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      // Resize to consistent dimensions (1200x630 — OG image standard)
+      const img = new window.Image();
+      const dataUrl = await new Promise((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+      });
+
+      const canvas = document.createElement("canvas");
+      const targetW = 1200;
+      const targetH = 630;
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext("2d");
+
+      // Center-crop to fill target dimensions
+      const scale = Math.max(targetW / img.width, targetH / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      ctx.drawImage(img, (targetW - w) / 2, (targetH - h) / 2, w, h);
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+
+      // Upload to Firebase Storage
+      const { storage } = await import("@/lib/firebase/clientApp");
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+
+      const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 30) || "project";
+      const storageRef = ref(storage, `project-images/${currentUser.uid}/${slug}-${Date.now()}.jpg`);
+      await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
+      const url = await getDownloadURL(storageRef);
+
+      setImageUrl(url);
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      setImageError("Upload failed. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const validate = () => {
     if (!form.name.trim()) return "Project name is required";
     if (!form.description.trim()) return "Description is required";
@@ -498,11 +559,13 @@ export default function ProjectEditor({ projectSlug }) {
         let useClientSide = false;
         
         try {
+          const token = await currentUser.getIdToken();
           const res = await fetch("/api/projects/submit", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify({
               ...cleaned,
+              imageUrl: imageUrl || null,
               launchOnBags: form.launchOnBags,
               bagsTokenAddress: onChainResult?.projectData?.bagsTokenAddress || null,
               solanaProjectPda: onChainResult?.projectPda || null,
@@ -707,6 +770,39 @@ export default function ProjectEditor({ projectSlug }) {
           required
         />
 
+        {/* Project image — consistent card display */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Project image
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            Shown on project cards and backer feeds. Auto-resized to 1200×630. Max 2MB.
+          </p>
+          <div className="flex items-start gap-4">
+            {imageUrl ? (
+              <div className="relative w-40 h-[84px] rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex-shrink-0">
+                <img src={imageUrl} alt="Project preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setImageUrl("")}
+                  className="absolute top-1 right-1 bg-white/90 rounded-full p-0.5 hover:bg-red-50 text-gray-500 hover:text-red-600 text-xs"
+                  title="Remove image"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-40 h-[84px] rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-blue-400 transition-colors flex-shrink-0">
+                <PhotoIcon className="w-6 h-6 text-gray-400" />
+                <span className="text-xs text-gray-500 mt-1">Upload image</span>
+                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              </label>
+            )}
+            {uploadingImage && <LoadingSpinner size="sm" />}
+            {imageError && <span className="text-xs text-red-600">{imageError}</span>}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="GitHub repository"
@@ -771,10 +867,13 @@ export default function ProjectEditor({ projectSlug }) {
       {/* Collapsible optional sections */}
       <button
         type="button"
-        className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 border border-blue-200 dark:border-gray-700 rounded-lg px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:from-blue-100 hover:to-indigo-100 transition-colors"
         onClick={() => setShowOptional(!showOptional)}
       >
-        <span>{showOptional ? "Hide" : "Show"} optional details (onchain, links, team, milestones, hackathons)</span>
+        <span className="flex items-center gap-2">
+          {showOptional ? "Hide" : "Show"} optional details
+          <span className="text-xs text-blue-600 font-normal">— projects with links get 3× more backer views</span>
+        </span>
         {showOptional ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
       </button>
 
@@ -799,27 +898,42 @@ export default function ProjectEditor({ projectSlug }) {
       </Card>
 
       <Card className="p-6 space-y-5">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Links & Team</h3>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Links & Team</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Backers look for signals that you're real and active. A Twitter/X account shows your builder journey.
+            Discord shows community engagement. A website shows you care about users, not just code.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input
-            label="Website (optional)"
-            value={form.website}
-            onChange={(e) => setField("website", e.target.value)}
-            placeholder="https://..."
-          />
-          <Input
-            label="Twitter (optional)"
-            value={form.twitter}
-            onChange={(e) => setField("twitter", e.target.value)}
-            placeholder="https://twitter.com/..."
-          />
-          <Input
-            label="Discord (optional)"
-            value={form.discord}
-            onChange={(e) => setField("discord", e.target.value)}
-            placeholder="https://discord.gg/..."
-          />
+          <div>
+            <Input
+              label="Twitter / X"
+              value={form.twitter}
+              onChange={(e) => setField("twitter", e.target.value)}
+              placeholder="https://x.com/yourhandle"
+            />
+            <p className="text-xs text-gray-500 mt-1">Build in public. Backers follow your progress here.</p>
+          </div>
+          <div>
+            <Input
+              label="Discord"
+              value={form.discord}
+              onChange={(e) => setField("discord", e.target.value)}
+              placeholder="https://discord.gg/yourserver"
+            />
+            <p className="text-xs text-gray-500 mt-1">Shows you have a community. Backers love early traction.</p>
+          </div>
+          <div>
+            <Input
+              label="Website"
+              value={form.website}
+              onChange={(e) => setField("website", e.target.value)}
+              placeholder="https://yourapp.com"
+            />
+            <p className="text-xs text-gray-500 mt-1">Landing page, docs, or demo — any link where users can try it.</p>
+          </div>
         </div>
 
         <Input

@@ -101,9 +101,12 @@ async function handler(req, res) {
       category: projectData.category,
       contractAddress: projectData.contractAddress || null,
       deploymentTxHash: projectData.deploymentTxHash || null,
+      liveUrl: projectData.liveUrl || projectData.website || null,
       website: projectData.website || null,
       twitter: projectData.twitter || null,
       discord: projectData.discord || null,
+      otherCategoryDetail: projectData.otherCategoryDetail || null,
+      imageUrl: projectData.imageUrl || null,
       teamMembers: Array.isArray(projectData.teamMembers)
         ? projectData.teamMembers.filter((member) => String(member).trim())
         : [],

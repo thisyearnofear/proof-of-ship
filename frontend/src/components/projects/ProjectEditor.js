@@ -387,9 +387,10 @@ export default function ProjectEditor({ projectSlug }) {
         throw new Error(`Grove upload failed: ${resp.status}`);
       }
 
-      const data = await resp.json();
-      // Use gatewayUrl for direct access (works in <img> tags)
-      setImageUrl(data.gateway_url || `https://api.grove.storage/${data.storage_key}`);
+      const result = await resp.json();
+      // Grove returns an array: [{ gateway_url, storage_key, uri }]
+      const file = Array.isArray(result) ? result[0] : result;
+      setImageUrl(file.gateway_url || `https://api.grove.storage/${file.storage_key}`);
     } catch (err) {
       console.error("Image upload failed:", err);
       setImageError("Upload failed. Please try again.");

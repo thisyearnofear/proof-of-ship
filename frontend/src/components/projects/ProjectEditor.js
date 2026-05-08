@@ -229,6 +229,7 @@ export default function ProjectEditor({ projectSlug }) {
           liveUrl: project.liveUrl || "",
           otherCategoryDetail: project.otherCategoryDetail || "",
         });
+        setImageUrl(project.imageUrl || "");
       } catch (e) {
         if (!cancelled) setError(e.message || "Failed to load project");
       } finally {
@@ -512,10 +513,11 @@ export default function ProjectEditor({ projectSlug }) {
 
     try {
       if (isEditMode) {
+        const token = await currentUser.getIdToken();
         const res = await fetch(`/api/projects/${projectSlug}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(cleaned),
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ ...cleaned, imageUrl: imageUrl || null }),
         });
 
         if (!res.ok) {

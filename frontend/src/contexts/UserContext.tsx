@@ -156,9 +156,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // Check for pending permissions when user logs in
   const checkPendingPermissions = async (user: User) => {
     try {
-      const githubUsername = user.providerData.find(
+      const githubUsername = (user as any).reloadUserInfo?.screenName
+        || user.providerData.find(
         (p) => p.providerId === 'github.com'
-      )?.uid;
+      )?.displayName?.toLowerCase().replace(/\s/g, '') || null;
       
       if (!githubUsername) return;
       

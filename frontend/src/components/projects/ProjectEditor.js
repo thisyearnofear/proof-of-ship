@@ -23,7 +23,10 @@ const DEFAULT_CATEGORIES = [
 
 export default function ProjectEditor({ projectSlug }) {
   const { currentUser, hasProjectPermission } = useUser();
-  const githubUsername = currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid || null;
+  // providerData.uid for GitHub is the numeric ID — actual username is in reloadUserInfo.screenName
+  const githubUsername = currentUser?.reloadUserInfo?.screenName
+    || currentUser?.providerData?.find((p) => p.providerId === "github.com")?.displayName?.toLowerCase().replace(/\s/g, '')
+    || null;
   const { requestFunding, connected, activeChainFamily } = useBuilderCredit();
 
   const isEditMode = Boolean(projectSlug);
@@ -66,6 +69,8 @@ export default function ProjectEditor({ projectSlug }) {
     hackathons: draft?.hackathons || [],
     launchOnBags: draft?.launchOnBags || false,
     bagsTokenMetadata: draft?.bagsTokenMetadata || { name: "", symbol: "", description: "" },
+    liveUrl: draft?.liveUrl || "",
+    otherCategoryDetail: draft?.otherCategoryDetail || "",
   });
 
   const [showOptional, setShowOptional] = useState(false);
@@ -218,6 +223,8 @@ export default function ProjectEditor({ projectSlug }) {
               ? project.milestones
               : [""],
           hackathons: Array.isArray(project.hackathons) ? project.hackathons : [],
+          liveUrl: project.liveUrl || "",
+          otherCategoryDetail: project.otherCategoryDetail || "",
         });
       } catch (e) {
         if (!cancelled) setError(e.message || "Failed to load project");
@@ -339,6 +346,9 @@ export default function ProjectEditor({ projectSlug }) {
     }
     if (!form.ecosystem) return "Chain / ecosystem is required";
     if (!form.category) return "Category is required";
+    if (form.category === "other" && !form.otherCategoryDetail?.trim()) {
+      return "Please specify what kind of project this is (Other category)";
+    }
     if (form.contractAddress.trim() && !form.contractAddress.trim().startsWith("0x")) {
       return "Contract address must start with 0x";
     }
@@ -403,8 +413,10 @@ export default function ProjectEditor({ projectSlug }) {
       name: form.name.trim(),
       description: form.description.trim(),
       githubUrl: form.githubUrl.trim(),
+      liveUrl: form.liveUrl.trim() || null,
       ecosystem: form.ecosystem,
       category: form.category,
+      otherCategoryDetail: form.category === "other" ? (form.otherCategoryDetail || "").trim() : null,
       contractAddress: form.contractAddress.trim(),
       deploymentTxHash: form.deploymentTxHash.trim() || null,
       website: form.website.trim() || null,
@@ -722,7 +734,24 @@ export default function ProjectEditor({ projectSlug }) {
               </option>
             ))}
           </Select>
+
+          <Input
+            label="Live app link"
+            value={form.liveUrl}
+            onChange={(e) => setField("liveUrl", e.target.value)}
+            placeholder="https://yourapp.com — where users can try it"
+          />
         </div>
+
+        {form.category === "other" && (
+          <Input
+            label="What kind of project is this?"
+            value={form.otherCategoryDetail}
+            onChange={(e) => setField("otherCategoryDetail", e.target.value)}
+            placeholder="e.g. AI tooling, data indexer, developer SDK..."
+            required
+          />
+        )}
 
         {Array.isArray(ecosystemConfig?.submissionRequirements) &&
           ecosystemConfig.submissionRequirements.length > 0 && (

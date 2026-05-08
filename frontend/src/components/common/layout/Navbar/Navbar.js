@@ -60,7 +60,9 @@ export default function Navbar() {
   const { isInitialized: nanopayReady, balance } = useNanopayment();
   const wallet = useWallet();
   const { disconnect: disconnectEvm, disconnectSolana, solanaAddress, account } = wallet;
-  const githubUsername = currentUser?.providerData?.find((p) => p.providerId === "github.com")?.uid || null;
+  const githubUsername = currentUser?.reloadUserInfo?.screenName
+    || currentUser?.providerData?.find((p) => p.providerId === "github.com")?.displayName?.toLowerCase().replace(/\s/g, '')
+    || null;
 
   const activeWallet = solanaAddress
     ? { label: `${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`, color: 'purple' }

@@ -1,9 +1,12 @@
 /**
  * Real Circle API Service
- * TypeScript implementation using Circle's SDK
+ * Uses @circle-fin/developer-controlled-wallets for W3S API
  */
 
-import { Circle, CircleEnvironments } from "@circle-fin/circle-sdk";
+import {
+  initiateDeveloperControlledWalletsClient,
+  type DeveloperControlledWallets,
+} from "@circle-fin/developer-controlled-wallets";
 import { TESTNET_USDC_ADDRESSES, ARC_TESTNET_CHAIN_ID } from "../config/tokens";
 
 interface WalletConfig {
@@ -38,7 +41,7 @@ interface CircleResponse<T = any> {
 }
 
 class RealCircleService {
-  private circle: Circle | null = null;
+  private client: DeveloperControlledWallets | null = null;
   private readonly environment: string;
   private readonly apiKey: string | undefined;
   private readonly walletSetId: string | undefined;
@@ -53,21 +56,19 @@ class RealCircleService {
   }
 
   private initialize(): void {
-    if (!this.apiKey) {
-      console.warn("Circle API key not configured");
+    if (!this.apiKey || !this.entitySecret) {
+      console.warn("Circle API key or entity secret not configured");
       return;
     }
 
-    const circleEnvironment =
-      this.environment === "production"
-        ? (CircleEnvironments as any).production || "production"
-        : (CircleEnvironments as any).sandbox || "sandbox";
-
-    this.circle = new Circle(this.apiKey, circleEnvironment as string);
+    this.client = initiateDeveloperControlledWalletsClient({
+      apiKey: this.apiKey,
+      entitySecret: this.entitySecret,
+    });
   }
 
   isConfigured(): boolean {
-    return !!(this.circle && this.apiKey && this.walletSetId);
+    return !!(this.client && this.apiKey && this.walletSetId);
   }
 
   generateIdempotencyKey(prefix = "tx"): string {
@@ -87,11 +88,10 @@ class RealCircleService {
     const idempotencyKey = this.generateIdempotencyKey("wallet");
 
     try {
-      const response = await (this.circle as any).wallets.create({
+      const response = await this.client!.createWallet({
         idempotencyKey,
-        entitySecretCiphertext: this.entitySecret,
-        walletSetId: this.walletSetId,
-        blockchains: ["ETH", "MATIC", "ARB", "BASE", "OP", "ARC"],
+        walletSetId: this.walletSetId!,
+        blockchains: ["ETH", "MATIC", "ARB-SEPOLIA", "BASE", "OPT", "SOL"],
         count: 1,
         metadata: {
           name: config.name || "Developer Wallet",
@@ -116,7 +116,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await (this.circle as any).wallets.listWallets({
+      const response = await this.client!.listWallets({
         walletSetId: walletSetId || this.walletSetId,
       });
 
@@ -135,7 +135,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await (this.circle as any).wallets.get({ id: walletId });
+      const response = await this.client!.getWallet({ id: walletId });
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Get wallet failed: ${error.message}`);
@@ -151,7 +151,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await (this.circle as any).wallets.getBalance({ id: walletId });
+      const response = await this.client!.getWalletBalance({ id: walletId });
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Get wallet balances failed: ${error.message}`);
@@ -169,15 +169,13 @@ class RealCircleService {
     const idempotencyKey = this.generateIdempotencyKey("tx");
 
     try {
-      const response = await (this.circle as any).transactions.create({
+      const response = await this.client!.createTransactionTransfer({
         idempotencyKey,
         walletId: config.walletId,
-        blockchain: config.blockchain || "ARC",
         tokenId: config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID],
-        amount: config.amount,
+        amounts: [config.amount],
         destinationAddress: config.destinationAddress,
-        feeLevel: config.feeLevel || "HIGH",
-        metadata: config.metadata || {},
+        feeLevel: (config.feeLevel as any) || "HIGH",
       });
 
       return { success: true, data: response.data };
@@ -195,7 +193,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await (this.circle as any).transactions.get({ id: transactionId });
+      const response = await this.client!.getTransaction({ id: transactionId });
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Get transaction status failed: ${error.message}`);
@@ -203,7 +201,21 @@ class RealCircleService {
   }
 
   /**
-   * Test API connection
+   * Get Circle config info for the frontend
+   */
+  getConfig(): { success: boolean; data: { walletSetId: string; environment: string; configured: boolean } } {
+    return {
+      success: true,
+      data: {
+        walletSetId: this.walletSetId || "",
+        environment: this.environment,
+        configured: this.isConfigured(),
+      },
+    };
+  }
+
+  /**
+   * Test API connection (list wallets as a connectivity check)
    */
   async ping(): Promise<CircleResponse> {
     if (!this.isConfigured()) {
@@ -211,8 +223,11 @@ class RealCircleService {
     }
 
     try {
-      const response = await (this.circle as any).ping.ping();
-      return { success: true, data: response.data };
+      // List wallets as a connectivity test
+      const response = await this.client!.listWallets({
+        walletSetId: this.walletSetId!,
+      });
+      return { success: true, data: { message: "OK", wallets: response.data } };
     } catch (error: any) {
       throw new Error(`Ping failed: ${error.message}`);
     }

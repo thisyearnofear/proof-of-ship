@@ -16,6 +16,7 @@
     "@bagsfm/bags-sdk": "1.3.7",
     "@bonfida/spl-name-service": "3.0.21",
     "@circle-fin/circle-sdk": "^1.3.0",
+    "@circle-fin/developer-controlled-wallets": "10.3.1",
     "@circle-fin/x402-batching": "^2.1.0",
     "@cloak.dev/sdk": "0.1.6",
     "@coral-xyz/anchor": "^0.32.1",
@@ -59,9 +60,9 @@
     "node": "22.x"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
+    "@types/node": "^22.10.0",
     "@types/react": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",

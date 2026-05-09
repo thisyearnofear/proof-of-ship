@@ -17,6 +17,7 @@ import ShipsLog from "@/components/projects/ShipsLog";
 import ShareButtons from "@/components/common/ShareButtons";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SkeletonDetailPage } from "@/components/common/SkeletonLoader";
+import BackerActivity from "@/components/projects/BackerActivity";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -262,6 +263,9 @@ export default function ProjectDetailPage() {
               </div>
             </div>
           </Card>
+
+          {/* Live backer activity */}
+          <BackerActivity projectSlug={slug} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-6">

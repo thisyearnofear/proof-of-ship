@@ -8,8 +8,9 @@ import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
 import { submitProject } from "@/services/DataService";
+import Confetti from "@/components/common/Confetti";
 
-import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon, CheckCircleIcon, ClipboardDocumentIcon, ShareIcon } from "@heroicons/react/24/outline";
 
 const DEFAULT_CATEGORIES = [
   { id: "defi", name: "DeFi" },
@@ -35,6 +36,9 @@ export default function ProjectEditor({ projectSlug }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [submittedSlug, setSubmittedSlug] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const DRAFT_KEY = "project-editor-draft";
 
@@ -610,9 +614,9 @@ export default function ProjectEditor({ projectSlug }) {
         }
 
         clearDraft();
-        setSuccess("Project submitted");
 
         const createdSlug = result.projectSlug;
+        setSubmittedSlug(createdSlug);
         // Torque event — fire and forget
         import('@/services/TorqueService').then(({ torqueService }) => {
           torqueService.trackProjectSubmitted(form.ecosystem === 'solana' && connected ? 'solana-wallet' : 'unknown', {
@@ -622,9 +626,7 @@ export default function ProjectEditor({ projectSlug }) {
             slug: createdSlug,
           });
         }).catch(() => {});
-        setTimeout(() => {
-          window.location.href = `/projects/${cleaned.ecosystem}/${createdSlug}`;
-        }, 600);
+        setShowCelebration(true);
       }
     } catch (e) {
       setError(e.message || "Failed to save project");
@@ -742,6 +744,61 @@ export default function ProjectEditor({ projectSlug }) {
           </div>
         )}
       </Card>
+      {/* Celebration overlay after successful submit */}
+      {showCelebration && submittedSlug && (
+        <>
+          <Confetti duration={4000} count={80} />
+          <Card className="p-8 mt-6 text-center space-y-5 border-2 border-green-200 bg-gradient-to-br from-green-50 via-white to-blue-50">
+            <div className="flex justify-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircleIcon className="w-10 h-10 text-green-600" />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Project shipped!</h2>
+              <p className="text-gray-600 mt-2">
+                Your project is live. Share it to get backers and build momentum.
+              </p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-2 max-w-md mx-auto">
+              <code className="text-sm text-gray-700 flex-1 text-left truncate">
+                {typeof window !== 'undefined' ? window.location.origin : ''}/u/{currentUser?.reloadUserInfo?.screenName || currentUser?.displayName || 'you'}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/u/${currentUser?.reloadUserInfo?.screenName || currentUser?.displayName || 'you'}`;
+                  navigator.clipboard.writeText(url).then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  });
+                }}
+                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                title="Copy link"
+              >
+                {copied
+                  ? <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                  : <ClipboardDocumentIcon className="w-5 h-5" />}
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Button onClick={() => { window.location.href = `/projects/${form.ecosystem}/${submittedSlug}`; }}>
+                View your project
+              </Button>
+              <Button variant="outline" onClick={() => {
+                const text = `Just shipped ${form.name.trim()} on Proof of Ship! Check it out:`;
+                const url = `${window.location.origin}/projects/${form.ecosystem}/${submittedSlug}`;
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+              }}>
+                <ShareIcon className="w-4 h-4 mr-1" /> Share on X
+              </Button>
+              <Button variant="ghost" onClick={() => { window.location.href = '/projects/new'; }}>
+                Submit another
+              </Button>
+            </div>
+          </Card>
+        </>
+      )}
 
       <Card className="p-6 space-y-5">
         <h3 className="text-lg font-semibold text-gray-900">Basics</h3>

@@ -640,6 +640,7 @@ class DataService {
         category: inputData.category || '',
         contractAddress: inputData.contractAddress || null,
         deploymentTxHash: inputData.deploymentTxHash || null,
+        imageUrl: inputData.imageUrl || null,
         website: inputData.website || null,
         twitter: inputData.twitter || null,
         discord: inputData.discord || null,

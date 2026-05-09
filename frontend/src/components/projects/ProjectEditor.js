@@ -9,6 +9,8 @@ import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
 import { submitProject } from "@/services/DataService";
 import Confetti from "@/components/common/Confetti";
+import { storage } from "@/lib/firebase/clientApp";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon, CheckCircleIcon, ClipboardDocumentIcon, ShareIcon } from "@heroicons/react/24/outline";
 
@@ -380,21 +382,17 @@ export default function ProjectEditor({ projectSlug }) {
 
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
 
-      // Upload to Grove (Lens decentralized storage — free, no auth required)
-      const resp = await fetch("https://api.grove.storage/?chain_id=37111", {
-        method: "POST",
-        headers: { "Content-Type": "image/jpeg" },
-        body: blob,
+      // Upload to Firebase Storage instead of Grove to avoid extension interference and provide better reliability
+      const timestamp = Date.now();
+      const storagePath = `projects/${projectSlug || `temp-${currentUser?.uid || "anonymous"}`}/${timestamp}.jpg`;
+      const storageRef = ref(storage, storagePath);
+      
+      const snapshot = await uploadBytes(storageRef, blob, {
+        contentType: "image/jpeg",
       });
-
-      if (!resp.ok) {
-        throw new Error(`Grove upload failed: ${resp.status}`);
-      }
-
-      const result = await resp.json();
-      // Grove returns an array: [{ gateway_url, storage_key, uri }]
-      const file = Array.isArray(result) ? result[0] : result;
-      setImageUrl(file.gateway_url || `https://api.grove.storage/${file.storage_key}`);
+      
+      const downloadUrl = await getDownloadURL(snapshot.ref);
+      setImageUrl(downloadUrl);
     } catch (err) {
       console.error("Image upload failed:", err);
       setImageError("Upload failed. Please try again.");
@@ -606,7 +604,7 @@ export default function ProjectEditor({ projectSlug }) {
         }
 
         if (useClientSide) {
-          const clientResult = await submitProject(cleaned);
+          const clientResult = await submitProject({ ...cleaned, imageUrl: imageUrl || null });
           if (!clientResult.success) {
             throw new Error(clientResult.error || "Failed to submit project");
           }

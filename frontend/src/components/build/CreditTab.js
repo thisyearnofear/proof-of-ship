@@ -9,13 +9,30 @@ import {
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 
+// Chain configuration for the switcher
+const CHAIN_CONFIG = {
+  evm: {
+    label: 'EVM',
+    icon: '🔷',
+    color: 'blue',
+  },
+  solana: {
+    label: 'Solana',
+    icon: '☀️',
+    color: 'purple',
+  },
+};
+
 export default function CreditTab({
   creditProfile,
   usdcBalance,
+  chainBalances = {},
   activeChainFamily,
   developerProjects,
   projectDetails,
   setActiveTab,
+  onSwitchChain,
+  isLoadingBalances = false,
 }) {
   const score = creditProfile?.creditScore || 0;
   const totalCredit = parseFloat(creditProfile?.totalAmount || "0");
@@ -23,8 +40,61 @@ export default function CreditTab({
   const reputation = creditProfile?.reputation || 0;
   const tier = score >= 800 ? "Elite" : score >= 700 ? "Proven" : score >= 550 ? "Rising" : score >= 400 ? "New" : "Unscored";
 
+  // Get connected chains for the switcher
+  const connectedChains = Object.entries(chainBalances).map(([chainId, balance]) => {
+    if (chainId === 'solana') {
+      return { id: 'solana', family: 'solana', label: 'Solana', icon: '☀️', balance, isActive: activeChainFamily === 'solana' };
+    }
+    return { id: chainId, family: 'evm', label: 'EVM', icon: '🔷', balance, isActive: activeChainFamily === 'evm' };
+  });
+
+  // Add active chain if not in balances yet
+  const activeChainLabel = activeChainFamily === 'solana' ? 'Solana' : 'EVM';
+  const activeChainIcon = activeChainFamily === 'solana' ? '☀️' : '🔷';
+  if (!connectedChains.find(c => c.isActive)) {
+    connectedChains.unshift({ 
+      id: activeChainFamily, 
+      family: activeChainFamily, 
+      label: activeChainLabel, 
+      icon: activeChainIcon, 
+      balance: usdcBalance || '0.00', 
+      isActive: true 
+    });
+  }
+
+  const handleSwitchChain = (chainFamily) => {
+    if (onSwitchChain) {
+      onSwitchChain(chainFamily);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Chain Switcher Pill */}
+      {connectedChains.length > 0 && (
+        <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-xl w-fit">
+          {connectedChains.map((chain) => (
+            <button
+              key={chain.id}
+              onClick={() => handleSwitchChain(chain.family)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                chain.isActive
+                  ? chain.family === 'solana'
+                    ? 'bg-purple-500 text-white shadow-sm'
+                    : 'bg-blue-500 text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <span>{chain.icon}</span>
+              <span>{chain.label}</span>
+              <span className={`text-xs ${chain.isActive ? 'opacity-80' : 'opacity-60'}`}>
+                ${parseFloat(chain.balance || '0').toFixed(2)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-6 md:col-span-2">
           <div className="flex items-center justify-between mb-4">
@@ -48,7 +118,13 @@ export default function CreditTab({
         <Card className="p-6">
           <p className="text-sm text-secondary">{activeChainFamily === 'solana' ? 'SOL Balance' : 'USDC Balance'}</p>
           <p className="text-2xl font-bold text-primary mt-1">
-            {activeChainFamily === 'solana' ? '' : '$'}{usdcBalance || "0.00"}{activeChainFamily === 'solana' ? ' SOL' : ''}
+            {isLoadingBalances ? (
+              <span className="text-gray-400">Loading...</span>
+            ) : (
+              <>
+                {activeChainFamily === 'solana' ? '' : '$'}{usdcBalance || "0.00"}{activeChainFamily === 'solana' ? ' SOL' : ''}
+              </>
+            )}
           </p>
           <div className="mt-4">
             <p className="text-sm text-secondary">Reputation</p>

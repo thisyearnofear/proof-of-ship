@@ -748,9 +748,100 @@ export const useCircleWallet = () => {
 // useBuilderCredit - maps to WalletContext functionality
 export const useBuilderCredit = () => {
   const wallet = useWallet();
-  
+  const [chainBalances, setChainBalances] = React.useState<Record<string, string>>({});
+  const [isFetchingBalances, setIsFetchingBalances] = React.useState(false);
+
+  // Derive usdcBalance from chainBalances for current active chain
+  const usdcBalance = wallet.activeChainFamily === 'solana'
+    ? (wallet.solanaBalance || '0.00')
+    : (wallet.chainId ? (chainBalances[wallet.chainId.toString()] || '0.00') : '0.00');
+
+  // Fetch USDC balance for a specific chain
+  const fetchChainBalance = React.useCallback(async (chainId: string | number) => {
+    if (!wallet.connected || !wallet.account) return '0.00';
+    try {
+      // Store current chain to switch back
+      const currentChainId = wallet.chainId;
+      const numericChainId = typeof chainId === 'string' ? parseInt(chainId, 10) : chainId;
+      
+      // Switch to target chain if needed
+      if (currentChainId !== numericChainId) {
+        await wallet.switchNetwork(numericChainId);
+      }
+      
+      const balance = await wallet.getUSDCBalance();
+      
+      // Switch back to original chain
+      if (currentChainId !== numericChainId) {
+        await wallet.switchNetwork(typeof currentChainId === 'number' ? currentChainId : parseInt(currentChainId as string, 10));
+      }
+      
+      return balance;
+    } catch {
+      return '0.00';
+    }
+  }, [wallet]);
+
+  // Fetch all connected chain balances on mount/connect
+  React.useEffect(() => {
+    const fetchAllBalances = async () => {
+      if (!wallet.connected && !wallet.solanaConnected) {
+        setChainBalances({});
+        return;
+      }
+
+      setIsFetchingBalances(true);
+      
+      // EVM chains to fetch (primary supported chains)
+      const evmChains = ['44787', '84532', '11155420', '11155711', '534351']; // Arc, Base, Optimism Sepolia, Linea Sepolia, Arbitrum Sepolia
+      const newBalances: Record<string, string> = {};
+
+      // Fetch Solana balance if connected
+      if (wallet.solanaConnected) {
+        newBalances['solana'] = wallet.solanaBalance || '0.00';
+      }
+
+      // For EVM, only fetch if connected
+      if (wallet.connected && wallet.account) {
+        try {
+          // Fetch for current chain immediately
+          const currentBalance = await wallet.getUSDCBalance();
+          if (wallet.chainId) {
+            newBalances[wallet.chainId.toString()] = currentBalance;
+          }
+        } catch {
+          // Keep '0.00' for failed fetch
+        }
+      }
+
+      setChainBalances(newBalances);
+      setIsFetchingBalances(false);
+    };
+
+    fetchAllBalances();
+  }, [wallet.connected, wallet.solanaConnected, wallet.account, wallet.chainId]);
+
+  // Refresh balance when active chain changes
+  React.useEffect(() => {
+    const refreshBalance = async () => {
+      if (!wallet.connected || !wallet.chainId) return;
+      
+      try {
+        const balance = await wallet.getUSDCBalance();
+        setChainBalances(prev => ({
+          ...prev,
+          [wallet.chainId!.toString()]: balance
+        }));
+      } catch {
+        // Balance fetch failed, leave existing value
+      }
+    };
+
+    refreshBalance();
+  }, [wallet.chainId, wallet.connected]);
+
   // Helper to get USDC balance asynchronously
-  const getUSDCBalanceAsync = async () => {
+  const getUSDCBalanceAsync = React.useCallback(async () => {
     if (wallet.activeChainFamily === 'solana') {
       return wallet.solanaBalance || '0.00';
     }
@@ -759,8 +850,23 @@ export const useBuilderCredit = () => {
     } catch {
       return '0.00';
     }
-  };
-  
+  }, [wallet.activeChainFamily, wallet.solanaBalance, wallet.connected, wallet.account]);
+
+  // Switch to a specific chain (updates active chain family and switches network for EVM)
+  const switchChain = React.useCallback(async (chainFamily: 'evm' | 'solana', chainId?: number) => {
+    if (chainFamily === 'solana') {
+      wallet.setActiveChainFamily('solana');
+      return;
+    }
+
+    wallet.setActiveChainFamily('evm');
+    
+    // For EVM, switch to specified chain or default to Arc
+    if (chainId) {
+      await wallet.switchNetwork(chainId);
+    }
+  }, [wallet]);
+
   return {
     // Builder Credit from WalletContext
     creditProfile: wallet.creditProfile,
@@ -777,6 +883,7 @@ export const useBuilderCredit = () => {
     },
     requestFunding: wallet.requestFunding,
     activeChainFamily: wallet.activeChainFamily,
+    switchChain,
     // Circle Wallet for contract interactions
     circleWallets: wallet.circleWallets,
     circleConfig: wallet.circleConfig,
@@ -874,8 +981,9 @@ export const useBuilderCredit = () => {
       return tx.hash;
     },
     contractLoading: wallet.loading,
-    // usdcBalance for sync access
-    usdcBalance: wallet.activeChainFamily === 'solana' ? wallet.solanaBalance || '0.00' : '0.00',
+    usdcBalance,
+    chainBalances,
+    isFetchingBalances,
     getUSDCBalanceAsync,
   };
 };

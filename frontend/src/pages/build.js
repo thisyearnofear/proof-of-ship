@@ -150,10 +150,13 @@ export default function BuildPage() {
             <CreditTab
               creditProfile={creditProfile}
               usdcBalance={usdcBalance}
+              chainBalances={builderCredit.chainBalances || {}}
               activeChainFamily={activeChainFamily}
               developerProjects={developerProjects}
               projectDetails={projectDetails}
               setActiveTab={setActiveTab}
+              onSwitchChain={(family) => builderCredit.switchChain(family)}
+              isLoadingBalances={builderCredit.isFetchingBalances}
             />
           </ErrorBoundary>
         )}

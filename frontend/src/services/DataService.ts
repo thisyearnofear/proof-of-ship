@@ -318,9 +318,7 @@ class DataService {
     try {
       const collectionName = getProjectCollection(ecosystemId);
       const ref = collection(db, collectionName);
-      const q = ecosystemId === 'base' 
-        ? query(ref, where('status', '==', 'approved'), orderBy('createdAt', 'desc'))
-        : query(ref, orderBy('createdAt', 'desc'));
+      const q = query(ref, orderBy('createdAt', 'desc'));
       
       const snapshot = await getDocs(q);
       const projects: Project[] = [];

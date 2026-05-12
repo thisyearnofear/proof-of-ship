@@ -103,6 +103,7 @@ interface UserContextType {
   isProfileComplete: () => boolean;
   hasMinimumProfile: () => boolean;
   getRecommendations: () => any[];
+  hasProjectPermission: (projectSlug: string) => boolean;
 }
 
 // ============================================================================
@@ -594,6 +595,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const getRecommendations = () => creditData?.recommendations || [];
+
+  const hasProjectPermission = (projectSlug: string): boolean => {
+    if (!currentUser) return false;
+    return userPermissions.some(p => p.projectSlug === projectSlug);
+  };
   
   const value: UserContextType = {
     // Firebase Auth
@@ -630,6 +636,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     isProfileComplete,
     hasMinimumProfile,
     getRecommendations,
+    hasProjectPermission,
   };
   
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

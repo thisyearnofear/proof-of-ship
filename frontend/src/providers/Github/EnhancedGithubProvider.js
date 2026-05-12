@@ -159,10 +159,11 @@ export function EnhancedGithubProvider({ children }) {
       // Load full data for this specific project
       const project = await enhancedDataService.getProject(slug, ecosystem);
       if (project && mountedRef.current) {
+        const projectEcosystem = project.ecosystem || ecosystem || 'celo';
+
         // Update the specific project in our data
         setProjectData(prev => {
           const updated = { ...prev };
-          const projectEcosystem = project.ecosystem || ecosystem || 'celo';
           
           if (updated[projectEcosystem]) {
             const projectIndex = updated[projectEcosystem].findIndex(p => p.slug === slug);

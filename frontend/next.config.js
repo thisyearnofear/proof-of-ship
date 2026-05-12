@@ -33,7 +33,8 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
       { protocol: 'https', hostname: 'github.com' },
-      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' }
+      { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
+      { protocol: 'https', hostname: 'storage.googleapis.com' }
     ],
   },
   // For Firebase deployment (static export)

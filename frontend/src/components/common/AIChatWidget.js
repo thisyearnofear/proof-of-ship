@@ -2,7 +2,7 @@
  * AI Chat Widget — Floating assistant accessible from any page
  * 
  * Helps users navigate the platform via conversational AI.
- * Each message costs 0.005 USDC via x402 nanopayment (free in demo mode).
+ * Free guide mode is available immediately. Premium mode uses paid x402-backed models.
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
@@ -23,6 +23,7 @@ export default function AIChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
+  const [modelTier, setModelTier] = useState("free");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesRef = useRef([]);
@@ -32,13 +33,22 @@ export default function AIChatWidget() {
     messagesRef.current = messages;
   }, [messages]);
 
-  // Check if user previously dismissed the widget
+  // Check if user previously dismissed the widget and restore preferred tier
   useEffect(() => {
     if (typeof window !== "undefined") {
       const wasDismissed = sessionStorage.getItem("ai-chat-dismissed");
       if (wasDismissed) setDismissed(true);
+      const savedTier = localStorage.getItem("ai-chat-tier");
+      if (savedTier === "premium" || savedTier === "free") setModelTier(savedTier);
     }
   }, []);
+
+  // Persist tier preference across sessions
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ai-chat-tier", modelTier);
+    }
+  }, [modelTier]);
 
   const handleDismiss = () => {
     setOpen(false);
@@ -76,6 +86,7 @@ export default function AIChatWidget() {
     setInput("");
     setLoading(true);
     setPaymentError(null);
+    const requestedTier = modelTier;
 
     try {
       // Attempt QVAC local-first inference (project data stays on-device)
@@ -85,7 +96,8 @@ export default function AIChatWidget() {
       try {
         const { qvacService } = await import("@/services/QvacService");
         const status = await qvacService.getStatus();
-        if (status.available) {
+        // QVAC is free/local-only; premium intentionally bypasses to use the remote x402 model.
+        if (requestedTier === "free" && status.available) {
           const result = await qvacService.complete({
             prompt: trimmed,
             systemPrompt: "You are the Proof of Ship AI assistant. Be concise and helpful.",
@@ -110,6 +122,7 @@ export default function AIChatWidget() {
           body: JSON.stringify({
             message: trimmed,
             history: messagesRef.current.slice(-6),
+            modelTier: requestedTier,
           }),
         });
 
@@ -127,7 +140,7 @@ export default function AIChatWidget() {
             ...prev,
             {
               role: "assistant",
-              content: "💳 This AI assistant requires a nanopayment to use. Each message costs ~$0.005 USDC.",
+              content: "Premium AI requires a nanopayment. You can keep using the free guide, or set up x402 payments for stronger models.",
               type: "payment_required",
             },
           ]);
@@ -166,7 +179,7 @@ export default function AIChatWidget() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading]);
+  }, [input, loading, modelTier]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -246,7 +259,7 @@ export default function AIChatWidget() {
           <SparklesIcon className="w-5 h-5" />
           <div>
             <div className="text-sm font-semibold">AI Assistant</div>
-            <div className="text-xs opacity-80">$0.005/msg · x402 on Arc</div>
+            <div className="text-xs opacity-80">{modelTier === "free" ? "Free guide" : "$0.005/msg · x402 on Arc"}</div>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -275,9 +288,9 @@ export default function AIChatWidget() {
         {messages.length === 0 && (
           <div className="space-y-3">
             <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-3 text-sm text-gray-700 dark:text-gray-300">
-              <p className="font-medium mb-1">👋 Hi! I&apos;m your Proof of Ship assistant.</p>
+              <p className="font-medium mb-1">Hi, I&apos;m your Proof of Ship assistant.</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Ask me anything about the platform, projects, AI agents, or x402 payments.
+                Start with the free guide. Switch to premium when you want stronger model reasoning via x402.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -327,7 +340,7 @@ export default function AIChatWidget() {
               <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 text-white">
                 <div className="flex items-center gap-2">
                   <CreditCardIcon className="w-5 h-5" />
-                  <span className="font-semibold">x402 Nanopayment Required</span>
+                  <span className="font-semibold">Premium AI Payment</span>
                 </div>
               </div>
               
@@ -337,24 +350,24 @@ export default function AIChatWidget() {
                   <div className="text-3xl font-bold text-gray-900 dark:text-white">
                     ${paymentError.amount?.toFixed(3) || "0.005"}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">per message via USDC</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">per premium message via USDC</div>
                 </div>
 
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">How it works:</span> Payments are settled on Circle&apos;s Arc L2 with zero gas fees. Each AI message costs less than a penny!
+                    <span className="font-medium">How it works:</span> The free guide stays available. Premium model calls settle on Circle&apos;s Arc L2 via x402.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => {
-                      window.location.href = '/back';
+                      window.location.href = '/back?tab=economy';
                     }}
                     className="flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
                     <ArrowTrendingUpIcon className="w-4 h-4" />
-                    Setup Wallet
+                    Setup x402
                   </button>
                   <button
                     onClick={() => {
@@ -366,6 +379,7 @@ export default function AIChatWidget() {
                         return idx !== paymentMsgIndex;
                       }));
                       setPaymentError(null);
+                      // Leave modelTier as-is — user can switch back via the toggle.
                     }}
                     className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
                   >
@@ -400,6 +414,41 @@ export default function AIChatWidget() {
 
       {/* Input */}
       <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-700">
+        <div
+          role="tablist"
+          aria-label="AI model tier"
+          className="mb-2 grid grid-cols-2 gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-1"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modelTier === "free"}
+            onClick={() => {
+              setModelTier("free");
+              setPaymentError(null);
+            }}
+            className={`rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${
+              modelTier === "free"
+                ? "bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+            }`}
+          >
+            Free guide
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modelTier === "premium"}
+            onClick={() => setModelTier("premium")}
+            className={`rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${
+              modelTier === "premium"
+                ? "bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 shadow-sm"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+            }`}
+          >
+            Premium AI
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}

@@ -29,8 +29,28 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function DeveloperDashboard() {
-  const { account, connected } = useWallet();
-  const { coreContract, usdcContract, contractLoading, creditProfile, repayLoan, postCheckIn, loadUserData, formatUSDC, usdcBalance, developerProjects, projectDetails, contractError } = useBuilderCredit();
+  const wallet = useWallet();
+  const {
+    coreContract,
+    usdcContract,
+    contractLoading,
+    creditProfile,
+    repayLoan,
+    postCheckIn,
+    loadUserData,
+    formatUSDC,
+    usdcBalance,
+    developerProjects,
+    projectDetails,
+    contractError,
+  } = useBuilderCredit();
+
+  // activeChainFamily is authoritative: useBuilderCredit's account/connected already
+  // mirror it, but we recompute here so contract-only actions can branch off evmAccount.
+  const isSolana = wallet.activeChainFamily === 'solana';
+  const account = isSolana ? wallet.solanaAddress : wallet.account;
+  const connected = isSolana ? wallet.solanaConnected : wallet.connected;
+  const evmAccount = wallet.account; // EVM-only ops (repay, check-in, prize distribution)
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,6 +79,10 @@ export default function DeveloperDashboard() {
   }, []);
 
   const handleSimulatePrize = async () => {
+    if (isSolana || !evmAccount) {
+      setError('Prize distribution requires an EVM wallet. Switch chains and try again.');
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -89,6 +113,10 @@ export default function DeveloperDashboard() {
   const handlePostCheckIn = async () => {
     if (!checkInText || !selectedProjectId) {
       setError('Please select a project and enter check-in details');
+      return;
+    }
+    if (isSolana || !evmAccount) {
+      setError('Heartbeat check-ins require an EVM wallet. Switch chains and try again.');
       return;
     }
 
@@ -124,6 +152,11 @@ export default function DeveloperDashboard() {
 
     if (!creditProfile || !creditProfile.activeLoanAmount) {
       setError('No active loan to repay');
+      return;
+    }
+
+    if (isSolana || !evmAccount) {
+      setError('Loan repayment requires an EVM wallet. Switch chains and try again.');
       return;
     }
 
@@ -172,7 +205,7 @@ export default function DeveloperDashboard() {
     return new Date(timestamp * 1000).toLocaleDateString();
   };
 
-  if (!connected) {
+  if (!connected || !account) {
     return (
       <Card className="p-6 text-center">
         <UserCircleIcon className="w-12 h-12 mx-auto text-gray-400" />

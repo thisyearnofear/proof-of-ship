@@ -2,7 +2,8 @@
  * AI Assistant Agent — Platform helper chat
  * 
  * Helps users navigate the platform, understand projects,
- * and learn about x402 nanopayments. Costs 0.005 USDC per message.
+ * and learn about x402 nanopayments. Free guide mode uses a contextual
+ * responder; premium mode costs 0.005 USDC per message.
  * 
  * Tries providers in order: Featherless AI (DeepSeek-V3) → Google Gemini →
  * AIsa Perplexity Sonar → context-aware fallback.
@@ -36,7 +37,7 @@ async function chatHandler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { message, history = [] } = req.body;
+  const { message, history = [], modelTier = "free" } = req.body;
 
   if (!message || typeof message !== "string" || message.trim().length === 0) {
     return res.status(400).json({ error: "Message is required" });
@@ -49,8 +50,18 @@ async function chatHandler(req, res) {
   try {
     let reply;
     let aiPayment = null;
+    let usedFallback = false;
+    const usePremiumModel = modelTier === "premium";
 
-    if (FEATHERLESS_API_KEY) {
+    if (!usePremiumModel) {
+      // Free guide: respond from the contextual responder only.
+      // The remote-provider blocks below are intentionally skipped for free mode.
+      reply = getContextualReply(message);
+      aiPayment = { provider: "contextual", model: "free-guide", status: "free" };
+    }
+
+    // Premium-only path: try Featherless → Gemini → AIsa → contextual.
+    if (!reply && FEATHERLESS_API_KEY) {
       try {
         const messages = [
           { role: "system", content: SYSTEM_PROMPT },
@@ -139,10 +150,17 @@ async function chatHandler(req, res) {
       }
     }
 
-    // Fallback 2: context-aware responses
+    // Fallback 3: context-aware responses (premium path landed here when all providers failed)
     if (!reply) {
       reply = getContextualReply(message);
+      usedFallback = true;
+      aiPayment = { provider: "contextual", model: "premium-fallback", status: "fallback" };
     }
+
+    let cost;
+    if (!usePremiumModel) cost = "free";
+    else if (usedFallback) cost = "0.005 USDC (fallback)";
+    else cost = "0.005 USDC";
 
     return res.status(200).json({
       agent: {
@@ -158,7 +176,7 @@ async function chatHandler(req, res) {
       agentInfo: {
         name: "pos-scout.sol",
         humanName: "Platform Assistant",
-        cost: "0.005 USDC",
+        cost,
         txHash: req.nanopayment?.txHash,
         network: "arc",
         ...(aiPayment && { aiPayment }),
@@ -201,4 +219,20 @@ function getContextualReply(message) {
   return "I can help you explore projects, use AI agents, submit your own project, or understand x402 nanopayments. What would you like to know more about?";
 }
 
-export default await withNanopayment(chatHandler, 0.005);
+// Lazily build the paid handler so we avoid top-level await (more portable across runtimes).
+let paidChatHandlerPromise;
+function getPaidChatHandler() {
+  if (!paidChatHandlerPromise) {
+    paidChatHandlerPromise = withNanopayment(chatHandler, 0.005);
+  }
+  return paidChatHandlerPromise;
+}
+
+export default async function handler(req, res) {
+  if (req.method === "POST" && req.body?.modelTier !== "premium") {
+    return chatHandler(req, res);
+  }
+
+  const paidChatHandler = await getPaidChatHandler();
+  return paidChatHandler(req, res);
+}

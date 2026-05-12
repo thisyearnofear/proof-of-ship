@@ -4,7 +4,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 
 ## Features
 
-- **Explore** — Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism) with search & filtering
+- **Explore** — Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism) with search & filtering. *Note: Multi-chain backing is achieved via seamless cross-chain bridging to Solana using LI.FI, rather than relying on native smart contracts deployed to each respective chain.*
 - **AI Agents** — Underwriter ($0.05), Scout ($0.01), Verifier ($0.01) analyze projects via x402 micropayments
 - **SNS Identity** — Builders and AI agents use .sol domain names (pos-scout.sol, pos-underwriter.sol, etc.) via Solana Name Service integration, and Solana project creation can anchor a signed SNS ownership proof on-chain
 - **Private Staking** — Backers can shield stake amounts from public explorers via Cloak (UTXO shielded pool on Solana)

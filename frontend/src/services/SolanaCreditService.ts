@@ -37,6 +37,7 @@ interface ProjectData {
         symbol: string;
         description: string;
     };
+    creditScore?: number;
 }
 
 interface ProjectBackingData {
@@ -337,7 +338,8 @@ class SolanaCreditService {
                 projectData.milestoneAmounts.map(amt => new BN(amt)),
                 verifier,
                 builderSnsDomain,
-                Array.from(identitySignature)
+                Array.from(identitySignature),
+                new BN(projectData.creditScore || 400)
             ).accounts({
                 project: projectPda,
                 creditLine: creditLinePda,

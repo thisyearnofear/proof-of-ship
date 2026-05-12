@@ -149,6 +149,7 @@ describe("blockchain-solana", () => {
         provider.wallet.publicKey,
         builderSnsDomain,
         signature,
+        new anchor.BN(500),
       )
       .accounts({
         project,
@@ -358,6 +359,7 @@ describe("blockchain-solana", () => {
         provider.wallet.publicKey,
         builderSnsDomain,
         signature,
+        new anchor.BN(400),
       )
       .accounts({
         project,

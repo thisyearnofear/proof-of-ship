@@ -86,11 +86,13 @@ async function handler(req, res) {
         if (aisaRes.ok) {
           const data = await aisaRes.json();
           aiAnalysis = data.choices?.[0]?.message?.content || null;
+          const paymentHeader = aisaRes.headers.get("x-402-receipt");
           aisaPayment = {
             provider: "AIsa x402",
             model: "perplexity/sonar",
             estimatedCost: "~0.012 USDC",
-            paymentHeader: aisaRes.headers.get("x-402-receipt") || "paid",
+            paymentHeader: paymentHeader,
+            paymentVerified: !!paymentHeader,
           };
         }
       } catch (aisaErr) {

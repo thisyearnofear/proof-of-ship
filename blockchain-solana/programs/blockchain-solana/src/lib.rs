@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{
-    ed25519_program,
     sysvar::instructions as ix_sysvar,
 };
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
@@ -8,6 +7,13 @@ use anchor_spl::associated_token::AssociatedToken;
 use std::str::FromStr;
 
 declare_id!("14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K");
+
+const ED25519_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
+    0x06, 0xa7, 0xd5, 0x2d, 0x60, 0x2f, 0x92, 0x28,
+    0x9b, 0x7e, 0x6f, 0x3a, 0xe9, 0x53, 0x57, 0x52,
+    0x01, 0x31, 0x25, 0x39, 0x27, 0x63, 0x21, 0x4e,
+    0x41, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+]);
 
 // ── Space constants ──────────────────────────────────────────────
 // All Vec and String fields are bounded so the account fits in a
@@ -889,7 +895,7 @@ fn verify_ed25519_identity_proof(
 
     require_keys_eq!(
         ed25519_ix.program_id,
-        ed25519_program::ID,
+        ED25519_PROGRAM_ID,
         ErrorCode::InvalidIdentityProofInstruction
     );
     require!(

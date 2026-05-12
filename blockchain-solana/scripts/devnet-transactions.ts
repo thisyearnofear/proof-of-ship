@@ -146,6 +146,7 @@ async function main() {
       dev,
       builderSnsDomain,
       Array.from(identitySignature1),
+      new anchor.BN(500)
     )
     .accounts({
       project,
@@ -273,6 +274,7 @@ async function main() {
       dev,
       builderSnsDomain,
       Array.from(identitySignature2),
+      new anchor.BN(450)
     )
     .accounts({
       project: project2,

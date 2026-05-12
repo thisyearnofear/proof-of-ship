@@ -75,6 +75,13 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const [nanopaymentBalance, setNanopaymentBalance] = useState({ available: '0', locked: '0' });
   const [nanopaymentAddress, setNanopaymentAddress] = useState<string | null>(null);
   const [nanopaymentTransactions, setNanopaymentTransactions] = useState<NanopaymentTransaction[]>([]);
+  const [nanopaymentDemoMode, setNanopaymentDemoMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('nanopayment-demo-mode');
+      return saved !== null ? saved === 'true' : (process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development');
+    }
+    return process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development';
+  });
   
   // Builder Credit state
   const [creditProfile, setCreditProfile] = useState<CreditProfile | null>(null);
@@ -649,6 +656,13 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     circleWallets, circleConfig, createCircleWallet, refreshCircleWallets, transferUSDC,
     // Nanopayment
     nanopaymentInitialized, 
+    nanopaymentDemoMode,
+    setNanopaymentDemoMode: (mode: boolean) => {
+      setNanopaymentDemoMode(mode);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nanopayment-demo-mode', mode.toString());
+      }
+    },
     nanopaymentBalance: nanopaymentBalance ?? { available: '0', locked: '0' }, 
     nanopaymentAddress: nanopaymentAddress ?? undefined, 
     nanopaymentTransactions,
@@ -1062,6 +1076,8 @@ export const useNanopayment = () => {
   return {
     // Nanopayment state
     isInitialized: wallet.nanopaymentInitialized,
+    nanopaymentDemoMode: wallet.nanopaymentDemoMode,
+    setNanopaymentDemoMode: wallet.setNanopaymentDemoMode,
     loading: wallet.loading,
     error: wallet.error,
     balance: wallet.nanopaymentBalance,

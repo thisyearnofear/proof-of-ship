@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useNanopayment } from "@/contexts/WalletContext";
 import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon, SparklesIcon, CreditCardIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 
 const QUICK_ACTIONS = [
@@ -16,6 +17,7 @@ const QUICK_ACTIONS = [
 ];
 
 export default function AIChatWidget() {
+  const { nanopaymentDemoMode } = useNanopayment();
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -113,12 +115,16 @@ export default function AIChatWidget() {
 
       // Cloud fallback (Featherless -> AIsa -> contextual)
       if (!reply) {
+        const headers = {
+          "Content-Type": "application/json",
+        };
+        if (nanopaymentDemoMode) {
+          headers["x-demo-key"] = "demo";
+        }
+
         const res = await fetch("/api/agent/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-demo-key": "demo",
-          },
+          headers,
           body: JSON.stringify({
             message: trimmed,
             history: messagesRef.current.slice(-6),

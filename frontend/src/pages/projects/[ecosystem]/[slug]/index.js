@@ -101,7 +101,7 @@ export default function ProjectDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [ecosystem, slug, getProject, loadProjectDetails]);
+  }, [ecosystem, slug]);
 
   // Client-side admin check (server still enforces)
   useEffect(() => {

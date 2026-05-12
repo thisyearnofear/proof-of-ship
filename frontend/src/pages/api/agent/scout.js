@@ -44,45 +44,72 @@ async function scoutHandler(req, res) {
         code: err.code,
         stack: err.stack
       });
+      // Return early with error info instead of failing silently
+      return res.status(200).json({
+        ...agentIdentityResponse('scout'),
+        success: false,
+        error: 'Failed to fetch projects',
+        details: err.message,
+        projects: [],
+        summary: { evaluated: 0, recommended: 0, totalStake: '$0.00' }
+      });
     }
 
     // Score each project
-    const scored = projects
-      .map((project) => {
-        const { total, breakdown } = computeScore(project);
-        const recommendation = getRecommendation(total);
-        return {
-          id: project.id,
-          name: project.name || project.slug || "Unnamed Project",
-          ecosystem: project.ecosystem,
-          slug: project.slug,
-          score: total,
-          breakdown,
-          recommendation,
-          backed: total >= MIN_SCORE_TO_BACK,
-        };
-      })
-      .sort((a, b) => b.score - a.score);
+    let scored = [];
+    try {
+      scored = projects
+        .map((project) => {
+          try {
+            const { total, breakdown } = computeScore(project);
+            const recommendation = getRecommendation(total);
+            return {
+              id: project.id,
+              name: project.name || project.slug || "Unnamed Project",
+              ecosystem: project.ecosystem,
+              slug: project.slug,
+              score: total,
+              breakdown,
+              recommendation,
+              backed: total >= MIN_SCORE_TO_BACK,
+            };
+          } catch (projectErr) {
+            // Skip projects that fail to score
+            console.warn(`Failed to score project ${project.id}:`, projectErr.message);
+            return null;
+          }
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score);
+    } catch (scoringErr) {
+      console.error("Scoring engine error:", scoringErr.message);
+      scored = [];
+    }
 
     const toBack = scored.filter((p) => p.backed);
     const totalStake = toBack.reduce((sum, p) => sum + (p.recommendation?.amount || 0), 0);
 
-    // Log scout run to Firestore
-    const runId = `scout_${Date.now()}`;
-    await db.collection("agent_runs").doc(runId).set({
-      timestamp: new Date().toISOString(),
-      projectsEvaluated: scored.length,
-      projectsBacked: toBack.length,
-      totalStakeRecommended: totalStake,
-      executed: req.method === "POST" && req.query.execute === "1",
-      results: toBack.map((p) => ({
-        id: p.id,
-        name: p.name,
-        score: p.score,
-        amount: p.recommendation?.amount,
-        multiplier: p.recommendation?.multiplier,
-      })),
-    });
+    // Log scout run to Firestore (non-fatal if it fails)
+    let runId = null;
+    try {
+      runId = `scout_${Date.now()}`;
+      await db.collection("agent_runs").doc(runId).set({
+        timestamp: new Date().toISOString(),
+        projectsEvaluated: scored.length,
+        projectsBacked: toBack.length,
+        totalStakeRecommended: totalStake,
+        executed: req.method === "POST" && req.query.execute === "1",
+        results: toBack.map((p) => ({
+          id: p.id,
+          name: p.name,
+          score: p.score,
+          amount: p.recommendation?.amount,
+          multiplier: p.recommendation?.multiplier,
+        })),
+      });
+    } catch (logErr) {
+      console.warn("Failed to log scout run to Firestore:", logErr.message);
+    }
 
     // If POST with execute=1, trigger on-chain backings via Arc
     let executionResult = null;

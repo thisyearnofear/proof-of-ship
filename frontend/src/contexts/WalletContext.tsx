@@ -887,7 +887,7 @@ export const useBuilderCredit = () => {
     };
 
     refreshBalance();
-  }, [wallet.chainId, wallet.connected]);
+  }, [wallet]);
 
   // Helper to get USDC balance asynchronously
   const getUSDCBalanceAsync = React.useCallback(async () => {

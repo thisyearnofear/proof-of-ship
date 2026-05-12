@@ -133,40 +133,26 @@ function ProjectsTab() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="h-10 w-48 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+      <div className="space-y-6">
+        <SkeletonBlock className="h-10 w-full rounded-xl" />
         
         <div className="flex flex-wrap items-center gap-2">
-          <div className="h-10 w-32 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-          <div className="h-10 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-          <div className="h-10 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          <SkeletonBlock className="h-10 w-32 rounded-lg" />
+          <SkeletonBlock className="h-10 w-24 rounded-lg" />
+          <SkeletonBlock className="h-10 w-20 rounded-lg" />
         </div>
 
-        <Card className="p-3">
+        <Card className="p-4">
           <div className="flex flex-wrap items-center gap-2">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-8 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <SkeletonBlock key={i} className="h-8 w-16 rounded-full" />
             ))}
           </div>
         </Card>
 
-        <div className="h-10 w-64 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <SkeletonBlock className="h-6 w-48 rounded" />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                <div className="flex-1">
-                  <div className="h-4 w-2/3 mb-2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                </div>
-              </div>
-              <div className="h-3 w-full mb-2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-              <div className="h-3 w-3/4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-            </Card>
-          ))}
-        </div>
+        <SkeletonProjectGrid count={6} />
       </div>
     );
   }

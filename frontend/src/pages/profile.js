@@ -6,6 +6,7 @@ import { useNanopayment, useWallet } from '@/contexts/WalletContext';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
 import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { SkeletonBlock, SkeletonCard, SkeletonText } from '@/components/common/SkeletonLoader';
 
 export default function ProfilePage() {
   const { currentUser, loading, userRole } = useUser();
@@ -47,8 +48,17 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <SkeletonBlock className="h-10 w-48 mb-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <SkeletonCard className="h-48" />
+            <SkeletonCard className="h-64" />
+          </div>
+          <div className="space-y-6">
+            <SkeletonCard className="h-96" />
+          </div>
+        </div>
       </div>
     );
   }

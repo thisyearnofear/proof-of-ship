@@ -6,6 +6,7 @@ import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import LiveActivityFeed from "@/components/common/LiveActivityFeed";
+import NauticalTour from "@/components/onboarding/NauticalTour";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import { LANDING_FEATURES, USER_JOURNEYS } from "@/config/landingContent";
 import {
@@ -37,6 +38,23 @@ export default function LandingPage() {
   const router = useRouter();
   const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState("developers");
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if user has seen the tour
+    const hasSeenTour = localStorage.getItem('hasSeenNauticalTour');
+    if (!hasSeenTour) {
+      const timer = setTimeout(() => {
+        setIsTourOpen(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleCloseTour = () => {
+    setIsTourOpen(false);
+    localStorage.setItem('hasSeenNauticalTour', 'true');
+  };
 
   const ecosystems = Object.values(ECOSYSTEM_CONFIGS).map((eco) => ({
     id: eco.id,
@@ -248,6 +266,8 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
+      
+      <NauticalTour isOpen={isTourOpen} onClose={handleCloseTour} />
     </div>
   );
 }

@@ -97,8 +97,25 @@ export function PaymentFlow() {
           </div>
         </div>
 
+        {/* Simple Terms Explanation */}
+        <div className="mt-12 bg-white dark:bg-gray-800 rounded-2xl border border-teal-100 dark:border-teal-900 p-6 sm:p-8 max-w-4xl mx-auto shadow-sm">
+          <div className="flex flex-col md:flex-row gap-8 items-center">
+            <div className="w-16 h-16 bg-teal-50 dark:bg-teal-900/30 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <span className="text-3xl">💡</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-primary mb-2">In Simple Terms:</h3>
+              <p className="text-sm text-secondary leading-relaxed">
+                Think of <strong>x402 Nanopayments</strong> like an instant, micro-tip (pennies!) you pay to an AI agent 
+                to double-check your work. Instead of monthly subscriptions, you only pay for what you use, 
+                when you use it. It&apos;s fast, cheap, and settles instantly on-chain.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Agent Pricing + CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
           <div className="flex flex-wrap gap-3">
             <span className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-800 rounded-lg text-xs font-medium text-teal-700 dark:text-teal-300">
               🤖 Underwriter — $0.05

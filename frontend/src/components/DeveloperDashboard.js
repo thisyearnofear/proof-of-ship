@@ -13,6 +13,7 @@ import ProjectDetails from './ProjectDetails';
 import VelocityGauge from './github/VelocityGauge';
 import BackingPanel from './BackingPanel';
 import { getEvolutionTier } from './projects/ProjectCard';
+import AgentAuditLog from './dashboard/AgentAuditLog';
 import {
   UserCircleIcon,
   StarIcon,
@@ -522,6 +523,9 @@ export default function DeveloperDashboard() {
               )}
             </Card>
           </section>
+
+          {/* Agent Audit Log */}
+          <AgentAuditLog projectSlug={selectedProjectId} />
 
           {/* Quick Actions */}
           <section>

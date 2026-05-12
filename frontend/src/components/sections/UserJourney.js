@@ -78,11 +78,14 @@ export function UserJourney({ userJourneys = {}, activeTab = "developers", onTab
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 relative">
+            {/* Desktop Connector Line */}
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-100 -translate-y-1/2 z-0" />
+            
             {currentJourney.steps?.map((step, index) => (
               <div
                 key={index}
-                className="bg-surface border border-default rounded-xl p-6 text-center hover:shadow-lg transition-all duration-200"
+                className="bg-surface border border-default rounded-xl p-6 text-center hover:shadow-lg transition-all duration-200 relative z-10"
               >
                 <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary-50 text-primary-600 mx-auto mb-4">
                   {step.icon && (

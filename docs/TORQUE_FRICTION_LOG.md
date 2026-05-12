@@ -45,7 +45,7 @@ All Torque tracking is fire-and-forget. If the API key is missing or the request
 ## Next Steps
 - [x] Sign up at platform.torque.so and create project
 - [x] Create custom event schemas for all 4 event types
-- [ ] Add `TORQUE_API_KEY`, `TORQUE_API_TOKEN`, `TORQUE_PROJECT_ID` to Vercel environment variables
+- [x] Add `TORQUE_API_KEY`, `TORQUE_API_TOKEN`, `TORQUE_PROJECT_ID` to environment variables
 - [ ] Create an active incentive program via Torque MCP to power the BackingPanel banner
 - [ ] Build richer leaderboard with time-windowed velocity (7d, 30d, all-time)
 - [ ] Attach custom events to project via MCP (required for query builder / incentive targeting)

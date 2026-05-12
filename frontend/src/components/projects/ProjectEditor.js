@@ -395,7 +395,8 @@ export default function ProjectEditor({ projectSlug }) {
       setImageUrl(downloadUrl);
     } catch (err) {
       console.error("Image upload failed:", err);
-      setImageError("Upload failed. Please try again.");
+      console.error("Error details:", JSON.stringify(err, null, 2));
+      setImageError(`Upload failed: ${err.message || "Please try again."}`);
     } finally {
       setUploadingImage(false);
     }

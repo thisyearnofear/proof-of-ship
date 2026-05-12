@@ -51,11 +51,20 @@ async function handler(req, res) {
     // Check if slug already exists in both projects and projects_* collections
     const existingProject = await db.collection("projects").doc(slug).get();
     if (existingProject.exists) {
-      console.log("Existing project found at slug:", slug);
-      return res.status(400).json({
+      const existingData = existingProject.data();
+      const isOwner = existingData.owners && existingData.owners.includes(userId);
+      console.log("Existing project found at slug:", slug, "isOwner:", isOwner);
+      return res.status(409).json({
         error: "Project with this name already exists",
         slug,
-        existingProject: existingProject.data()
+        existingProject: {
+          name: existingData.name,
+          slug: existingData.slug,
+          ecosystem: existingData.ecosystem,
+          isOwner,
+          owners: existingData.owners,
+          submittedBy: existingData.submittedBy
+        }
       });
     }
 

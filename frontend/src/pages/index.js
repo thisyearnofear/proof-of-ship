@@ -6,6 +6,7 @@ import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import LiveActivityFeed from "@/components/common/LiveActivityFeed";
+import LiveAgentTicker from "@/components/common/LiveAgentTicker";
 import NauticalTour from "@/components/onboarding/NauticalTour";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import { LANDING_FEATURES, USER_JOURNEYS } from "@/config/landingContent";
@@ -82,6 +83,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-surface-secondary wave-pattern overflow-x-hidden">
+      <LiveAgentTicker />
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Animated Background Elements */}

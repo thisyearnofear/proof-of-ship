@@ -15,6 +15,7 @@ import TabBar from "@/components/common/TabBar";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { SkeletonProjectGrid, SkeletonBlock } from "@/components/common/SkeletonLoader";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
+import LiveAgentTicker from "@/components/common/LiveAgentTicker";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { NETWORK_CONFIGS } from "@/config/networks";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
@@ -45,6 +46,7 @@ export default function ExplorePage() {
         <title>Explore | Builder Credit</title>
       </Head>
       <div className="min-h-screen bg-surface-secondary">
+        <LiveAgentTicker />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Breadcrumbs items={[{ label: "Explore" }]} />
           {/* Tab switcher */}

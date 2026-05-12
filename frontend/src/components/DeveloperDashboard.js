@@ -25,7 +25,8 @@ import {
   ExclamationCircleIcon,
   CpuChipIcon,
   GlobeAltIcon,
-  SignalIcon
+  SignalIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 export default function DeveloperDashboard() {
@@ -207,10 +208,12 @@ export default function DeveloperDashboard() {
 
   if (!connected || !account) {
     return (
-      <Card className="p-6 text-center">
-        <UserCircleIcon className="w-12 h-12 mx-auto text-gray-400" />
-        <h3 className="mt-4 text-lg font-medium text-gray-900">Connect Your Wallet</h3>
-        <p className="mt-2 text-gray-600">
+      <Card className="p-8 text-center max-w-md mx-auto">
+        <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <UserCircleIcon className="w-10 h-10 text-blue-600" />
+        </div>
+        <h3 className="text-2xl font-bold text-slate-900 mb-3">Connect Your Wallet</h3>
+        <p className="text-slate-600 mb-6">
           Please connect your wallet to view your developer dashboard
         </p>
       </Card>
@@ -219,7 +222,7 @@ export default function DeveloperDashboard() {
 
   if (contractLoading || loading) {
     return (
-      <div className="flex justify-center p-8">
+      <div className="flex justify-center items-center min-h-[400px]">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -227,11 +230,11 @@ export default function DeveloperDashboard() {
 
   if (contractError || error) {
     return (
-      <Card className="p-6 bg-red-50 border-red-200">
-        <div className="flex items-start space-x-3">
-          <ExclamationCircleIcon className="w-6 h-6 text-red-600 mt-0.5" />
-          <div>
-            <h4 className="font-semibold text-red-900 mb-1">Error</h4>
+      <Card className="p-6 bg-red-50 border border-red-200 max-w-2xl mx-auto">
+        <div className="flex items-start gap-4">
+          <ExclamationCircleIcon className="w-8 h-8 text-red-600 flex-shrink-0" />
+          <div className="flex-1">
+            <h4 className="font-bold text-red-900 mb-2 text-lg">Error</h4>
             <p className="text-red-800">{contractError || error}</p>
           </div>
         </div>
@@ -240,28 +243,33 @@ export default function DeveloperDashboard() {
   }
 
   return (
-    <div className="space-y-8 wave-pattern p-4 sm:p-6 lg:p-8 rounded-3xl">
+    <div className="space-y-6">
       {/* Command Center Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 backdrop-blur-md p-6 rounded-2xl border border-white/50 shadow-sm">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <CpuChipIcon className="w-8 h-8 text-blue-600" />
-            COMMAND CENTER
-          </h1>
-          <p className="text-slate-500 font-medium">Fleet Operations & Engine Status</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">System Status</span>
-            <span className="flex items-center gap-1.5 text-green-600 font-bold">
-              <SignalIcon className="w-4 h-4 animate-pulse" />
-              OPERATIONAL
-            </span>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 p-6 sm:p-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <CpuChipIcon className="w-7 h-7 text-white" />
+              </div>
+              COMMAND CENTER
+            </h1>
+            <p className="text-blue-100 font-medium mt-2 text-lg">Fleet Operations & Engine Status</p>
           </div>
-          <div className="h-10 w-px bg-slate-200 mx-2" />
-          <div className="text-right">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Wallet</div>
-            <div className="font-mono text-sm text-slate-700">{account.substring(0, 6)}...{account.substring(account.length - 4)}</div>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="bg-white/15 backdrop-blur-md rounded-xl px-5 py-3 border border-white/20">
+              <span className="text-xs font-bold text-blue-200 uppercase tracking-widest block mb-1">System Status</span>
+              <span className="flex items-center gap-2 text-white font-bold text-lg">
+                <CheckCircleIcon className="w-5 h-5 text-green-300" />
+                OPERATIONAL
+              </span>
+            </div>
+            <div className="bg-white/15 backdrop-blur-md rounded-xl px-5 py-3 border border-white/20">
+              <span className="text-xs font-bold text-blue-200 uppercase tracking-widest block mb-1">Wallet</span>
+              <span className="font-mono text-lg text-white">{account.substring(0, 6)}...{account.substring(account.length - 4)}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -270,87 +278,94 @@ export default function DeveloperDashboard() {
         {/* Left Column: Engine Status (Credit Profile) */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <SignalIcon className="w-5 h-5 text-blue-500" />
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <SignalIcon className="w-6 h-6 text-blue-600" />
+                </div>
                 ENGINE STATUS
               </h2>
             </div>
             
             {creditProfile ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Credit Score</div>
-                      <div className={`text-3xl font-black ${
-                        creditProfile.creditScore >= 700 ? 'text-green-600' :
-                        creditProfile.creditScore >= 500 ? 'text-yellow-600' :
-                        'text-red-600'
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Credit Score</div>
+                      <div className={`text-4xl font-black ${
+                        creditProfile.creditScore >= 700 ? 'text-emerald-600' :
+                        creditProfile.creditScore >= 500 ? 'text-amber-600' :
+                        'text-rose-600'
                       }`}>
                         {creditProfile.creditScore}
                       </div>
                     </div>
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      creditProfile.creditScore >= 700 ? 'bg-green-100' :
-                      creditProfile.creditScore >= 500 ? 'bg-yellow-100' :
-                      'bg-red-100'
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                      creditProfile.creditScore >= 700 ? 'bg-emerald-100' :
+                      creditProfile.creditScore >= 500 ? 'bg-amber-100' :
+                      'bg-rose-100'
                     }`}>
-                      <StarIcon className={`w-7 h-7 ${
-                        creditProfile.creditScore >= 700 ? 'text-green-600' :
-                        creditProfile.creditScore >= 500 ? 'text-yellow-600' :
-                        'text-red-600'
+                      <StarIcon className={`w-8 h-8 ${
+                        creditProfile.creditScore >= 700 ? 'text-emerald-600' :
+                        creditProfile.creditScore >= 500 ? 'text-amber-600' :
+                        'text-rose-600'
                       }`} />
                     </div>
                   </div>
                 </Card>
                 
-                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Funded</div>
-                      <div className="text-3xl font-black text-blue-600">
+                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Funded</div>
+                      <div className="text-4xl font-black text-blue-600">
                         ${formatUSDC(creditProfile.totalFunded)}
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                      <CurrencyDollarIcon className="w-7 h-7 text-blue-600" />
+                    <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <CurrencyDollarIcon className="w-8 h-8 text-blue-600" />
                     </div>
                   </div>
                 </Card>
                 
-                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Loan</div>
-                      <div className="text-3xl font-black text-purple-600">
+                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Active Loan</div>
+                      <div className="text-4xl font-black text-purple-600">
                         ${formatUSDC(creditProfile.activeLoanAmount)}
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                      <ClockIcon className="w-7 h-7 text-purple-600" />
+                    <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <ClockIcon className="w-8 h-8 text-purple-600" />
                     </div>
                   </div>
                 </Card>
                 
-                <Card className="p-4 maritime-depth bg-white/80 hover:scale-[1.02] transition-transform">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Reputation</div>
-                      <div className="text-3xl font-black text-indigo-600">
+                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Reputation</div>
+                      <div className="text-4xl font-black text-indigo-600">
                         {creditProfile.reputation}
                       </div>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-                      <ShieldCheckIcon className="w-7 h-7 text-indigo-600" />
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                      <ShieldCheckIcon className="w-8 h-8 text-indigo-600" />
                     </div>
                   </div>
                 </Card>
               </div>
             ) : (
-              <Card className="p-6 bg-gray-50/50 backdrop-blur-sm border-dashed border-2">
-                <div className="text-center text-gray-500 font-medium">
-                  No credit profile found. Initialize engine by requesting funding.
+              <Card className="p-10 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <ShieldCheckIcon className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <p className="text-slate-600 font-medium text-lg">
+                    No credit profile found. Initialize engine by requesting funding.
+                  </p>
                 </div>
               </Card>
             )}
@@ -358,15 +373,19 @@ export default function DeveloperDashboard() {
 
           {/* Fleet Operations Section */}
           <section>
-            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <GlobeAltIcon className="w-5 h-5 text-blue-500" />
-              FLEET OPERATIONS
-            </h2>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+                  <GlobeAltIcon className="w-6 h-6 text-cyan-600" />
+                </div>
+                FLEET OPERATIONS
+              </h2>
+            </div>
             
             {developerProjects && developerProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Project List */}
-                <div className="md:col-span-1 space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="lg:col-span-1 space-y-3 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
                   {developerProjects.map((projectId) => {
                     const project = projectDetails[projectId];
                     if (!project) return null;
@@ -375,19 +394,21 @@ export default function DeveloperDashboard() {
                     return (
                       <Card 
                         key={projectId}
-                        className={`p-4 cursor-pointer hover:shadow-lg transition-all border-2 ${
-                          selectedProjectId === projectId ? 'border-blue-500 bg-blue-50' : 'border-transparent bg-white/80'
+                        className={`p-5 cursor-pointer transition-all duration-300 border-2 ${
+                          selectedProjectId === projectId 
+                            ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg' 
+                            : 'border-transparent bg-white hover:border-slate-200 hover:shadow-md'
                         } ${tier.class}`}
                         onClick={() => handleProjectSelect(projectId)}
                       >
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-start gap-4">
                           <div className="flex-shrink-0 mt-1">
                             {tier.icon}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-bold text-slate-900 truncate">{project.name}</div>
-                            <div className="flex items-center justify-between mt-1">
-                              <span className="text-xs font-bold text-blue-600">${formatUSDC(project.fundingAmount)}</span>
+                            <div className="font-bold text-slate-900 text-lg truncate">{project.name}</div>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-sm font-bold text-blue-600">${formatUSDC(project.fundingAmount)}</span>
                               <div className="flex gap-2">
                                 <button 
                                   onClick={(e) => {
@@ -395,11 +416,11 @@ export default function DeveloperDashboard() {
                                     setSelectedProjectId(projectId);
                                     setShowStakeModal(true);
                                   }}
-                                  className="text-[10px] font-bold text-green-600 hover:text-green-700 bg-green-50 px-1.5 py-0.5 rounded border border-green-100"
+                                  className="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1 rounded-full transition-colors"
                                 >
                                   BOOST
                                 </button>
-                                <span className="text-[10px] font-bold text-slate-400 uppercase">{tier.name}</span>
+                                <span className="text-xs font-bold text-slate-500 uppercase bg-slate-100 px-2 py-1 rounded-full">{tier.name}</span>
                               </div>
                             </div>
                           </div>
@@ -410,19 +431,21 @@ export default function DeveloperDashboard() {
                 </div>
                 
                 {/* Project Details */}
-                <div className="md:col-span-2">
+                <div className="lg:col-span-2">
                   {selectedProjectId ? (
-                    <div className="maritime-depth rounded-2xl overflow-hidden bg-white/90">
+                    <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
                       <ProjectDetails 
                         projectId={selectedProjectId}
                         onMilestoneComplete={handleMilestoneComplete}
                       />
                     </div>
                   ) : (
-                    <Card className="p-12 bg-white/50 border-dashed border-2 flex flex-col items-center justify-center text-center">
-                      <DocumentTextIcon className="w-16 h-16 text-slate-300 mb-4" />
-                      <h3 className="text-xl font-bold text-slate-800">No Vessel Selected</h3>
-                      <p className="text-slate-500 max-w-xs mt-2">
+                    <Card className="p-12 bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-center">
+                      <div className="w-20 h-20 bg-slate-200 rounded-2xl flex items-center justify-center mb-5">
+                        <DocumentTextIcon className="w-10 h-10 text-slate-400" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-slate-800 mb-2">No Vessel Selected</h3>
+                      <p className="text-slate-600 max-w-sm">
                         Select a project from your fleet to view live telemetry and manage milestones.
                       </p>
                     </Card>
@@ -430,10 +453,12 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
             ) : (
-              <Card className="p-12 bg-white/50 border-dashed border-2 text-center">
-                <DocumentTextIcon className="w-16 h-16 mx-auto text-slate-300" />
-                <h3 className="mt-4 text-xl font-bold text-slate-800">Fleet Empty</h3>
-                <p className="mt-2 text-slate-500 max-w-md mx-auto">
+              <Card className="p-12 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300 text-center">
+                <div className="w-20 h-20 bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                  <DocumentTextIcon className="w-10 h-10 text-slate-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Fleet Empty</h3>
+                <p className="text-slate-600 max-w-lg mx-auto">
                   You haven&apos;t commissioned any vessels yet. Start your journey by requesting funding for your first project.
                 </p>
               </Card>
@@ -444,95 +469,101 @@ export default function DeveloperDashboard() {
         {/* Right Column: Telemetry & Actions */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
           {/* Velocity Gauge */}
-          <Card className="p-6 maritime-depth bg-slate-900 text-white border-none overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <CpuChipIcon className="w-24 h-24" />
+          <Card className="p-7 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-6 opacity-10">
+              <CpuChipIcon className="w-32 h-32" />
             </div>
-            <h3 className="text-sm font-black tracking-widest uppercase text-blue-400 mb-4 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+            <h3 className="text-sm font-black tracking-widest uppercase text-cyan-400 mb-6 flex items-center gap-3">
+              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
               Live Telemetry
             </h3>
-            <div className="flex justify-center py-4">
+            <div className="flex justify-center py-6">
               <VelocityGauge value={githubStreak} />
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Uptime</div>
-                <div className="text-lg font-black text-white">99.9%</div>
+            <div className="grid grid-cols-2 gap-5 mt-6">
+              <div className="bg-white/10 p-4 rounded-xl border border-white/15 backdrop-blur-sm">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Uptime</div>
+                <div className="text-2xl font-black text-white">99.9%</div>
               </div>
-              <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-                <div className="text-[10px] font-bold text-slate-400 uppercase">Latency</div>
-                <div className="text-lg font-black text-white">24ms</div>
+              <div className="bg-white/10 p-4 rounded-xl border border-white/15 backdrop-blur-sm">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Latency</div>
+                <div className="text-2xl font-black text-white">24ms</div>
               </div>
             </div>
           </Card>
 
           {/* Voyage Log / Check-ins */}
           <section>
-            <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Voyage Log</h2>
-            <Card className="p-4 bg-white/80 border-blue-100 border-2">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <h3 className="font-bold text-slate-800 text-sm">Post Heartbeat</h3>
+            <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              Voyage Log
+            </h2>
+            <Card className="p-6 bg-white border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                <h3 className="font-bold text-slate-800 text-lg">Post Heartbeat</h3>
               </div>
               <textarea
                 value={checkInText}
                 onChange={(e) => setCheckInText(e.target.value)}
                 placeholder="What did you ship today? (e.g., 'Fixed auth bug', 'Deployed V1')"
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:ring-1 ring-blue-500 outline-none h-20 mb-3 resize-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none h-24 mb-4 resize-none transition-all"
               />
               <Button
                 onClick={handlePostCheckIn}
                 disabled={loading || !selectedProjectId || !checkInText}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-3 rounded-xl text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition-all"
               >
-                <SignalIcon className="w-4 h-4" />
+                <SignalIcon className="w-5 h-5" />
                 Broadcast Activity
               </Button>
               {!selectedProjectId && (
-                <p className="text-[10px] text-slate-400 mt-2 text-center italic">Select a vessel to log activity</p>
+                <p className="text-xs text-slate-500 mt-3 text-center italic">Select a vessel to log activity</p>
               )}
             </Card>
           </section>
 
           {/* Quick Actions */}
           <section>
-            <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3">Quick Commands</h2>
-            <div className="space-y-3">
+            <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+              Quick Commands
+            </h2>
+            <div className="space-y-4">
               {creditProfile && parseFloat(creditProfile.activeLoanAmount) > 0 && (
                 <Button
                   onClick={() => setShowRepayModal(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 py-4 rounded-xl font-bold text-lg"
+                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-200 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2"
                 >
-                  <ArrowPathIcon className="w-6 h-6 mr-2" />
+                  <ArrowPathIcon className="w-7 h-7" />
                   Repay Loan
                 </Button>
               )}
               
-              <Card className="p-4 bg-indigo-900 text-white border-none">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold">Prize Loop Sim</h3>
-                  <div className="px-2 py-0.5 bg-indigo-500 rounded text-[10px] font-bold">DEMO</div>
+              <Card className="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white border-none shadow-lg">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="font-bold text-xl">Prize Loop Sim</h3>
+                  <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">DEMO</div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <input
                       type="number"
                       value={prizeAmount}
                       onChange={(e) => setPrizeAmount(e.target.value)}
-                      className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-1 ring-blue-500 outline-none"
+                      className="flex-1 bg-white/15 border border-white/25 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:ring-2 focus:ring-white/50 outline-none transition-all"
                       placeholder="Amount"
                     />
                     <Button
                       onClick={handleSimulatePrize}
                       disabled={loading || !selectedProjectId}
-                      className="bg-white text-indigo-900 hover:bg-indigo-50 font-bold px-4 rounded-lg"
+                      className="bg-white text-indigo-700 hover:bg-white/90 font-bold px-5 rounded-xl shadow-md"
                     >
                       Fire
                     </Button>
                   </div>
                   {!selectedProjectId && (
-                    <p className="text-[10px] text-indigo-300 italic">Select a vessel to simulate prize payout</p>
+                    <p className="text-xs text-indigo-200 italic">Select a vessel to simulate prize payout</p>
                   )}
                 </div>
               </Card>
@@ -540,25 +571,28 @@ export default function DeveloperDashboard() {
           </section>
 
           {/* System Logs / Status */}
-          <Card className="p-4 bg-slate-50 border-slate-200">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">System Logs</h3>
-            <div className="space-y-2 font-mono text-[10px]">
-              <div className="flex gap-2 text-slate-500">
-                <span className="text-blue-500">[SYS]</span>
+          <Card className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
+              System Logs
+            </h3>
+            <div className="space-y-3 font-mono text-sm">
+              <div className="flex gap-3 text-slate-600">
+                <span className="text-blue-600 font-bold">[SYS]</span>
                 <span>Fleet initialized...</span>
               </div>
-              <div className="flex gap-2 text-slate-500">
-                <span className="text-blue-500">[SYS]</span>
+              <div className="flex gap-3 text-slate-600">
+                <span className="text-blue-600 font-bold">[SYS]</span>
                 <span>Telemetry link active</span>
               </div>
               {success && (
-                <div className="flex gap-2 text-green-600">
+                <div className="flex gap-3 text-emerald-700 bg-emerald-50 p-2 rounded-lg">
                   <span className="font-bold">[SUCCESS]</span>
                   <span>{success.message}</span>
                 </div>
               )}
               {error && (
-                <div className="flex gap-2 text-red-600">
+                <div className="flex gap-3 text-rose-700 bg-rose-50 p-2 rounded-lg">
                   <span className="font-bold">[ERROR]</span>
                   <span>{error}</span>
                 </div>

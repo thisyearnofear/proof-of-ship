@@ -99,7 +99,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
   const [lastResult, setLastResult] = useState(null);
 
   useEffect(() => {
-    if (!isInitialized && process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+    if (!isInitialized && (process.env.NEXT_PUBLIC_DEMO_MODE === "true" || process.env.NODE_ENV === "development")) {
       initializeWithDemo();
     }
   }, []);

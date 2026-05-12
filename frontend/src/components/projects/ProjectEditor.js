@@ -963,7 +963,7 @@ export default function ProjectEditor({ projectSlug }) {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Links & Team</h3>
           <p className="text-sm text-gray-500 mt-1">
-            Backers look for signals that you're real and active. A Twitter/X account shows your builder journey.
+            Backers look for signals that you are real and active. A Twitter/X account shows your builder journey.
             Discord shows community engagement. A website shows you care about users, not just code.
           </p>
         </div>

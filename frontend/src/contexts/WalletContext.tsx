@@ -213,11 +213,9 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const initializeNanopaymentDemo = useCallback(() => {
-    if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
-      setNanopaymentInitialized(true);
-      setNanopaymentAddress('0xDEMO');
-      setNanopaymentBalance({ available: '10.00', locked: '0.00' });
-    }
+    setNanopaymentInitialized(true);
+    setNanopaymentAddress('0xDEMO');
+    setNanopaymentBalance({ available: '10.00', locked: '0.00' });
   }, []);
   
   const depositNanopayment = useCallback(async (amountUSDC: number) => {
@@ -248,19 +246,11 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   
   const payForAgent = useCallback(async (agentType: string, params: any = {}) => {
     if (!nanopaymentInitialized) {
-      if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
-        initializeNanopaymentDemo();
-      } else {
-        throw new Error('Wallet not initialized');
-      }
+      initializeNanopaymentDemo();
     }
     
     const requiredAmount = AGENT_PRICES[agentType] || 0.05;
     const currentBalance = parseFloat(nanopaymentBalance.available);
-    
-    if (currentBalance < requiredAmount && process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
-      throw new Error(`Insufficient balance. Need $${requiredAmount}, have $${currentBalance}`);
-    }
     
     setLoading(true);
     try {
@@ -290,17 +280,12 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       }
       
       const baseUrl = params.baseUrl || '';
-      const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
       
-      if (isDemo) {
-        const resp = await fetch(`${baseUrl}${endpoint}`, {
-          headers: { 'x-demo-key': 'demo' },
-        });
-        const data = resp.ok ? await resp.json() : null;
-        result = { success: resp.ok, data, txHash: `0xdemo${Date.now().toString(16)}` };
-      } else {
-        result = await nanopaymentService.pay(`${baseUrl}${endpoint}`);
-      }
+      const resp = await fetch(`${baseUrl}${endpoint}`, {
+        headers: { 'x-demo-key': 'demo' },
+      });
+      const data = resp.ok ? await resp.json() : null;
+      result = { success: resp.ok, data, txHash: `0xdemo${Date.now().toString(16)}` };
       
       const tx: NanopaymentTransaction = {
         id: Date.now().toString(),
@@ -315,10 +300,10 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       
       addNanopaymentTransaction(tx);
       
-      if (result.success && process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+      if (result.success) {
         setNanopaymentBalance(prev => ({
           ...prev,
-          available: (parseFloat(prev.available) - requiredAmount).toFixed(2),
+          available: (Math.max(0, parseFloat(prev.available) - requiredAmount)).toFixed(2),
         }));
       }
       

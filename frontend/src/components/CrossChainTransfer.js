@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useWallet } from "../contexts/WalletContext";
+import { useWallet, useBuilderCredit } from "../contexts/WalletContext";
 import { useFinancial } from "../contexts/FinancialContext";
 import { ethers } from "ethers";
 import { Card } from "./common/Card";
@@ -24,6 +24,7 @@ import {
 
 export default function CrossChainTransfer() {
   const { address: account, chainId, provider, switchNetwork } = useWallet();
+  const { usdcBalance } = useBuilderCredit();
   const {
     availableChains,
     availableTokens,

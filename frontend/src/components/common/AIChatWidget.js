@@ -185,7 +185,7 @@ export default function AIChatWidget() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, modelTier]);
+  }, [input, loading, modelTier, nanopaymentDemoMode]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {

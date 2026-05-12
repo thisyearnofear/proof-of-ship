@@ -733,8 +733,18 @@ export const useCircleWallet = () => {
 // useBuilderCredit - maps to WalletContext functionality
 export const useBuilderCredit = () => {
   const wallet = useWallet();
+  const { currentUser } = require('@/contexts/UserContext').useUser();
+  const [db] = React.useState(() => {
+    const { db: clientDb } = require('@/lib/firebase/clientApp');
+    return clientDb;
+  });
+  const { collection, query, where, getDocs, orderBy } = require('firebase/firestore');
+  
   const [chainBalances, setChainBalances] = React.useState<Record<string, string>>({});
   const [isFetchingBalances, setIsFetchingBalances] = React.useState(false);
+  const [developerProjects, setDeveloperProjects] = React.useState<any[]>([]);
+  const [projectDetails, setProjectDetails] = React.useState<any[]>([]);
+  const [loadingProjects, setLoadingProjects] = React.useState(false);
 
   // Derive usdcBalance from chainBalances for current active chain
   const usdcBalance = wallet.activeChainFamily === 'solana'
@@ -806,6 +816,60 @@ export const useBuilderCredit = () => {
     fetchAllBalances();
   }, [wallet.connected, wallet.solanaConnected, wallet.account, wallet.chainId]);
 
+  // Load user's projects from Firestore
+  React.useEffect(() => {
+    const loadUserProjects = async () => {
+      if (!currentUser?.uid && !currentUser?.githubUsername) return;
+      
+      setLoadingProjects(true);
+      try {
+        const projectsRef = collection(db, 'projects');
+        let q;
+        
+        if (currentUser.githubUsername) {
+          q = query(
+            projectsRef,
+            where('submittedBy', '==', currentUser.githubUsername),
+            orderBy('createdAt', 'desc')
+          );
+        } else if (currentUser.uid) {
+          q = query(
+            projectsRef,
+            where('owners', 'array-contains', currentUser.uid),
+            orderBy('createdAt', 'desc')
+          );
+        }
+        
+        if (!q) {
+          setLoadingProjects(false);
+          return;
+        }
+        
+        const snapshot = await getDocs(q);
+        const projects = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        setDeveloperProjects(projects);
+        setProjectDetails(projects.map(p => ({
+          id: p.id,
+          name: p.name,
+          milestonesCompleted: 0,
+          milestonesCount: 3,
+          fundingAmount: 0,
+          isActive: p.status === 'submitted' || p.status === 'approved'
+        })));
+      } catch (error) {
+        console.error('Failed to load user projects:', error);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    
+    loadUserProjects();
+  }, [currentUser?.uid, currentUser?.githubUsername, db, collection, query, where, getDocs, orderBy]);
+
   // Refresh balance when active chain changes
   React.useEffect(() => {
     const refreshBalance = async () => {
@@ -869,6 +933,10 @@ export const useBuilderCredit = () => {
     requestFunding: wallet.requestFunding,
     activeChainFamily: wallet.activeChainFamily,
     switchChain,
+    // Projects
+    developerProjects,
+    projectDetails,
+    loadingProjects,
     // Circle Wallet for contract interactions
     circleWallets: wallet.circleWallets,
     circleConfig: wallet.circleConfig,

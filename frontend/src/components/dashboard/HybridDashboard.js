@@ -68,7 +68,7 @@ export default function HybridDashboard({
   });
   const [showSettings, setShowSettings] = useState(false);
   const [filters, setFilters] = useState(() => ({
-    activeOnly: getPreference('showInactiveProjects', false) ? false : true,
+    activeOnly: false,
     minHealthScore: getPreference('minHealthScore', 0),
     sortBy: getPreference('defaultSort', 'recent'),
     sortOrder: getPreference('defaultSortOrder', 'desc')

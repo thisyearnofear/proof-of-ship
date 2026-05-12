@@ -301,10 +301,65 @@ class DataService {
       ? ['celo', 'arc', 'base', 'linea', 'arbitrum', 'ethereum', 'optimism', 'solana']
       : [ecosystem];
 
+    const seenSlugs = new Set<string>();
+
+    // First load from generic "projects" collection
+    try {
+      const ref = collection(db, 'projects');
+      const q = query(ref, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      await Promise.all(snapshot.docs.map(async (docSnap) => {
+        const docData = docSnap.data();
+        const projectEcosystem = docData.ecosystem || 'base';
+        
+        // Only include if in our ecosystem list
+        if (!ecosystems.includes(projectEcosystem)) return;
+        
+        const projectData: Project = { 
+          id: docSnap.id, 
+          slug: docData.slug || '',
+          name: docData.name || '',
+          owner: docData.owner || '',
+          repo: docData.repo || '',
+          ecosystem: projectEcosystem,
+          ...docData 
+        } as Project;
+        
+        if (projectData.owner && projectData.repo) {
+          try {
+            const githubData = await this.fetchGitHubDataForProject(
+              projectData.owner,
+              projectData.repo,
+              projectEcosystem === 'celo' ? celoDataTypes : baseDataTypes
+            );
+            projectData.githubData = githubData;
+            projectData.stats = this.calculateProjectStats(githubData);
+          } catch (error) {
+            projectData.githubData = {};
+            projectData.stats = this.getDefaultStats();
+          }
+        }
+
+        if (!seenSlugs.has(projectData.slug)) {
+          seenSlugs.add(projectData.slug);
+          projects[projectEcosystem as keyof EcosystemProjects].push(projectData);
+        }
+      }));
+    } catch (error) {
+      console.error('Failed to load generic projects:', error);
+    }
+
+    // Now load from ecosystem-specific collections (to fill in any missing ones)
     await Promise.all(ecosystems.map(async (eco) => {
       try {
         const ecoProjects = await this.loadEcosystemProjects(eco, eco === 'celo' ? celoDataTypes : baseDataTypes);
-        projects[eco as keyof EcosystemProjects] = ecoProjects;
+        for (const project of ecoProjects) {
+          if (!seenSlugs.has(project.slug)) {
+            seenSlugs.add(project.slug);
+            projects[eco as keyof EcosystemProjects].push(project);
+          }
+        }
       } catch (error) {
         console.error(`Failed to load ${eco} projects:`, error);
       }

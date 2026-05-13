@@ -875,13 +875,13 @@ export const useBuilderCredit = () => {
         }
         
         const snapshot = await getDocs(q);
-        const projects = snapshot.docs.map(doc => ({
+        const projects = snapshot.docs.map((doc: { id: string; data: () => Record<string, unknown> }) => ({
           id: doc.id,
           ...doc.data()
         }));
         
         setDeveloperProjects(projects);
-        setProjectDetails(projects.map(p => ({
+        setProjectDetails(projects.map((p: { id: string; name: string; status: string }) => ({
           id: p.id,
           name: p.name,
           milestonesCompleted: 0,

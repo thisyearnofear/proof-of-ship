@@ -5,7 +5,7 @@
 
 import {
   initiateDeveloperControlledWalletsClient,
-  type DeveloperControlledWallets,
+  type CircleDeveloperControlledWalletsClient,
 } from "@circle-fin/developer-controlled-wallets";
 import { TESTNET_USDC_ADDRESSES, ARC_TESTNET_CHAIN_ID } from "../config/tokens";
 
@@ -41,7 +41,7 @@ interface CircleResponse<T = any> {
 }
 
 class RealCircleService {
-  private client: DeveloperControlledWallets | null = null;
+  private client: CircleDeveloperControlledWalletsClient | null = null;
   private readonly environment: string;
   private readonly apiKey: string | undefined;
   private readonly walletSetId: string | undefined;
@@ -88,17 +88,11 @@ class RealCircleService {
     const idempotencyKey = this.generateIdempotencyKey("wallet");
 
     try {
-      const response = await this.client!.createWallet({
+      const response = await this.client!.createWallets({
         idempotencyKey,
         walletSetId: this.walletSetId!,
-        blockchains: ["ETH", "MATIC", "ARB-SEPOLIA", "BASE", "OPT", "SOL"],
+        blockchains: ["ETH", "MATIC-AMOY", "BASE-SEPOLIA", "ARB-SEPOLIA"] as any,
         count: 1,
-        metadata: {
-          name: config.name || "Developer Wallet",
-          description: config.description || "Wallet for developer funding",
-          userId: config.userId || "unknown",
-          ...config.metadata,
-        },
       });
 
       return { success: true, data: response.data };
@@ -151,7 +145,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await this.client!.getWalletBalance({ id: walletId });
+      const response = await this.client!.getWalletTokenBalance({ id: walletId });
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Get wallet balances failed: ${error.message}`);
@@ -169,13 +163,13 @@ class RealCircleService {
     const idempotencyKey = this.generateIdempotencyKey("tx");
 
     try {
-      const response = await this.client!.createTransactionTransfer({
+      const response = await this.client!.createTransaction({
         idempotencyKey,
         walletId: config.walletId,
         tokenId: config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID],
-        amounts: [config.amount],
+        amount: [config.amount],
         destinationAddress: config.destinationAddress,
-        feeLevel: (config.feeLevel as any) || "HIGH",
+        fee: { feeLevel: "HIGH" } as any,
       });
 
       return { success: true, data: response.data };

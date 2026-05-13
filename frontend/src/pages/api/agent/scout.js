@@ -28,7 +28,15 @@ async function scoutHandler(req, res) {
     if (req.method === "GET" && req.query.fresh !== "1") {
       const cached = await getCachedResult("scout", { ecosystem: req.query.ecosystem || "all" });
       if (cached) {
-        return res.status(200).json({ ...cached.data, cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+        return res.status(200).json({
+          ...cached.data,
+          status: "ok",
+          resultSource: "cached",
+          nextAction: "Review the recommended projects and run deeper analysis on the best candidates.",
+          cached: true,
+          cachedAt: cached.cachedAt,
+          cachedAge: cached.ageHuman,
+        });
       }
     }
 
@@ -38,16 +46,15 @@ async function scoutHandler(req, res) {
       const snapshot = await db.collection("projects").get();
       projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (err) {
-      // Log error details for debugging but don't fail - return empty result
       console.error("Failed to fetch projects from Firestore:", {
         message: err.message,
         code: err.code,
         stack: err.stack
       });
-      // Return early with error info instead of failing silently
-      return res.status(200).json({
+      return res.status(500).json({
         ...agentIdentityResponse('scout'),
         success: false,
+        status: 'error',
         error: 'Failed to fetch projects',
         details: err.message,
         projects: [],
@@ -74,7 +81,6 @@ async function scoutHandler(req, res) {
               backed: total >= MIN_SCORE_TO_BACK,
             };
           } catch (projectErr) {
-            // Skip projects that fail to score
             console.warn(`Failed to score project ${project.id}:`, projectErr.message);
             return null;
           }
@@ -83,7 +89,13 @@ async function scoutHandler(req, res) {
         .sort((a, b) => b.score - a.score);
     } catch (scoringErr) {
       console.error("Scoring engine error:", scoringErr.message);
-      scored = [];
+      return res.status(500).json({
+        ...agentIdentityResponse('scout'),
+        success: false,
+        status: 'error',
+        error: 'Scoring engine failed',
+        details: scoringErr.message,
+      });
     }
 
     const toBack = scored.filter((p) => p.backed);
@@ -141,9 +153,12 @@ async function scoutHandler(req, res) {
     // AIsa-powered ecosystem analysis (optional)
     let ecosystemAnalysis = null;
     let aisaPayment = null;
+    let resultSource = req.nanopayment?.demo ? "demo" : "rule_based";
     if (isAisaConfigured()) {
       try {
-        const avgScore = Math.round(scored.reduce((s, p) => s + p.score, 0) / scored.length);
+        const avgScore = scored.length > 0
+          ? Math.round(scored.reduce((s, p) => s + p.score, 0) / scored.length)
+          : 0;
         const topNames = toBack.slice(0, 3).map((p) => `${p.name} (${p.ecosystem || 'unknown'})`).join(", ");
         const prompt = `Summarize the investment landscape for these ${scored.length} blockchain projects in 2 sentences. 
         Top projects: ${topNames}. 
@@ -162,6 +177,7 @@ async function scoutHandler(req, res) {
         const aisaData = await aisaRes.json();
         ecosystemAnalysis = aisaData.choices?.[0]?.message?.content || null;
         aisaPayment = { provider: "aisa", model: "perplexity/sonar", status: "paid" };
+        resultSource = "live_ai";
       } catch (err) {
         console.warn("AIsa ecosystem analysis failed (non-fatal):", err.message);
       }
@@ -170,12 +186,18 @@ async function scoutHandler(req, res) {
     const result = {
       ...agentIdentityResponse('scout'),
       success: true,
+      status: "ok",
+      resultSource,
+      nextAction: shouldExecute
+        ? "Review the execution results and confirm which backings succeeded."
+        : "Review the recommended projects and run deeper analysis on the best candidates.",
       agentInfo: {
         name: identity.domain,
         humanName: identity.displayName,
         feePaid: req.nanopayment?.amount || 0,
         txHash: req.nanopayment?.txHash,
         network: "arc",
+        paymentStatus: req.nanopayment?.demo ? "demo" : (req.nanopayment?.verificationStatus || "unverified"),
         ...(aisaPayment && { aisaPayment }),
       },
       runId,
@@ -198,7 +220,7 @@ async function scoutHandler(req, res) {
     return res.status(200).json(result);
   } catch (error) {
     console.error("Scout agent error:", error);
-    return res.status(500).json({ error: "Scout agent failed", details: error.message });
+    return res.status(500).json({ error: "Scout agent failed", details: error.message, status: "error" });
   }
 }
 

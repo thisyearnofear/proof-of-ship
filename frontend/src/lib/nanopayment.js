@@ -116,6 +116,7 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
         network: "arc",
         chainId: ARC_TESTNET_CHAIN_ID,
         priceUSD: requiredAmount,
+        status: "payment_required",
       });
     }
 
@@ -130,8 +131,11 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
           error: "Insufficient payment",
           expected: requiredAmount,
           received: receipt.amount,
+          status: "payment_required",
         });
       }
+
+      let verificationStatus = "unverified";
 
       // Verify the EIP-3009 nonce on Arc when authorizer + nonce are present
       if (receipt?.authorizer && receipt?.nonce) {
@@ -141,9 +145,11 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
           return res.status(402).json({
             error: "Payment nonce already used or canceled",
             details: "The EIP-3009 authorization nonce has already been consumed on Arc.",
+            status: "payment_required",
           });
         }
-        // nonceValid === null means RPC was unreachable — allow with degraded verification
+
+        verificationStatus = nonceValid === null ? "degraded" : "verified";
       }
 
       req.nanopayment = receipt || {
@@ -152,15 +158,27 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
         network: "arc",
         chainId: ARC_TESTNET_CHAIN_ID,
         signature: paymentSignature,
-        verified: !!(receipt?.authorizer && receipt?.nonce),
+        verified: verificationStatus === "verified",
+        verificationStatus,
+        demo: false,
         timestamp: new Date().toISOString(),
       };
+
+      if (receipt) {
+        req.nanopayment = {
+          ...req.nanopayment,
+          verified: verificationStatus === "verified",
+          verificationStatus,
+          demo: false,
+        };
+      }
 
       return handler(req, res);
     } catch (error) {
       return res.status(400).json({
         error: "Invalid payment",
         details: error.message,
+        status: "failed",
       });
     }
   };

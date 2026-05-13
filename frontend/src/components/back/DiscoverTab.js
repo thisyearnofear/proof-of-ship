@@ -39,7 +39,7 @@ export default function DiscoverTab() {
   const { projects, loading, error, refresh } = useExpeditionData();
   const { connected, connect, account } = useWallet();
   const { backProject } = useBuilderCredit();
-  const { payForScout, loading: nanopaymentLoading } = useNanopayment();
+  const { payForScout, loading: nanopaymentLoading, nanopaymentDemoMode } = useNanopayment();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterEcosystem, setFilterEcosystem] = useState("all");
   const [filterMultiplier, setFilterMultiplier] = useState("all");
@@ -51,16 +51,34 @@ export default function DiscoverTab() {
   const [backingError, setBackingError] = useState(null);
   const [scoutData, setScoutData] = useState(null);
   const [scouting, setScouting] = useState(false);
+  const [scoutMessage, setScoutMessage] = useState(null);
 
   const runAIScout = async () => {
     setScouting(true);
+    setScoutMessage(null);
     try {
       const result = await payForScout();
-      if (result.success) {
+      if (result.success && result.data) {
         setScoutData(result.data);
+        setScoutMessage({
+          tone: result.data.status === "ok" ? "success" : "warning",
+          text: result.data.nextAction || "Scout finished. Review the recommended projects below.",
+          detail: `Source: ${result.data.resultSource || 'unknown'} · Payment: ${result.data.agentInfo?.paymentStatus || (result.demoMode ? 'demo' : 'unknown')}`,
+        });
+      } else {
+        setScoutMessage({
+          tone: "error",
+          text: result.error || result.data?.error || "Scout could not complete this run.",
+          detail: result.data?.details || "Try again after checking your payment setup.",
+        });
       }
     } catch (err) {
       console.error("Scout failed:", err);
+      setScoutMessage({
+        tone: "error",
+        text: "Scout failed to complete.",
+        detail: err.message || "Try again after checking your connection.",
+      });
     } finally {
       setScouting(false);
     }
@@ -71,7 +89,11 @@ export default function DiscoverTab() {
       headers: { "x-demo-key": "demo" }
     })
       .then((r) => r.ok ? r.json() : null)
-      .then((data) => data?.success && setScoutData(data))
+      .then((data) => {
+        if (data?.success || data?.status === "ok") {
+          setScoutData(data);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -98,7 +120,6 @@ export default function DiscoverTab() {
       return matchesSearch && matchesMultiplier && matchesEcosystem;
     });
 
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "health":
@@ -152,39 +173,38 @@ export default function DiscoverTab() {
 
   return (
     <>
-      {/* AI Scout Bar */}
-      <Card className="p-3 mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🔭</span>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-indigo-900">AI Scout</span>
-                {scoutData && (
-                  <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                    {scoutData.summary.recommended} recommended
-                  </span>
-                )}
-              </div>
-              <span className="text-xs text-indigo-600">
-                {scoutData 
-                  ? `evaluated ${scoutData.summary.evaluated} projects · ${scoutData.summary.totalStake}`
-                  : `0.01 USDC per scan · powered by Circle Nanopayments`
-                }
-              </span>
+      <Card className="p-4 mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl">🔭</span>
+              <span className="font-medium text-indigo-900">Scout your next project</span>
+              {scoutData?.summary && (
+                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                  {scoutData.summary.recommended} recommended
+                </span>
+              )}
             </div>
+            <p className="text-sm text-indigo-700 max-w-2xl">
+              Run one paid scan, review the strongest candidates, then open a project card to decide whether to back it.
+            </p>
+            <p className="text-xs text-indigo-600 mt-1">
+              {scoutData?.summary
+                ? `Last scan: ${scoutData.summary.evaluated} projects evaluated · ${scoutData.summary.totalStake}`
+                : `Cost: 0.01 USDC per scan · Mode: ${nanopaymentDemoMode ? 'demo' : 'live'}`}
+            </p>
           </div>
           <Button
             variant="primary"
             size="sm"
             onClick={runAIScout}
-            disabled={scouting}
+            disabled={scouting || nanopaymentLoading}
             className="flex items-center gap-2"
           >
             {scouting ? (
               <>
                 <LoadingSpinner size="sm" />
-                Scanning...
+                Running scout...
               </>
             ) : (
               <>
@@ -194,18 +214,28 @@ export default function DiscoverTab() {
             )}
           </Button>
         </div>
+
+        {scoutMessage && (
+          <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${
+            scoutMessage.tone === 'success'
+              ? 'border-green-200 bg-green-50 text-green-800'
+              : scoutMessage.tone === 'warning'
+                ? 'border-amber-200 bg-amber-50 text-amber-800'
+                : 'border-red-200 bg-red-50 text-red-800'
+          }`}>
+            <p className="font-medium">{scoutMessage.text}</p>
+            {scoutMessage.detail && <p className="text-xs mt-1 opacity-80">{scoutMessage.detail}</p>}
+          </div>
+        )}
       </Card>
 
-      {/* Filters Row */}
       <div className="flex flex-col md:flex-row gap-3 mb-6 items-start md:items-center">
-        {/* Search */}
         <div className="relative w-full md:max-w-sm">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500" />
         </div>
 
-        {/* Ecosystem */}
         <div className="flex items-center gap-2 text-sm">
           <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
           <select value={filterEcosystem} onChange={(e) => setFilterEcosystem(e.target.value)}
@@ -216,7 +246,6 @@ export default function DiscoverTab() {
           </select>
         </div>
 
-        {/* Multiplier */}
         <div className="flex items-center gap-2 text-sm">
           <span className="text-gray-500">Min:</span>
           <select value={filterMultiplier} onChange={(e) => setFilterMultiplier(e.target.value)}
@@ -228,7 +257,6 @@ export default function DiscoverTab() {
           </select>
         </div>
 
-        {/* Sort */}
         <div className="flex items-center gap-2 text-sm md:ml-auto">
           <span className="text-gray-500">Sort:</span>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
@@ -240,12 +268,12 @@ export default function DiscoverTab() {
         </div>
       </div>
 
-      {/* Results count */}
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-gray-500">
           {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
           {filterEcosystem !== 'all' ? ` in ${filterEcosystem}` : ''}
         </p>
+        <PrivacyBadge />
       </div>
 
       {filteredProjects.length === 0 ? (
@@ -343,7 +371,6 @@ export default function DiscoverTab() {
 
                   {backingError && <p className="text-sm text-red-600">{backingError}</p>}
 
-                  {/* Privacy guarantee inline */}
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 text-xs text-purple-800">
                     <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />

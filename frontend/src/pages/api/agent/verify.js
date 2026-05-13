@@ -48,15 +48,25 @@ async function handler(req, res) {
 
   try {
     const identity = getAgentIdentity('verify');
-    // Check cache
     if (fresh !== "1") {
       const cached = await getCachedResult("verify", { prId });
       if (cached) {
-        return res.status(200).json({ ...cached.data, cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+        return res.status(200).json({
+          ...cached.data,
+          status: cached.status || "ok",
+          resultSource: cached.resultSource || "cached",
+          nextAction: cached.nextAction || "Review the verification summary before releasing any milestone funds.",
+          cached: true,
+          cachedAt: cached.cachedAt,
+          cachedAge: cached.ageHuman,
+        });
       }
     }
+
     let verification;
     let aisaPayment = null;
+    let resultSource = req.nanopayment?.demo ? "demo" : "fallback";
+    let status = "fallback";
 
     if (isAisaConfigured()) {
       try {
@@ -90,27 +100,25 @@ async function handler(req, res) {
             issuesFound: parsed.issues || 0,
           };
           aisaPayment = { provider: "aisa-x402", model: "perplexity-sonar" };
+          resultSource = "live_ai";
+          status = "ok";
         }
       } catch (aisaErr) {
-        console.warn("AIsa verification failed, falling back to mock:", aisaErr.message);
+        console.warn("AIsa verification failed, returning explicit fallback state:", aisaErr.message);
       }
     }
 
     if (!verification) {
-      const isApproved = Math.random() > 0.1;
       verification = {
         prId,
         linesAnalyzed: lines,
-        approved: isApproved,
-        confidence: isApproved ? 0.95 : 0.45,
-        summary: isApproved
-          ? "Code meets all standards. High test coverage detected. No vulnerabilities found."
-          : "Code style violations detected. Missing edge-case test coverage.",
-        issuesFound: isApproved ? 0 : 3,
+        approved: null,
+        confidence: 0,
+        summary: "Automated verification is currently unavailable. No approval decision was made.",
+        issuesFound: null,
       };
     }
 
-    // Phase 8: Connect AI Verifier Agent to trigger on-chain Solana payouts
     if (verification.approved && network === "solana" && projectPda) {
       try {
         const solanaRpc = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
@@ -174,13 +182,19 @@ async function handler(req, res) {
 
     const result = {
       ...agentIdentityResponse('verify'),
-      success: true,
+      success: status === "ok",
+      status,
+      resultSource,
+      nextAction: verification.approved === true
+        ? "Review the verification summary before releasing any milestone funds."
+        : "Review the verification summary and retry later if you need an automated approval decision.",
       agentInfo: {
         name: identity.domain,
         humanName: identity.displayName,
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: network || "arc",
+        paymentStatus: req.nanopayment.demo ? "demo" : (req.nanopayment.verificationStatus || "unverified"),
         ...(aisaPayment && { aisaPayment }),
       },
       verification,
@@ -193,7 +207,7 @@ async function handler(req, res) {
 
   } catch (error) {
     console.error("Verification agent error:", error);
-    return res.status(500).json({ error: "Verification agent failed", details: error.message });
+    return res.status(500).json({ error: "Verification agent failed", details: error.message, status: "error" });
   }
 }
 

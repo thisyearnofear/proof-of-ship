@@ -4,10 +4,8 @@
  * Mobile-responsive component showing:
  * - Gateway balance (available/locked)
  * - All AI agent services with pricing
- * - Live payment streaming visualization
+ * - Clear demo/live setup states
  * - Transaction history
- * 
- * Part of Agentic Economy UX - hackathon submission
  */
 
 import React, { useState, useEffect } from "react";
@@ -16,13 +14,10 @@ import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import {
   CurrencyDollarIcon,
-  ArrowPathIcon,
-  SparklesIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ArrowTrendingUpIcon,
   RocketLaunchIcon,
-  CodeBracketIcon,
   CogIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -40,39 +35,31 @@ function formatUSDC(amount) {
 const AGENT_SERVICES = [
   {
     id: "underwrite",
-    name: "pos-underwriter.sol",
-    humanName: "Underwriter Agent",
-    description: "Project health scoring",
+    name: "Underwriter Agent",
+    description: "Score a project and get actionable analysis",
     price: 0.05,
     icon: "🤖",
-    color: "indigo",
   },
   {
     id: "scout",
-    name: "pos-scout.sol",
-    humanName: "Scout Agent",
-    description: "Portfolio recommendations",
+    name: "Scout Agent",
+    description: "Scan projects and shortlist where to look first",
     price: 0.01,
     icon: "🔭",
-    color: "blue",
   },
   {
     id: "verify",
-    name: "pos-verifier.sol",
-    humanName: "Verifier Agent",
-    description: "Code verification (per 10 LOC)",
+    name: "Verifier Agent",
+    description: "Review code and report verification availability",
     price: 0.001,
     icon: "✅",
-    color: "green",
   },
   {
     id: "rebalance",
-    name: "pos-rebalance.sol",
-    humanName: "Rebalance Agent",
-    description: "Auto-rebalancing",
+    name: "Rebalance Agent",
+    description: "Portfolio automation and strategy support",
     price: 0.01,
     icon: "⚖️",
-    color: "purple",
   },
 ];
 
@@ -86,7 +73,6 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
     balance,
     walletAddress,
     transactions,
-    streamingPayment,
     agentPrices,
     initializeWithDemo,
     deposit,
@@ -99,6 +85,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
   const [showDeposit, setShowDeposit] = useState(false);
   const [depositAmount, setDepositAmount] = useState("1");
   const [lastResult, setLastResult] = useState(null);
+  const [resultMessage, setResultMessage] = useState(null);
 
   useEffect(() => {
     if (!isInitialized && (process.env.NEXT_PUBLIC_DEMO_MODE === "true" || process.env.NODE_ENV === "development")) {
@@ -113,14 +100,31 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
 
     setPendingService(service.id);
     setLastResult(null);
+    setResultMessage(null);
     try {
       const result = await payForAgent(service.id);
       if (result.success) {
         setLastResult(result.data);
+        setResultMessage({
+          tone: result.data?.status === "ok" ? "success" : "warning",
+          title: result.data?.nextAction || `${service.name} finished running.`,
+          detail: `Result source: ${result.data?.resultSource || 'unknown'} · Payment: ${result.data?.agentInfo?.paymentStatus || (result.demoMode ? 'demo' : 'unknown')}`,
+        });
         onPaymentComplete?.(result);
+      } else {
+        setResultMessage({
+          tone: "error",
+          title: result.error || result.data?.error || `${service.name} could not complete.`,
+          detail: result.data?.details || "Check your setup and try again.",
+        });
       }
     } catch (err) {
       console.error("Payment failed:", err);
+      setResultMessage({
+        tone: "error",
+        title: `${service.name} could not complete.`,
+        detail: err.message || "Check your setup and try again.",
+      });
     } finally {
       setPendingService(null);
     }
@@ -131,8 +135,18 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
       await deposit(parseFloat(depositAmount));
       setShowDeposit(false);
       setDepositAmount("1");
+      setResultMessage({
+        tone: "success",
+        title: "Wallet funded successfully.",
+        detail: `Available balance: ${formatUSDC(balance.available)}`,
+      });
     } catch (err) {
       console.error("Deposit failed:", err);
+      setResultMessage({
+        tone: "error",
+        title: "Deposit failed.",
+        detail: err.message || "Try again after checking your wallet connection.",
+      });
     }
   };
 
@@ -142,46 +156,42 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Header - Always visible */}
       <div 
         className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 cursor-pointer"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <SparklesIcon className="w-5 h-5 text-white" />
-            <h3 className="font-bold text-white">Agentic Economy</h3>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-xs text-indigo-200">Available</p>
-              <p className="text-sm font-bold text-white">{formatUSDC(balance.available)}</p>
+            <RocketLaunchIcon className="w-5 h-5 text-white" />
+            <div>
+              <h3 className="font-bold text-white">AI analysis wallet</h3>
+              <p className="text-[11px] text-indigo-100">
+                {nanopaymentDemoMode ? "Demo mode" : "Live mode"} · {formatUSDC(balance.available)} available
+              </p>
             </div>
-            {expanded ? (
-              <ChevronUpIcon className="w-5 h-5 text-white" />
-            ) : (
-              <ChevronDownIcon className="w-5 h-5 text-white" />
-            )}
           </div>
+          {expanded ? (
+            <ChevronUpIcon className="w-5 h-5 text-white" />
+          ) : (
+            <ChevronDownIcon className="w-5 h-5 text-white" />
+          )}
         </div>
       </div>
 
-      {/* Expanded Content */}
       {expanded && (
-        <div className="p-4">
-          {/* Demo/Live Mode Toggle */}
-          <div className="mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="p-4 space-y-4">
+          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <CogIcon className="w-5 h-5 text-gray-600" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">
-                    {nanopaymentDemoMode ? "Demo Mode" : "Live Mode"}
+                    {nanopaymentDemoMode ? "Demo mode" : "Live mode"}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {nanopaymentDemoMode 
-                      ? "Using simulated USDC for testing" 
-                      : "Using real USDC payments via Circle Gateway"}
+                    {nanopaymentDemoMode
+                      ? "Use simulated USDC to test flows end to end."
+                      : "Use real USDC for live Arc-backed payments."}
                   </p>
                 </div>
               </div>
@@ -200,58 +210,56 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 mb-4">
-            <TabButton 
-              active={activeTab === "services"} 
-              onClick={() => setActiveTab("services")}
-            >
-              Services
-            </TabButton>
-            <TabButton 
-              active={activeTab === "activity"} 
-              onClick={() => setActiveTab("activity")}
-            >
-              Activity
-            </TabButton>
-            <TabButton 
-              active={activeTab === "wallet"} 
-              onClick={() => setActiveTab("wallet")}
-            >
-              Wallet
-            </TabButton>
+          <div className="flex border-b border-gray-200">
+            <TabButton active={activeTab === "services"} onClick={() => setActiveTab("services")}>Run agent</TabButton>
+            <TabButton active={activeTab === "activity"} onClick={() => setActiveTab("activity")}>Activity</TabButton>
+            <TabButton active={activeTab === "wallet"} onClick={() => setActiveTab("wallet")}>Wallet</TabButton>
           </div>
 
-          {/* Services Tab */}
+          {resultMessage && (
+            <div className={`rounded-lg border px-3 py-2 text-sm ${
+              resultMessage.tone === 'success'
+                ? 'border-green-200 bg-green-50 text-green-800'
+                : resultMessage.tone === 'warning'
+                  ? 'border-amber-200 bg-amber-50 text-amber-800'
+                  : 'border-red-200 bg-red-50 text-red-800'
+            }`}>
+              <p className="font-medium">{resultMessage.title}</p>
+              {resultMessage.detail && <p className="text-xs mt-1 opacity-80">{resultMessage.detail}</p>}
+            </div>
+          )}
+
           {activeTab === "services" && (
             <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {AGENT_SERVICES.map((service) => (
+                  <ServiceCard
+                    key={service.id}
+                    service={service}
+                    loading={pendingService === service.id}
+                    onClick={() => handleServiceClick(service)}
+                    disabled={loading}
+                    price={agentPrices?.[service.id] || service.price}
+                  />
+                ))}
+              </div>
+
               {lastResult?.strategicAdvice && (
                 <StrategicAdvisorPanel 
                   advice={lastResult.strategicAdvice} 
                   onDismiss={() => setLastResult(null)}
                 />
               )}
-              
-              {AGENT_SERVICES.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  loading={pendingService === service.id}
-                  onClick={() => handleServiceClick(service)}
-                  disabled={loading}
-                />
-              ))}
             </div>
           )}
 
-          {/* Activity Tab */}
           {activeTab === "activity" && (
             <div className="space-y-2">
               {transactions.length === 0 ? (
                 <div className="text-center py-8">
                   <CurrencyDollarIcon className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500">No transactions yet</p>
-                  <p className="text-xs text-gray-400">AI agents will earn USDC</p>
+                  <p className="text-sm text-gray-500">No activity yet</p>
+                  <p className="text-xs text-gray-400">Run an agent and its payment state will appear here</p>
                 </div>
               ) : (
                 transactions.slice(0, 10).map((tx) => (
@@ -261,7 +269,6 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
             </div>
           )}
 
-          {/* Wallet Tab */}
           {activeTab === "wallet" && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -271,55 +278,48 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
 
               {walletAddress && (
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Gateway Wallet</p>
+                  <p className="text-xs text-gray-500 mb-1">Wallet</p>
                   <p className="text-xs font-mono text-gray-700 truncate">
                     {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                   </p>
                 </div>
               )}
 
-              {!showDeposit ? (
-                <Button 
-                  variant="secondary" 
-                  className="w-full"
-                  onClick={() => setShowDeposit(true)}
-                >
-                  <CurrencyDollarIcon className="w-4 h-4 mr-2" />
-                  Deposit USDC
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                      placeholder="Amount"
-                    />
-                    <Button variant="primary" onClick={handleDeposit} disabled={loading}>
-                      Deposit
-                    </Button>
+              {!nanopaymentDemoMode && (
+                !showDeposit ? (
+                  <Button 
+                    variant="secondary" 
+                    className="w-full"
+                    onClick={() => setShowDeposit(true)}
+                  >
+                    <CurrencyDollarIcon className="w-4 h-4 mr-2" />
+                    Fund wallet with USDC
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={depositAmount}
+                        onChange={(e) => setDepositAmount(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        placeholder="Amount"
+                      />
+                      <Button variant="primary" onClick={handleDeposit} disabled={loading}>
+                        Fund
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Live Payment Stream - Shows during payment */}
-      {streamingPayment && (
-        <LivePaymentStream 
-          agentType={streamingPayment.agentType}
-          amount={streamingPayment.amount}
-        />
-      )}
-
-      {/* Network Footer */}
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-        <span className="text-xs text-gray-400">Circle Gateway on Arc</span>
+        <span className={`w-2 h-2 rounded-full ${nanopaymentDemoMode ? 'bg-amber-400' : 'bg-green-400'} animate-pulse`} />
+        <span className="text-xs text-gray-400">{nanopaymentDemoMode ? 'Demo analysis mode' : 'Arc-backed live payment mode'}</span>
       </div>
     </div>
   );
@@ -347,8 +347,8 @@ function StrategicAdvisorPanel({ advice, onDismiss }) {
     <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <SparklesIcon className="w-5 h-5 text-indigo-600" />
-          <h4 className="font-bold text-indigo-900">AI Strategic Advice</h4>
+          <RocketLaunchIcon className="w-5 h-5 text-indigo-600" />
+          <h4 className="font-bold text-indigo-900">Strategic advice</h4>
         </div>
         <button onClick={onDismiss} className="text-indigo-400 hover:text-indigo-600">
           <ChevronUpIcon className="w-4 h-4" />
@@ -368,14 +368,14 @@ function StrategicAdvisorPanel({ advice, onDismiss }) {
           <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Solana / Bags</p>
           <div className="flex items-end justify-between">
             <span className="text-lg font-black text-indigo-700">{advice.tradeOffMatrix.solanaBags.suitability}%</span>
-            <span className="text-[10px] text-indigo-500">Fit Score</span>
+            <span className="text-[10px] text-indigo-500">Fit score</span>
           </div>
         </div>
         <div className="bg-white p-3 rounded-lg border border-indigo-50">
           <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Circle / Arc</p>
           <div className="flex items-end justify-between">
             <span className="text-lg font-black text-indigo-700">{advice.tradeOffMatrix.circleArc.suitability}%</span>
-            <span className="text-[10px] text-indigo-500">Fit Score</span>
+            <span className="text-[10px] text-indigo-500">Fit score</span>
           </div>
         </div>
       </div>
@@ -383,34 +383,17 @@ function StrategicAdvisorPanel({ advice, onDismiss }) {
       {advice.bagsRecommendation && (
         <div className="bg-white p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <RocketLaunchIcon className="w-4 h-4 text-emerald-600" />
-            <span className="text-xs font-bold text-emerald-900">Bags Recommendation</span>
+            <ArrowTrendingUpIcon className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-bold text-emerald-900">Suggested direction</span>
           </div>
           <p className="text-xs text-gray-600 mb-3">{advice.bagsRecommendation.reason}</p>
-          
-          {advice.bagsRecommendation.recommended && advice.bagsRecommendation.parameters && (
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50">
-              <div>
-                <p className="text-[9px] font-bold text-gray-400 uppercase">Fee Split</p>
-                <p className="text-xs font-bold text-gray-700">{advice.bagsRecommendation.parameters.feeSplit}</p>
-              </div>
-              <div>
-                <p className="text-[9px] font-bold text-gray-400 uppercase">Initial Buy</p>
-                <p className="text-xs font-bold text-gray-700">{advice.bagsRecommendation.parameters.initialPurchase}</p>
-              </div>
-            </div>
-          )}
         </div>
       )}
-      
-      <p className="text-[10px] text-indigo-400 mt-4 text-center italic">
-        Recommendations are agentic insights only. Final decision is yours.
-      </p>
     </div>
   );
 }
 
-function ServiceCard({ service, loading, onClick, disabled }) {
+function ServiceCard({ service, loading, onClick, disabled, price }) {
   const isPending = loading;
 
   return (
@@ -423,23 +406,19 @@ function ServiceCard({ service, loading, onClick, disabled }) {
           : "border-gray-200 hover:border-indigo-300 hover:bg-indigo-50"
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <span className="text-xl">{service.icon}</span>
           <div>
             <p className="text-sm font-medium text-gray-900">{service.name}</p>
-            <p className="text-xs text-gray-500">
-              {service.humanName ? `${service.humanName} · ` : ''}{service.description}
-            </p>
+            <p className="text-xs text-gray-500">{service.description}</p>
           </div>
         </div>
         <div className="text-right">
           {isPending ? (
             <LoadingSpinner size="sm" />
           ) : (
-            <span className="text-sm font-bold text-indigo-600">
-              {formatUSDC(service.price)}
-            </span>
+            <span className="text-sm font-bold text-indigo-600">{formatUSDC(price)}</span>
           )}
         </div>
       </div>
@@ -448,11 +427,12 @@ function ServiceCard({ service, loading, onClick, disabled }) {
 }
 
 function TransactionRow({ transaction }) {
+  const isSuccess = transaction.status === "confirmed";
   return (
     <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
       <div className="flex items-center gap-2">
         <span className="text-sm">{transaction.agentName || transaction.type}</span>
-        {transaction.status === "confirmed" ? (
+        {isSuccess ? (
           <CheckCircleIcon className="w-4 h-4 text-green-500" />
         ) : (
           <ExclamationTriangleIcon className="w-4 h-4 text-red-500" />
@@ -483,59 +463,23 @@ function UninitializedWidget({ onInitialize }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
       <div className="text-center">
-        <SparklesIcon className="w-12 h-12 mx-auto text-indigo-500 mb-4" />
-        <h3 className="font-bold text-lg text-gray-900 mb-2">Connect Wallet</h3>
+        <RocketLaunchIcon className="w-12 h-12 mx-auto text-indigo-500 mb-4" />
+        <h3 className="font-bold text-lg text-gray-900 mb-2">Start with a payment wallet</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Connect to access AI agent services via nanopayments
+          Use demo mode to test the flow, or switch to live mode when you want real USDC-backed analysis.
         </p>
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <p className="text-xs text-gray-400 mb-2">Agent Pricing:</p>
+          <p className="text-xs text-gray-400 mb-2">Common actions:</p>
           <div className="text-sm space-y-1">
-            <p><span className="font-medium">AI Underwriter:</span> $0.05/request</p>
-            <p><span className="font-medium">AI Scout:</span> $0.01/run</p>
-            <p><span className="font-medium">Verifier:</span> $0.001/10 LOC</p>
+            <p><span className="font-medium">Scout:</span> $0.01 per scan</p>
+            <p><span className="font-medium">Underwriter:</span> $0.05 per project</p>
+            <p><span className="font-medium">Verifier:</span> $0.001 per 10 lines</p>
           </div>
         </div>
         <Button variant="primary" onClick={onInitialize}>
-          Connect Demo Wallet
+          Start in demo mode
         </Button>
       </div>
-    </div>
-  );
-}
-
-function LivePaymentStream({ agentType, amount }) {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((p) => Math.min(p + 10, 100));
-    }, 100);
-    return () => clearInterval(interval);
-  }, []);
-
-  const agentNames = {
-    underwrite: "AI Underwriter",
-    scout: "AI Scout",
-    verify: "Verifier Agent",
-    rebalance: "AI Portfolio Manager",
-  };
-
-  return (
-    <div className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-indigo-900">
-          Streaming to {agentNames[agentType]}...
-        </span>
-        <span className="text-sm font-bold text-indigo-700">{formatUSDC(amount)}</span>
-      </div>
-      <div className="w-full h-2 bg-indigo-200 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <p className="text-xs text-indigo-600 mt-1">Settling via Circle Gateway</p>
     </div>
   );
 }

@@ -16,7 +16,6 @@ const FEATHERLESS_API_KEY = process.env.FEATHERLESS_API_KEY || "";
 const FEATHERLESS_MODEL = "deepseek-ai/DeepSeek-V3-0324";
 const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
 
-// Google Gemini fallback
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
 const GOOGLE_MODEL = "gemini-2.0-flash";
 const GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
@@ -50,17 +49,16 @@ async function chatHandler(req, res) {
   try {
     let reply;
     let aiPayment = null;
-    let usedFallback = false;
+    let resultSource = "contextual";
+    let status = "ok";
     const usePremiumModel = modelTier === "premium";
 
     if (!usePremiumModel) {
-      // Free guide: respond from the contextual responder only.
-      // The remote-provider blocks below are intentionally skipped for free mode.
       reply = getContextualReply(message);
       aiPayment = { provider: "contextual", model: "free-guide", status: "free" };
+      resultSource = "free_guide";
     }
 
-    // Premium-only path: try Featherless → Gemini → AIsa → contextual.
     if (!reply && FEATHERLESS_API_KEY) {
       try {
         const messages = [
@@ -89,13 +87,13 @@ async function chatHandler(req, res) {
           const data = await featherlessRes.json();
           reply = data.choices?.[0]?.message?.content || null;
           aiPayment = { provider: "featherless", model: FEATHERLESS_MODEL, status: "ok" };
+          resultSource = "live_ai";
         }
       } catch (err) {
         console.warn("Featherless AI chat failed, trying Google Gemini:", err.message);
       }
     }
 
-    // Fallback 1: Google Gemini
     if (!reply && GOOGLE_API_KEY) {
       try {
         const contents = [
@@ -120,13 +118,13 @@ async function chatHandler(req, res) {
           const data = await googleRes.json();
           reply = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
           aiPayment = { provider: "google", model: GOOGLE_MODEL, status: "ok" };
+          resultSource = "live_ai";
         }
       } catch (err) {
         console.warn("Google Gemini chat failed, trying AIsa:", err.message);
       }
     }
 
-    // Fallback 2: AIsa Perplexity Sonar
     if (!reply && isAisaConfigured()) {
       try {
         const aisaFetch = getAisaFetch();
@@ -144,23 +142,25 @@ async function chatHandler(req, res) {
           const data = await aisaRes.json();
           reply = data.choices?.[0]?.message?.content || null;
           aiPayment = { provider: "aisa-x402", model: "perplexity/sonar", status: "paid" };
+          resultSource = "live_ai";
         }
       } catch (err) {
         console.warn("AIsa chat also failed, using contextual fallback:", err.message);
       }
     }
 
-    // Fallback 3: context-aware responses (premium path landed here when all providers failed)
     if (!reply) {
       reply = getContextualReply(message);
-      usedFallback = true;
-      aiPayment = { provider: "contextual", model: "premium-fallback", status: "fallback" };
+      aiPayment = { provider: "contextual", model: usePremiumModel ? "premium-fallback" : "free-guide", status: usePremiumModel ? "fallback" : "free" };
+      resultSource = usePremiumModel ? "fallback" : "free_guide";
+      status = usePremiumModel ? "fallback" : "ok";
     }
 
-    let cost;
-    if (!usePremiumModel) cost = "free";
-    else if (usedFallback) cost = "0.005 USDC (fallback)";
-    else cost = "0.005 USDC";
+    const cost = !usePremiumModel
+      ? "free"
+      : resultSource === "fallback"
+        ? "0.005 USDC (fallback)"
+        : "0.005 USDC";
 
     return res.status(200).json({
       agent: {
@@ -172,6 +172,9 @@ async function chatHandler(req, res) {
         description: "Platform helper assistant",
       },
       success: true,
+      status,
+      resultSource,
+      nextAction: "Use one of the AI agent actions on the Back page when you're ready to analyze a project.",
       reply,
       agentInfo: {
         name: "pos-scout.sol",
@@ -179,12 +182,13 @@ async function chatHandler(req, res) {
         cost,
         txHash: req.nanopayment?.txHash,
         network: "arc",
+        paymentStatus: req.nanopayment?.demo ? "demo" : (req.nanopayment?.verificationStatus || "unverified"),
         ...(aiPayment && { aiPayment }),
       },
     });
   } catch (error) {
     console.error("Chat agent error:", error);
-    return res.status(500).json({ error: "Assistant unavailable. Please try again." });
+    return res.status(500).json({ error: "Assistant unavailable. Please try again.", status: "error" });
   }
 }
 
@@ -201,25 +205,24 @@ function getContextualReply(message) {
     return "We have 3 AI agents: **Underwriter** ($0.05) scores project health, **Scout** ($0.01) finds top projects across ecosystems, and **Verifier** ($0.01) checks code quality. Try them on the **Back** page → Economy tab!";
   }
   if (lower.match(/x402|nanopay|payment|usdc|cost|price/)) {
-    return "x402 nanopayments let you pay sub-cent amounts for AI queries. Your USDC is settled on Arc via Circle Gateway. Initialize your wallet on the **Back** page to get started — demo mode works without real funds!";
+    return "x402 nanopayments let you pay small USDC amounts for AI analysis. Set up your payment wallet on the **Back** page to unlock stronger agent flows — demo mode also works for testing.";
   }
   if (lower.match(/explore|browse|find|search|project/)) {
     return "Head to the **Explore** page to browse projects across 7 ecosystems. Use the search bar to filter by name or category. Click any project for details and AI analysis!";
   }
   if (lower.match(/arc|circle|ecosystem/)) {
-    return "Arc is Circle's EVM L2 with zero gas fees, making it perfect for micropayments. Our platform uses x402 nanopayments on Arc to pay for AI agent queries — each settled in USDC via Circle Gateway.";
+    return "Arc is Circle's USDC-native EVM network for fast stablecoin settlement. We use it so small AI analysis payments can settle cleanly in USDC.";
   }
   if (lower.match(/back|fund|invest|support/)) {
-    return "The **Back** page lets you discover and support projects. Use AI agents to analyze projects before backing them. Your nanopayment balance shows in the navbar — click it to manage your wallet!";
+    return "The **Back** page lets you discover and support projects. Use AI agents to analyze projects before backing them. Your payment balance is shown there when you set it up.";
   }
   if (lower.match(/how|work|explain|what is/)) {
-    return "Proof of Ship tracks blockchain projects and lets you analyze them with AI agents paid via x402 micropayments. Flow: Explore projects → Run AI analysis (costs micro USDC) → Back projects you believe in. All payments settle on Arc!";
+    return "Proof of Ship helps you explore projects, run AI analysis, and decide what to back. The core flow is: pick a project → run analysis → review the result → back with confidence.";
   }
 
-  return "I can help you explore projects, use AI agents, submit your own project, or understand x402 nanopayments. What would you like to know more about?";
+  return "I can help you explore projects, use AI agents, submit your own project, or understand AI analysis payments. What would you like to do next?";
 }
 
-// Lazily build the paid handler so we avoid top-level await (more portable across runtimes).
 let paidChatHandlerPromise;
 function getPaidChatHandler() {
   if (!paidChatHandlerPromise) {

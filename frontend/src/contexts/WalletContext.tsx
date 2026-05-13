@@ -252,19 +252,20 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   }, []);
   
   const payForAgent = useCallback(async (agentType: string, params: any = {}) => {
-    if (!nanopaymentInitialized) {
+    const useDemoMode = nanopaymentDemoMode || !nanopaymentInitialized;
+    if (!nanopaymentInitialized && useDemoMode) {
       initializeNanopaymentDemo();
     }
-    
-    const requiredAmount = AGENT_PRICES[agentType] || 0.05;
-    const currentBalance = parseFloat(nanopaymentBalance.available);
-    
+
+    const requiredAmount = typeof params.amount === 'number'
+      ? params.amount
+      : (AGENT_PRICES[agentType] || 0.05);
+
     setLoading(true);
     try {
-      let result;
       let endpoint;
       let displayName;
-      
+
       switch (agentType) {
         case 'underwrite':
           endpoint = `/api/agent/underwrite?projectId=${params.projectId}`;
@@ -285,40 +286,54 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
         default:
           throw new Error(`Unknown agent: ${agentType}`);
       }
-      
+
       const baseUrl = params.baseUrl || '';
-      
-      const resp = await fetch(`${baseUrl}${endpoint}`, {
-        headers: { 'x-demo-key': 'demo' },
-      });
-      const data = resp.ok ? await resp.json() : null;
-      result = { success: resp.ok, data, txHash: `0xdemo${Date.now().toString(16)}` };
-      
+      let result;
+
+      if (useDemoMode) {
+        const resp = await fetch(`${baseUrl}${endpoint}`, {
+          headers: { 'x-demo-key': 'demo' },
+        });
+        const data = await resp.json().catch(() => null);
+        result = {
+          success: resp.ok,
+          status: resp.ok ? 'paid' : (resp.status === 402 ? 'payment_required' : 'failed'),
+          data,
+          error: resp.ok ? undefined : (data?.error || data?.message || 'Request failed'),
+          txHash: data?.agentInfo?.txHash || `0xdemo${Date.now().toString(16)}`,
+        };
+      } else {
+        if (!nanopaymentService.isInitialized()) {
+          throw new Error('Live Arc payment wallet is not initialized');
+        }
+        result = await nanopaymentService.pay(`${baseUrl}${endpoint}`);
+      }
+
       const tx: NanopaymentTransaction = {
         id: Date.now().toString(),
         type: agentType,
         agentName: displayName,
         amount: requiredAmount,
-        status: result.success ? 'confirmed' : 'failed',
+        status: result.success ? 'confirmed' : (result.status || 'failed'),
         timestamp: new Date().toISOString(),
         txHash: result.txHash,
         projectName: params.projectName,
       };
-      
+
       addNanopaymentTransaction(tx);
-      
+
       if (result.success) {
         setNanopaymentBalance(prev => ({
           ...prev,
           available: (Math.max(0, parseFloat(prev.available) - requiredAmount)).toFixed(2),
         }));
       }
-      
-      return { ...result, transaction: tx };
+
+      return { ...result, demoMode: useDemoMode, transaction: tx };
     } finally {
       setLoading(false);
     }
-  }, [nanopaymentInitialized, nanopaymentBalance, initializeNanopaymentDemo, addNanopaymentTransaction]);
+  }, [nanopaymentDemoMode, nanopaymentInitialized, initializeNanopaymentDemo, addNanopaymentTransaction]);
   
   const payForHealthScore = useCallback(async (projectId: string, baseUrl?: string, projectName?: string) => {
     return payForAgent('underwrite', { projectId, baseUrl, projectName });

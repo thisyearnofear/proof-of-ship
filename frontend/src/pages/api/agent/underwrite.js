@@ -33,6 +33,9 @@ async function handler(req, res) {
       if (cached) {
         return res.status(200).json({
           ...cached.data,
+          status: "ok",
+          resultSource: "cached",
+          nextAction: "Review the health score and decide whether to back this project.",
           cached: true,
           cachedAt: cached.cachedAt,
           cachedAge: cached.ageHuman,
@@ -45,7 +48,7 @@ async function handler(req, res) {
     const snapshot = await docRef.get();
 
     if (!snapshot.exists) {
-      return res.status(404).json({ error: "Project not found" });
+      return res.status(404).json({ error: "Project not found", status: "error" });
     }
 
     const project = { id: snapshot.id, ...snapshot.data() };
@@ -58,6 +61,7 @@ async function handler(req, res) {
     // 3. Enrich with AI analysis
     let aiAnalysis = null;
     let aisaPayment = null;
+    let resultSource = req.nanopayment?.demo ? "demo" : "rule_based";
 
     if (isAisaConfigured()) {
       try {
@@ -91,9 +95,10 @@ async function handler(req, res) {
             provider: "AIsa x402",
             model: "perplexity/sonar",
             estimatedCost: "~0.012 USDC",
-            paymentHeader: paymentHeader,
+            paymentHeader,
             paymentVerified: !!paymentHeader,
           };
+          resultSource = "live_ai";
         }
       } catch (aisaErr) {
         console.error("AIsa enrichment error:", aisaErr.message);
@@ -104,12 +109,16 @@ async function handler(req, res) {
     const result = {
       ...agentIdentityResponse('underwrite'),
       success: true,
+      status: "ok",
+      resultSource,
+      nextAction: "Review the health score and decide whether to back this project.",
       agentInfo: {
         name: identity.domain,
         humanName: identity.displayName,
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: "arc",
+        paymentStatus: req.nanopayment.demo ? "demo" : (req.nanopayment.verificationStatus || "unverified"),
         aisaPayment,
       },
       project: {
@@ -131,7 +140,7 @@ async function handler(req, res) {
 
   } catch (error) {
     console.error("Underwriter agent error:", error);
-    return res.status(500).json({ error: "Underwriter agent failed", details: error.message });
+    return res.status(500).json({ error: "Underwriter agent failed", details: error.message, status: "error" });
   }
 }
 

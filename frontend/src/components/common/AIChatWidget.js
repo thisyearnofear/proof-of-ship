@@ -1,20 +1,28 @@
-/**
- * AI Chat Widget — Floating assistant accessible from any page
- * 
- * Helps users navigate the platform via conversational AI.
- * Free guide mode is available immediately. Premium mode uses paid x402-backed models.
- */
-
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNanopayment } from "@/contexts/WalletContext";
 import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon, SparklesIcon, CreditCardIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 
 const QUICK_ACTIONS = [
-  { label: "How does x402 work?", message: "How do x402 nanopayments work on this platform?" },
-  { label: "Submit a project", message: "How do I submit a project?" },
-  { label: "Try AI agents", message: "Tell me about the AI agents" },
-  { label: "Explore projects", message: "How do I explore and find projects?" },
+  { label: "How do I analyze a project?", message: "How do I analyze a project before backing it?" },
+  { label: "Where do I run Scout?", message: "Where do I run Scout?" },
+  { label: "How do payments work?", message: "How do AI analysis payments work?" },
+  { label: "How do I submit a project?", message: "How do I submit a project?" },
 ];
+
+function describeSource(source) {
+  switch (source) {
+    case "local":
+      return "on-device";
+    case "free_guide":
+      return "free guide";
+    case "live_ai":
+      return "live AI";
+    case "fallback":
+      return "fallback";
+    default:
+      return source || "assistant";
+  }
+}
 
 export default function AIChatWidget() {
   const { nanopaymentDemoMode } = useNanopayment();
@@ -29,13 +37,11 @@ export default function AIChatWidget() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messagesRef = useRef([]);
-  
-  // Keep messagesRef in sync for use in callbacks
+
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
-  // Check if user previously dismissed the widget and restore preferred tier
   useEffect(() => {
     if (typeof window !== "undefined") {
       const wasDismissed = sessionStorage.getItem("ai-chat-dismissed");
@@ -45,7 +51,6 @@ export default function AIChatWidget() {
     }
   }, []);
 
-  // Persist tier preference across sessions
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("ai-chat-tier", modelTier);
@@ -78,7 +83,6 @@ export default function AIChatWidget() {
     }
   }, [open]);
 
-  // Try QVAC local inference first, fall back to cloud API
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || loading) return;
@@ -91,14 +95,13 @@ export default function AIChatWidget() {
     const requestedTier = modelTier;
 
     try {
-      // Attempt QVAC local-first inference (project data stays on-device)
       let reply = null;
       let source = "cloud";
+      let meta = null;
 
       try {
         const { qvacService } = await import("@/services/QvacService");
         const status = await qvacService.getStatus();
-        // QVAC is free/local-only; premium intentionally bypasses to use the remote x402 model.
         if (requestedTier === "free" && status.available) {
           const result = await qvacService.complete({
             prompt: trimmed,
@@ -107,13 +110,13 @@ export default function AIChatWidget() {
           if (result.text) {
             reply = result.text;
             source = "local";
+            meta = { status: "ok", nextAction: "Use Back → Discover when you are ready to run Scout or review a project." };
           }
         }
       } catch {
-        // QVAC not available, fall through to cloud API
+        // ignore local inference errors
       }
 
-      // Cloud fallback (Featherless -> AIsa -> contextual)
       if (!reply) {
         const headers = {
           "Content-Type": "application/json",
@@ -132,7 +135,6 @@ export default function AIChatWidget() {
           }),
         });
 
-        // Handle 402 Payment Required with interactive card
         if (res.status === 402) {
           const data = await res.json();
           setPaymentError({
@@ -146,7 +148,7 @@ export default function AIChatWidget() {
             ...prev,
             {
               role: "assistant",
-              content: "Premium AI requires a nanopayment. You can keep using the free guide, or set up x402 payments for stronger models.",
+              content: "Premium guidance needs a payment wallet first. You can keep using the free guide, or switch to the AI Agents workspace to set up demo or live mode.",
               type: "payment_required",
             },
           ]);
@@ -157,7 +159,12 @@ export default function AIChatWidget() {
         const data = await res.json();
         if (data.success && data.reply) {
           reply = data.reply;
-          source = "cloud";
+          source = data.resultSource || "cloud";
+          meta = {
+            status: data.status,
+            nextAction: data.nextAction,
+            paymentStatus: data.agentInfo?.paymentStatus,
+          };
         } else {
           setMessages((prev) => [
             ...prev,
@@ -168,13 +175,13 @@ export default function AIChatWidget() {
         }
       }
 
-      // Display the reply with source indicator
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: reply,
           source,
+          meta,
         },
       ]);
     } catch {
@@ -194,7 +201,6 @@ export default function AIChatWidget() {
     }
   };
 
-  // Fully dismissed — show tiny re-open pill
   if (dismissed && !open) {
     return (
       <button
@@ -209,7 +215,6 @@ export default function AIChatWidget() {
     );
   }
 
-  // Floating button (not dismissed, not open)
   if (!open) {
     return (
       <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
@@ -235,7 +240,6 @@ export default function AIChatWidget() {
     );
   }
 
-  // Minimized state — compact bar
   if (minimized) {
     return (
       <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer hover:bg-indigo-700 transition-colors"
@@ -259,13 +263,12 @@ export default function AIChatWidget() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-4rem)] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-indigo-600 text-white rounded-t-2xl">
         <div className="flex items-center gap-2">
           <SparklesIcon className="w-5 h-5" />
           <div>
             <div className="text-sm font-semibold">AI Assistant</div>
-            <div className="text-xs opacity-80">{modelTier === "free" ? "Free guide" : "$0.005/msg · x402 on Arc"}</div>
+            <div className="text-xs opacity-80">{modelTier === "free" ? "Free guide" : "$0.005 premium guidance"}</div>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -289,14 +292,13 @@ export default function AIChatWidget() {
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-3">
             <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-3 text-sm text-gray-700 dark:text-gray-300">
-              <p className="font-medium mb-1">Hi, I&apos;m your Proof of Ship assistant.</p>
+              <p className="font-medium mb-1">Start here, then switch to a real agent action.</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Start with the free guide. Switch to premium when you want stronger model reasoning via x402.
+                Use the free guide for navigation. Use premium only when you want stronger guidance before moving into the Back analysis flow.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -325,43 +327,39 @@ export default function AIChatWidget() {
               }`}
             >
               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-              {msg.cost && (
-                <p className="text-[10px] mt-1 opacity-60">⚡ {msg.cost}</p>
+              {msg.meta?.nextAction && (
+                <p className="text-[10px] mt-2 opacity-70">Next: {msg.meta.nextAction}</p>
               )}
-              {msg.source === "local" && (
-                <p className="text-[10px] mt-1 opacity-60 flex items-center gap-1">
-                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  on-device (QVAC)
+              {msg.source && (
+                <p className="text-[10px] mt-1 opacity-60">
+                  Source: {describeSource(msg.source)}{msg.meta?.paymentStatus ? ` · ${msg.meta.paymentStatus}` : ""}
                 </p>
               )}
             </div>
           </div>
         ))}
 
-        {/* Interactive Payment Card */}
         {paymentError && (
           <div className="flex justify-start">
             <div className="max-w-[90%] bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-amber-200 dark:border-amber-700 overflow-hidden">
-              {/* Header */}
               <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 text-white">
                 <div className="flex items-center gap-2">
                   <CreditCardIcon className="w-5 h-5" />
-                  <span className="font-semibold">Premium AI Payment</span>
+                  <span className="font-semibold">Set up payment first</span>
                 </div>
               </div>
-              
-              {/* Content */}
+
               <div className="p-4 space-y-4">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-gray-900 dark:text-white">
                     ${paymentError.amount?.toFixed(3) || "0.005"}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">per premium message via USDC</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">per premium guidance message</div>
                 </div>
 
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">How it works:</span> The free guide stays available. Premium model calls settle on Circle&apos;s Arc L2 via x402.
+                    <span className="font-medium">Recommended path:</span> keep using the free guide, or open the AI Agents workspace to enable demo or live mode before trying premium guidance again.
                   </p>
                 </div>
 
@@ -373,11 +371,10 @@ export default function AIChatWidget() {
                     className="flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
                     <ArrowTrendingUpIcon className="w-4 h-4" />
-                    Setup x402
+                    Open AI Agents
                   </button>
                   <button
                     onClick={() => {
-                      // Remove the payment required message from chat history
                       setMessages(prev => prev.filter((_, idx) => {
                         const paymentMsgIndex = prev.findIndex(
                           m => m.type === 'payment_required'
@@ -385,19 +382,12 @@ export default function AIChatWidget() {
                         return idx !== paymentMsgIndex;
                       }));
                       setPaymentError(null);
-                      // Leave modelTier as-is — user can switch back via the toggle.
                     }}
                     className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors"
                   >
                     Dismiss
                   </button>
                 </div>
-
-                {paymentError.demo && (
-                  <div className="text-xs text-center text-gray-500 dark:text-gray-400">
-                    Demo mode: Add <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">x-demo-key: demo</code> header to test free
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -418,7 +408,6 @@ export default function AIChatWidget() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-700">
         <div
           role="tablist"
@@ -452,7 +441,7 @@ export default function AIChatWidget() {
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             }`}
           >
-            Premium AI
+            Premium guide
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -462,7 +451,7 @@ export default function AIChatWidget() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything..."
+            placeholder="Ask about the analysis flow..."
             maxLength={500}
             disabled={loading}
             className="flex-1 text-sm px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"

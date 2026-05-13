@@ -23,6 +23,7 @@ interface PaymentResult {
   data?: any;
   error?: string;
   txHash?: string;
+  status?: "paid" | "payment_required" | "failed";
 }
 
 class NanopaymentService {
@@ -31,8 +32,12 @@ class NanopaymentService {
 
   async initialize(config: NanopaymentConfig) {
     this.config = config;
+    const chain = config.chain === "arc" || config.chain === "arcTestnet"
+      ? "arbitrum"
+      : "arbitrumSepolia";
+
     this.client = new GatewayClient({
-      chain: config.chain === "arc" ? "arbitrum" : "arbitrumSepolia",
+      chain,
       privateKey: config.privateKey,
     });
     return this.client;
@@ -78,22 +83,25 @@ class NanopaymentService {
     try {
       const result = await this.client.pay(url, fallbackHeaders) as { data?: any; status?: number; headers?: Record<string, string> };
       const { data, status, headers } = result;
-      
+
       if (status === 402) {
         return {
           success: false,
+          status: "payment_required",
           error: headers?.["x-payment-requirement"] || "Payment required",
         };
       }
 
       return {
         success: true,
+        status: "paid",
         data,
         txHash: headers?.["x-settlement-hash"] || headers?.["x-tx-hash"],
       };
     } catch (error: unknown) {
       return {
         success: false,
+        status: "failed",
         error: error instanceof Error ? error.message : "Payment failed",
       };
     }

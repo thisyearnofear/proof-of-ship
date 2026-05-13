@@ -71,6 +71,8 @@ export interface WalletContextType {
   nanopaymentBalance: { available: string; locked: string };
   nanopaymentAddress: string | null;
   nanopaymentTransactions: NanopaymentTransaction[];
+  nanopaymentDemoMode: boolean;
+  setNanopaymentDemoMode: (mode: boolean) => void;
   initializeNanopayment: (privateKey: string | `0x${string}`) => Promise<void>;
   initializeNanopaymentDemo: () => void;
   depositNanopayment: (amountUSDC: number) => Promise<any>;

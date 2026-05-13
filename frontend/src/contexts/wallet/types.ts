@@ -3,7 +3,7 @@
  * Extracted from WalletContext.tsx for DRY type sharing
  */
 
-import { providers, Signer } from 'ethers';
+import { providers, Signer, ExternalProvider } from 'ethers';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 
@@ -34,8 +34,52 @@ export interface NanopaymentTransaction {
   projectName?: string;
 }
 
+export interface CircleWallet {
+  id: string;
+  address: string;
+  blockchain: string;
+  accountType: string;
+  custodyType: string;
+}
+
+export interface CircleConfig {
+  userToken: string;
+  apiKey: string;
+  walletSetId: string;
+}
+
+export interface CircleWalletCreateParams {
+  idempotencyKey?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface NanopaymentPaymentResult {
+  success: boolean;
+  data?: unknown;
+  error?: string;
+  txHash?: string;
+  status?: 'paid' | 'payment_required' | 'failed';
+}
+
+export interface FundingRequestData {
+  projectId: string;
+  amount: number;
+  ecosystem: string;
+  description?: string;
+}
+
+export interface CheckInResult {
+  success: boolean;
+  txHash?: string;
+  timestamp?: string;
+}
+
+export interface PayForAgentParams {
+  endpoint: string;
+  [key: string]: unknown;
+}
+
 export interface WalletContextType {
-  // MetaMask integration
   connect: () => Promise<void>;
   disconnect: () => void;
   account: string | undefined;
@@ -48,8 +92,8 @@ export interface WalletContextType {
   connecting: boolean;
   loading: boolean;
   error: string | null;
-  activeProvider: any;
-  provider: any;
+  activeProvider: ExternalProvider | null;
+  provider: ExternalProvider | null;
   getBalance: (showLoading?: boolean) => Promise<string | null>;
   getTokenBalance: (tokenAddress: string, decimals?: number) => Promise<string>;
   switchNetwork: (chainId: number) => Promise<void>;
@@ -59,14 +103,12 @@ export interface WalletContextType {
   networkConfigs: Record<number, NetworkConfig>;
   getCurrentUSDCAddress: () => string | null;
 
-  // Circle Wallet integration
-  circleWallets: any[];
-  circleConfig: any;
-  createCircleWallet: (config?: any) => Promise<any>;
+  circleWallets: CircleWallet[];
+  circleConfig: CircleConfig | null;
+  createCircleWallet: (config?: CircleWalletCreateParams) => Promise<CircleWallet>;
   refreshCircleWallets: () => Promise<void>;
-  transferUSDC: (amount: number, destinationAddress: string, walletId: string, reason?: string) => Promise<any>;
+  transferUSDC: (amount: number, destinationAddress: string, walletId: string, reason?: string) => Promise<{ txHash: string }>;
 
-  // Nanopayment integration
   nanopaymentInitialized: boolean;
   nanopaymentBalance: { available: string; locked: string };
   nanopaymentAddress: string | null;
@@ -75,21 +117,19 @@ export interface WalletContextType {
   setNanopaymentDemoMode: (mode: boolean) => void;
   initializeNanopayment: (privateKey: string | `0x${string}`) => Promise<void>;
   initializeNanopaymentDemo: () => void;
-  depositNanopayment: (amountUSDC: number) => Promise<any>;
-  payForAgent: (agentType: string, params?: any) => Promise<any>;
-  payForHealthScore: (projectId: string, baseUrl?: string, projectName?: string) => Promise<any>;
-  payForScout: (baseUrl?: string) => Promise<any>;
-  payForVerification: (prId: string, lines: number, baseUrl?: string) => Promise<any>;
-  payForRebalance: (baseUrl?: string) => Promise<any>;
+  depositNanopayment: (amountUSDC: number) => Promise<{ txHash: string }>;
+  payForAgent: (agentType: string, params?: PayForAgentParams) => Promise<NanopaymentPaymentResult>;
+  payForHealthScore: (projectId: string, baseUrl?: string, projectName?: string) => Promise<NanopaymentPaymentResult>;
+  payForScout: (baseUrl?: string) => Promise<NanopaymentPaymentResult>;
+  payForVerification: (prId: string, lines: number, baseUrl?: string) => Promise<NanopaymentPaymentResult>;
+  payForRebalance: (baseUrl?: string) => Promise<NanopaymentPaymentResult>;
 
-  // Builder Credit
   creditProfile: CreditProfile | null;
   repayLoan: (amount: string | number, projectPda?: PublicKey) => Promise<void>;
-  postCheckIn: (projectId: number, metadata: string) => Promise<any>;
+  postCheckIn: (projectId: number, metadata: string) => Promise<CheckInResult>;
   loadCreditProfile: () => Promise<void>;
-  requestFunding: (projectData: any) => Promise<any>;
+  requestFunding: (projectData: FundingRequestData) => Promise<{ success: boolean; txHash?: string }>;
 
-  // Solana integration
   solanaAddress: string | null;
   solanaConnected: boolean;
   solanaConnecting: boolean;
@@ -100,6 +140,5 @@ export interface WalletContextType {
   activeChainFamily: 'evm' | 'solana';
   setActiveChainFamily: (family: 'evm' | 'solana') => void;
 
-  // EIP-6963
-  syncEip6963Account: (provider: any) => Promise<void>;
+  syncEip6963Account: (provider: ExternalProvider) => Promise<void>;
 }

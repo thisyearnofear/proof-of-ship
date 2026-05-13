@@ -63,7 +63,7 @@ vi.mock('@/server/aisaClient', () => ({
 describe('Agent API Response Contracts', () => {
   describe('Chat Endpoint', () => {
     it('returns 405 for non-POST requests', async () => {
-      const { default: handler } = await import('../agent/chat.js');
+      const { default: handler } = await import('../../../pages/api/agent/chat.js');
       const req = { method: 'GET' };
       const res = { status: vi.fn(() => res), json: vi.fn() };
       
@@ -72,7 +72,7 @@ describe('Agent API Response Contracts', () => {
     });
 
     it('returns 400 for missing message', async () => {
-      const { default: handler } = await import('../agent/chat.js');
+      const { default: handler } = await import('../../../pages/api/agent/chat.js');
       const req = { method: 'POST', body: {} };
       const res = { status: vi.fn(() => res), json: vi.fn() };
       
@@ -81,7 +81,7 @@ describe('Agent API Response Contracts', () => {
     });
 
     it('returns 400 for message over 500 chars', async () => {
-      const { default: handler } = await import('../agent/chat.js');
+      const { default: handler } = await import('../../../pages/api/agent/chat.js');
       const req = { method: 'POST', body: { message: 'a'.repeat(501) } };
       const res = { status: vi.fn(() => res), json: vi.fn() };
       
@@ -90,7 +90,7 @@ describe('Agent API Response Contracts', () => {
     });
 
     it('returns valid response structure for valid request', async () => {
-      const { default: handler } = await import('../agent/chat.js');
+      const { default: handler } = await import('../../../pages/api/agent/chat.js');
       const mockRes = {
         status: vi.fn(() => mockRes),
         json: vi.fn((data) => data),
@@ -111,7 +111,7 @@ describe('Agent API Response Contracts', () => {
 
   describe('Scout Endpoint', () => {
     it('returns 405 for invalid methods', async () => {
-      const { default: handler } = await import('../agent/scout.js');
+      const { default: handler } = await import('../../../pages/api/agent/scout.js');
       const req = { method: 'PUT' };
       const res = { status: vi.fn(() => res), json: vi.fn() };
       
@@ -120,7 +120,7 @@ describe('Agent API Response Contracts', () => {
     });
 
     it('returns valid response structure for GET', async () => {
-      const { default: handler } = await import('../agent/scout.js');
+      const { default: handler } = await import('../../../pages/api/agent/scout.js');
       const mockRes = {
         status: vi.fn(() => mockRes),
         json: vi.fn((data) => data),
@@ -141,7 +141,7 @@ describe('Agent API Response Contracts', () => {
 
   describe('Underwrite Endpoint', () => {
     it('returns 405 for non-GET requests', async () => {
-      const { default: handler } = await import('../agent/underwrite.js');
+      const { default: handler } = await import('../../../pages/api/agent/underwrite.js');
       const req = { method: 'POST' };
       const res = { status: vi.fn(() => res), json: vi.fn() };
       
@@ -150,7 +150,7 @@ describe('Agent API Response Contracts', () => {
     });
 
     it('returns 400 for missing projectId', async () => {
-      const { default: handler } = await import('../agent/underwrite.js');
+      const { default: handler } = await import('../../../pages/api/agent/underwrite.js');
       const req = { method: 'GET', query: {} };
       const res = { status: vi.fn(() => res), json: vi.fn() };
       
@@ -159,7 +159,7 @@ describe('Agent API Response Contracts', () => {
     });
 
     it('returns valid response structure for valid request', async () => {
-      const { default: handler } = await import('../agent/underwrite.js');
+      const { default: handler } = await import('../../../pages/api/agent/underwrite.js');
       const mockRes = {
         status: vi.fn(() => mockRes),
         json: vi.fn((data) => data),
@@ -176,11 +176,69 @@ describe('Agent API Response Contracts', () => {
       expect(response).toHaveProperty('recommendation');
     });
   });
+
+  describe('Verify Endpoint', () => {
+    it('returns 405 for non-GET requests', async () => {
+      const { default: handler } = await import('../../../pages/api/agent/verify.js');
+      const req = { method: 'POST' };
+      const res = { status: vi.fn(() => res), json: vi.fn() };
+      
+      await handler(req, res);
+      expect(res.status).toHaveBeenCalledWith(405);
+    });
+
+    it('returns 400 for missing prId', async () => {
+      const { default: handler } = await import('../../../pages/api/agent/verify.js');
+      const req = { method: 'GET', query: {} };
+      const res = { status: vi.fn(() => res), json: vi.fn() };
+      
+      await handler(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('returns valid response structure for valid request', async () => {
+      const { default: handler } = await import('../../../pages/api/agent/verify.js');
+      const mockRes = {
+        status: vi.fn(() => mockRes),
+        json: vi.fn((data) => data),
+      };
+      
+      const req = { method: 'GET', query: { prId: '123', lines: 100 }, headers: { host: 'localhost:3000' } };
+      await handler(req, mockRes);
+      
+      const response = mockRes.json.mock.calls[0][0];
+      expect(response).toHaveProperty('agent');
+      expect(response).toHaveProperty('success');
+      expect(response).toHaveProperty('verification');
+      expect(response.verification).toHaveProperty('prId');
+      expect(response.verification).toHaveProperty('linesAnalyzed');
+      expect(response.verification).toHaveProperty('approved');
+      expect(response.verification).toHaveProperty('confidence');
+      expect(response.verification).toHaveProperty('summary');
+    });
+
+    it('returns fallback verification when AIsa not configured', async () => {
+      const { default: handler } = await import('../../../pages/api/agent/verify.js');
+      const mockRes = {
+        status: vi.fn(() => mockRes),
+        json: vi.fn((data) => data),
+      };
+      
+      const req = { method: 'GET', query: { prId: '456' }, headers: { host: 'localhost:3000' } };
+      await handler(req, mockRes);
+      
+      const response = mockRes.json.mock.calls[0][0];
+      // Should return fallback state when AIsa unavailable
+      expect(response.verification.approved).toBeNull();
+      expect(response.verification.confidence).toBe(0);
+      expect(response.resultSource).toBe('fallback');
+    });
+  });
 });
 
 describe('Agent Identity Response Shape', () => {
   it('all agent responses include required fields', async () => {
-    const { default: scoutHandler } = await import('../agent/scout.js');
+    const { default: scoutHandler } = await import('../../../pages/api/agent/scout.js');
     const mockRes = {
       status: vi.fn(() => mockRes),
       json: vi.fn((data) => data),

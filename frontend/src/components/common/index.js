@@ -64,9 +64,12 @@ export {
 // Nanopayment Components
 export { default as NanopaymentWidget } from './NanopaymentWidget';
 export {
-  NanopaymentLedger,
+  default as NanopaymentLedger,
   AgentEarningsCard
 } from './NanopaymentLedger';
+
+// Breadcrumbs Component
+export { default as Breadcrumbs } from './Breadcrumbs';
 
 // Illustration System
 export {

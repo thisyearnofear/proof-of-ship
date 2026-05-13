@@ -6,7 +6,7 @@ import Button from './Button';
 
 // Modal variant styles using our design tokens
 const modalVariants = cva(
-  'relative bg-surface rounded-modal shadow-modal border border-default',
+  'relative bg-surface rounded-modal shadow-modal border border-default mx-auto',
   {
     variants: {
       size: {
@@ -27,11 +27,11 @@ const modalVariants = cva(
 const ModalOverlay = ({ children, onClose, closeOnOverlayClick = true }) => {
   return (
     <div
-      className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
+      className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-md"
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <div
-        className="w-full"
+        className="w-full max-w-[90vw]"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

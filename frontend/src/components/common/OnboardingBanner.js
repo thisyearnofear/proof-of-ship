@@ -18,14 +18,16 @@ const STORAGE_KEY = 'pos_onboarding_dismissed';
 export default function OnboardingBanner() {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
-  const { userRole } = useUser();
+  const { userRole, onboardingComplete } = useUser();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const dismissed = localStorage.getItem(STORAGE_KEY);
-      if (!dismissed) setVisible(true);
+      if (!dismissed && onboardingComplete) setVisible(true);
     }
-  }, []);
+  }, [onboardingComplete]);
+
+  if (!onboardingComplete) return null;
 
   const dismiss = () => {
     setVisible(false);

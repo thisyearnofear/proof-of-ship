@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useUser } from "../contexts/UserContext";
 import { useWallet } from "../contexts/WalletContext";
 
-import OnboardingFlow from "../components/onboarding/OnboardingFlow";
+import UnifiedOnboarding from "../components/onboarding/UnifiedOnboarding";
 import { Card } from "../components/common/Card";
 import Button from "../components/common/Button";
 import { LoadingSpinner } from "../components/common/LoadingStates";
@@ -66,18 +66,13 @@ export default function SignUpPage() {
     );
   }
 
-  if (showOnboarding) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <OnboardingFlow onComplete={handleOnboardingComplete} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <UnifiedOnboarding
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={handleOnboardingComplete}
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">

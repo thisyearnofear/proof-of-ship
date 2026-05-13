@@ -7,7 +7,7 @@ import { Card } from "@/components/common/Card";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import LiveActivityFeed from "@/components/common/LiveActivityFeed";
 import LiveAgentTicker from "@/components/common/LiveAgentTicker";
-import NauticalTour from "@/components/onboarding/NauticalTour";
+import UnifiedOnboarding from "@/components/onboarding/UnifiedOnboarding";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import { LANDING_FEATURES, USER_JOURNEYS } from "@/config/landingContent";
 import {
@@ -37,24 +37,24 @@ const UserJourneySection = lazy(() =>
 
 export default function LandingPage() {
   const router = useRouter();
-  const { currentUser } = useUser();
+  const { currentUser, onboardingComplete } = useUser();
   const [activeTab, setActiveTab] = useState("developers");
-  const [isTourOpen, setIsTourOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   useEffect(() => {
-    // Check if user has seen the tour
-    const hasSeenTour = localStorage.getItem('hasSeenNauticalTour');
-    if (!hasSeenTour) {
+    // Check if user has seen the onboarding/tour
+    const hasSeenOnboarding = localStorage.getItem('hasSeenUnifiedOnboarding');
+    if (!hasSeenOnboarding && !onboardingComplete) {
       const timer = setTimeout(() => {
-        setIsTourOpen(true);
-      }, 2000);
+        setIsOnboardingOpen(true);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [onboardingComplete]);
 
-  const handleCloseTour = () => {
-    setIsTourOpen(false);
-    localStorage.setItem('hasSeenNauticalTour', 'true');
+  const handleCloseOnboarding = () => {
+    setIsOnboardingOpen(false);
+    localStorage.setItem('hasSeenUnifiedOnboarding', 'true');
   };
 
   const ecosystems = Object.values(ECOSYSTEM_CONFIGS).map((eco) => ({
@@ -71,9 +71,13 @@ export default function LandingPage() {
 
   const handleGetStarted = () => {
     if (currentUser) {
-      router.push("/projects/new");
+      if (!onboardingComplete) {
+        setIsOnboardingOpen(true);
+      } else {
+        router.push("/projects/new");
+      }
     } else {
-      router.push("/login?redirect=/projects/new");
+      setIsOnboardingOpen(true);
     }
   };
 
@@ -269,7 +273,7 @@ export default function LandingPage() {
         </div>
       </div>
       
-      <NauticalTour isOpen={isTourOpen} onClose={handleCloseTour} />
+      <UnifiedOnboarding isOpen={isOnboardingOpen} onClose={handleCloseOnboarding} />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
 import TabBar from "@/components/common/TabBar";
+import Modal from "@/components/common/Modal";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import DiscoverTab from "@/components/back/DiscoverTab";
 import PortfolioTab from "@/components/back/PortfolioTab";
@@ -63,14 +64,15 @@ export default function BackPage() {
       <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Privacy onboarding — shown to first-time backers */}
-          {showPrivacy && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-black/40" onClick={dismissPrivacy} />
-              <div className="relative max-w-lg w-full">
-                <PrivacyOnboarding onDismiss={dismissPrivacy} />
-              </div>
-            </div>
-          )}
+          <Modal
+            isOpen={showPrivacy}
+            onClose={dismissPrivacy}
+            showCloseButton={false}
+            size="md"
+            className="p-0 overflow-hidden"
+          >
+            <PrivacyOnboarding onDismiss={dismissPrivacy} />
+          </Modal>
 
           {/* Page header with privacy badge */}
           <div className="flex items-center justify-between mb-4">

@@ -7,7 +7,8 @@
     "deploy:devnet": "anchor deploy --provider.cluster devnet",
     "idl:copy": "node scripts/copy-idl.js",
     "treasury:init": "ts-node scripts/init-config.ts",
-    "tx:devnet": "ts-node scripts/devnet-transactions.ts"
+    "tx:devnet": "ts-node scripts/devnet-transactions.ts",
+    "clean": "rm -rf node_modules target"
   },
   "devDependencies": {
     "@bonfida/spl-name-service": "^3.0.21",

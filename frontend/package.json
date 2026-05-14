@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "clean": "rm -rf node_modules .next",
     "export": "EXPORT_MODE=true next build",
     "lint": "next lint",
     "test": "vitest",

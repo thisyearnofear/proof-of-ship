@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter ./frontend dev",
     "build": "pnpm --filter ./frontend build",
+    "clean": "pnpm -r run clean",
     "start": "pnpm --filter ./frontend start",
     "export": "pnpm --filter ./frontend export",
     "deploy": "npm run export && firebase deploy",

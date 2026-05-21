@@ -1,6 +1,6 @@
 {
-  "installCommand": "cd .. && pnpm install --filter ./frontend...",
-  "buildCommand": "cd .. && pnpm --filter ./frontend build",
+  "installCommand": "cd .. && pnpm install --filter frontend",
+  "buildCommand": "cd .. && pnpm --filter frontend build",
   "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
   "cleanUrls": true,
   "trailingSlash": false

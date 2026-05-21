@@ -30,7 +30,7 @@ export default function NewProjectPage() {
     <div className="max-w-5xl mx-auto py-8">
       <ProjectEditor />
 
-      <Card className="p-6 mt-6 bg-gray-50 border border-gray-200">
+      <Card className="p-6 mt-6 bg-surface-secondary border border-default">
         <div className="text-sm text-gray-600">
           Tip: once you’ve submitted, share your portfolio link with your subdomain
           (e.g. <span className="font-mono">yourname.yourdomain.com</span>) or

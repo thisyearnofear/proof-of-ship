@@ -89,11 +89,11 @@ export default function AdminPayoutsPage() {
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Payout Management</h1>
+          <h1 className="text-3xl font-bold text-primary mb-8">Payout Management</h1>
 
           {/* Campaign Selector */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <label className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white">
+          <div className="bg-surface rounded-lg shadow p-6 mb-6">
+            <label className="block text-sm font-semibold mb-3 text-primary">
               Select Campaign
             </label>
             <select
@@ -116,14 +116,14 @@ export default function AdminPayoutsPage() {
           {selectedCampaign && (
             <>
               {/* Tabs */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="bg-surface rounded-lg shadow mb-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex">
                   <button
                     onClick={() => setTab('payouts')}
                     className={`flex-1 px-6 py-4 font-medium text-center ${
                       tab === 'payouts'
                         ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                        : 'text-secondary hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                   >
                     USDC Payouts ({payouts.length})
@@ -133,7 +133,7 @@ export default function AdminPayoutsPage() {
                     className={`flex-1 px-6 py-4 font-medium text-center ${
                       tab === 'allocations'
                         ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                        : 'text-secondary hover:text-gray-900 dark:hover:text-gray-200'
                     }`}
                   >
                     Token Allocations ({allocations.length})
@@ -147,21 +147,21 @@ export default function AdminPayoutsPage() {
                   {payoutsLoading ? (
                     <LoadingSpinner />
                   ) : payouts.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
-                      <p className="text-gray-600 dark:text-gray-400">No payouts for this campaign</p>
+                    <div className="bg-surface rounded-lg shadow p-8 text-center">
+                      <p className="text-secondary">No payouts for this campaign</p>
                     </div>
                   ) : (
                     payouts.map(payout => (
                       <div
                         key={payout.id}
-                        className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
+                        className="bg-surface rounded-lg shadow p-6"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            <h3 className="text-lg font-semibold text-primary">
                               ${payout.usdc.toFixed(2)} USDC
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm text-secondary mt-1">
                               To: {payout.testerId}
                             </p>
                           </div>
@@ -180,14 +180,14 @@ export default function AdminPayoutsPage() {
 
                         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                           <div>
-                            <p className="text-gray-600 dark:text-gray-400">Circle Transfer ID</p>
+                            <p className="text-secondary">Circle Transfer ID</p>
                             <p className="font-mono text-xs text-gray-900 dark:text-gray-300">
                               {payout.circleTransferId || 'Pending'}
                             </p>
                           </div>
                           {payout.transactionHash && (
                             <div>
-                              <p className="text-gray-600 dark:text-gray-400">Transaction Hash</p>
+                              <p className="text-secondary">Transaction Hash</p>
                               <p className="font-mono text-xs text-gray-900 dark:text-gray-300">
                                 {payout.transactionHash}
                               </p>
@@ -235,21 +235,21 @@ export default function AdminPayoutsPage() {
                   {allocationsLoading ? (
                     <LoadingSpinner />
                   ) : allocations.length === 0 ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8 text-center">
-                      <p className="text-gray-600 dark:text-gray-400">No allocations for this campaign</p>
+                    <div className="bg-surface rounded-lg shadow p-8 text-center">
+                      <p className="text-secondary">No allocations for this campaign</p>
                     </div>
                   ) : (
                     allocations.map(allocation => (
                       <div
                         key={allocation.id}
-                        className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
+                        className="bg-surface rounded-lg shadow p-6"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            <h3 className="text-lg font-semibold text-primary">
                               {allocation.percentage.toFixed(2)}% to {allocation.testerId}
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm text-secondary mt-1">
                               {allocation.vestingSchedule?.cliffMonths} month cliff, {allocation.vestingSchedule?.vestingMonths} month vesting
                             </p>
                           </div>
@@ -259,7 +259,7 @@ export default function AdminPayoutsPage() {
                         </div>
 
                         {allocation.approvalNotes && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded">
+                          <p className="text-sm text-secondary mb-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded">
                             {allocation.approvalNotes}
                           </p>
                         )}

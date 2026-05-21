@@ -151,36 +151,38 @@ export default async function handler(req, res) {
 
 /**
  * Update a project's hackathon claim in Firestore with verification status.
+ * Uses a Firestore transaction to ensure atomicity across attestation + project update.
  */
 async function updateHackathonClaim(projectSlug, claimIndex, { result, attestationId }) {
   try {
     const { db } = await import('@/lib/firebase/serverOnly');
     const projectRef = db.collection('projects').doc(projectSlug);
-    const projectSnap = await projectRef.get();
 
-    if (!projectSnap.exists) return;
+    await db.runTransaction(async (transaction) => {
+      const projectSnap = await transaction.get(projectRef);
+      if (!projectSnap.exists) return;
 
-    const project = projectSnap.data();
-    const hackathons = Array.isArray(project.hackathons) ? [...project.hackathons] : [];
+      const project = projectSnap.data();
+      const hackathons = Array.isArray(project.hackathons) ? [...project.hackathons] : [];
 
-    if (claimIndex < 0 || claimIndex >= hackathons.length) return;
+      if (claimIndex < 0 || claimIndex >= hackathons.length) return;
 
-    // Update the claim with verification results
-    hackathons[claimIndex] = {
-      ...hackathons[claimIndex],
-      payoutVerified: result.verified,
-      payoutConfidence: result.confidence,
-      payoutAttestationId: attestationId,
-      payoutActualAmount: result.actualAmount,
-      payoutVerifiedAt: new Date().toISOString(),
-      payoutProvider: result.provider,
-      // Update payoutAt if we got a timestamp
-      payoutAt: result.payoutTimestamp || hackathons[claimIndex].payoutAt,
-    };
+      // Update the claim with verification results
+      hackathons[claimIndex] = {
+        ...hackathons[claimIndex],
+        payoutVerified: result.verified,
+        payoutConfidence: result.confidence,
+        payoutAttestationId: attestationId,
+        payoutActualAmount: result.actualAmount,
+        payoutVerifiedAt: new Date().toISOString(),
+        payoutProvider: result.provider,
+        payoutAt: result.payoutTimestamp || hackathons[claimIndex].payoutAt,
+      };
 
-    await projectRef.update({
-      hackathons,
-      updatedAt: new Date().toISOString(),
+      transaction.update(projectRef, {
+        hackathons,
+        updatedAt: new Date().toISOString(),
+      });
     });
   } catch (err) {
     console.warn('Failed to update hackathon claim:', err);

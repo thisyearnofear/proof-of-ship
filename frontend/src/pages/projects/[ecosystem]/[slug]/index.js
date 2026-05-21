@@ -172,7 +172,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="max-w-3xl mx-auto py-10">
         <Card className="p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-primary mb-2">
             Couldn’t load project
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
@@ -262,7 +262,7 @@ export default function ProjectDetailPage() {
                       <CurrencyDollarIcon className="w-6 h-6 text-emerald-700" />
                     </span>
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900">Seeking funding</h2>
+                      <h2 className="text-lg font-bold text-primary">Seeking funding</h2>
                       <p className="text-sm text-gray-600">
                         This project is looking for ${Number(project.fundingAmount).toLocaleString()} in support
                       </p>
@@ -281,7 +281,7 @@ export default function ProjectDetailPage() {
               <ShipsLog projectSlug={slug} canEdit={canEdit} />
               
               <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
                   <span className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
                     <ClockIcon className="w-6 h-6 text-amber-600" />
                   </span>
@@ -344,7 +344,7 @@ export default function ProjectDetailPage() {
           </div>
 
           <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
               <span className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
                 <TagIcon className="w-6 h-6 text-pink-600" />
               </span>
@@ -358,7 +358,7 @@ export default function ProjectDetailPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
-                          <h3 className="font-bold text-gray-900 text-lg">
+                          <h3 className="font-bold text-primary text-lg">
                             {h.name || `Hackathon ${idx + 1}`}
                           </h3>
                           <ClaimVerificationBadge
@@ -414,7 +414,7 @@ export default function ProjectDetailPage() {
           </Card>
 
           <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
               <span className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
                 <TagIcon className="w-6 h-6 text-yellow-600" />
               </span>
@@ -426,7 +426,7 @@ export default function ProjectDetailPage() {
                   <div key={t.id} className="p-5 bg-gray-50 rounded-xl border border-gray-100 hover:border-yellow-200 transition-all">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 text-lg">{t.title}</h3>
+                        <h3 className="font-bold text-primary text-lg">{t.title}</h3>
                         {t.description && (
                           <p className="text-sm text-gray-600 mt-2">{t.description}</p>
                         )}
@@ -735,7 +735,7 @@ function DetailRow({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="text-gray-500">{label}</div>
-      <div className="text-gray-900 font-mono text-right break-all">
+      <div className="text-primary font-mono text-right break-all">
         {value}
       </div>
     </div>

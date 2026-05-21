@@ -237,20 +237,20 @@ export default function TransactionsPage() {
           <h3 className="text-sm font-semibold text-primary mb-2">
             How x402 Nanopayments Work
           </h3>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <span className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-secondary">
+            <span className="bg-surface px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
               You call an agent
             </span>
             <span>→</span>
-            <span className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+            <span className="bg-surface px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
               402 Payment Required
             </span>
             <span>→</span>
-            <span className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+            <span className="bg-surface px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
               USDC settled on Arc via Circle
             </span>
             <span>→</span>
-            <span className="bg-white dark:bg-gray-700 px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
+            <span className="bg-surface px-2 py-1 rounded border border-gray-200 dark:border-gray-600">
               Agent returns results
             </span>
           </div>

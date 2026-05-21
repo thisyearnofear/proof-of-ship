@@ -116,33 +116,36 @@ async function handler(req, res) {
       status: ownershipVerified ? "submitted" : "pending_review"
     });
 
-    // Save to Firestore
-   await db.collection("projects").doc(slug).set(projectDoc);
+    // Save to Firestore with transaction for atomicity
+    await db.runTransaction(async (transaction) => {
+      transaction.set(db.collection("projects").doc(slug), projectDoc);
 
-    // Grant the submitter edit permissions (used by the in-app editor)
-    if (userId) {
-      const userRef = db.collection("users").doc(userId);
-      const userSnap = await userRef.get();
-      const userData = userSnap.exists ? userSnap.data() : {};
-      const existingPermissions = Array.isArray(userData.permissions)
-        ? userData.permissions
-        : [];
+      // Grant permissions within the same transaction
+      if (userId) {
+        const userRef = db.collection("users").doc(userId);
+        const userSnap = await transaction.get(userRef);
+        const userData = userSnap.exists ? userSnap.data() : {};
+        const existingPermissions = Array.isArray(userData.permissions)
+          ? userData.permissions
+          : [];
 
-      const alreadyHas = existingPermissions.some((p) => p.projectSlug === slug);
-      if (!alreadyHas) {
-        await userRef.set(
-          {
-            permissions: [
-              ...existingPermissions,
-              {
-                projectSlug: slug,
-                projectName: projectData.name,
-                role: "editor",
-                grantedAt: new Date().toISOString(),
-              },
-            ],
-          },
-          { merge: true }
+        const alreadyHas = existingPermissions.some((p) => p.projectSlug === slug);
+        if (!alreadyHas) {
+          transaction.set(
+            userRef,
+            {
+              permissions: [
+                ...existingPermissions,
+                {
+                  projectSlug: slug,
+                  projectName: projectData.name,
+                  role: "editor",
+                  grantedAt: new Date().toISOString(),
+                },
+              ],
+            },
+            { merge: true }
+          );
         );
       }
     }

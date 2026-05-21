@@ -9,10 +9,13 @@ import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
 import { submitProject } from "@/services/DataService";
 import Confetti from "@/components/common/Confetti";
+import ProjectPreviewPanel from "@/components/projects/ProjectPreviewPanel";
 import { storage } from "@/lib/firebase/clientApp";
+import { parseGitHubRepoUrl } from "@/lib/projects/githubRepo";
+import { normalizeProjectInput, validateProjectInput } from "@/lib/projects/projectNormalize";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon, CheckCircleIcon, ClipboardDocumentIcon, ShareIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon, CheckCircleIcon, ClipboardDocumentIcon, ShareIcon, SparklesIcon } from "@heroicons/react/24/outline";
 
 const DEFAULT_CATEGORIES = [
   { id: "defi", name: "DeFi" },
@@ -83,6 +86,9 @@ export default function ProjectEditor({ projectSlug }) {
   const [showOptional, setShowOptional] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [fetchingGithub, setFetchingGithub] = useState(false);
+  const [githubImportData, setGithubImportData] = useState(null);
+  const [improvingListing, setImprovingListing] = useState(false);
+  const [listingSuggestions, setListingSuggestions] = useState([]);
   const [hasDraft, setHasDraft] = useState(Boolean(draft));
   const [draftSaved, setDraftSaved] = useState(null); // 'local' | 'cloud' | null
   const [lastCloudSave, setLastCloudSave] = useState(null);
@@ -307,27 +313,29 @@ export default function ProjectEditor({ projectSlug }) {
 
   // Auto-populate from GitHub URL — limited to authenticated user's repos
   const fetchGithubInfo = useCallback(async (url) => {
-    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
-    if (!match) return;
-    const [, owner, repo] = match;
+    const parsed = parseGitHubRepoUrl(url);
+    if (!parsed) return;
 
     // Validate repo belongs to the authenticated GitHub user
-    if (githubUsername && owner.toLowerCase() !== githubUsername.toLowerCase()) {
+    if (githubUsername && parsed.owner.toLowerCase() !== githubUsername.toLowerCase()) {
       setError(`This project must be under your GitHub account (${githubUsername}). You can only submit repos you own.`);
       return;
     }
 
     setFetchingGithub(true);
     try {
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo.replace(".git", "")}`);
+      const res = await fetch(`/api/projects/import-github?url=${encodeURIComponent(url)}`);
       if (!res.ok) return;
       const data = await res.json();
+      const imported = data.project || {};
+      setGithubImportData(imported);
       setForm((prev) => ({
         ...prev,
-        name: prev.name || data.name || "",
-        description: prev.description || data.description || "",
-        tags: prev.tags || (data.topics || []).join(", "),
-        isOpenSource: !data.private,
+        name: prev.name || imported.name || "",
+        description: prev.description || imported.description || imported.readmeSummary || "",
+        website: prev.website || imported.website || "",
+        tags: prev.tags || (imported.tags || []).join(", "),
+        isOpenSource: imported.isOpenSource ?? prev.isOpenSource,
       }));
     } catch {} finally {
       setFetchingGithub(false);
@@ -404,35 +412,52 @@ export default function ProjectEditor({ projectSlug }) {
   };
 
   const validate = () => {
-    if (!form.name.trim()) return "Project name is required";
-    if (!form.description.trim()) return "Description is required";
-    if (!form.githubUrl.trim() || !form.githubUrl.includes("github.com")) {
-      return "A valid GitHub URL is required";
-    }
+    const normalized = normalizeProjectInput({ ...form, imageUrl });
+    const projectValidation = validateProjectInput(normalized);
+    if (!projectValidation.isValid) return projectValidation.errors[0];
     if (githubUsername) {
-      const match = form.githubUrl.match(/github\.com\/([^/]+)\//);
-      if (match && match[1].toLowerCase() !== githubUsername.toLowerCase()) {
+      const parsed = parseGitHubRepoUrl(form.githubUrl);
+      if (parsed && parsed.owner.toLowerCase() !== githubUsername.toLowerCase()) {
         return `GitHub URL must be under your account (${githubUsername})`;
       }
     }
-    if (!form.ecosystem) return "Chain / ecosystem is required";
-    if (!form.category) return "Category is required";
-    if (form.category === "other" && !form.otherCategoryDetail?.trim()) {
-      return "Please specify what kind of project this is (Other category)";
-    }
-    if (form.contractAddress.trim() && !form.contractAddress.trim().startsWith("0x")) {
-      return "Contract address must start with 0x";
-    }
-    
-    const filledMembers = (form.teamMembers || []).filter(m => m.address && m.address.trim());
-    if (filledMembers.length > 0) {
-      const totalShares = filledMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0);
-      if (totalShares !== 100) {
-        return `Total team shares must equal 100% (currently ${totalShares}%)`;
-      }
-    }
-    
     return null;
+  };
+
+  const handleImproveListing = async () => {
+    setImprovingListing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/agent/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "listing_improvement",
+          project: normalizeProjectInput({ ...form, imageUrl })
+        })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Failed to review listing");
+      setListingSuggestions(Array.isArray(body.analysis?.suggestions) ? body.analysis.suggestions : []);
+    } catch (e) {
+      setError(e.message || "Failed to review listing");
+    } finally {
+      setImprovingListing(false);
+    }
+  };
+
+  const applySuggestion = (suggestion) => {
+    if (!suggestion?.field || suggestion.suggested === undefined) return;
+    if (suggestion.field === "description") {
+      setField("description", String(suggestion.suggested));
+    }
+    if (suggestion.field === "website" || suggestion.field === "liveUrl") {
+      setField("website", String(suggestion.suggested));
+    }
+    if (suggestion.field === "twitter") {
+      setField("twitter", String(suggestion.suggested));
+    }
+    setListingSuggestions((prev) => prev.filter((item) => item !== suggestion));
   };
 
   const handleDelete = async () => {
@@ -480,45 +505,7 @@ export default function ProjectEditor({ projectSlug }) {
 
     setSaving(true);
 
-    const cleaned = {
-      name: form.name.trim(),
-      description: form.description.trim(),
-      githubUrl: form.githubUrl.trim(),
-      liveUrl: form.liveUrl.trim() || null,
-      ecosystem: form.ecosystem,
-      category: form.category,
-      otherCategoryDetail: form.category === "other" ? (form.otherCategoryDetail || "").trim() : null,
-      contractAddress: form.contractAddress.trim(),
-      deploymentTxHash: form.deploymentTxHash.trim() || null,
-      website: form.website.trim() || null,
-      twitter: form.twitter.trim() || null,
-      discord: form.discord.trim() || null,
-      teamMembers: (form.teamMembers || [])
-        .filter((t) => t.address && t.address.trim())
-        .map((t) => ({
-          address: String(t.address).trim(),
-          share: parseInt(t.share) || 0
-        })),
-      tags: String(form.tags || "")
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-      isOpenSource: Boolean(form.isOpenSource),
-      lookingForFunding: Boolean(form.lookingForFunding),
-      fundingAmount: form.lookingForFunding ? form.fundingAmount || null : null,
-      milestones: (form.milestones || []).map((m) => String(m).trim()).filter(Boolean),
-      hackathons: Array.isArray(form.hackathons)
-        ? form.hackathons
-            .map((h) => ({
-              name: String(h.name || "").trim(),
-              url: String(h.url || "").trim(),
-              outcome: String(h.outcome || "").trim(),
-              payoutAt: String(h.payoutAt || "").trim(),
-              notes: String(h.notes || "").trim(),
-            }))
-            .filter((h) => h.name || h.url || h.outcome || h.payoutAt || h.notes)
-        : [],
-    };
+    const cleaned = normalizeProjectInput({ ...form, imageUrl: imageUrl || null });
 
     try {
       if (isEditMode) {
@@ -678,7 +665,9 @@ export default function ProjectEditor({ projectSlug }) {
   const allRequired = checklist.every(c => c.done);
 
   return (
-    <form onSubmit={handleSave} className="space-y-6">
+    <form onSubmit={handleSave}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6">
       <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
@@ -718,6 +707,15 @@ export default function ProjectEditor({ projectSlug }) {
                 </span>
               </div>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleImproveListing}
+              loading={improvingListing}
+              leftIcon={<SparklesIcon className="w-4 h-4" />}
+            >
+              Improve listing
+            </Button>
             <Button type="submit" loading={saving}>
               {isEditMode ? "Save" : "Submit"}
             </Button>
@@ -746,6 +744,32 @@ export default function ProjectEditor({ projectSlug }) {
         {success && (
           <div className="mt-4 bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg">
             {success}
+          </div>
+        )}
+
+        {listingSuggestions.length > 0 && (
+          <div className="mt-4 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+            <p className="text-sm font-semibold text-indigo-950">Suggested listing improvements</p>
+            <div className="mt-3 space-y-3">
+              {listingSuggestions.map((suggestion, index) => (
+                <div key={`${suggestion.field}-${index}`} className="rounded-md bg-white p-3 border border-indigo-100">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{suggestion.field}</p>
+                      <p className="text-sm text-gray-700 mt-1">{suggestion.suggested}</p>
+                      {suggestion.reason && (
+                        <p className="text-xs text-gray-500 mt-1">{suggestion.reason}</p>
+                      )}
+                    </div>
+                    {suggestion.canApplyAutomatically && (
+                      <Button type="button" size="sm" variant="outline" onClick={() => applySuggestion(suggestion)}>
+                        Apply
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -1350,6 +1374,14 @@ export default function ProjectEditor({ projectSlug }) {
         <Button type="submit" loading={saving} disabled={!isEditMode && !allRequired}>
           {isEditMode ? "Save changes" : "Submit project"}
         </Button>
+      </div>
+        </div>
+
+        <ProjectPreviewPanel
+          form={form}
+          imageUrl={imageUrl}
+          githubImport={githubImportData}
+        />
       </div>
     </form>
   );

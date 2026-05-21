@@ -12,18 +12,17 @@ import { db as clientDb } from "@/lib/firebase/clientApp";
 import { collection, getDocs, limit, orderBy, query, where, getDoc, doc } from "firebase/firestore";
 import { getGitHubUrl } from "@/utils/projectUtils";
 import ethosService from "@/services/EthosService";
-import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
+import { EthosScoreBadge } from "@/components/ethos";
 import ShipsLog from "@/components/projects/ShipsLog";
-import ShareButtons from "@/components/common/ShareButtons";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SkeletonDetailPage } from "@/components/common/LoadingStates";
 import BackerActivity from "@/components/projects/BackerActivity";
+import { ProjectHero, ProjectMilestoneTimeline, ProjectProofPanel } from "@/components/projects/ProjectShowcase";
 
 import {
   ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
   ClockIcon,
-  PencilSquareIcon,
   TagIcon,
 } from "@heroicons/react/24/outline";
 
@@ -179,97 +178,20 @@ export default function ProjectDetailPage() {
             { label: title },
           ]} />
           
-          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 text-white shadow-2xl">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-              <div className="space-y-4 flex-1">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-4xl font-extrabold tracking-tight">{title}</h1>
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-3">
-                  {ecosystemConfig && (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md text-white font-semibold text-sm border border-white/30">
-                      <span className="text-2xl">{ecosystemConfig.icon}</span>
-                      <span>{ecosystemConfig.shortName}</span>
-                    </span>
-                  )}
-                  
-                  {project.verified && (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-400/90 text-green-900 font-semibold text-sm border border-green-300">
-                      <CheckCircleIcon className="w-5 h-5" />
-                      Verified
-                    </span>
-                  )}
-                  
-                  {project.status && project.status !== "approved" && (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100/90 text-amber-800 font-semibold text-sm border border-amber-200">
-                      <ClockIcon className="w-5 h-5" />
-                      {String(project.status).replace(/_/g, " ")}
-                    </span>
-                  )}
-                </div>
-
-                {project.description && (
-                  <p className="text-lg leading-relaxed text-white/90 max-w-3xl">
-                    {project.description}
-                  </p>
-                )}
-
-                {project.category && (
-                  <div className="flex items-center gap-3 text-white/80">
-                    <TagIcon className="w-5 h-5" />
-                    <span className="font-medium">{project.category}</span>
-                  </div>
-                )}
-
-                <ShareButtons title={title} className="pt-2" />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                {canEdit && (
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      router.push(
-                        `/projects/${project.ecosystem || ecosystem}/${slug}/edit`
-                      )
-                    }
-                    leftIcon={<PencilSquareIcon className="w-5 h-5" />}
-                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50"
-                  >
-                    Edit
-                  </Button>
-                )}
-
-                {githubUrl && (
-                  <Button
-                    variant="outline"
-                    onClick={() => window.open(githubUrl, "_blank", "noopener,noreferrer")}
-                    rightIcon={<ArrowTopRightOnSquareIcon className="w-5 h-5" />}
-                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50"
-                  >
-                    GitHub
-                  </Button>
-                )}
-
-                {project.website && (
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      window.open(project.website, "_blank", "noopener,noreferrer")
-                    }
-                    rightIcon={<ArrowTopRightOnSquareIcon className="w-5 h-5" />}
-                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50"
-                  >
-                    Website
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          <ProjectHero
+            project={project}
+            ecosystemConfig={ecosystemConfig}
+            title={title}
+            githubUrl={githubUrl}
+            canEdit={canEdit}
+            onEdit={() => router.push(`/projects/${project.ecosystem || ecosystem}/${slug}/edit`)}
+            onOpen={(url) => window.open(url, "_blank", "noopener,noreferrer")}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              <ProjectMilestoneTimeline milestones={project.milestones} />
+
               <BackerActivity projectSlug={slug} />
               
               <ShipsLog projectSlug={slug} canEdit={canEdit} />
@@ -319,73 +241,12 @@ export default function ProjectDetailPage() {
             </div>
 
             <div className="space-y-6">
-              <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <TagIcon className="w-6 h-6 text-purple-600" />
-                  </span>
-                  Details
-                </h2>
-
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Contract</p>
-                    <p className="font-mono text-sm text-gray-800 break-all">{project.contractAddress || "Not provided"}</p>
-                  </div>
-                  
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Deployment Tx</p>
-                    <p className="font-mono text-xs text-gray-800 break-all">{project.deploymentTxHash || "Not provided"}</p>
-                  </div>
-                  
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Submitted by</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-900 font-semibold">{project.submittedBy || "—"}</span>
-                      {project.ownerWalletAddress && (
-                        ownerEthosLoading ? (
-                          <span className="text-xs text-gray-500">Loading...</span>
-                        ) : ownerEthosUser ? (
-                          <EthosScoreBadge 
-                            score={ownerEthosUser.score} 
-                            ethosUser={ownerEthosUser}
-                            size="sm"
-                            showLabel={false}
-                          />
-                        ) : null
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <ArrowTopRightOnSquareIcon className="w-6 h-6 text-blue-600" />
-                  </span>
-                  Links
-                </h2>
-
-                <div className="space-y-3">
-                  <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Twitter</span>
-                    <span className="text-sm text-gray-800 font-medium">{project.twitter || "—"}</span>
-                  </div>
-                  
-                  <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Discord</span>
-                    <span className="text-sm text-gray-800 font-medium">{project.discord || "—"}</span>
-                  </div>
-                  
-                  <div className="p-4 bg-gray-50 rounded-xl flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Open source</span>
-                    <span className={`text-sm font-semibold ${project.isOpenSource ? 'text-green-600' : 'text-gray-600'}`}>
-                      {project.isOpenSource ? "Yes" : "No"}
-                    </span>
-                  </div>
-                </div>
-              </Card>
+              <ProjectProofPanel
+                project={project}
+                ownerEthosLoading={ownerEthosLoading}
+                ownerEthosUser={ownerEthosUser}
+                EthosScoreBadge={EthosScoreBadge}
+              />
 
               <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">

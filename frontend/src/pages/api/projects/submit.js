@@ -1,6 +1,7 @@
 import { db, auth } from "../../../lib/firebase/serverOnly";
 import { verifyAuth, withApiMiddleware } from "../../../utils/apiMiddleware";
 import { logActivity } from "../../../utils/activityLogger";
+import { createProjectDocument, generateProjectSlug, validateProjectInput } from "../../../lib/projects/projectNormalize";
 
 async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,39 +14,16 @@ async function handler(req, res) {
 
     const projectData = { ...(req.body || {}) };
 
-    // Validate required fields
-    const requiredFields = [
-      "name",
-      "description",
-      "githubUrl",
-      "ecosystem",
-      "category",
-    ];
-    const missingFields = requiredFields.filter((field) => !projectData[field]);
-
-    if (missingFields.length > 0) {
+    const validation = validateProjectInput(projectData);
+    if (!validation.isValid) {
       return res.status(400).json({
-        error: "Missing required fields",
-        missingFields,
-      });
-    }
-
-    // Validate GitHub URL
-    if (!projectData.githubUrl.includes("github.com")) {
-      return res.status(400).json({
-        error: "Invalid GitHub URL",
-      });
-    }
-
-    // Validate contract address (optional)
-    if (projectData.contractAddress && !projectData.contractAddress.startsWith("0x")) {
-      return res.status(400).json({
-        error: "Invalid contract address format",
+        error: validation.errors[0],
+        errors: validation.errors,
       });
     }
 
     // Generate project slug
-    const slug = generateSlug(projectData.name);
+    const slug = generateProjectSlug(projectData.name);
     console.log("Checking project slug:", slug);
 
     // Check if slug already exists in both projects and projects_* collections
@@ -103,51 +81,10 @@ async function handler(req, res) {
       ownershipVerified = false;
     }
 
-    // Prepare project document
-    const projectDoc = {
+    const projectDoc = createProjectDocument(projectData, userId, {
       slug,
-      name: projectData.name,
-      description: projectData.description,
-      owner,
-      repo: repo.replace(".git", ""), // Remove .git suffix if present
-      ecosystem: projectData.ecosystem,
-      category: projectData.category,
-      contractAddress: projectData.contractAddress || null,
-      deploymentTxHash: projectData.deploymentTxHash || null,
-      liveUrl: projectData.liveUrl || projectData.website || null,
-      website: projectData.website || null,
-      twitter: projectData.twitter || null,
-      discord: projectData.discord || null,
-      otherCategoryDetail: projectData.otherCategoryDetail || null,
-      imageUrl: projectData.imageUrl || null,
-      teamMembers: Array.isArray(projectData.teamMembers)
-        ? projectData.teamMembers.filter((member) => String(member).trim())
-        : [],
-      hackathons: Array.isArray(projectData.hackathons) ? projectData.hackathons : [],
-      isOpenSource: Boolean(projectData.isOpenSource),
-      lookingForFunding: Boolean(projectData.lookingForFunding),
-      fundingAmount: projectData.fundingAmount || null,
-      milestones: Array.isArray(projectData.milestones)
-        ? projectData.milestones.filter((milestone) => String(milestone).trim())
-        : [],
-      submittedBy: userId,
-      owners: [userId],
-      submittedAt: new Date().toISOString(),
-      status: ownershipVerified ? "submitted" : "pending_review",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      verified: false,
-      featured: false,
-      stats: {
-        views: 0,
-        stars: 0,
-        forks: 0,
-        commits: 0,
-        issues: 0,
-        pulls: 0,
-        velocity: 5 + (Array.isArray(projectData.milestones) ? projectData.milestones.length : 0) * 10,
-      },
-    };
+      status: ownershipVerified ? "submitted" : "pending_review"
+    });
 
     // Save to Firestore
    await db.collection("projects").doc(slug).set(projectDoc);
@@ -253,14 +190,6 @@ async function handler(req, res) {
 }
 
 export default withApiMiddleware(handler, { allowedMethods: ["POST"], rateLimit: 5, rateLimitKey: "PROJECT_SUBMIT" });
-
-function generateSlug(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .substring(0, 50);
-}
 
 async function notifyAdmins(projectData) {
   try {

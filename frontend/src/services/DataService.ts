@@ -17,6 +17,7 @@
 import { db } from '@/lib/firebase/clientApp';
 import { collection, getDocs, doc, getDoc, query, where, orderBy, setDoc, addDoc } from 'firebase/firestore';
 import { COLLECTIONS, getProjectCollection } from '@/config/collections';
+import { createProjectDocument, generateProjectSlug, validateProjectInput } from '@/lib/projects/projectNormalize';
 
 // Static repos for Celo fallback (imported lazily to avoid bundling in server contexts)
 let staticRepos: any[] | null = null;
@@ -177,10 +178,21 @@ class DataService {
         const controller = new AbortController();
         this.abortControllers.set(`${key}-${attempt}`, controller);
 
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        let timeoutId: ReturnType<typeof setTimeout>;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            controller.abort();
+            const error = new Error(`Request ${key} timed out`);
+            error.name = 'AbortError';
+            reject(error);
+          }, timeout);
+        });
 
         try {
-          const data = await fetcher(controller.signal);
+          const data = await Promise.race([
+            fetcher(controller.signal),
+            timeoutPromise,
+          ]);
           clearTimeout(timeoutId);
           return data;
         } finally {
@@ -658,15 +670,9 @@ class DataService {
     }
 
     try {
-      const requiredFields = ['name', 'description', 'githubUrl', 'ecosystem', 'category'];
-      const missingFields = requiredFields.filter(field => !inputData[field]);
-      
-      if (missingFields.length > 0) {
-        return { success: false, error: `Missing required fields: ${missingFields.join(', ')}` };
-      }
-
-      if (!inputData.githubUrl.includes('github.com')) {
-        return { success: false, error: 'Invalid GitHub URL' };
+      const validation = validateProjectInput(inputData);
+      if (!validation.isValid) {
+        return { success: false, error: validation.errors[0] };
       }
 
       const slug = this.generateSlug(inputData.name);
@@ -680,40 +686,11 @@ class DataService {
         return { success: false, error: 'Could not parse GitHub URL' };
       }
 
-      const [, owner, repo] = githubMatch;
       const now = new Date().toISOString();
 
       const projectDoc: Project = {
-        slug,
-        name: inputData.name,
-        description: inputData.description,
-        owner,
-        repo: repo.replace('.git', ''),
-        ecosystem: inputData.ecosystem,
-        category: inputData.category || '',
-        contractAddress: inputData.contractAddress || null,
-        deploymentTxHash: inputData.deploymentTxHash || null,
-        imageUrl: inputData.imageUrl || null,
-        website: inputData.website || null,
-        twitter: inputData.twitter || null,
-        discord: inputData.discord || null,
-        teamMembers: Array.isArray(inputData.teamMembers) ? inputData.teamMembers.filter(Boolean) : [],
-        hackathons: Array.isArray(inputData.hackathons) ? inputData.hackathons : [],
-        isOpenSource: Boolean(inputData.isOpenSource),
-        lookingForFunding: Boolean(inputData.lookingForFunding),
-        fundingAmount: inputData.fundingAmount || null,
-        milestones: Array.isArray(inputData.milestones) ? inputData.milestones.filter(Boolean) : [],
-        launchOnBags: Boolean(inputData.launchOnBags),
+        ...(createProjectDocument(inputData, user.uid, { slug, createdAt: now, submittedAt: now }) as Project),
         bagsTokenAddress: inputData.bagsTokenAddress || null,
-        submittedBy: user.uid,
-        owners: [user.uid],
-        submittedAt: now,
-        status: 'pending_review',
-        createdAt: now,
-        updatedAt: now,
-        verified: false,
-        featured: false,
-        stats: { commits: 0, issues: 0, pulls: 0, stars: 0, forks: 0, watchers: 0, lastCommit: null, languages: [], isActive: false, healthScore: 0 },
       };
 
       await setDoc(doc(db, COLLECTIONS.PROJECTS_GENERIC, slug), projectDoc as any);
@@ -745,11 +722,7 @@ class DataService {
   }
 
   private generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .substring(0, 50);
+    return generateProjectSlug(name);
   }
 
   // --------------------------------------------------------------------------

@@ -12,6 +12,8 @@
  * Tracks: Tether Frontier Track ($10K)
  */
 
+import { getProjectQuality } from '@/lib/projects/projectQuality';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -31,6 +33,35 @@ Focus on what the score means for their borrowing capacity and what would improv
 
       const analysis = await callAI(prompt, 'You are a credit analyst. Be concise and actionable.');
       return res.status(200).json({ success: true, analysis, source: 'cloud' });
+    }
+
+    if (type === 'listing_improvement' && project) {
+      const quality = getProjectQuality(project);
+      const prompt = `Review this builder project listing and return JSON only:
+{
+  "summary": "<one sentence>",
+  "suggestions": [
+    {"field": "<description|milestones|website|twitter|imageUrl|contractAddress>", "suggested": "<specific replacement or action>", "reason": "<why it helps backers>", "impact": "<low|medium|high>", "canApplyAutomatically": <boolean>}
+  ]
+}
+
+Project:
+Name: ${project.name || 'Untitled'}
+Description: ${project.description || 'N/A'}
+GitHub: ${project.githubUrl || 'N/A'}
+Website: ${project.website || project.liveUrl || 'N/A'}
+Ecosystem: ${project.ecosystem || 'N/A'}
+Category: ${project.category || 'N/A'}
+Milestones: ${Array.isArray(project.milestones) ? project.milestones.join('; ') : 'N/A'}
+Missing signals: ${quality.missing.map((item) => item.label).join(', ')}`;
+
+      const analysis = await callAI(prompt, 'You help builders make project listings credible, concise, and attractive to backers. Respond only with valid JSON.');
+      return res.status(200).json({
+        success: true,
+        analysis: parseListingImprovement(analysis, project),
+        source: 'cloud',
+        quality
+      });
     }
 
     // Project analysis
@@ -58,6 +89,42 @@ ${project.ecosystem ? `Ecosystem: ${project.ecosystem}` : ''}`;
     console.error('Analyze API error:', err);
     return res.status(500).json({ error: 'Analysis failed', details: err.message });
   }
+}
+
+function parseListingImprovement(raw, project) {
+  try {
+    const text = String(raw || '');
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
+  } catch {}
+
+  return generateRuleBasedListingImprovement(project);
+}
+
+function generateRuleBasedListingImprovement(project) {
+  const quality = getProjectQuality(project);
+  const suggestions = quality.missing.slice(0, 5).map((item) => ({
+    field: item.id,
+    suggested: item.action,
+    reason: `${item.label} is a visible trust signal for backers and verifiers.`,
+    impact: item.weight >= 10 ? 'high' : 'medium',
+    canApplyAutomatically: false
+  }));
+
+  if (String(project.description || '').trim().length > 0 && String(project.description || '').trim().length < 120) {
+    suggestions.unshift({
+      field: 'description',
+      suggested: `${project.description} It is built for users who need a reliable onchain workflow, with clear milestones and public proof of progress.`,
+      reason: 'A fuller description helps backers understand the user, value, and proof path faster.',
+      impact: 'high',
+      canApplyAutomatically: true
+    });
+  }
+
+  return {
+    summary: `This listing is ${quality.tier.toLowerCase()} at ${quality.score}/100. Improve the missing trust signals first.`,
+    suggestions
+  };
 }
 
 /**

@@ -14,6 +14,7 @@ const apiConfigs = {
     walletSetId: process.env.CIRCLE_WALLET_SET_ID,
     entitySecret: process.env.CIRCLE_ENTITY_SECRET,
     platformWalletId: process.env.CIRCLE_PLATFORM_WALLET_ID,
+    agentWalletId: process.env.CIRCLE_AGENT_WALLET_ID,
     environment: process.env.CIRCLE_ENVIRONMENT || "sandbox",
     isProduction:
       (process.env.CIRCLE_ENVIRONMENT || "sandbox").toLowerCase() ===

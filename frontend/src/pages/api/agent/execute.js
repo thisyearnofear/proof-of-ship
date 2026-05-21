@@ -1,32 +1,34 @@
 /**
- * AI Scout Agent — Execute backings via Circle Nanopayments on Arc
+ * AI Agent — Execute backings via Circle Developer-Controlled Wallets on Arc
  *
  * POST /api/agent/execute
  * Body: { projects: [{ id, amount, multiplier }] }
  *
  * Flow:
- * 1. GatewayClient signs EIP-3009 authorizations (offchain, gas-free)
- * 2. Gateway batches and settles on Arc
- * 3. Calls backProject() on BuilderCreditCore
+ * 1. Looks up the agent wallet by CIRCLE_AGENT_WALLET_ID (managed in Circle Console)
+ * 2. Pre-approves USDC spend if needed (one-time via Circle API)
+ * 3. Calls backProject() on BuilderCreditCore via Circle-signed contract call
  * 4. Logs results to Firestore
  *
  * Requires env vars:
- *   AGENT_PRIVATE_KEY — agent wallet private key (funded on Arc via Gateway deposit)
- *   BUILDER_CREDIT_ARC_ADDRESS — deployed BuilderCreditCore on Arc Testnet
+ *   CIRCLE_API_KEY               — Circle API key (already required for wallets/transfers)
+ *   CIRCLE_ENTITY_SECRET         — Entity secret for developer-controlled wallets
+ *   CIRCLE_AGENT_WALLET_ID       — Agent wallet ID from Circle Console
+ *   BUILDER_CREDIT_ARC_ADDRESS   — Deployed BuilderCreditCore proxy on Arc Testnet
+ *
+ * Key management: Circle holds the agent's private key. We never see it.
+ * Set spending policies in Circle Console: developers.circle.com
  */
 
 import { db } from "@/lib/firebase/serverOnly";
-import { ethers } from "ethers";
+import { realCircleService } from "@/services/RealCircleService";
 
-// Arc Testnet config
-const ARC_RPC = "https://rpc.testnet.arc.network";
 const ARC_CHAIN_ID = 5042002;
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 
-// Minimal ABI for backProject
+// Minimal ABI encoders for the contract calls we need
 const BUILDER_CREDIT_ABI = [
   "function backProject(uint256 projectId, uint256 multiplier, uint256 amount) external",
-  "function projects(uint256) view returns (string name, address developer, bool isActive, uint256 fundingAmount, uint256 creditScore, uint256 milestonesCompleted, uint256 milestonesCount)",
 ];
 
 const USDC_ABI = [
@@ -35,21 +37,58 @@ const USDC_ABI = [
   "function balanceOf(address) view returns (uint256)",
 ];
 
+// Simple keccak256 + encode helpers — avoids pulling in ethers just for ABI encoding
+function keccak256(str) {
+  // Node.js crypto-based keccak256
+  const { createHash } = require("crypto");
+  return createHash("sha3-256").update(str).digest("hex");
+}
+
+function encodeUint256(value) {
+  const hex = BigInt(value).toString(16).padStart(64, "0");
+  return hex;
+}
+
+function encodeAddress(addr) {
+  return addr.toLowerCase().replace("0x", "").padStart(64, "0");
+}
+
+/** ABI-encode a call to backProject(uint256,uint256,uint256) */
+function encodeBackCall(projectId, multiplier, amount) {
+  const sig = keccak256("backProject(uint256,uint256,uint256)").slice(0, 8);
+  return "0x" + sig + encodeUint256(projectId) + encodeUint256(multiplier) + encodeUint256(amount);
+}
+
+/** ABI-encode a call to approve(address,uint256) */
+function encodeApproveCall(spender, amount = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff") {
+  const sig = keccak256("approve(address,uint256)").slice(0, 8);
+  return "0x" + sig + encodeAddress(spender) + amount;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST only" });
   }
 
-  const agentKey = process.env.AGENT_PRIVATE_KEY;
   const contractAddress = process.env.BUILDER_CREDIT_ARC_ADDRESS;
+  const agentWalletId = process.env.CIRCLE_AGENT_WALLET_ID;
 
-  if (!agentKey || !contractAddress) {
+  if (!contractAddress || !agentWalletId) {
     return res.status(500).json({
       error: "Agent not configured",
       missing: [
-        !agentKey && "AGENT_PRIVATE_KEY",
+        !agentWalletId && "CIRCLE_AGENT_WALLET_ID",
         !contractAddress && "BUILDER_CREDIT_ARC_ADDRESS",
       ].filter(Boolean),
+    });
+  }
+
+  if (!realCircleService.isConfigured()) {
+    return res.status(500).json({
+      error: "Circle API not configured",
+      missing: ["CIRCLE_API_KEY", "CIRCLE_ENTITY_SECRET"].filter(
+        (k) => !process.env[k]
+      ),
     });
   }
 
@@ -59,48 +98,42 @@ export default async function handler(req, res) {
   }
 
   try {
-    const provider = new ethers.providers.JsonRpcProvider(ARC_RPC, ARC_CHAIN_ID);
-    const wallet = new ethers.Wallet(agentKey, provider);
-    const coreContract = new ethers.Contract(contractAddress, BUILDER_CREDIT_ABI, wallet);
-    const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, wallet);
+    // Verify agent wallet exists and get its address
+    const walletResp = await realCircleService.getWalletById(agentWalletId);
+    const agentWallet = walletResp.data.wallet;
+    const agentAddress = agentWallet.address;
 
-    // Check agent balance
-    const balance = await usdcContract.balanceOf(wallet.address);
-    const balanceFormatted = ethers.utils.formatUnits(balance, 6);
+    const totalAmount = projects.reduce((sum, p) => sum + (p.amount || 0), 0);
 
-    const totalNeeded = projects.reduce((sum, p) => sum + (p.amount || 0), 0);
-    if (parseFloat(balanceFormatted) < totalNeeded) {
-      return res.status(400).json({
-        error: "Insufficient agent balance",
-        balance: balanceFormatted,
-        needed: totalNeeded.toFixed(2),
-      });
-    }
+    // Pre-approve BuilderCreditCore to spend agent's USDC (one-time)
+    // Uses Circle API to create a contract call: USDC.approve(BuilderCreditCore, max)
+    const approveCalldata = encodeApproveCall(contractAddress);
+    await realCircleService.createTransaction({
+      walletId: agentWalletId,
+      destinationAddress: USDC_ADDRESS,
+      contractAddress: USDC_ADDRESS,
+      calldata: approveCalldata,
+      feeLevel: "MEDIUM",
+    });
 
-    // Approve contract if needed
-    const totalUnits = ethers.utils.parseUnits(totalNeeded.toString(), 6);
-    const allowance = await usdcContract.allowance(wallet.address, contractAddress);
-    if (allowance.lt(totalUnits)) {
-      const approveTx = await usdcContract.approve(contractAddress, ethers.constants.MaxUint256);
-      await approveTx.wait();
-    }
-
-    // Execute backings
+    // Execute backings via Circle-signed contract calls
     const results = [];
     for (const project of projects) {
       try {
-        const amountUnits = ethers.utils.parseUnits(project.amount.toString(), 6);
-        const tx = await coreContract.backProject(
-          project.id,
-          project.multiplier,
-          amountUnits
-        );
-        const receipt = await tx.wait();
+        const calldata = encodeBackCall(project.id, project.multiplier, project.amount);
+        const txResp = await realCircleService.createTransaction({
+          walletId: agentWalletId,
+          destinationAddress: contractAddress,
+          contractAddress: contractAddress,
+          calldata: calldata,
+          feeLevel: "MEDIUM",
+        });
+
         results.push({
           projectId: project.id,
           amount: project.amount,
           multiplier: project.multiplier,
-          txHash: receipt.transactionHash,
+          txHash: txResp.data.transaction?.txHash || txResp.data.transaction?.id,
           status: "success",
         });
       } catch (err) {
@@ -122,7 +155,8 @@ export default async function handler(req, res) {
     await db.collection("agent_runs").doc(runId).set({
       type: "execution",
       timestamp: new Date().toISOString(),
-      agentAddress: wallet.address,
+      agentWalletId,
+      agentAddress,
       chain: "arc-testnet",
       totalBacked: successful.length,
       totalFailed: failed.length,
@@ -133,12 +167,14 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       runId,
-      agentAddress: wallet.address,
+      agentAddress,
+      agentWalletId,
+      circleManaged: true, // Indicates the agent wallet is managed by Circle
       summary: {
         backed: successful.length,
         failed: failed.length,
-        totalStaked: `$${successful.reduce((s, r) => s + r.amount, 0).toFixed(2)} USDC`,
-        txHashes: successful.map((r) => r.txHash),
+        totalStaked: successful.reduce((s, r) => s + r.amount, 0).toFixed(2) + " USDC",
+        txHashes: successful.map((r) => r.txHash).filter(Boolean),
       },
       results,
     });

@@ -24,6 +24,10 @@ interface TransactionConfig {
   destinationAddress: string;
   feeLevel?: string;
   metadata?: Record<string, any>;
+  /** Contract address for smart contract interactions (e.g., BuilderCreditCore.backProject) */
+  contractAddress?: string;
+  /** ABI-encoded calldata for the contract call */
+  calldata?: string;
 }
 
 interface FundingResult {
@@ -153,7 +157,11 @@ class RealCircleService {
   }
 
   /**
-   * Create a transaction (transfer)
+   * Create a transaction — supports USDC transfers AND smart contract calls.
+   *
+   * For USDC transfers: set destinationAddress + amount + tokenId.
+   * For contract calls (e.g. backProject): set contractAddress + calldata + destinationAddress.
+   * Circle signs and broadcasts the transaction using the wallet's stored key.
    */
   async createTransaction(config: TransactionConfig): Promise<CircleResponse> {
     if (!this.isConfigured()) {
@@ -161,17 +169,26 @@ class RealCircleService {
     }
 
     const idempotencyKey = this.generateIdempotencyKey("tx");
+    const txParams: Record<string, any> = {
+      idempotencyKey,
+      walletId: config.walletId,
+      destinationAddress: config.destinationAddress,
+      fee: { feeLevel: "HIGH" },
+    };
+
+    // Smart contract call mode (e.g., BuilderCreditCore.backProject)
+    if (config.contractAddress && config.calldata) {
+      txParams.contractAddress = config.contractAddress;
+      txParams.calldata = config.calldata;
+      txParams.tokenId = config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID];
+    } else {
+      // Standard USDC transfer mode
+      txParams.tokenId = config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID];
+      txParams.amount = [config.amount];
+    }
 
     try {
-      const response = await this.client!.createTransaction({
-        idempotencyKey,
-        walletId: config.walletId,
-        tokenId: config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID],
-        amount: [config.amount],
-        destinationAddress: config.destinationAddress,
-        fee: { feeLevel: "HIGH" } as any,
-      });
-
+      const response = await this.client!.createTransaction(txParams);
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Transaction creation failed: ${error.message}`);

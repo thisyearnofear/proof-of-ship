@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-05-21 — Circle Agent Wallet Migration (execute.js)
+
+- `execute.js` no longer uses raw `AGENT_PRIVATE_KEY` env var for on-chain backings
+- Migrated to Circle Developer-Controlled Wallets API via `RealCircleService`
+- Agent wallet is managed in Circle Console — Circle holds the key, we never see it
+- Added `contractAddress` + `calldata` support to `RealCircleService.createTransaction()`
+- Added `CIRCLE_AGENT_WALLET_ID` env var (replaces `AGENT_PRIVATE_KEY`)
+- Updated `.env.example` and `serverConfig.js` with new config
+- Backward compatible: existing `AGENT_PRIVATE_KEY` can be removed from env
+
 ## 2026-05-21 — Contracts Redeployed (Arc + Devnet) After Architecture Fixes
 
 - Solana program redeployed to **`DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st`** on devnet

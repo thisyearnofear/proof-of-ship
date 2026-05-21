@@ -1,6 +1,7 @@
 import Button from '@/components/common/Button';
 import ShareButtons from '@/components/common/ShareButtons';
 import { getProjectQuality } from '@/lib/projects/projectQuality';
+import { getAccentColor } from '@/lib/projects/projectNormalize';
 import {
   ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
@@ -11,9 +12,10 @@ import {
 
 export function ProjectHero({ project, ecosystemConfig, title, githubUrl, canEdit, onEdit, onOpen }) {
   const quality = getProjectQuality(project);
+  const accent = getAccentColor(project.accentColor);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+    <section className={`overflow-hidden rounded-2xl border ${accent.borderClass} bg-white dark:bg-gray-800 shadow-sm`}>
       {project.imageUrl && (
         <div className="aspect-[16/7] w-full overflow-hidden bg-gray-100 dark:bg-gray-900">
           <img src={project.imageUrl} alt={title} className="h-full w-full object-cover" />

@@ -22,6 +22,29 @@ async function handler(req, res) {
       });
     }
 
+    // Also check for duplicate GitHub URL server-side
+    if (projectData.githubUrl) {
+      const dupeSnap = await db.collection("projects")
+        .where("githubUrl", "==", projectData.githubUrl)
+        .limit(1)
+        .get();
+      if (!dupeSnap.empty) {
+        const dupe = dupeSnap.docs[0].data();
+        return res.status(409).json({
+          error: "A project with this GitHub URL already exists",
+          slug: dupe.slug,
+          existingProject: {
+            name: dupe.name,
+            slug: dupe.slug,
+            ecosystem: dupe.ecosystem,
+            isOwner: dupe.owners && dupe.owners.includes(userId),
+            owners: dupe.owners,
+            submittedBy: dupe.submittedBy
+          }
+        });
+      }
+    }
+
     // Generate project slug
     const slug = generateProjectSlug(projectData.name);
     console.log("Checking project slug:", slug);
@@ -79,6 +102,13 @@ async function handler(req, res) {
       }
     } catch (e) {
       ownershipVerified = false;
+    }
+
+    // Normalize accent color — ensure it's from the palette or null
+    if (projectData.accentColor) {
+      const { ACCENT_COLORS } = await import('../../../lib/projects/projectNormalize');
+      const valid = ACCENT_COLORS.some(c => c.value === projectData.accentColor);
+      if (!valid) projectData.accentColor = null;
     }
 
     const projectDoc = createProjectDocument(projectData, userId, {

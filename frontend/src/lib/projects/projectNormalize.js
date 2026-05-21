@@ -1,5 +1,24 @@
 import { parseGitHubRepoUrl } from './githubRepo';
 
+// Accent color palette constrained to the design system
+// Builders can pick from these to personalize without breaking consistency
+export const ACCENT_COLORS = [
+  { name: 'Indigo', value: '#6366f1', gradient: 'from-indigo-500 to-purple-600', textClass: 'text-indigo-700', bgClass: 'bg-indigo-50', borderClass: 'border-indigo-200', heroFrom: 'from-indigo-600', heroTo: 'to-purple-600' },
+  { name: 'Emerald', value: '#059669', gradient: 'from-emerald-500 to-teal-600', textClass: 'text-emerald-700', bgClass: 'bg-emerald-50', borderClass: 'border-emerald-200', heroFrom: 'from-emerald-600', heroTo: 'to-teal-600' },
+  { name: 'Blue', value: '#2563eb', gradient: 'from-blue-500 to-indigo-600', textClass: 'text-blue-700', bgClass: 'bg-blue-50', borderClass: 'border-blue-200', heroFrom: 'from-blue-600', heroTo: 'to-indigo-600' },
+  { name: 'Violet', value: '#7c3aed', gradient: 'from-violet-500 to-purple-600', textClass: 'text-violet-700', bgClass: 'bg-violet-50', borderClass: 'border-violet-200', heroFrom: 'from-violet-600', heroTo: 'to-purple-600' },
+  { name: 'Amber', value: '#d97706', gradient: 'from-amber-500 to-orange-600', textClass: 'text-amber-700', bgClass: 'bg-amber-50', borderClass: 'border-amber-200', heroFrom: 'from-amber-600', heroTo: 'to-orange-600' },
+  { name: 'Rose', value: '#e11d48', gradient: 'from-rose-500 to-pink-600', textClass: 'text-rose-700', bgClass: 'bg-rose-50', borderClass: 'border-rose-200', heroFrom: 'from-rose-600', heroTo: 'to-pink-600' },
+  { name: 'Cyan', value: '#0891b2', gradient: 'from-cyan-500 to-sky-600', textClass: 'text-cyan-700', bgClass: 'bg-cyan-50', borderClass: 'border-cyan-200', heroFrom: 'from-cyan-600', heroTo: 'to-sky-600' },
+  { name: 'Slate', value: '#475569', gradient: 'from-slate-600 to-slate-700', textClass: 'text-slate-700', bgClass: 'bg-slate-50', borderClass: 'border-slate-200', heroFrom: 'from-slate-600', heroTo: 'to-slate-700' },
+  { name: 'Default', value: null, gradient: null, textClass: 'text-indigo-700', bgClass: 'bg-indigo-50', borderClass: 'border-indigo-200', heroFrom: 'from-indigo-600', heroTo: 'to-purple-600' },
+];
+
+export function getAccentColor(value) {
+  if (!value) return ACCENT_COLORS.find(c => c.name === 'Default');
+  return ACCENT_COLORS.find(c => c.value === value) || ACCENT_COLORS.find(c => c.name === 'Default');
+}
+
 export function generateProjectSlug(name = '') {
   return String(name || '')
     .toLowerCase()
@@ -78,7 +97,11 @@ export function normalizeProjectInput(input = {}) {
     milestones: cleanMilestones(input.milestones),
     hackathons: cleanHackathons(input.hackathons),
     launchOnBags: Boolean(input.launchOnBags),
-    bagsTokenMetadata: input.bagsTokenMetadata || null
+    bagsTokenMetadata: input.bagsTokenMetadata || null,
+    // Quick win: per-project accent color (constrained palette)
+    accentColor: input.accentColor || null,
+    // Quick win: archive state (soft-delete)
+    archived: Boolean(input.archived),
   };
 }
 
@@ -97,6 +120,12 @@ export function validateProjectInput(project) {
     errors.push('Contract address must start with 0x');
   }
 
+  // accentColor must be one of the allowed palette values
+  if (project.accentColor) {
+    const valid = ACCENT_COLORS.some(c => c.value === project.accentColor);
+    if (!valid) errors.push('Invalid accent color — must be one of the allowed palette colors');
+  }
+
   const members = cleanTeamMembers(project.teamMembers);
   const totalShares = members.reduce((sum, member) => sum + member.share, 0);
   if (members.length > 0 && totalShares !== 100) {
@@ -107,6 +136,26 @@ export function validateProjectInput(project) {
     isValid: errors.length === 0,
     errors
   };
+}
+
+/**
+ * Quick win: check if a project with the same GitHub URL already exists.
+ * Used by the editor before submission to warn builders about duplicates.
+ */
+export async function checkDuplicateGitHubUrl(githubUrl, excludeSlug = null) {
+  if (!githubUrl || !parseGitHubRepoUrl(githubUrl)) return null;
+  try {
+    const { db } = await import('@/lib/firebase/clientApp');
+    const { collection, query, where, getDocs } = await import('firebase/firestore');
+    const q = query(collection(db, 'projects'), where('githubUrl', '==', parseGitHubRepoUrl(githubUrl).url));
+    const snap = await getDocs(q);
+    const matches = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => excludeSlug ? p.slug !== excludeSlug : true);
+    return matches.length > 0 ? matches[0] : null;
+  } catch {
+    return null;
+  }
 }
 
 export function createProjectDocument(input, userId, options = {}) {

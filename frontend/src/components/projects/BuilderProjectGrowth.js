@@ -14,6 +14,7 @@ import { LoadingSpinner } from '@/components/common/LoadingStates';
 import { getProjectQuality } from '@/lib/projects/projectQuality';
 import { getEcosystemConfig } from '@/config/ecosystems';
 import Link from 'next/link';
+import QuickEditDrawer from '@/components/projects/QuickEditDrawer';
 import {
   SparklesIcon,
   ArrowTopRightOnSquareIcon,
@@ -25,6 +26,7 @@ import {
   ChartBarIcon,
   LightBulbIcon,
   ClockIcon,
+  ArchiveBoxArrowDownIcon,
 } from '@heroicons/react/24/outline';
 
 export default function BuilderProjectGrowth() {
@@ -34,6 +36,8 @@ export default function BuilderProjectGrowth() {
   const [error, setError] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
   const [copiedSlug, setCopiedSlug] = useState(null);
+  const [quickEditProject, setQuickEditProject] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -105,6 +109,17 @@ export default function BuilderProjectGrowth() {
     }
   };
 
+  // Filter archived vs active
+  const activeProjects = projects.filter(p => !p.archived);
+  const archivedProjects = projects.filter(p => p.archived);
+  const visibleProjects = showArchived ? projects : activeProjects;
+
+  const handleQuickEditSaved = useCallback((updatedProject) => {
+    setProjects((prev) =>
+      prev.map((p) => (p.id === updatedProject.id ? { ...p, ...updatedProject } : p))
+    );
+  }, []);
+
   // ── Empty state ──
   if (!loading && !hasProjects) {
     return (
@@ -149,6 +164,19 @@ export default function BuilderProjectGrowth() {
             <ChartBarIcon className="w-6 h-6 text-emerald-600" />
           </div>
           PROJECT GROWTH
+          {archivedProjects.length > 0 && (
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className={`ml-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                showArchived
+                  ? 'bg-slate-200 text-slate-700'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              <ArchiveBoxArrowDownIcon className="w-3 h-3" />
+              {archivedProjects.length} archived
+            </button>
+          )}
         </h2>
         <Link href="/projects/new">
           <Button size="sm" variant="outline" leftIcon={<DocumentTextIcon className="w-4 h-4" />}>
@@ -214,7 +242,7 @@ export default function BuilderProjectGrowth() {
       {/* Project Cards */}
       {!loading && hasProjects && (
         <div className="grid grid-cols-1 gap-4">
-          {projects.map((project) => {
+          {visibleProjects.map((project) => {
             const quality = getProjectQuality(project);
             const ecosystemConfig = getEcosystemConfig(project.ecosystem);
             const missing = quality.missing.slice(0, 3);
@@ -396,11 +424,14 @@ export default function BuilderProjectGrowth() {
 
                   {/* Action buttons */}
                   <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                    <Link href={`/projects/${ecosystem}/${slug}/edit`}>
-                      <Button size="sm" variant="outline" leftIcon={<PencilSquareIcon className="w-3.5 h-3.5" />}>
-                        Edit
-                      </Button>
-                    </Link>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      leftIcon={<PencilSquareIcon className="w-3.5 h-3.5" />}
+                      onClick={() => setQuickEditProject(project)}
+                    >
+                      Edit
+                    </Button>
                     <Link href={`/projects/${ecosystem}/${slug}`}>
                       <Button size="sm" variant="ghost" leftIcon={<ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />}>
                         View
@@ -426,6 +457,14 @@ export default function BuilderProjectGrowth() {
             );
           })}
         </div>
+      )}
+      {/* Quick Edit Drawer */}
+      {quickEditProject && (
+        <QuickEditDrawer
+          project={quickEditProject}
+          onClose={() => setQuickEditProject(null)}
+          onSaved={handleQuickEditSaved}
+        />
       )}
     </section>
   );

@@ -5,17 +5,19 @@ import { useBuilderCredit } from "@/contexts/WalletContext";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";
+import Link from 'next/link';
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
 import { submitProject } from "@/services/DataService";
 import Confetti from "@/components/common/Confetti";
 import ProjectPreviewPanel from "@/components/projects/ProjectPreviewPanel";
+import AccentColorPicker from "@/components/projects/AccentColorPicker";
 import { storage } from "@/lib/firebase/clientApp";
 import { parseGitHubRepoUrl } from "@/lib/projects/githubRepo";
-import { normalizeProjectInput, validateProjectInput } from "@/lib/projects/projectNormalize";
+import { normalizeProjectInput, validateProjectInput, checkDuplicateGitHubUrl } from "@/lib/projects/projectNormalize";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon, CheckCircleIcon, ClipboardDocumentIcon, ShareIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, PhotoIcon, CheckCircleIcon, ClipboardDocumentIcon, ShareIcon, SparklesIcon, ArchiveBoxArrowDownIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 const DEFAULT_CATEGORIES = [
   { id: "defi", name: "DeFi" },
@@ -81,12 +83,17 @@ export default function ProjectEditor({ projectSlug }) {
     bagsTokenMetadata: draft?.bagsTokenMetadata || { name: "", symbol: "", description: "" },
     liveUrl: draft?.liveUrl || "",
     otherCategoryDetail: draft?.otherCategoryDetail || "",
+    accentColor: draft?.accentColor || null,
+    archived: draft?.archived || false,
   });
 
   const [showOptional, setShowOptional] = useState(false);
+  const STEPS = ['Basics', 'Proof & Polish', 'Review & Submit'];
   const [deleting, setDeleting] = useState(false);
   const [fetchingGithub, setFetchingGithub] = useState(false);
   const [githubImportData, setGithubImportData] = useState(null);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const [wizardStep, setWizardStep] = useState(1);
   const [improvingListing, setImprovingListing] = useState(false);
   const [listingSuggestions, setListingSuggestions] = useState([]);
   const [hasDraft, setHasDraft] = useState(Boolean(draft));
@@ -241,6 +248,8 @@ export default function ProjectEditor({ projectSlug }) {
           hackathons: Array.isArray(project.hackathons) ? project.hackathons : [],
           liveUrl: project.liveUrl || "",
           otherCategoryDetail: project.otherCategoryDetail || "",
+          accentColor: project.accentColor || null,
+          archived: Boolean(project.archived),
         });
         setImageUrl(project.imageUrl || "");
       } catch (e) {
@@ -350,6 +359,20 @@ export default function ProjectEditor({ projectSlug }) {
       fetchGithubInfo(form.githubUrl);
     }
   }, [form.githubUrl, fetchGithubInfo]);
+
+  // Duplicate GitHub URL check
+  useEffect(() => {
+    if (!form.githubUrl || !form.githubUrl.includes('github.com/') || isEditMode) {
+      setDuplicateWarning(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const dup = await checkDuplicateGitHubUrl(form.githubUrl);
+      if (!cancelled) setDuplicateWarning(dup);
+    }, 1500);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [form.githubUrl, isEditMode]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -773,6 +796,26 @@ export default function ProjectEditor({ projectSlug }) {
           </div>
         )}
 
+        {duplicateWarning && !existingProjectConflict && (
+          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Possible duplicate detected</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  A project with this GitHub URL already exists:{' '}
+                  <Link href={`/projects/${duplicateWarning.ecosystem || 'base'}/${duplicateWarning.slug}`} className="underline font-medium">
+                    {duplicateWarning.name}
+                  </Link>
+                </p>
+                <p className="text-xs text-amber-600 mt-1">
+                  If this is yours, you can edit the existing project instead of creating a duplicate.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {existingProjectConflict && (
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-6">
             <div className="flex items-start gap-4">
@@ -821,6 +864,49 @@ export default function ProjectEditor({ projectSlug }) {
           </div>
         )}
       </Card>
+
+      {/* Step indicator — only show for new projects */}
+      {!isEditMode && (
+        <div className="flex items-center justify-center gap-4">
+          {['Basics', 'Proof & Polish', 'Review & Submit'].map((stepName, i) => {
+            const stepNum = i + 1;
+            const isActive = wizardStep === stepNum;
+            const isCompleted = wizardStep > stepNum;
+            return (
+              <button
+                key={stepName}
+                type="button"
+                onClick={() => {
+                  if (stepNum < wizardStep) setWizardStep(stepNum);
+                }}
+                className={`flex items-center gap-2 transition-all ${
+                  isCompleted ? 'cursor-pointer' : isActive ? '' : 'cursor-default'
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                    isCompleted
+                      ? 'bg-emerald-500 text-white'
+                      : isActive
+                      ? 'bg-gray-900 text-white ring-4 ring-gray-900/10'
+                      : 'bg-gray-200 text-gray-400'
+                  }`}
+                >
+                  {isCompleted ? <CheckCircleIcon className="w-5 h-5" /> : stepNum}
+                </div>
+                <span
+                  className={`text-sm font-medium hidden sm:inline ${
+                    isActive ? 'text-gray-900' : 'text-gray-500'
+                  }`}
+                >
+                  {stepName}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Celebration overlay after successful submit */}
       {showCelebration && submittedSlug && (
         <>
@@ -877,6 +963,7 @@ export default function ProjectEditor({ projectSlug }) {
         </>
       )}
 
+      {(wizardStep === 1 || isEditMode) && (
       <Card className="p-6 space-y-5">
         <h3 className="text-lg font-semibold text-gray-900">Basics</h3>
 
@@ -1004,7 +1091,79 @@ export default function ProjectEditor({ projectSlug }) {
             </div>
           )}
       </Card>
+      )}
 
+      {/* Step 3: Review & Submit */}
+      {(wizardStep === 3) && (
+        <Card className="p-6 space-y-5">
+          <h3 className="text-lg font-semibold text-gray-900">Review & Submit</h3>
+          <p className="text-sm text-gray-500">
+            Review your project before submitting. All required fields are complete.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Name</p>
+              <p className="text-sm font-medium text-gray-900">{form.name || '—'}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Ecosystem</p>
+              <p className="text-sm font-medium text-gray-900">{ecosystemConfig?.shortName || form.ecosystem || '—'}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl md:col-span-2">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Description</p>
+              <p className="text-sm text-gray-900 line-clamp-3">{form.description || '—'}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">GitHub</p>
+              <p className="text-sm text-gray-900 truncate">{form.githubUrl || '—'}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Category</p>
+              <p className="text-sm font-medium text-gray-900">{form.category || '—'}</p>
+            </div>
+            {form.website && (
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Website</p>
+                <p className="text-sm text-gray-900 truncate">{form.website}</p>
+              </div>
+            )}
+            {form.twitter && (
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Twitter</p>
+                <p className="text-sm text-gray-900 truncate">{form.twitter}</p>
+              </div>
+            )}
+            {form.discord && (
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Discord</p>
+                <p className="text-sm text-gray-900 truncate">{form.discord}</p>
+              </div>
+            )}
+            {Array.isArray(form.milestones) && form.milestones.filter(Boolean).length > 0 && (
+              <div className="p-4 bg-gray-50 rounded-xl md:col-span-2">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Milestones ({form.milestones.filter(Boolean).length})</p>
+                <ul className="space-y-1">
+                  {form.milestones.filter(Boolean).map((m, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                      <CheckCircleIcon className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span>{String(m)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {form.lookingForFunding && (
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Funding</p>
+                <p className="text-sm font-medium text-emerald-700">Seeking {form.fundingAmount || 'support'}</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Step 2: Proof & Polish */}
+      {(wizardStep === 2 || isEditMode) && (<>
       {/* Collapsible optional sections */}
       <button
         type="button"
@@ -1046,6 +1205,11 @@ export default function ProjectEditor({ projectSlug }) {
             Discord shows community engagement. A website shows you care about users, not just code.
           </p>
         </div>
+
+        <AccentColorPicker
+          value={form.accentColor}
+          onChange={(val) => setField('accentColor', val)}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -1340,9 +1504,26 @@ export default function ProjectEditor({ projectSlug }) {
             ))}
           </div>
         )}
-      </Card>
+      </Card>      </>)}
       </>)}
 
+      {/* Step navigation — new projects only, visible from any step */}
+      {!isEditMode && wizardStep < 3 && (
+        <div className="flex items-center justify-between">
+          <div>
+            {wizardStep > 1 && (
+              <Button type="button" variant="outline" onClick={() => setWizardStep(wizardStep - 1)}>
+                Back
+              </Button>
+            )}
+          </div>
+          <Button type="button" onClick={() => setWizardStep(wizardStep + 1)}>
+            Continue
+          </Button>
+        </div>
+      )}
+
+      {/* Action footer — always visible */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Mobile progress checklist (hidden on sm+) */}
@@ -1361,9 +1542,14 @@ export default function ProjectEditor({ projectSlug }) {
             </div>
           )}
           {isEditMode && (
-            <Button type="button" variant="outline" onClick={handleDelete} loading={deleting} className="text-red-600 border-red-300 hover:bg-red-50">
-              Delete Project
-            </Button>
+            <>
+              <Button type="button" variant="outline" onClick={() => setField('archived', !form.archived)} className={form.archived ? 'text-emerald-600 border-emerald-300 hover:bg-emerald-50' : 'text-amber-600 border-amber-300 hover:bg-amber-50'} leftIcon={<ArchiveBoxArrowDownIcon className="w-4 h-4" />}>
+                {form.archived ? 'Unarchive' : 'Archive'}
+              </Button>
+              <Button type="button" variant="outline" onClick={handleDelete} loading={deleting} className="text-red-600 border-red-300 hover:bg-red-50">
+                Delete
+              </Button>
+            </>
           )}
           {hasDraft && !isEditMode && (
             <button type="button" onClick={() => { clearDraft(); window.location.reload(); }} className="text-xs text-gray-500 hover:text-red-500 underline">
@@ -1371,9 +1557,11 @@ export default function ProjectEditor({ projectSlug }) {
             </button>
           )}
         </div>
-        <Button type="submit" loading={saving} disabled={!isEditMode && !allRequired}>
-          {isEditMode ? "Save changes" : "Submit project"}
-        </Button>
+        {(!isEditMode && wizardStep === 3) || isEditMode ? (
+          <Button type="submit" loading={saving} disabled={!isEditMode && !allRequired}>
+            {isEditMode ? "Save changes" : "Submit project"}
+          </Button>
+        ) : null}
       </div>
         </div>
 

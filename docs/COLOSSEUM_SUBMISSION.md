@@ -41,7 +41,7 @@ Every component of Proof of Ship benefits the Solana ecosystem beyond any single
 | **Scout** (`pos-scout.sol`) | $0.01 | Ecosystem scanning, project discovery, portfolio recommendations |
 | **Underwriter** (`pos-underwriter.sol`) | $0.05 | Project health scoring, credit line sizing, risk analysis |
 | **Verifier** (`pos-verifier.sol`) | $0.001/10 LOC | PR code review, milestone verification, on-chain confirmation |
-| **Rebalance** (`pos-rebalance.sol`) | $0.01 | Portfolio optimization across expeditions |
+| **Rebalance** (`pos-rebalance.sol`) | $0.01 | Portfolio optimization across hackathon groups |
 
 Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second settlement.
 

@@ -1,17 +1,90 @@
 # Changelog
 
-## 2026-05-21 — Payout Verification & Hackathon Leaderboard (4/7 pieces built)
+## 2026-05-21 — Whole-Platform Reduction Pass: Naming, Routes, Data, and Polish
 
-### Built
-- **PayoutVerifierService.ts** (541 lines) — 3-provider verification: Circle API, EVM raw RPC (parses Transfer event logs), Solana (parsed token balance diffs). Records attestations to `payoutAttestations` Firestore collection.
-- **POST /api/agent/payout-verify** — single + batch verification endpoint. Updates project `hackathons[]` with `payoutVerified`, `payoutConfidence`, `payoutActualAmount`, `payoutAt`, `payoutProvider`.
-- **claim_verification in /api/agent/analyze** — rule-based signal analysis + on-chain verification when tx evidence exists. Returns per-claim credibility (high/medium/low) and signalScore (0-100).
-- **Hackathon leaderboard tab** on `/leaderboard` — `FastestPayoutHero` featured card, ranked list with color-coded payout speed (≤7d lightning, ≤30d fast, ≤90d moderate, >90d slow), composite scoring (`payoutSpeed ×0.35 + completion ×0.30 + builderCount ×0.20 + volume ×0.15`). 5-min cache.
-- **GET /api/hackathons/leaderboard** — aggregates all projects' hackathon claims, computes avgPayoutDays, payoutCompletionRate, totalPrizeAmount, builderCount per hackathon.
-- **ClaimVerificationBadge** on project detail page — green check (high), amber shield (medium), red shield (low), gray pulse (loading). Calls analyze API on mount.
-- **Payout anchor contract** (pending) — `declareWinner` + `recordPayout` functions to add to `HackathonRegistry.sol` for on-chain winner attestation.
-- **builderCredentials collection** (pending) — Firestore collection for per-builder aggregate hackathon win data.
-- **Payout timeline** (pending) — visual timeline component on `/hackathons/[id]` showing declared → paid → verified per project.
+This was a systematic multi-phase consolidation addressing every dimension identified
+in the architectural review: naming coherence, route count, data layer consolidation,
+and UI consistency.
+
+### Phase 0 — Quick Wins
+- **Fixed stale docs**: `docs/README.md` route table now matches the actual 13 routes
+- **Added glossary**: `docs/GLOSSARY.md` — 18 domain terms defined in one place
+- **Fixed dead collection ref**: `COLLECTIONS.USER_PROFILES` → `USERS` (matched Firestore rules)
+- **Composite indexes added**: 4 indexes for projects (createdAt, ecosystem+createdAt, ecosystem+status) and payoutAttestations
+- **Removed cross-chain verification fallback**: `VerificationService` no longer accepts EVM hashes for Solana projects or vice versa
+
+### Phase 1 — Naming & Metaphor Consolidation
+- **`expedition` → `project` everywhere**: renamed `useExpeditionData` → `useProjectData`, `ExpeditionCard` → `ProjectCard`, `expeditionMetrics` → `projectMetrics`, `components/expedition/` → `components/backer/`. 10+ consumer files updated.
+- **`war-room` → `verification`**: `admin/war-room.js` → `admin/verification.js`, `useWarRoomData` → `useVerificationData`, Navbar label updated to "Verification Dashboard"
+- **War-room `expeditions` → `hackathonGroups`**: the Firestore concept was about hackathon groupings for verifier assignment, not projects
+
+### Phase 2 — Route Reduction (18 → 13 pages)
+- **Removed**: `fleet.js`, `campaigns.js`, `feedback.js`, `design.js`, `about.js` — each redirected via `next.config.js` to closest equivalent
+- **Merged auth**: `signup.js` replaced with redirect to `/login?mode=signup`
+
+### Phase 3 — Data Layer Consolidation
+
+**3.1 — Single `projects` collection:**
+- **Writes**: removed dual-writes to `projects_{ecosystem}` in 4 files (submit.js, [slug].js, winding-down.js, DataService.ts)
+- **Reads**: consolidated 6 read paths to query `projects` directly instead of iterating 8 ecosystem collections
+- **Config**: `collections.ts` simplified — removed `PROJECTS` map, `getProjectCollection()`, `getAllProjectCollections()`
+- **Rules**: collapsed 6 per-ecosystem Firestore rules blocks into one `/projects/{projectId}` block
+
+**3.2 — WalletContext split (1,167 → 502 lines):**
+- **NanopaymentContext.tsx** (273 lines) — extracted nanopayment state, payForAgent, deposit, and useNanopayment hook
+- **CircleContext.tsx** (138 lines) — extracted Circle wallet creation, USDC transfer, useCircleWallet hook
+- **CreditContext.tsx** (251 lines) — extracted builder credit, backProject, chain balance management
+- **WalletContext.tsx** (502 lines) — stripped down to pure connection-only logic (MetaMask SDK + Solana adapter + network switching + token balances)
+- All existing consumers continue to work via re-exports from WalletContext
+- New context tree: WalletProvider → CircleProvider → CreditProvider → NanopaymentProvider
+
+**3.3 — DataService split (736 → 4 files):**
+- **DataServiceCore.ts** (387 lines) — caching infrastructure, GitHub API proxy, stats calculation
+- **ProjectDataService.ts** (200 lines) — project loading (loadAllProjects, getProject), search, ecosystem stats
+- **SubmissionService.ts** (77 lines) — project submission with validation and admin queue
+- **DataService.ts** (7 lines) — pure re-exports hub; no consumer changes needed
+
+**3.4 — Server/client split fix:**
+- Moved `VerificationService.js` from `services/` to `lib/verification/` — correctly signals server-only code
+
+### Phase 4 — Semantic Token Migration
+- 143+ raw Tailwind class instances replaced with semantic CSS tokens across 9 high-traffic pages
+- Patterns: `bg-white dark:bg-gray-800` → `bg-surface`, `text-gray-900` → `text-primary`, `border-gray-200` → `border-default`
+- Pages migrated: explore.js (biggest win, ~100 replacements), leaderboard.js, back.js, build.js, compare.js, analyze.js, profile.js, admin/verification.js, transactions.js
+
+### Phase 5 — UI Polish
+- **Footer enriched**: 4-column layout with navigation links (Discover, Build, Resources, Status) and build version badge
+- **Dark mode sweep**: remaining `bg-white` and `text-gray-900` without `dark:` variants fixed in 6 additional files
+- **Mobile**: verified existing patterns are adequate (min-h-touch, responsive grids)
+
+### Phase 6 — Firestore Transaction Safety
+- **submit.js**: project write + permission grant wrapped in `db.runTransaction()`
+- **payout-verify.js**: project claim update wrapped in `db.runTransaction()`
+
+### Files Changed
+`blockchain/contracts/HackathonRegistry.sol` | `docs/README.md` | `docs/CHANGELOG.md` | `docs/GLOSSARY.md` |
+`docs/REDUCTION_PLAN.md` | `docs/PHASE3_PLUS.md` |
+`frontend/src/contexts/WalletContext.tsx` | `frontend/src/contexts/NanopaymentContext.tsx` |
+`frontend/src/contexts/CircleContext.tsx` | `frontend/src/contexts/CreditContext.tsx` |
+`frontend/src/services/DataService.ts` | `frontend/src/services/DataServiceCore.ts` |
+`frontend/src/services/ProjectDataService.ts` | `frontend/src/services/SubmissionService.ts` |
+`frontend/src/services/PayoutVerifierService.ts` | `frontend/src/services/BuilderCredentialService.ts` |
+`frontend/src/hooks/useProjectData.js` | `frontend/src/hooks/useVerificationData.js` |
+`frontend/src/components/backer/ProjectCard.js` |
+`frontend/src/components/common/layout/Footer/Footer.js` |
+`frontend/src/components/common/layout/Navbar/Navbar.js` |
+`frontend/src/components/common/BuilderTrust.tsx` |
+`frontend/src/pages/leaderboard.js` | `frontend/src/pages/explore.js` |
+`frontend/src/pages/back.js` | `frontend/src/pages/build.js` |
+`frontend/src/pages/analyze.js` | `frontend/src/pages/profile.js` |
+`frontend/src/pages/compare.js` | `frontend/src/pages/transactions.js` |
+`frontend/src/pages/signup.js` | `frontend/src/pages/admin/verification.js` |
+`frontend/src/pages/api/projects/submit.js` | `frontend/src/pages/api/projects/[slug].js` |
+`frontend/src/pages/api/projects/winding-down.js` |
+`frontend/src/pages/api/agent/payout-verify.js` |
+`frontend/src/pages/api/hackathons/[id]/payout-timeline.js` |
+`frontend/src/config/collections.ts` | `firestore.rules` | `firestore.indexes.json` |
+`frontend/next.config.js`
 
 ### Files Created
 - `frontend/src/services/PayoutVerifierService.ts` — verification service

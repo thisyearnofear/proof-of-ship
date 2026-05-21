@@ -8,11 +8,14 @@
  * POST /api/agent/analyze
  *   Body: { project: { name, description, githubUrl?, ecosystem? } }
  *   Body: { type: 'credit', scoreData: { reputation, totalBacking, milestonesCompleted, milestonesTotal } }
+ *   Body: { type: 'claim_verification', project: { hackathons: [...] } }
+ *   Body: { type: 'listing_improvement', project: { ... } }
  *
  * Tracks: Tether Frontier Track ($10K)
  */
 
 import { getProjectQuality } from '@/lib/projects/projectQuality';
+import { payoutVerifierService } from '@/services/PayoutVerifierService';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -35,6 +38,7 @@ Focus on what the score means for their borrowing capacity and what would improv
       return res.status(200).json({ success: true, analysis, source: 'cloud' });
     }
 
+    // ── Claim verification with on-chain attestation ─────────────
     if (type === 'claim_verification' && project) {
       const hackathonClaims = project.hackathons || [];
 
@@ -50,8 +54,19 @@ Focus on what the score means for their borrowing capacity and what would improv
         });
       }
 
-      const verifiedClaims = hackathonClaims.map((claim, idx) => {
-        // Rule-based verification: check for signals that make a claim credible
+      // Pre-load firebase for Firestore updates (cached by Node)
+      let firebaseModule = null;
+      try {
+        firebaseModule = await import('@/lib/firebase/serverOnly');
+      } catch {}
+
+      const verifiedClaims = [];
+      let attestationsCreated = 0;
+
+      for (let idx = 0; idx < hackathonClaims.length; idx++) {
+        const claim = hackathonClaims[idx];
+
+        // 1. Rule-based signal analysis (always run)
         const signals = [];
         const missing = [];
 
@@ -81,32 +96,114 @@ Focus on what the score means for their borrowing capacity and what would improv
           missing.push('payout_date');
         }
 
-        const signalScore = Math.round((signals.length / (signals.length + missing.length)) * 100);
+        // 2. On-chain verification — only when we have solid evidence
+        let onChainResult = null;
+        const hasTxEvidence = claim.payoutTxHash || claim.circleTransferId;
+        const hasWinnerAddress = claim.winnerAddress || project.ownerWalletAddress;
+        const expectedAmount = parseFloat(claim.payoutAmount);
 
-        return {
+        if (hasTxEvidence && hasWinnerAddress && expectedAmount > 0) {
+          const winnerAddress = claim.winnerAddress || project.ownerWalletAddress;
+
+          try {
+            const { result, attestationId } = await payoutVerifierService.verify({
+              hackathonName: claim.name || `Hackathon ${idx + 1}`,
+              winnerAddress,
+              expectedAmount,
+              payoutTxHash: claim.payoutTxHash,
+              circleTransferId: claim.circleTransferId,
+              chainId: claim.chainId, // must be a known chainId — no fallback to ecosystem name
+            });
+
+            onChainResult = { ...result, attestationId };
+            if (attestationId) attestationsCreated++;
+
+            if (result.verified) {
+              signals.push('on_chain_verified');
+            }
+          } catch (err) {
+            console.warn(`On-chain verification failed for claim ${idx}:`, err.message);
+          }
+        }
+
+        // 3. Compute credibility score
+        const totalSignals = signals.length + (onChainResult?.verified ? 1 : 0);
+        const totalPossible = totalSignals + missing.length;
+        const signalScore = Math.round((totalSignals / Math.max(totalPossible, 1)) * 100);
+
+        const claimResult = {
           hackathonName: claim.name || `Hackathon ${idx + 1}`,
           outcome: claim.outcome || 'Not specified',
           payoutAt: claim.payoutAt || null,
           signals,
           missing,
           credibility: signalScore >= 80 ? 'high' : signalScore >= 50 ? 'medium' : 'low',
-          signalScore
+          signalScore,
+          onChainVerification: onChainResult ? {
+            verified: onChainResult.verified,
+            provider: onChainResult.provider,
+            actualAmount: onChainResult.actualAmount,
+            payoutTimestamp: onChainResult.payoutTimestamp,
+            confidence: onChainResult.confidence,
+            details: onChainResult.details,
+            attestationId: onChainResult.attestationId,
+          } : null,
         };
-      });
+
+        verifiedClaims.push(claimResult);
+
+        // 4. Update the project's hackathon claim in Firestore with verification results
+        if (onChainResult && project.slug && firebaseModule) {
+          try {
+            const { db } = firebaseModule;
+            const projectRef = db.collection('projects').doc(project.slug);
+            const projectSnap = await projectRef.get();
+
+            if (projectSnap.exists) {
+              const currentData = projectSnap.data();
+              const hackathons = Array.isArray(currentData.hackathons) ? [...currentData.hackathons] : [];
+
+              if (idx < hackathons.length) {
+                hackathons[idx] = {
+                  ...hackathons[idx],
+                  payoutVerified: onChainResult.verified,
+                  payoutConfidence: onChainResult.confidence,
+                  payoutAttestationId: onChainResult.attestationId,
+                  payoutActualAmount: onChainResult.actualAmount,
+                  payoutVerifiedAt: new Date().toISOString(),
+                  payoutProvider: onChainResult.provider,
+                  payoutAt: onChainResult.payoutTimestamp || hackathons[idx].payoutAt,
+                };
+
+                await projectRef.update({
+                  hackathons,
+                  updatedAt: new Date().toISOString(),
+                });
+              }
+            }
+          } catch (err) {
+            console.warn('Failed to update project hackathon claim:', err.message);
+          }
+        }
+      }
 
       const avgScore = Math.round(verifiedClaims.reduce((sum, c) => sum + c.signalScore, 0) / verifiedClaims.length);
+      const verifiedCount = verifiedClaims.filter((c) => c.credibility === 'high').length;
+      const onChainVerifiedCount = verifiedClaims.filter((c) => c.onChainVerification?.verified).length;
 
       return res.status(200).json({
         success: true,
         analysis: {
-          summary: `Verified ${verifiedClaims.length} hackathon claim(s). Average credibility: ${avgScore}/100.`,
+          summary: `Verified ${verifiedClaims.length} hackathon claim(s). ${verifiedCount} high credibility, ${onChainVerifiedCount} on-chain confirmed. Average score: ${avgScore}/100.`,
           verified: avgScore >= 50,
-          claims: verifiedClaims
+          claims: verifiedClaims,
+          attestationsCreated,
         },
-        source: 'rule-based'
+        source: onChainVerifiedCount > 0 ? 'on-chain' : 'rule-based',
       });
     }
 
+    // ── Listing improvement ──────────────────────────────────────
     if (type === 'listing_improvement' && project) {
       const quality = getProjectQuality(project);
       const prompt = `Review this builder project listing and return JSON only:
@@ -136,7 +233,7 @@ Missing signals: ${quality.missing.map((item) => item.label).join(', ')}`;
       });
     }
 
-    // Project analysis
+    // ── General project analysis ─────────────────────────────────
     if (project) {
       const prompt = `Analyze this project and return a JSON score object:
 {

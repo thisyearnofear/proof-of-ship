@@ -39,7 +39,7 @@
     "@x402/evm": "2.10.0",
     "@x402/express": "^2.10.0",
     "@x402/fetch": "2.10.0",
-    "axios": "1.13.6",
+    "axios": "1.16.0",
     "bs58": "^6.0.0",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",

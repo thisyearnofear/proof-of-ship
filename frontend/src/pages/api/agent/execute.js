@@ -1,69 +1,83 @@
 /**
- * AI Agent — Execute backings via Circle Developer-Controlled Wallets on Arc
+ * AI Agent — Execute backings via Circle Developer-Controlled Wallets on Arc.
  *
  * POST /api/agent/execute
  * Body: { projects: [{ id, amount, multiplier }] }
  *
- * Flow:
- * 1. Looks up the agent wallet by CIRCLE_AGENT_WALLET_ID (managed in Circle Console)
- * 2. Pre-approves USDC spend if needed (one-time via Circle API)
- * 3. Calls backProject() on BuilderCreditCore via Circle-signed contract call
- * 4. Logs results to Firestore
+ * Uses Circle's raw REST API directly for contract execution transactions
+ * (the SDK v10.3.1 has an axios interceptor bug with contract execution).
  *
  * Requires env vars:
- *   CIRCLE_API_KEY               — Circle API key (already required for wallets/transfers)
- *   CIRCLE_ENTITY_SECRET         — Entity secret for developer-controlled wallets
- *   CIRCLE_AGENT_WALLET_ID       — Agent wallet ID from Circle Console
- *   BUILDER_CREDIT_ARC_ADDRESS   — Deployed BuilderCreditCore proxy on Arc Testnet
- *
- * Key management: Circle holds the agent's private key. We never see it.
- * Set spending policies in Circle Console: developers.circle.com
+ *   CIRCLE_API_KEY / TEST_CIRCLE_API_KEY     — Circle API key
+ *   CIRCLE_ENTITY_SECRET                     — Entity secret
+ *   CIRCLE_AGENT_WALLET_ID                   — Agent wallet ID
+ *   BUILDER_CREDIT_ARC_ADDRESS               — BuilderCreditCore proxy on Arc Testnet
+ *   CIRCLE_AGENT_WALLET_SET_ID (optional)    — Separate wallet set for agent
  */
 
 import { db } from "@/lib/firebase/serverOnly";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { realCircleService } from "@/services/RealCircleService";
+import { generateEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
 
-const ARC_CHAIN_ID = 5042002;
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 
-// Minimal ABI encoders for the contract calls we need
-const BUILDER_CREDIT_ABI = [
-  "function backProject(uint256 projectId, uint256 multiplier, uint256 amount) external",
-];
-
-const USDC_ABI = [
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function balanceOf(address) view returns (uint256)",
-];
-
-// Simple keccak256 + encode helpers — avoids pulling in ethers just for ABI encoding
 function keccak256(str) {
-  // Node.js crypto-based keccak256
   const { createHash } = require("crypto");
   return createHash("sha3-256").update(str).digest("hex");
 }
 
 function encodeUint256(value) {
-  const hex = BigInt(value).toString(16).padStart(64, "0");
-  return hex;
+  return BigInt(value).toString(16).padStart(64, "0");
 }
 
 function encodeAddress(addr) {
   return addr.toLowerCase().replace("0x", "").padStart(64, "0");
 }
 
-/** ABI-encode a call to backProject(uint256,uint256,uint256) */
 function encodeBackCall(projectId, multiplier, amount) {
   const sig = keccak256("backProject(uint256,uint256,uint256)").slice(0, 8);
   return "0x" + sig + encodeUint256(projectId) + encodeUint256(multiplier) + encodeUint256(amount);
 }
 
-/** ABI-encode a call to approve(address,uint256) */
-function encodeApproveCall(spender, amount = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff") {
+function encodeApproveCall(spender) {
   const sig = keccak256("approve(address,uint256)").slice(0, 8);
-  return "0x" + sig + encodeAddress(spender) + amount;
+  const max = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+  return "0x" + sig + encodeAddress(spender) + max;
+}
+
+async function createContractTx(apiKey, ciphertext, walletId, destinationAddress, contractAddress, callData) {
+  const { randomUUID } = require("crypto");
+  const https = require("https");
+  const data = JSON.stringify({
+    idempotencyKey: randomUUID(),
+    walletId,
+    destinationAddress,
+    contractAddress,
+    callData,
+    feeLevel: "MEDIUM",
+    entitySecretCiphertext: ciphertext,
+  });
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: "api.circle.com",
+      path: "/v1/w3s/developer/transactions/contractExecution",
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+    }, res => {
+      let body = "";
+      res.on("data", c => body += c);
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(body);
+          if (parsed.data?.transaction) resolve(parsed.data.transaction);
+          else if (parsed.data?.id) resolve(parsed.data);
+          else reject(new Error(parsed.message || "Unknown error"));
+        } catch (e) { reject(new Error(body.substring(0, 200))); }
+      });
+    });
+    req.on("error", reject);
+    req.write(data);
+    req.end();
+  });
 }
 
 export default async function handler(req, res) {
@@ -73,52 +87,20 @@ export default async function handler(req, res) {
 
   const contractAddress = process.env.BUILDER_CREDIT_ARC_ADDRESS;
   const agentWalletId = process.env.CIRCLE_AGENT_WALLET_ID;
+  const apiKey = process.env.TEST_CIRCLE_API_KEY || process.env.CIRCLE_API_KEY;
+  const entitySecret = process.env.CIRCLE_ENTITY_SECRET;
 
-  if (!contractAddress || !agentWalletId) {
+  if (!contractAddress || !agentWalletId || !apiKey || !entitySecret) {
     return res.status(500).json({
       error: "Agent not configured",
       missing: [
         !agentWalletId && "CIRCLE_AGENT_WALLET_ID",
         !contractAddress && "BUILDER_CREDIT_ARC_ADDRESS",
+        !apiKey && "CIRCLE_API_KEY",
+        !entitySecret && "CIRCLE_ENTITY_SECRET",
       ].filter(Boolean),
     });
   }
-
-  // Agent wallet may use separate test credentials (different wallet set)
-  const agentApiKey = process.env.TEST_CIRCLE_API_KEY || process.env.CIRCLE_API_KEY;
-  const agentSecret = process.env.CIRCLE_ENTITY_SECRET;
-  const agentWalletSetId = process.env.CIRCLE_AGENT_WALLET_SET_ID;
-
-  if (!agentApiKey || !agentSecret) {
-    return res.status(500).json({
-      error: "Circle API not configured",
-      missing: [!agentApiKey && "CIRCLE_API_KEY", !agentSecret && "CIRCLE_ENTITY_SECRET"].filter(Boolean),
-    });
-  }
-
-  // Create a dedicated client for the agent wallet
-  const agentClient = initiateDeveloperControlledWalletsClient({
-    apiKey: agentApiKey,
-    entitySecret: agentSecret,
-  });
-
-  const getWalletById = async (walletId) => {
-    const resp = await agentClient.getWallet({ id: walletId });
-    return resp.data?.wallet;
-  };
-
-  const createTx = async (walletId, destinationAddress, contractAddress, calldata) => {
-    const { randomUUID } = require("crypto");
-    const resp = await agentClient.createTransaction({
-      idempotencyKey: randomUUID(),
-      walletId,
-      destinationAddress,
-      contractAddress,
-      calldata,
-      fee: { feeLevel: "MEDIUM" },
-    });
-    return resp.data?.transaction;
-  };
 
   const { projects } = req.body || {};
   if (!projects || !Array.isArray(projects) || projects.length === 0) {
@@ -126,24 +108,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verify agent wallet exists and get its address
-    const agentWallet = await getWalletById(agentWalletId);
-    const agentAddress = agentWallet.address;
+    // Generate fresh entity secret ciphertext
+    let ciphertext;
+    try {
+      ciphertext = await generateEntitySecretCiphertext({ entitySecret, apiKey });
+    } catch (e) {
+      return res.status(500).json({ error: "Failed to generate entity secret", details: e.message });
+    }
 
-    const totalAmount = projects.reduce((sum, p) => sum + (p.amount || 0), 0);
-
-    // Pre-approve BuilderCreditCore to spend agent's USDC (one-time)
-    // Uses Circle API to create a contract call: USDC.approve(BuilderCreditCore, max)
+    // Pre-approve BuilderCreditCore to spend agent's USDC
     const approveCalldata = encodeApproveCall(contractAddress);
-    await createTx(agentWalletId, USDC_ADDRESS, USDC_ADDRESS, approveCalldata);
+    await createContractTx(apiKey, ciphertext, agentWalletId, USDC_ADDRESS, USDC_ADDRESS, approveCalldata);
 
-    // Execute backings via Circle-signed contract calls
+    // Execute backings
     const results = [];
     for (const project of projects) {
       try {
         const calldata = encodeBackCall(project.id, project.multiplier, project.amount);
-        const tx = await createTx(agentWalletId, contractAddress, contractAddress, calldata);
-
+        const tx = await createContractTx(apiKey, ciphertext, agentWalletId, contractAddress, contractAddress, calldata);
         results.push({
           projectId: project.id,
           amount: project.amount,
@@ -162,16 +144,14 @@ export default async function handler(req, res) {
       }
     }
 
-    const successful = results.filter((r) => r.status === "success");
-    const failed = results.filter((r) => r.status === "failed");
+    const successful = results.filter(r => r.status === "success");
+    const failed = results.filter(r => r.status === "failed");
 
-    // Log execution to Firestore
     const runId = `exec_${Date.now()}`;
     await db.collection("agent_runs").doc(runId).set({
       type: "execution",
       timestamp: new Date().toISOString(),
       agentWalletId,
-      agentAddress,
       chain: "arc-testnet",
       totalBacked: successful.length,
       totalFailed: failed.length,
@@ -182,14 +162,13 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       runId,
-      agentAddress,
       agentWalletId,
-      circleManaged: true, // Indicates the agent wallet is managed by Circle
+      circleManaged: true,
       summary: {
         backed: successful.length,
         failed: failed.length,
         totalStaked: successful.reduce((s, r) => s + r.amount, 0).toFixed(2) + " USDC",
-        txHashes: successful.map((r) => r.txHash).filter(Boolean),
+        txHashes: successful.map(r => r.txHash).filter(Boolean),
       },
       results,
     });

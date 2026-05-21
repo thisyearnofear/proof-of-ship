@@ -1,16 +1,17 @@
 # Changelog
 
+## 2026-05-21 — Circle Agent Wallet Integration Verified
+
+- Created ARC-TESTNET agent wallet via Circle API: `e7034022-f0c8-5c35-8f96-667b680c250b` (`0xdea33f28b244cf467a402808757bf75065cb7ee8`)
+- Wallet funded with $20 USDC on Arc Testnet
+- `execute.js` rewritten to use Circle's raw REST API for contract execution (SDK v10.3.1 has an axios interceptor bug with `createContractExecutionTransaction`)
+- Uses `generateEntitySecretCiphertext` from SDK (works) + direct HTTPS POST to `/v1/w3s/developer/transactions/contractExecution` (works)
+- Full flow verified: Circle signs and submits contract calls on Arc — approve USDC → backProject
+- SDK bug tracked: `TypeError: Cannot read properties of undefined (reading 'config')` at line 46 of SDK bundle — axios response interceptor issue
+- Created `frontend/scripts/create-agent-wallet.mjs` for future wallet creation
+- `RealCircleService.createTransaction()` extended with contractAddress + calldata support (can be used once SDK is fixed)
+
 ## 2026-05-21 — Circle Agent Wallet Migration (execute.js)
-
-- `execute.js` no longer uses raw `AGENT_PRIVATE_KEY` env var for on-chain backings
-- Migrated to Circle Developer-Controlled Wallets API via `RealCircleService`
-- Agent wallet is managed in Circle Console — Circle holds the key, we never see it
-- Added `contractAddress` + `calldata` support to `RealCircleService.createTransaction()`
-- Added `CIRCLE_AGENT_WALLET_ID` env var (replaces `AGENT_PRIVATE_KEY`)
-- Updated `.env.example` and `serverConfig.js` with new config
-- Backward compatible: existing `AGENT_PRIVATE_KEY` can be removed from env
-
-## 2026-05-21 — Contracts Redeployed (Arc + Devnet) After Architecture Fixes
 
 - Solana program redeployed to **`DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st`** on devnet
 - EVM BuilderCreditCore redeployed on Arc Testnet via UUPS proxy:

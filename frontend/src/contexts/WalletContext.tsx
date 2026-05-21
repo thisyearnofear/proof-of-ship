@@ -19,14 +19,15 @@ import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { ethers, providers, Signer } from 'ethers';
 import { getUSDCAddress } from '../config/networks';
-import { walletService } from '../services/walletService';
 
 import type { WalletContextType, CreditProfile, NetworkConfig } from './wallet/types';
 export type { WalletContextType, CreditProfile } from './wallet/types';
 import { NETWORK_CONFIGS, getSolanaEndpoint, getSolanaConnection } from './wallet/constants';
 
+// Circle consumers now import from CircleContext directly.
 // Nanopayment consumers now import from NanopaymentContext directly.
-// Re-export for backward compatibility.
+// Re-exports for backward compatibility.
+export { useCircleWallet } from './CircleContext';
 export { useNanopayment } from './NanopaymentContext';
 
 // ============================================================================
@@ -67,10 +68,6 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const [networkName, setNetworkName] = useState<string>('');
   const [ethersProvider, setEthersProvider] = useState<providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<Signer | null>(null);
-  
-  // Circle Wallet state
-  const [circleWallets, setCircleWallets] = useState<any[]>([]);
-  const [circleConfig, setCircleConfig] = useState<any>(null);
   
   // Builder Credit state
   const [creditProfile, setCreditProfile] = useState<CreditProfile | null>(null);
@@ -114,79 +111,6 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       setActiveProvider(window.ethereum);
     }
   }, [sdk, provider]);
-  
-  const refreshCircleWallets = useCallback(async () => {
-    try {
-      const result = await walletService.getWallets();
-      if (result.success) {
-        setCircleWallets(result.data.wallets || []);
-      }
-    } catch (err: any) {
-      console.warn('Failed to fetch Circle wallets:', err?.message || err);
-    }
-  }, []);
-
-  const initializeCircleService = useCallback(async () => {
-    try {
-      const config = await walletService.getConfig();
-      if (config.success) {
-        setCircleConfig(config.data);
-        await refreshCircleWallets();
-      }
-    } catch (err: unknown) {
-      console.warn('Circle initialization skipped:', err instanceof Error ? err.message : err);
-    }
-  }, [refreshCircleWallets]);
-
-  // Initialize Circle Wallet Service (declared AFTER callbacks to avoid TDZ on deps array)
-  useEffect(() => {
-    initializeCircleService();
-  }, [initializeCircleService]);
-  
-  const createCircleWallet = useCallback(async (config: any = {}) => {
-    if (!circleConfig) throw new Error('Circle not initialized');
-    setLoading(true);
-    try {
-      const walletParams = {
-        idempotencyKey: `wallet-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        metadata: {
-          name: config.name || 'Developer Wallet',
-          userId: config.userId || account || 'anonymous',
-          ...config.metadata
-        }
-      };
-      const result = await walletService.createWallet(walletParams);
-      if (result.success) {
-        await refreshCircleWallets();
-        return result.data;
-      } else {
-        throw new Error(result.error || 'Failed to create wallet');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [circleConfig, account, refreshCircleWallets]);
-  
-  const transferUSDC = useCallback(async (amount: number, destinationAddress: string, walletId: string, reason?: string) => {
-    setLoading(true);
-    try {
-      const transferRequest = {
-        idempotencyKey: `transfer-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        walletId,
-        amount: amount.toString(),
-        destinationAddress,
-        metadata: { reason: reason || 'Transfer' }
-      };
-      const result = await walletService.transferUSDC(transferRequest);
-      if (result.success) {
-        return result.data;
-      } else {
-        throw new Error(result.error || 'Transfer failed');
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
  
   // Builder Credit methods
   const loadCreditProfile = useCallback(async () => {
@@ -503,8 +427,6 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     ethersProvider, signer, connected, connecting, loading, error, activeProvider, provider,
     getBalance, getTokenBalance, getUSDCBalance, switchNetwork, addToken, addUSDCToken,
     networkConfigs: NETWORK_CONFIGS, getCurrentUSDCAddress,
-    // Circle Wallet
-    circleWallets, circleConfig, createCircleWallet, refreshCircleWallets, transferUSDC,
     // Builder Credit
     creditProfile, repayLoan, loadCreditProfile, requestFunding,
     postCheckIn: async (projectId: number, metadata: string) => {
@@ -529,56 +451,6 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
 // ============================================================================
 // Backward Compatibility Hooks
 // ============================================================================
-
-// useCircleWallet - maps to WalletContext circle functionality
-export const useCircleWallet = () => {
-  const wallet = useWallet();
-  return {
-    // Circle Wallet state
-    circleWallets: wallet.circleWallets,
-    circleConfig: wallet.circleConfig,
-    loading: wallet.loading,
-    error: wallet.error,
-    // Circle Wallet methods
-    createWallet: wallet.createCircleWallet,
-    refreshWallets: wallet.refreshCircleWallets,
-    transferUSDC: wallet.transferUSDC,
-    // Funding methods (delegated to creditService)
-    requestFunding: async (
-      walletId: string | null,
-      githubUrl: string,
-      projectName: string,
-      milestones: string[] = [],
-      rewards: string[] = [],
-      hackathons: number[] = [],
-      addresses: string[] = [],
-      shares: number[] = []
-    ): Promise<any> => {
-      return wallet.requestFunding({
-        walletId: walletId || undefined,
-        githubUrl,
-        projectName: projectName?.toString(),
-        milestoneDescriptions: milestones,
-        milestoneAmounts: rewards,
-        hackathonIds: hackathons,
-        teamMembers: addresses,
-        teamShares: shares
-      });
-    },
-    getFundingHistory: async (address: string) => {
-      // Return empty for now - implement via creditService if needed
-      return [];
-    },
-    checkAPIConfiguration: async () => {
-      if (!wallet.circleConfig) {
-        return { configured: false, message: 'Circle API not configured' };
-      }
-      return { configured: true, message: 'Circle API configured' };
-    },
-    isConfigured: () => !!wallet.circleConfig,
-    getEnvironment: () => wallet.circleConfig?.environment || 'sandbox',
-  };
-};
 
 // useBuilderCredit - maps to WalletContext functionality
 export const useBuilderCredit = () => {

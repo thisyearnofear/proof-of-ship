@@ -15,29 +15,24 @@ export default async function handler(req, res) {
   try {
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 30);
 
-    // Fetch recent follow events globally
-    const followSnap = await db
-      .collection("follow_events")
-      .orderBy("createdAt", "desc")
+    // Fetch from the global activities collection (follow events and ships logs both flow here)
+    const activitiesSnap = await db
+      .collection("activities")
+      .orderBy("timestamp", "desc")
       .limit(limit)
       .get();
 
     const activities = [];
 
-    for (const docSnap of followSnap.docs) {
+    for (const docSnap of activitiesSnap.docs) {
       const data = docSnap.data();
-      const followerName = data.followerDisplayName || data.followerGithubUsername || "Someone";
-
       activities.push({
         id: docSnap.id,
-        type: "follow",
-        user: followerName,
-        message:
-          data.type === "follow"
-            ? `Started following a builder`
-            : `Unfollowed a builder`,
-        time: formatTimeAgo(data.createdAt),
-        timestamp: data.createdAt,
+        type: mapActivityType(data.type),
+        user: data.userHandle || "Someone",
+        message: data.description || "",
+        time: formatTimeAgo(data.timestamp),
+        timestamp: data.timestamp,
       });
     }
 
@@ -47,6 +42,25 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Activity feed error:", error);
     return res.status(500).json({ error: "Internal server error", activities: [] });
+  }
+}
+
+function mapActivityType(type) {
+  switch (type) {
+    case "project_submitted":
+    case "ship":
+      return "ship";
+    case "milestone_verified":
+    case "verify":
+      return "verify";
+    case "payout_processed":
+    case "fund":
+      return "fund";
+    case "follow":
+    case "unfollow":
+      return "follow";
+    default:
+      return "ship";
   }
 }
 

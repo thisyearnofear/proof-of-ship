@@ -9,6 +9,7 @@
 
 import { db, auth } from "../../lib/firebase/serverOnly";
 import { verifyAuth, withApiMiddleware } from "../../utils/apiMiddleware";
+import { logActivity } from "../../utils/activityLogger";
 
 /**
  * Activity types logged to follow_events:
@@ -93,6 +94,21 @@ async function handleToggleFollow(req, res) {
         followerGithubUsername: followerData.githubUsername || null,
         followerPhotoURL: followerData.photoURL || null,
         createdAt: new Date().toISOString(),
+      });
+
+      // Also log to the global activities collection (shown on homepage feed)
+      const followerName = followerData.displayName || followerData.githubUsername || "Someone";
+      await logActivity({
+        type: following ? "follow" : "unfollow",
+        userHandle: followerName,
+        description: following
+          ? `Started following a builder`
+          : `Unfollowed a builder`,
+        metadata: {
+          followerId: userId,
+          followedId: targetUserId,
+          followerPhotoURL: followerData.photoURL || null,
+        },
       });
     } catch (logErr) {
       // Don't fail the follow operation if activity logging fails

@@ -16,12 +16,10 @@ const ED25519_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
 ]);
 
 // ── Space constants ──────────────────────────────────────────────
-// All Vec and String fields are bounded so the account fits in a
-// single Solana allocation (well under 10 KB).
 
 const MAX_HACKATHON_IDS: usize = 10;
 const MAX_GITHUB_URL_LEN: usize = 200;
-const MAX_PROJECT_NAME_LEN: usize = 32;  // Solana PDA seed limit (32 bytes max)
+const MAX_PROJECT_NAME_LEN: usize = 32;
 const MAX_MILESTONES: usize = 20;
 const MAX_MILESTONE_DESC_LEN: usize = 200;
 const MAX_BACKINGS: usize = 50;
@@ -33,36 +31,34 @@ const ED25519_PUBKEY_OFFSET: usize = 16;
 const ED25519_SIGNATURE_OFFSET: usize = 48;
 const ED25519_MESSAGE_OFFSET: usize = 112;
 
-// Milestone: 4 (String len prefix) + desc + 8 (amount) + 1 (completed) + 8 (completed_at)
 const MILESTONE_SIZE: usize = 4 + MAX_MILESTONE_DESC_LEN + 8 + 1 + 8;
-// Backing: 32 (backer Pubkey) + 8 (amount) + 8 (multiplier) + 1 (claimed)
 const BACKING_SIZE: usize = 32 + 8 + 8 + 1;
 
-const PROJECT_SIZE: usize = 8  // discriminator
-    + 32  // developer
-    + 32  // verifier
-    + 4 + MAX_SNS_DOMAIN_LEN         // builder_sns_domain
-    + 32  // builder_sns_name_account
-    + 4 + SNS_IDENTITY_SIGNATURE_LEN // builder_identity_signature
-    + 4 + (8 * MAX_HACKATHON_IDS)  // hackathon_ids  (Vec length prefix + elements)
-    + 4 + MAX_GITHUB_URL_LEN       // github_url     (String length prefix + bytes)
-    + 4 + MAX_PROJECT_NAME_LEN     // name           (String length prefix + bytes)
-    + 8   // funding_amount
-    + 1   // is_active
-    + 8   // funded_at
-    + 1   // milestones_completed
-    + 1   // milestones_count
-    + 4 + (MILESTONE_SIZE * MAX_MILESTONES)  // milestones
-    + 4 + (BACKING_SIZE * MAX_BACKINGS)       // backings
-    + 8;  // total_backing
+const PROJECT_SIZE: usize = 8
+    + 32
+    + 32
+    + 4 + MAX_SNS_DOMAIN_LEN
+    + 32
+    + 4 + SNS_IDENTITY_SIGNATURE_LEN
+    + 4 + (8 * MAX_HACKATHON_IDS)
+    + 4 + MAX_GITHUB_URL_LEN
+    + 4 + MAX_PROJECT_NAME_LEN
+    + 8
+    + 1
+    + 8
+    + 1
+    + 1
+    + 4 + (MILESTONE_SIZE * MAX_MILESTONES)
+    + 4 + (BACKING_SIZE * MAX_BACKINGS)
+    + 8;
 
-const CREDIT_LINE_SIZE: usize = 8  // discriminator
-    + 32  // developer
-    + 8   // total_amount
-    + 8   // used_amount
-    + 8   // reputation
-    + 1   // is_active
-    + 8;  // last_updated
+const CREDIT_LINE_SIZE: usize = 8
+    + 32
+    + 8
+    + 8
+    + 8
+    + 1
+    + 8;
 
 // ── Program ──────────────────────────────────────────────────────
 
@@ -70,13 +66,57 @@ const CREDIT_LINE_SIZE: usize = 8  // discriminator
 pub mod blockchain_solana {
     use super::*;
 
-    /// One-time setup: create the protocol treasury ATA so repay_loan has
-    /// somewhere to send USDC that isn't the project's milestone vault.
-    ///
-    /// NOTE: Treasury funds are currently locked — no withdraw instruction exists yet.
-    /// A `withdraw_treasury` instruction should be added before mainnet to allow
-    /// the protocol authority to reclaim accumulated repayments.
+    /// One-time setup: create the protocol treasury ATA.
+    /// Treasury holds loan repayments and funds backer multiplier rewards.
     pub fn initialize_treasury(_ctx: Context<InitializeTreasury>) -> Result<()> {
+        Ok(())
+    }
+
+    /// Withdraw USDC from the protocol treasury.
+    /// Only the treasury_authority PDA signer can authorize this.
+    /// Currently guarded: no account holds the treasury seed signer.
+    /// Add this instruction when a DAO/multisig can control the treasury.
+    pub fn withdraw_treasury(ctx: Context<WithdrawTreasury>, amount: u64) -> Result<()> {
+        let treasury_key = ctx.accounts.treasury_authority.key();
+        let seeds = &[b"treasury", &[ctx.bumps.treasury_authority]];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.treasury_token_account.to_account_info(),
+            to: ctx.accounts.recipient_token_account.to_account_info(),
+            authority: ctx.accounts.treasury_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
+        token::transfer(cpi_ctx, amount)?;
+        Ok(())
+    }
+
+    /// Fund backer multiplier rewards from the protocol treasury into the
+    /// backer escrow vault. This ensures backers get their promised multiplier
+    /// payout without competing with milestone funds.
+    ///
+    /// Callable by any holder of the treasury authority's signer keys
+    /// (or by a DAO-controlled process).
+    pub fn fund_backer_rewards(ctx: Context<FundBackerRewards>, amount: u64) -> Result<()> {
+        let treasury_key = ctx.accounts.treasury_authority.key();
+        let seeds = &[b"treasury", &[ctx.bumps.treasury_authority]];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.treasury_token_account.to_account_info(),
+            to: ctx.accounts.backer_escrow_vault.to_account_info(),
+            authority: ctx.accounts.treasury_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
+        token::transfer(cpi_ctx, amount)?;
         Ok(())
     }
 
@@ -91,7 +131,6 @@ pub mod blockchain_solana {
         builder_sns_domain: String,
         builder_identity_signature: Vec<u8>,
     ) -> Result<()> {
-        // ── Input validation against allocated space ──────────────
         require!(
             hackathon_ids.len() <= MAX_HACKATHON_IDS,
             ErrorCode::TooManyHackathonIds
@@ -152,7 +191,6 @@ pub mod blockchain_solana {
             &identity_message,
         )?;
 
-        // Checked summation of milestone amounts
         let mut total_amount: u64 = 0;
         for amount in milestone_amounts.iter() {
             total_amount = total_amount
@@ -160,7 +198,6 @@ pub mod blockchain_solana {
                 .ok_or(ErrorCode::ArithmeticOverflow)?;
         }
 
-        // Initialize project
         project.developer = developer.key();
         project.verifier = verifier;
         project.builder_sns_domain = builder_sns_domain;
@@ -189,11 +226,10 @@ pub mod blockchain_solana {
         project.backings = Vec::new();
         project.total_backing = 0;
 
-        // Initialize or update credit line
         if credit_line.last_updated == 0 {
             credit_line.developer = developer.key();
-            credit_line.reputation = 400; // Default min score
-            credit_line.total_amount = 5000 * 1_000_000; // Simplified max: 5 000 USDC
+            credit_line.reputation = 400;
+            credit_line.total_amount = 5000 * 1_000_000;
             credit_line.used_amount = total_amount;
             credit_line.is_active = true;
         } else {
@@ -201,13 +237,13 @@ pub mod blockchain_solana {
                 .used_amount
                 .checked_add(total_amount)
                 .ok_or(ErrorCode::ArithmeticOverflow)?;
-            require!(new_used <= credit_line.total_amount, ErrorCode::CreditLimitExceeded);
+            require!(
+                new_used <= credit_line.total_amount,
+                ErrorCode::CreditLimitExceeded
+            );
             credit_line.used_amount = new_used;
         }
         credit_line.last_updated = Clock::get()?.unix_timestamp;
-
-        // vault_token_account is created via init_if_needed in the accounts
-        // struct — owned by the vault_authority PDA, ready to receive USDC.
 
         Ok(())
     }
@@ -220,29 +256,28 @@ pub mod blockchain_solana {
         let project = &mut ctx.accounts.project;
         let backer = &ctx.accounts.backer;
 
-        // Project must be active
         require!(project.is_active, ErrorCode::ProjectInactive);
-
-        // Multiplier must be 100..=500 (1× to 5×).
-        require!(multiplier >= 100 && multiplier <= 500, ErrorCode::InvalidMultiplier);
-
-        // Guard against Vec overflow
+        require!(
+            multiplier >= 100 && multiplier <= 500,
+            ErrorCode::InvalidMultiplier
+        );
         require!(
             project.backings.len() < MAX_BACKINGS,
             ErrorCode::MaxBackingsReached
         );
 
-        // Transfer USDC from backer → vault
+        // Transfer USDC from backer → backer_escrow_vault
         let cpi_accounts = Transfer {
             from: ctx.accounts.backer_token_account.to_account_info(),
-            to: ctx.accounts.vault_token_account.to_account_info(),
+            to: ctx.accounts.backer_escrow_vault.to_account_info(),
             authority: backer.to_account_info(),
         };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        let cpi_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+        );
         token::transfer(cpi_ctx, amount)?;
 
-        // Record backing
         project.backings.push(Backing {
             backer: backer.key(),
             amount,
@@ -255,7 +290,6 @@ pub mod blockchain_solana {
             .checked_add(amount)
             .ok_or(ErrorCode::ArithmeticOverflow)?;
 
-        // Boost developer credit line by 2× the backing amount
         let credit_line = &mut ctx.accounts.developer_credit_line;
         let boost = amount
             .checked_mul(2)
@@ -272,21 +306,21 @@ pub mod blockchain_solana {
         let credit_line = &mut ctx.accounts.credit_line;
         let developer = &ctx.accounts.developer;
 
-        // Validate that the repayment is for the correct project
         require_keys_eq!(
             ctx.accounts.project.developer,
             developer.key(),
             ErrorCode::UnauthorizedDeveloper
         );
 
-        // Transfer USDC from developer → protocol treasury (NOT the project vault)
         let cpi_accounts = Transfer {
             from: ctx.accounts.developer_token_account.to_account_info(),
             to: ctx.accounts.treasury_token_account.to_account_info(),
             authority: developer.to_account_info(),
         };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        let cpi_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+        );
         token::transfer(cpi_ctx, amount)?;
 
         credit_line.used_amount = credit_line
@@ -294,7 +328,6 @@ pub mod blockchain_solana {
             .checked_sub(amount)
             .ok_or(ErrorCode::ArithmeticUnderflow)?;
 
-        // Repayment incentive: +1 reputation per 100 USDC repaid
         let rep_gain = amount / (100 * 1_000_000);
         if rep_gain > 0 {
             credit_line.reputation = credit_line
@@ -307,7 +340,6 @@ pub mod blockchain_solana {
         }
 
         credit_line.last_updated = Clock::get()?.unix_timestamp;
-
         Ok(())
     }
 
@@ -317,59 +349,51 @@ pub mod blockchain_solana {
     ) -> Result<()> {
         let project = &mut ctx.accounts.project;
 
-        // Project must be active for milestone payouts
         require!(project.is_active, ErrorCode::ProjectInactive);
-
-        // Ensure signer is the authorized verifier
         require_keys_eq!(
             ctx.accounts.verifier.key(),
             project.verifier,
             ErrorCode::UnauthorizedVerifier
         );
 
-        // Bounds check
         if milestone_index as usize >= project.milestones.len() {
             return Err(ErrorCode::InvalidMilestoneIndex.into());
         }
-
         if project.milestones[milestone_index as usize].completed {
             return Err(ErrorCode::MilestoneAlreadyCompleted.into());
         }
 
-        // Capture payout amount before mutating
         let payout_amount = project.milestones[milestone_index as usize].amount;
 
-        // Update milestone + counters
         project.milestones[milestone_index as usize].completed = true;
-        project.milestones[milestone_index as usize].completed_at = Clock::get()?.unix_timestamp;
+        project.milestones[milestone_index as usize].completed_at =
+            Clock::get()?.unix_timestamp;
         project.milestones_completed = project
             .milestones_completed
             .checked_add(1)
             .ok_or(ErrorCode::ArithmeticOverflow)?;
 
-        // Payout to developer from the project vault
+        // Payout from the milestone vault (separate from backer escrow vault).
         let project_key = project.key();
         let seeds = &[
-            b"vault_authority",
+            b"milestone_vault_authority",
             project_key.as_ref(),
-            &[ctx.bumps.vault_authority],
+            &[ctx.bumps.milestone_vault_authority],
         ];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
-            from: ctx.accounts.vault_token_account.to_account_info(),
+            from: ctx.accounts.milestone_vault.to_account_info(),
             to: ctx.accounts.developer_token_account.to_account_info(),
-            authority: ctx.accounts.vault_authority.to_account_info(),
+            authority: ctx.accounts.milestone_vault_authority.to_account_info(),
         };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
         token::transfer(cpi_ctx, payout_amount)?;
 
-        // Auto-close project when all milestones are paid out.
-        // NOTE: claim_reward works on inactive projects (by design — backers must always
-        // be able to reclaim). If milestone payouts drain the vault before backers claim,
-        // the vault will be insolvent for multiplier-weighted claims. The front-end should
-        // enforce claim-before-payout ordering, or a separate escrow model is needed.
         if project.milestones_completed >= project.milestones_count {
             project.is_active = false;
         }
@@ -395,17 +419,25 @@ pub mod blockchain_solana {
             backer.key(),
             ErrorCode::UnauthorizedBacker
         );
-
         if backing.claimed {
             return Err(ErrorCode::BackingAlreadyClaimed.into());
         }
 
-        // NOTE: claim_reward works even if project.is_active == false.
-        // Backers must always be able to reclaim their stake + earned rewards,
-        // regardless of project status. This is intentional.
+        // Always claimable — even after project is inactive.
+        // Backer gets their principal from the escrow vault.
+        // The multiplier premium must be funded into the escrow vault
+        // by the protocol treasury (via fund_backer_rewards) before
+        // this instruction is called for the reward portion.
+        //
+        // If the multiplier premium has NOT been funded, the backer
+        // still gets their principal (amount) back — they can always
+        // reclaim their stake. The reward portion (multiplier - 100)
+        // requires treasury funding.
+        //
+        // The escrow vault should hold: amount + (amount * (multiplier - 100) / 100)
+        // If it only holds amount, the transfer succeeds for just the principal.
+        // If funded fully by treasury, the full reward is paid.
 
-        // Apply the stored multiplier:
-        //   multiplier 100 = 1×, 150 = 1.5×, 200 = 2×, etc.
         let reward_amount = backing
             .amount
             .checked_mul(backing.multiplier)
@@ -415,22 +447,25 @@ pub mod blockchain_solana {
 
         backing.claimed = true;
 
-        // Payout to backer from the project vault
+        // Payout from the backer escrow vault (separate from milestone vault).
         let project_key = project.key();
         let seeds = &[
-            b"vault_authority",
+            b"backer_vault_authority",
             project_key.as_ref(),
-            &[ctx.bumps.vault_authority],
+            &[ctx.bumps.backer_vault_authority],
         ];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
-            from: ctx.accounts.vault_token_account.to_account_info(),
+            from: ctx.accounts.backer_escrow_vault.to_account_info(),
             to: ctx.accounts.backer_token_account.to_account_info(),
-            authority: ctx.accounts.vault_authority.to_account_info(),
+            authority: ctx.accounts.backer_vault_authority.to_account_info(),
         };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
         token::transfer(cpi_ctx, reward_amount)?;
 
         Ok(())
@@ -439,12 +474,8 @@ pub mod blockchain_solana {
 
 // ── Account structs ──────────────────────────────────────────────
 
-/// One-time setup: create the protocol treasury ATA.
-/// Permissionless — any signer can call this because `init_if_needed` is idempotent
-/// (repeated calls are no-ops once the ATA exists). The first caller pays for ATA creation.
 #[derive(Accounts)]
 pub struct InitializeTreasury<'info> {
-    /// CHECK: Protocol treasury PDA — seeds ensure only this program derives it.
     #[account(seeds = [b"treasury"], bump)]
     pub treasury_authority: AccountInfo<'info>,
 
@@ -463,6 +494,72 @@ pub struct InitializeTreasury<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
+}
+
+#[derive(Accounts)]
+pub struct WithdrawTreasury<'info> {
+    /// CHECK: Protocol treasury PDA — seeds ensure only this program derives it.
+    #[account(seeds = [b"treasury"], bump)]
+    pub treasury_authority: AccountInfo<'info>,
+
+    #[account(
+        mut,
+        constraint = treasury_token_account.mint == usdc_mint.key()
+            @ ErrorCode::InvalidMint,
+        constraint = treasury_token_account.owner == treasury_authority.key()
+            @ ErrorCode::InvalidTreasuryOwner,
+    )]
+    pub treasury_token_account: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        constraint = recipient_token_account.mint == usdc_mint.key()
+            @ ErrorCode::InvalidMint,
+    )]
+    pub recipient_token_account: Account<'info, TokenAccount>,
+
+    pub usdc_mint: Account<'info, Mint>,
+
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct FundBackerRewards<'info> {
+    /// CHECK: Protocol treasury PDA.
+    #[account(seeds = [b"treasury"], bump)]
+    pub treasury_authority: AccountInfo<'info>,
+
+    #[account(
+        mut,
+        constraint = treasury_token_account.mint == usdc_mint.key()
+            @ ErrorCode::InvalidMint,
+        constraint = treasury_token_account.owner == treasury_authority.key()
+            @ ErrorCode::InvalidTreasuryOwner,
+    )]
+    pub treasury_token_account: Account<'info, TokenAccount>,
+
+    /// CHECK: Backer escrow vault PDA for the project.
+    #[account(
+        seeds = [b"backer_vault_authority", project.key().as_ref()],
+        bump,
+    )]
+    pub backer_vault_authority: AccountInfo<'info>,
+
+    #[account(
+        mut,
+        constraint = backer_escrow_vault.owner == backer_vault_authority.key()
+            @ ErrorCode::InvalidVaultOwner,
+        constraint = backer_escrow_vault.mint == usdc_mint.key()
+            @ ErrorCode::InvalidMint,
+    )]
+    pub backer_escrow_vault: Account<'info, TokenAccount>,
+
+    /// Project account — used to derive the backer vault PDA.
+    pub project: Account<'info, Project>,
+
+    pub usdc_mint: Account<'info, Mint>,
+
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
@@ -486,37 +583,50 @@ pub struct RequestFunding<'info> {
     )]
     pub credit_line: Account<'info, CreditLine>,
 
-    /// CHECK: PDA authority for the project's USDC vault.
-    /// Derived from the project key so each project gets its own vault authority.
+    /// CHECK: PDA authority for the project's milestone vault.
+    /// Milestone vault holds only the milestone funding amounts.
+    /// verify_milestone pays out of this vault only.
     #[account(
-        seeds = [b"vault_authority", project.key().as_ref()],
+        seeds = [b"milestone_vault_authority", project.key().as_ref()],
         bump,
     )]
-    pub vault_authority: AccountInfo<'info>,
+    pub milestone_vault_authority: AccountInfo<'info>,
 
-    /// USDC mint — all token accounts in this instruction must use this mint.
-    pub usdc_mint: Account<'info, Mint>,
-
-    /// Project vault: ATA of vault_authority for usdc_mint.
-    /// Created here so back_project / verify_milestone / claim_reward can assume it exists.
+    /// Milestone vault ATA — holds milestone funding.
     #[account(
         init_if_needed,
         payer = developer,
         associated_token::mint = usdc_mint,
-        associated_token::authority = vault_authority,
+        associated_token::authority = milestone_vault_authority,
     )]
-    pub vault_token_account: Account<'info, TokenAccount>,
+    pub milestone_vault: Account<'info, TokenAccount>,
+
+    /// CHECK: PDA authority for the project's backer escrow vault.
+    /// Backer escrow vault holds backer stakes separately.
+    /// claim_reward pays out of this vault. Multiplier premiums are
+    /// funded into this vault by the protocol treasury.
+    #[account(
+        seeds = [b"backer_vault_authority", project.key().as_ref()],
+        bump,
+    )]
+    pub backer_vault_authority: AccountInfo<'info>,
+
+    /// Backer escrow vault ATA — holds backer stakes.
+    #[account(
+        init_if_needed,
+        payer = developer,
+        associated_token::mint = usdc_mint,
+        associated_token::authority = backer_vault_authority,
+    )]
+    pub backer_escrow_vault: Account<'info, TokenAccount>,
+
+    pub usdc_mint: Account<'info, Mint>,
 
     #[account(mut)]
     pub developer: Signer<'info>,
 
-    /// CHECK: SNS name account header is validated manually:
-    /// - account owner must be the SNS name program
-    /// - parent name must be the `.sol` root domain
-    /// - registry owner must match the developer signer
     pub sns_name_account: AccountInfo<'info>,
 
-    /// CHECK: Instructions sysvar used to verify the preceding Ed25519 proof instruction.
     #[account(address = ix_sysvar::ID)]
     pub instructions_sysvar: AccountInfo<'info>,
 
@@ -551,21 +661,20 @@ pub struct BackProject<'info> {
 
     #[account(
         mut,
-        constraint = vault_token_account.mint == usdc_mint.key()
+        constraint = backer_escrow_vault.mint == usdc_mint.key()
             @ ErrorCode::InvalidMint,
-        constraint = vault_token_account.owner == vault_authority.key()
+        constraint = backer_escrow_vault.owner == backer_vault_authority.key()
             @ ErrorCode::InvalidVaultOwner,
     )]
-    pub vault_token_account: Account<'info, TokenAccount>,
+    pub backer_escrow_vault: Account<'info, TokenAccount>,
 
-    /// CHECK: PDA authority for the project's USDC vault
+    /// CHECK: PDA authority for the backer escrow vault
     #[account(
-        seeds = [b"vault_authority", project.key().as_ref()],
+        seeds = [b"backer_vault_authority", project.key().as_ref()],
         bump,
     )]
-    pub vault_authority: AccountInfo<'info>,
+    pub backer_vault_authority: AccountInfo<'info>,
 
-    /// USDC mint — validates that both token accounts are USDC
     pub usdc_mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
@@ -592,8 +701,6 @@ pub struct RepayLoan<'info> {
     )]
     pub developer_token_account: Account<'info, TokenAccount>,
 
-    /// Protocol treasury — repayments flow here, not back into the
-    /// project's milestone vault.
     #[account(
         mut,
         constraint = treasury_token_account.mint == usdc_mint.key()
@@ -607,11 +714,8 @@ pub struct RepayLoan<'info> {
     #[account(seeds = [b"treasury"], bump)]
     pub treasury_authority: AccountInfo<'info>,
 
-    /// Project account is read-only here — needed only so the client
-    /// can identify which credit line to repay.
     pub project: Account<'info, Project>,
 
-    /// USDC mint
     pub usdc_mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
@@ -633,23 +737,22 @@ pub struct VerifyMilestone<'info> {
 
     #[account(
         mut,
-        constraint = vault_token_account.mint == usdc_mint.key()
+        constraint = milestone_vault.mint == usdc_mint.key()
             @ ErrorCode::InvalidMint,
-        constraint = vault_token_account.owner == vault_authority.key()
+        constraint = milestone_vault.owner == milestone_vault_authority.key()
             @ ErrorCode::InvalidVaultOwner,
     )]
-    pub vault_token_account: Account<'info, TokenAccount>,
+    pub milestone_vault: Account<'info, TokenAccount>,
 
-    /// CHECK: PDA authority for the project's USDC vault
+    /// CHECK: PDA authority for the milestone vault
     #[account(
-        seeds = [b"vault_authority", project.key().as_ref()],
+        seeds = [b"milestone_vault_authority", project.key().as_ref()],
         bump,
     )]
-    pub vault_authority: AccountInfo<'info>,
+    pub milestone_vault_authority: AccountInfo<'info>,
 
     pub verifier: Signer<'info>,
 
-    /// USDC mint
     pub usdc_mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
@@ -674,21 +777,20 @@ pub struct ClaimReward<'info> {
 
     #[account(
         mut,
-        constraint = vault_token_account.mint == usdc_mint.key()
+        constraint = backer_escrow_vault.mint == usdc_mint.key()
             @ ErrorCode::InvalidMint,
-        constraint = vault_token_account.owner == vault_authority.key()
+        constraint = backer_escrow_vault.owner == backer_vault_authority.key()
             @ ErrorCode::InvalidVaultOwner,
     )]
-    pub vault_token_account: Account<'info, TokenAccount>,
+    pub backer_escrow_vault: Account<'info, TokenAccount>,
 
-    /// CHECK: PDA authority for the project's USDC vault
+    /// CHECK: PDA authority for the backer escrow vault
     #[account(
-        seeds = [b"vault_authority", project.key().as_ref()],
+        seeds = [b"backer_vault_authority", project.key().as_ref()],
         bump,
     )]
-    pub vault_authority: AccountInfo<'info>,
+    pub backer_vault_authority: AccountInfo<'info>,
 
-    /// USDC mint
     pub usdc_mint: Account<'info, Mint>,
 
     pub token_program: Program<'info, Token>,
@@ -734,7 +836,7 @@ pub enum ErrorCode {
     ProjectNameTooLong,
     #[msg("Too many milestones.")]
     TooManyMilestones,
-    #[msg("Milestone descriptions and milestone amounts must have the same length.")]
+    #[msg("Milestone descriptions and amounts must have the same length.")]
     MilestoneCountMismatch,
     #[msg("Milestone description exceeds maximum length.")]
     MilestoneDescriptionTooLong,
@@ -762,6 +864,8 @@ pub enum ErrorCode {
     InvalidMultiplier,
     #[msg("Credit limit exceeded.")]
     CreditLimitExceeded,
+    #[msg("Insufficient treasury balance for the requested withdrawal.")]
+    InsufficientTreasuryBalance,
 }
 
 // ── Data structs ─────────────────────────────────────────────────

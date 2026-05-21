@@ -1,8 +1,7 @@
-const { ethers, network } = require("hardhat");
+const { ethers, network, upgrades } = require("hardhat");
 const fs = require("fs");
 
 // USDC addresses for different testnets (shared configuration)
-// Keep in sync with frontend/src/config/tokens.js TESTNET_USDC_ADDRESSES
 const TESTNET_USDC_ADDRESSES = {
   11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // Ethereum Sepolia
   421614: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d", // Arbitrum Sepolia
@@ -21,59 +20,64 @@ async function main() {
   console.log(`\n🚀 Deploying to ${networkName} (Chain ID: ${chainId})`);
   console.log(`📝 Deploying contracts with account: ${deployer.address}`);
 
-  // Check balance
   const balance = await deployer.getBalance();
   console.log(`💰 Account balance: ${ethers.utils.formatEther(balance)} ETH`);
 
-  // Get USDC address for this network
   const usdcAddress = TESTNET_USDC_ADDRESSES[chainId];
-
   if (!usdcAddress) {
     console.error(`❌ USDC address not found for chain ID ${chainId}`);
     console.log("Available networks:", Object.keys(TESTNET_USDC_ADDRESSES));
     process.exit(1);
   }
-
   console.log(`🏦 Using USDC address: ${usdcAddress}`);
 
-  // Deploy HackathonRegistry first
+  // Deploy HackathonRegistry
   console.log("\n📋 Deploying HackathonRegistry...");
-  const HackathonRegistry = await ethers.getContractFactory(
-    "HackathonRegistry"
-  );
+  const HackathonRegistry = await ethers.getContractFactory("HackathonRegistry");
   const hackathonRegistry = await HackathonRegistry.deploy();
   await hackathonRegistry.deployed();
   console.log(`✅ HackathonRegistry deployed to: ${hackathonRegistry.address}`);
 
-  // Deploy BuilderCreditCore
-  console.log("\n🏗️ Deploying BuilderCreditCore...");
-  const BuilderCreditCore = await ethers.getContractFactory(
-    "BuilderCreditCore"
+  // Deploy BuilderCreditCore via UUPS proxy
+  console.log("\n🏗️ Deploying BuilderCreditCore (UUPS proxy)...");
+  const BuilderCreditCore = await ethers.getContractFactory("BuilderCreditCore");
+  const proxy = await upgrades.deployProxy(
+    BuilderCreditCore,
+    [hackathonRegistry.address, usdcAddress, deployer.address],
+    { kind: "uups", initializer: "initialize" }
   );
-  const builderCreditCore = await BuilderCreditCore.deploy(
-    hackathonRegistry.address,
-    usdcAddress
-  );
-  await builderCreditCore.deployed();
-  console.log(`✅ BuilderCreditCore deployed to: ${builderCreditCore.address}`);
+  await proxy.deployed();
 
-  // Wait for a few confirmations
+  const proxyAddress = proxy.address;
+  const implAddress = await upgrades.erc1967.getImplementationAddress(
+    ethers.provider,
+    proxyAddress
+  );
+
+  console.log(`✅ BuilderCreditCore proxy deployed to: ${proxyAddress}`);
+  console.log(`✅ Implementation contract at: ${implAddress}`);
+
+  // Wait for confirmations
   console.log("\n⏳ Waiting for confirmations...");
   await hackathonRegistry.deployTransaction.wait(3);
-  await builderCreditCore.deployTransaction.wait(3);
+  // proxy.deployTransaction may not exist — we use the implementation's deploy tx
+  // if available; otherwise skip waiting for proxy confirmations.
+  try {
+    await proxy.deployTransaction.wait(3);
+  } catch (_) {
+    console.log("   (proxy deployment confirmation skipped)");
+  }
 
   // Setup initial configuration
   console.log("\n⚙️ Setting up initial configuration...");
-
-  // Create a test hackathon with all 6 required args
   const now = Math.floor(Date.now() / 1000);
   const tx1 = await hackathonRegistry.createHackathon(
-    "Agentic Economy on Arc",        // name
-    deployer.address,                 // host
-    [deployer.address],               // initialVerifiers
-    1,                                // requiredSignatures
-    now,                              // startDate
-    now + 7 * 24 * 60 * 60           // endDate (1 week)
+    "Agentic Economy on Arc",
+    deployer.address,
+    [deployer.address],
+    1,
+    now,
+    now + 7 * 24 * 60 * 60
   );
   await tx1.wait();
   console.log("✅ Test hackathon created");
@@ -85,14 +89,15 @@ async function main() {
     usdcAddress: usdcAddress,
     contracts: {
       HackathonRegistry: hackathonRegistry.address,
-      BuilderCreditCore: builderCreditCore.address,
+      BuilderCreditCore: proxyAddress,
+      BuilderCreditCoreImpl: implAddress,
     },
     deployer: deployer.address,
     deploymentTime: new Date().toISOString(),
     blockNumber: await ethers.provider.getBlockNumber(),
+    proxyKind: "uups",
   };
 
-  // Save to file
   const deploymentFile = `./deployments/${networkName}_deployment.json`;
   fs.mkdirSync("./deployments", { recursive: true });
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
@@ -106,7 +111,8 @@ async function main() {
   console.log(`📍 Network: ${networkName} (${chainId})`);
   console.log(`🏦 USDC Address: ${usdcAddress}`);
   console.log(`📋 HackathonRegistry: ${hackathonRegistry.address}`);
-  console.log(`🏗️ BuilderCreditCore: ${builderCreditCore.address}`);
+  console.log(`🏗️ BuilderCreditCore (proxy): ${proxyAddress}`);
+  console.log(`🔧 BuilderCreditCore (impl): ${implAddress}`);
   console.log(`👤 Deployer: ${deployer.address}`);
   console.log(
     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -115,14 +121,13 @@ async function main() {
   // Environment variables for frontend
   console.log("\n📝 Add these to your .env file:");
   if (chainId === 5042002) {
-    // Arc Testnet — matches execute.js env var name (server-only)
-    console.log(`BUILDER_CREDIT_ARC_ADDRESS=${builderCreditCore.address}`);
+    console.log(`BUILDER_CREDIT_ARC_ADDRESS=${proxyAddress}`);
     console.log(`HACKATHON_REGISTRY_ARC_ADDRESS=${hackathonRegistry.address}`);
   } else {
     console.log(
       `NEXT_PUBLIC_BUILDER_CREDIT_ADDRESS_${networkName
         .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "_")}=${builderCreditCore.address}`
+        .replace(/[^A-Z0-9]/g, "_")}=${proxyAddress}`
     );
     console.log(
       `NEXT_PUBLIC_HACKATHON_REGISTRY_ADDRESS_${networkName
@@ -131,9 +136,12 @@ async function main() {
     );
   }
 
+  console.log("\n📦 To upgrade later:");
+  console.log(`  npx hardhat run scripts/upgrade.js --network ${networkName}`);
+
   return {
     hackathonRegistry: hackathonRegistry.address,
-    builderCreditCore: builderCreditCore.address,
+    builderCreditCore: proxyAddress,
     usdcAddress,
   };
 }

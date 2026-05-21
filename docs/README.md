@@ -29,7 +29,8 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 │       ├── services/     # Business logic (Circle, Solana credit, Cloak privacy, SNS identity, QVAC local AI)
 │       └── utils/        # Utilities
 │
-├── blockchain/           # Hardhat workspace
+├── blockchain/           # Hardhat workspace (UUPS upgradeable contracts)
+├── blockchain-solana/    # Anchor program (split vault architecture)
 ├── snap-server/          # Hono-based Farcaster Snap server
 └── docs/                 # Documentation
 ```
@@ -60,6 +61,40 @@ The UI now avoids ambiguous progress states and makes it clear when a result cam
 | `/dashboard` | Builders | Unified builder dashboard |
 | `/back` | Backers | Discover + AI analysis workspace |
 | `/admin/war-room` | Verifiers | Milestone verification dashboard |
+
+## Smart Contract Architecture
+
+### Solana (Anchor): Split Vault Design
+
+Each project has **two separate vault ATAs** to prevent insolvency:
+
+```
+Project
+ ├── milestone_vault_authority → milestone_vault
+ │     Holds milestone funding only. verify_milestone pays from here.
+ │     Backer funds cannot be drained by milestone payouts.
+ │
+ └── backer_vault_authority → backer_escrow_vault
+       Holds backer stakes only. claim_reward pays from here.
+       Multiplier premiums funded by protocol treasury via fund_backer_rewards.
+       Backers can always reclaim their principal.
+```
+
+The protocol treasury accumulates loan repayments and sponsor contributions. `fund_backer_rewards` moves treasury USDC into a project's backer escrow vault to cover the `(multiplier - 100) / 100` premium on backer payouts — analogous to the EVM `distributePrize` function.
+
+### EVM (Solidity): UUPS Upgradeable
+
+`BuilderCreditCore` is deployed behind an OpenZeppelin UUPS proxy. The `initialize(registry, usdcToken, admin)` function replaces the constructor pattern. `_authorizeUpgrade()` is gated to `DEFAULT_ADMIN_ROLE`.
+
+```bash
+# Deploy
+npx hardhat run scripts/deploy.js --network localhost
+
+# Upgrade later
+BUILDER_CREDIT_PROXY_ADDRESS=0x... npx hardhat run scripts/upgrade.js --network sepolia
+```
+
+When upgrading, new implementations must preserve the existing storage layout — append new variables at the end, never reorder or delete.
 
 ## Integrations
 

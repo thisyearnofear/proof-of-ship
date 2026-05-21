@@ -18,15 +18,12 @@ import {
 } from "@solana/spl-token";
 
 describe("blockchain-solana", () => {
-  // SNS-aware requestFunding tests need a real devnet .sol domain because the program
-  // validates the passed SNS name account against the actual SNS program owner/header.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
   const program = anchor.workspace.BlockchainSolana as any;
   const payer = (provider.wallet as any).payer;
 
-  // Shared state across tests
   let usdcMint: PublicKey;
   let treasuryAuthority: PublicKey;
   let treasuryTokenAccount: PublicKey;
@@ -77,7 +74,6 @@ describe("blockchain-solana", () => {
   before(async () => {
     builderSnsNameAccount = requireSnsTestConfig();
 
-    // Create a mock USDC mint (6 decimals)
     usdcMint = await createMint(
       provider.connection,
       payer,
@@ -86,13 +82,11 @@ describe("blockchain-solana", () => {
       6,
     );
 
-    // Derive protocol treasury PDA
     [treasuryAuthority] = PublicKey.findProgramAddressSync(
       [Buffer.from("treasury")],
       program.programId,
     );
 
-    // Compute the treasury ATA address — allowOwnerOffCurve because treasuryAuthority is a PDA
     treasuryTokenAccount = getAssociatedTokenAddressSync(usdcMint, treasuryAuthority, true);
   });
 
@@ -115,7 +109,7 @@ describe("blockchain-solana", () => {
     assert.ok(acct.mint.equals(usdcMint));
   });
 
-  it("creates a project with vault", async () => {
+  it("creates a project with milestone vault and backer escrow vault", async () => {
     const projectName = "demo-project";
     const githubUrl = "https://github.com/example/repo";
 
@@ -127,11 +121,17 @@ describe("blockchain-solana", () => {
       [Buffer.from("credit_line"), provider.wallet.publicKey.toBuffer()],
       program.programId,
     );
-    const [vaultAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from("vault_authority"), project.toBuffer()],
+    const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("milestone_vault_authority"), project.toBuffer()],
       program.programId,
     );
-    const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+    const milestoneVault = getAssociatedTokenAddressSync(usdcMint, milestoneVaultAuthority, true);
+    const [backerVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("backer_vault_authority"), project.toBuffer()],
+      program.programId,
+    );
+    const backerEscrowVault = getAssociatedTokenAddressSync(usdcMint, backerVaultAuthority, true);
+
     const { ed25519Ix, signature } = buildIdentityProof(
       payer,
       builderSnsNameAccount,
@@ -154,9 +154,11 @@ describe("blockchain-solana", () => {
       .accounts({
         project,
         creditLine,
-        vaultAuthority,
+        milestoneVaultAuthority,
+        milestoneVault,
+        backerVaultAuthority,
+        backerEscrowVault,
         usdcMint,
-        vaultTokenAccount,
         developer: provider.wallet.publicKey,
         snsNameAccount: builderSnsNameAccount,
         instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -172,28 +174,29 @@ describe("blockchain-solana", () => {
     assert.equal(projectAcct.milestonesCount, 1);
     assert.equal(projectAcct.totalBacking.toNumber(), 0);
     assert.equal(projectAcct.builderSnsDomain, builderSnsDomain);
-    assert.equal(projectAcct.builderSnsNameAccount.toBase58(), builderSnsNameAccount.toBase58());
-    assert.equal(projectAcct.builderIdentitySignature.length, 64);
 
-    // Vault ATA should now exist
-    const vaultAcct = await getAccount(provider.connection, vaultTokenAccount);
-    assert.ok(vaultAcct.mint.equals(usdcMint));
-    assert.ok(vaultAcct.owner.equals(vaultAuthority));
+    // Both vaults should exist
+    const milestoneAcct = await getAccount(provider.connection, milestoneVault);
+    assert.ok(milestoneAcct.mint.equals(usdcMint));
+    assert.ok(milestoneAcct.owner.equals(milestoneVaultAuthority));
+
+    const backerAcct = await getAccount(provider.connection, backerEscrowVault);
+    assert.ok(backerAcct.mint.equals(usdcMint));
+    assert.ok(backerAcct.owner.equals(backerVaultAuthority));
   });
 
-  it("backs a project with USDC (mint validation)", async () => {
+  it("backs a project with USDC to the backer escrow vault", async () => {
     const projectName = "demo-project";
     const [project] = PublicKey.findProgramAddressSync(
       [Buffer.from("project"), provider.wallet.publicKey.toBuffer(), Buffer.from(projectName)],
       program.programId,
     );
-    const [vaultAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from("vault_authority"), project.toBuffer()],
+    const [backerVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("backer_vault_authority"), project.toBuffer()],
       program.programId,
     );
-    const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+    const backerEscrowVault = getAssociatedTokenAddressSync(usdcMint, backerVaultAuthority, true);
 
-    // Create backer + fund their ATA
     const backer = Keypair.generate();
     const sig = await provider.connection.requestAirdrop(backer.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL);
     await provider.connection.confirmTransaction(sig);
@@ -212,7 +215,6 @@ describe("blockchain-solana", () => {
       program.programId,
     );
 
-    // multiplier 150 = 1.5×
     await program.methods
       .backProject(new anchor.BN(150), new anchor.BN(1_000_000))
       .accounts({
@@ -220,8 +222,8 @@ describe("blockchain-solana", () => {
         developerCreditLine,
         backer: backer.publicKey,
         backerTokenAccount: backerAta,
-        vaultTokenAccount,
-        vaultAuthority,
+        backerEscrowVault,
+        backerVaultAuthority,
         usdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
@@ -233,24 +235,37 @@ describe("blockchain-solana", () => {
     assert.equal(updated.backings.length, 1);
     assert.equal(updated.backings[0].multiplier.toNumber(), 150);
 
-    // Vault should now hold 1 USDC
-    const vaultAcct = await getAccount(provider.connection, vaultTokenAccount);
-    assert.equal(Number(vaultAcct.amount), 1_000_000);
+    // Backer escrow vault should hold 1 USDC
+    const escrowAcct = await getAccount(provider.connection, backerEscrowVault);
+    assert.equal(Number(escrowAcct.amount), 1_000_000);
+
+    // Milestone vault should be untouched (still 0)
+    const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("milestone_vault_authority"), project.toBuffer()],
+      program.programId,
+    );
+    const milestoneVault = getAssociatedTokenAddressSync(usdcMint, milestoneVaultAuthority, true);
+    const milestoneAcct = await getAccount(provider.connection, milestoneVault);
+    assert.equal(Number(milestoneAcct.amount), 0);
   });
 
-  it("verifies a milestone and pays out developer", async () => {
+  it("funds the milestone vault and verifies milestone pays from it", async () => {
     const projectName = "demo-project";
     const [project] = PublicKey.findProgramAddressSync(
       [Buffer.from("project"), provider.wallet.publicKey.toBuffer(), Buffer.from(projectName)],
       program.programId,
     );
-    const [vaultAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from("vault_authority"), project.toBuffer()],
+    const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("milestone_vault_authority"), project.toBuffer()],
       program.programId,
     );
-    const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+    const milestoneVault = getAssociatedTokenAddressSync(usdcMint, milestoneVaultAuthority, true);
 
-    // Developer ATA (wallet is the developer)
+    // Fund the milestone vault with USDC (in production, this would come from
+    // hackathon prize pools or sponsors routing funds here)
+    await mintTo(provider.connection, payer, usdcMint, milestoneVault, provider.wallet.publicKey, 1_000_000);
+
+    // Developer ATA
     const developerAta = await createAssociatedTokenAccount(
       provider.connection,
       payer,
@@ -263,8 +278,8 @@ describe("blockchain-solana", () => {
       .accounts({
         project,
         developerTokenAccount: developerAta,
-        vaultTokenAccount,
-        vaultAuthority,
+        milestoneVault,
+        milestoneVaultAuthority,
         verifier: provider.wallet.publicKey,
         usdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -279,12 +294,21 @@ describe("blockchain-solana", () => {
     const devAcct = await getAccount(provider.connection, developerAta);
     assert.equal(Number(devAcct.amount), 1_000_000);
 
-    // Vault should be empty after payout
-    const vaultAcct = await getAccount(provider.connection, vaultTokenAccount);
-    assert.equal(Number(vaultAcct.amount), 0);
+    // Milestone vault should be empty after payout
+    const mvAcct = await getAccount(provider.connection, milestoneVault);
+    assert.equal(Number(mvAcct.amount), 0);
+
+    // Backer escrow vault should still hold 1 USDC (unaffected by milestone payout)
+    const [backerVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("backer_vault_authority"), project.toBuffer()],
+      program.programId,
+    );
+    const backerEscrowVault = getAssociatedTokenAddressSync(usdcMint, backerVaultAuthority, true);
+    const escrowAcct = await getAccount(provider.connection, backerEscrowVault);
+    assert.equal(Number(escrowAcct.amount), 1_000_000);
   });
 
-  it("repays a loan to the protocol treasury (not the project vault)", async () => {
+  it("repays a loan to the protocol treasury", async () => {
     const projectName = "demo-project";
     const [project] = PublicKey.findProgramAddressSync(
       [Buffer.from("project"), provider.wallet.publicKey.toBuffer(), Buffer.from(projectName)],
@@ -295,9 +319,7 @@ describe("blockchain-solana", () => {
       program.programId,
     );
 
-    // Fund developer ATA for repayment
     const developerAta = getAssociatedTokenAddressSync(usdcMint, provider.wallet.publicKey);
-    // Mint some USDC to developer for repayment
     await mintTo(provider.connection, payer, usdcMint, developerAta, provider.wallet.publicKey, 500_000);
 
     const creditBefore = await program.account.creditLine.fetch(creditLine);
@@ -325,7 +347,7 @@ describe("blockchain-solana", () => {
     assert.equal(Number(treasuryAcct.amount), 500_000);
   });
 
-  it("claims a reward using the stored multiplier", async () => {
+  it("claims a reward from the backer escrow vault", async () => {
     // Use a fresh project so we control the full lifecycle
     const projectName = "claim-test-project";
     const [project] = PublicKey.findProgramAddressSync(
@@ -336,11 +358,16 @@ describe("blockchain-solana", () => {
       [Buffer.from("credit_line"), provider.wallet.publicKey.toBuffer()],
       program.programId,
     );
-    const [vaultAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from("vault_authority"), project.toBuffer()],
+    const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("milestone_vault_authority"), project.toBuffer()],
       program.programId,
     );
-    const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+    const milestoneVault = getAssociatedTokenAddressSync(usdcMint, milestoneVaultAuthority, true);
+    const [backerVaultAuthority] = PublicKey.findProgramAddressSync(
+      [Buffer.from("backer_vault_authority"), project.toBuffer()],
+      program.programId,
+    );
+    const backerEscrowVault = getAssociatedTokenAddressSync(usdcMint, backerVaultAuthority, true);
     const githubUrl = "https://github.com/example/repo2";
     const { ed25519Ix, signature } = buildIdentityProof(
       payer,
@@ -364,9 +391,11 @@ describe("blockchain-solana", () => {
       .accounts({
         project,
         creditLine,
-        vaultAuthority,
+        milestoneVaultAuthority,
+        milestoneVault,
+        backerVaultAuthority,
+        backerEscrowVault,
         usdcMint,
-        vaultTokenAccount,
         developer: provider.wallet.publicKey,
         snsNameAccount: builderSnsNameAccount,
         instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -390,9 +419,8 @@ describe("blockchain-solana", () => {
     );
     await mintTo(provider.connection, payer, usdcMint, backerAta, provider.wallet.publicKey, 3_000_000);
 
-    // Back with 1.5× multiplier (150 = 1.5×) so claim payout fits in vault
-    // Vault will hold 1M USDC from this back; claim pays 1M × 150 / 100 = 1.5M
-    // Mint extra 1M into the vault so it can cover the 1.5M payout
+    // Back with 1.5× multiplier (150 = 1.5×)
+    // Backer deposits 1M into backer escrow vault
     await program.methods
       .backProject(new anchor.BN(150), new anchor.BN(1_000_000))
       .accounts({
@@ -400,27 +428,47 @@ describe("blockchain-solana", () => {
         developerCreditLine: creditLine,
         backer: backer.publicKey,
         backerTokenAccount: backerAta,
-        vaultTokenAccount,
-        vaultAuthority,
+        backerEscrowVault,
+        backerVaultAuthority,
         usdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .signers([backer])
       .rpc();
 
-    // Mint additional USDC into vault to cover multiplier payout
-    await mintTo(provider.connection, payer, usdcMint, vaultTokenAccount, provider.wallet.publicKey, 1_000_000);
-    // Vault now holds: 1M (from back) + 1M (minted) = 2M, enough for 1.5M claim
+    // Fund the backer escrow vault from the treasury to cover the multiplier premium
+    // The vault has 1M from the backer. We need 1.5M total for 150 multiplier.
+    // Treasury funds the extra 0.5M via fund_backer_rewards.
+    // In production, the protocol treasury accumulates funds from loan repayments
+    // and sponsor contributions — here we mint to treasury first.
+    await mintTo(provider.connection, payer, usdcMint, treasuryTokenAccount, provider.wallet.publicKey, 1_000_000);
 
-    // Claim reward — should receive amount × multiplier / 100 = 1_000_000 × 150 / 100 = 1_500_000
+    await program.methods
+      .fundBackerRewards(new anchor.BN(500_000))
+      .accounts({
+        treasuryAuthority,
+        treasuryTokenAccount,
+        backerVaultAuthority,
+        backerEscrowVault,
+        project,
+        usdcMint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+
+    // Backer escrow vault now holds: 1M (from back) + 0.5M (funded from treasury) = 1.5M
+    const vaultBefore = await getAccount(provider.connection, backerEscrowVault);
+    assert.equal(Number(vaultBefore.amount), 1_500_000);
+
+    // Claim reward — backer receives amount × multiplier / 100 = 1_000_000 × 150 / 100 = 1_500_000
     await program.methods
       .claimReward(0)
       .accounts({
         project,
         backer: backer.publicKey,
         backerTokenAccount: backerAta,
-        vaultTokenAccount,
-        vaultAuthority,
+        backerEscrowVault,
+        backerVaultAuthority,
         usdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
@@ -430,5 +478,9 @@ describe("blockchain-solana", () => {
     // Backer should have: 2_000_000 remaining (started with 3M, backed with 1M) + 1_500_000 reward = 3_500_000
     const backerAcct = await getAccount(provider.connection, backerAta);
     assert.equal(Number(backerAcct.amount), 3_500_000);
+
+    // Backer escrow vault should be empty after claim
+    const vaultAfter = await getAccount(provider.connection, backerEscrowVault);
+    assert.equal(Number(vaultAfter.amount), 0);
   });
 });

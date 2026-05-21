@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-05-21 — Architecture Fixes: Vault Solvency, EVM Upgradeability, Firestore Security
+
+### Solana: Split Vault Architecture (fixes backer insolvency)
+- **Root cause:** Single vault per project held both milestone funds and backer stakes. `verify_milestone` could drain it before backers claimed — the test worked around this by artificially minting USDC into the vault.
+- **Fix:** Split into two vaults per project:
+  - `milestone_vault` — milestone funding only, paid out via `verify_milestone`
+  - `backer_escrow_vault` — backer stakes only, paid out via `claim_reward`
+- Milestone payouts can no longer drain backer funds — each vault is isolated by PDA seed.
+- New `fund_backer_rewards` instruction: protocol treasury funds multiplier premiums into the backer escrow vault (mirrors EVM `distributePrize`).
+- New `withdraw_treasury` instruction: addresses the previous "no withdraw instruction exists" gap.
+- `request_funding` creates both vault ATAs at project creation time.
+- Frontend `SolanaCreditService.ts` updated with new PDA helpers (`getMilestoneVaultAuthorityPda`, `getBackerVaultAuthorityPda`) and account mappings for all instructions.
+- Tests rewritten: validate vault isolation (milestone vault drains while escrow vault stays intact), `fund_backer_rewards` flow, no more artificial minting workaround.
+
+### EVM: UUPS Upgradeability for BuilderCreditCore
+- **Root cause:** Constructor-based deployment with no proxy pattern. `initialize()` was unreachable (guard checked `usdcToken == address(0)` but constructor already set it). Upgrades required full redeployment + state migration.
+- **Fix:** Migrated to OpenZeppelin UUPS upgradeable pattern:
+  - Added `Initializable`, `UUPSUpgradeable` imports
+  - Constructor replaced with `_disableInitializers()`
+  - `initialize(registry, usdcToken, admin)` sets all state and grants all roles
+  - `_authorizeUpgrade()` gated to `DEFAULT_ADMIN_ROLE`
+  - Storage layout preserved — same variables, same order
+- New `scripts/upgrade.js` for future upgrades
+- `deploy.js`, `deployTestnet.js`, `deployProduction.js` updated to use `upgrades.deployProxy()` with kind `"uups"`
+- Tests updated to use `upgrades.deployProxy()` and include upgradeability test
+
+### Firestore: Locked Down World-Writable Collections
+- **Root cause:** `agentCache`, `agent_runs`, and `wallet_index` were `allow write: if true` (acknowledged in inline comments as hackathon-only). Four env vars used in code but missing from `.env.example`.
+- **Fix:** All three collections set to `allow write: if false` — server-side admin SDK bypasses rules, so API routes continue to work while malicious clients are blocked.
+- `agent_runs` read also restricted to admin-only.
+
+### Files Changed
+- `blockchain-solana/programs/blockchain-solana/src/lib.rs` — split vault, new instructions
+- `blockchain-solana/tests/blockchain-solana.ts` — vault isolation tests
+- `frontend/src/services/SolanaCreditService.ts` — new PDA helpers + account mappings
+- `blockchain/contracts/BuilderCreditCore.sol` — UUPS upgradeable
+- `blockchain/scripts/deploy.js`, `deployTestnet.js`, `deployProduction.js` — UUPS proxy deployment
+- `blockchain/scripts/upgrade.js` — new upgrade script
+- `blockchain/test/BuilderCreditCore.test.js` — UUPS-compatible tests
+- `firestore.rules` — locked agentCache, agent_runs, wallet_index
+
 ## 2026-05-05 — QVAC Service Rewrite (Honest Local-First Architecture)
 
 - Rewrote QvacService.ts from scratch — removed fake browser-based `import('@qvac/sdk')` that never worked

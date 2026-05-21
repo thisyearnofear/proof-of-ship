@@ -179,25 +179,31 @@ service cloud.firestore {
 
     // Wallet index — maps wallet addresses to Firebase UIDs.
     // Used by signInWithWallet to look up existing accounts.
-    // Authenticated users can read any entry (to find their own wallet).
-    // Only server-side scripts should write (or authenticated users via setDoc).
+    // Read: any authenticated user can look up their own wallet.
+    // Write: only server-side scripts via admin SDK (rules bypassed).
+    // The firebase-admin SDK bypasses security rules, so `write: if false`
+    // still allows your API routes to write while blocking malicious clients.
     match /wallet_index/{walletAddress} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
-    // Agent cache - public read/write for hackathon demo
-    // NOTE: For production, restrict write to authenticated users only
+    // Agent cache — cached AI agent analysis results.
+    // Read: anyone can view cached results.
+    // Write: only server-side scripts via admin SDK (rules bypassed).
+    // The firebase-admin SDK bypasses security rules, so `write: if false`
+    // still allows your API routes to write while blocking malicious clients.
     match /agentCache/{cacheId} {
       allow read: if true;
-      allow write: if true; // Write allowed for API route (server-side)
+      allow write: if false;
     }
 
-    // Agent runs - public read/write for hackathon demo
-    // NOTE: For production, restrict to authenticated agents only
+    // Agent runs — execution logs for agent operations (scout, execute, etc.).
+    // Read: admin-only for operational visibility.
+    // Write: only server-side scripts via admin SDK (rules bypassed).
     match /agent_runs/{runId} {
-      allow read: if true;
-      allow write: if true; // Write allowed for API route (server-side)
+      allow read: if isAdminUser();
+      allow write: if false;
     }
   }
 }

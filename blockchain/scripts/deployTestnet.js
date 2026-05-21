@@ -1,15 +1,14 @@
-const { ethers, network, upgrades } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const fs = require("fs");
 
-// USDC addresses for different testnets (shared configuration)
 const TESTNET_USDC_ADDRESSES = {
-  11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", // Ethereum Sepolia
-  421614: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d", // Arbitrum Sepolia
-  84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Base Sepolia
-  11155420: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7", // OP Sepolia
-  44787: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B", // Celo Alfajores
-  59141: "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7", // Linea Sepolia
-  5042002: "0x3600000000000000000000000000000000000000", // Arc Testnet (native USDC)
+  11155111: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  421614: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  11155420: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
+  44787: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B",
+  59141: "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7",
+  5042002: "0x3600000000000000000000000000000000000000",
 };
 
 async function main() {
@@ -26,7 +25,6 @@ async function main() {
   const usdcAddress = TESTNET_USDC_ADDRESSES[chainId];
   if (!usdcAddress) {
     console.error(`❌ USDC address not found for chain ID ${chainId}`);
-    console.log("Available networks:", Object.keys(TESTNET_USDC_ADDRESSES));
     process.exit(1);
   }
   console.log(`🏦 Using USDC address: ${usdcAddress}`);
@@ -38,37 +36,48 @@ async function main() {
   await hackathonRegistry.deployed();
   console.log(`✅ HackathonRegistry deployed to: ${hackathonRegistry.address}`);
 
-  // Deploy BuilderCreditCore via UUPS proxy
-  console.log("\n🏗️ Deploying BuilderCreditCore (UUPS proxy)...");
+  // Deploy BuilderCreditCore implementation
+  console.log("\n🏗️ Deploying BuilderCreditCore implementation...");
   const BuilderCreditCore = await ethers.getContractFactory("BuilderCreditCore");
-  const proxy = await upgrades.deployProxy(
-    BuilderCreditCore,
-    [hackathonRegistry.address, usdcAddress, deployer.address],
-    { kind: "uups", initializer: "initialize" }
+  const impl = await BuilderCreditCore.deploy();
+  await impl.deployed();
+  console.log(`✅ Implementation deployed to: ${impl.address}`);
+
+  // Encode the initialize call
+  const initData = impl.interface.encodeFunctionData("initialize", [
+    hackathonRegistry.address,
+    usdcAddress,
+    deployer.address,
+  ]);
+
+  // Deploy ERC1967 proxy manually using the ERC1967Proxy artifact from upgrades-core
+  console.log("📦 Deploying ERC1967 proxy...");
+  const proxyArtifact = require("@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol/ERC1967Proxy.json");
+  const proxyFactory = new ethers.ContractFactory(
+    proxyArtifact.abi,
+    proxyArtifact.bytecode,
+    deployer
   );
+  const proxy = await proxyFactory.deploy(impl.address, initData);
   await proxy.deployed();
+  console.log(`✅ Proxy deployed to: ${proxy.address}`);
 
-  const proxyAddress = proxy.address;
-  const implAddress = await upgrades.erc1967.getImplementationAddress(
-    ethers.provider,
-    proxyAddress
-  );
+  // Wrap the proxy as BuilderCreditCore for verification calls
+  const builderCreditCore = BuilderCreditCore.attach(proxy.address);
 
-  console.log(`✅ BuilderCreditCore proxy deployed to: ${proxyAddress}`);
-  console.log(`✅ Implementation contract at: ${implAddress}`);
+  // Verify deployment
+  const storedRegistry = await builderCreditCore.registry();
+  const storedToken = await builderCreditCore.usdcToken();
+  console.log(`\n🔍 Verification:`);
+  console.log(`   registry: ${storedRegistry}`);
+  console.log(`   usdcToken: ${storedToken}`);
+  console.log(`   admin role: ${await builderCreditCore.hasRole(await builderCreditCore.DEFAULT_ADMIN_ROLE(), deployer.address)}`);
 
-  // Wait for confirmations
   console.log("\n⏳ Waiting for confirmations...");
   await hackathonRegistry.deployTransaction.wait(3);
-  // proxy.deployTransaction may not exist — we use the implementation's deploy tx
-  // if available; otherwise skip waiting for proxy confirmations.
-  try {
-    await proxy.deployTransaction.wait(3);
-  } catch (_) {
-    console.log("   (proxy deployment confirmation skipped)");
-  }
+  await proxy.deployTransaction.wait(3);
 
-  // Setup initial configuration
+  // Setup sample hackathon
   console.log("\n⚙️ Setting up initial configuration...");
   const now = Math.floor(Date.now() / 1000);
   const tx1 = await hackathonRegistry.createHackathon(
@@ -89,8 +98,8 @@ async function main() {
     usdcAddress: usdcAddress,
     contracts: {
       HackathonRegistry: hackathonRegistry.address,
-      BuilderCreditCore: proxyAddress,
-      BuilderCreditCoreImpl: implAddress,
+      BuilderCreditCore: proxy.address,
+      BuilderCreditCoreImpl: impl.address,
     },
     deployer: deployer.address,
     deploymentTime: new Date().toISOString(),
@@ -103,47 +112,22 @@ async function main() {
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📄 Deployment info saved to ${deploymentFile}`);
 
-  // Print summary
   console.log("\n🎉 Deployment Summary:");
-  console.log(
-    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  );
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`📍 Network: ${networkName} (${chainId})`);
   console.log(`🏦 USDC Address: ${usdcAddress}`);
   console.log(`📋 HackathonRegistry: ${hackathonRegistry.address}`);
-  console.log(`🏗️ BuilderCreditCore (proxy): ${proxyAddress}`);
-  console.log(`🔧 BuilderCreditCore (impl): ${implAddress}`);
+  console.log(`🏗️ BuilderCreditCore (proxy): ${proxy.address}`);
+  console.log(`🔧 BuilderCreditCore (impl): ${impl.address}`);
   console.log(`👤 Deployer: ${deployer.address}`);
-  console.log(
-    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  );
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  // Environment variables for frontend
-  console.log("\n📝 Add these to your .env file:");
   if (chainId === 5042002) {
-    console.log(`BUILDER_CREDIT_ARC_ADDRESS=${proxyAddress}`);
+    console.log(`\n📝 BUILDER_CREDIT_ARC_ADDRESS=${proxy.address}`);
     console.log(`HACKATHON_REGISTRY_ARC_ADDRESS=${hackathonRegistry.address}`);
-  } else {
-    console.log(
-      `NEXT_PUBLIC_BUILDER_CREDIT_ADDRESS_${networkName
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "_")}=${proxyAddress}`
-    );
-    console.log(
-      `NEXT_PUBLIC_HACKATHON_REGISTRY_ADDRESS_${networkName
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "_")}=${hackathonRegistry.address}`
-    );
   }
 
-  console.log("\n📦 To upgrade later:");
-  console.log(`  npx hardhat run scripts/upgrade.js --network ${networkName}`);
-
-  return {
-    hackathonRegistry: hackathonRegistry.address,
-    builderCreditCore: proxyAddress,
-    usdcAddress,
-  };
+  return { hackathonRegistry: hackathonRegistry.address, builderCreditCore: proxy.address, usdcAddress };
 }
 
 main()

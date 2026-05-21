@@ -3,11 +3,11 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/IHackathonRegistry.sol";
 
@@ -16,7 +16,7 @@ import "./interfaces/IHackathonRegistry.sol";
  * @dev Core contract for the Builder Credit platform
  * Manages credit lines, projects, milestones, and funding
  *
- * UUPS upgradeable — deploy via @openzeppelin/hardhat-upgrades deployProxy.
+ * UUPS upgradeable — deploy via hardhat-upgrades deployProxy.
  * _authorizeUpgrade is gated to DEFAULT_ADMIN_ROLE.
  * initialize() replaces the constructor pattern.
  *
@@ -26,9 +26,9 @@ import "./interfaces/IHackathonRegistry.sol";
 contract BuilderCreditCore is
     Initializable,
     UUPSUpgradeable,
-    AccessControl,
-    ReentrancyGuard,
-    Pausable
+    AccessControlUpgradeable,
+    ReentrancyGuardUpgradeable,
+    PausableUpgradeable
 {
     using SafeERC20 for IERC20;
     using Counters for Counters.Counter;

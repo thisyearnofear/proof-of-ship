@@ -1,5 +1,5 @@
 {
-  "address": "14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K",
+  "address": "DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st",
   "metadata": {
     "name": "blockchain_solana",
     "version": "0.1.0",
@@ -63,16 +63,23 @@
           "writable": true
         },
         {
-          "name": "vault_token_account",
+          "name": "backer_escrow_vault",
           "writable": true
         },
         {
-          "name": "vault_authority",
+          "name": "backer_vault_authority",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
+                  98,
+                  97,
+                  99,
+                  107,
+                  101,
+                  114,
+                  95,
                   118,
                   97,
                   117,
@@ -98,10 +105,7 @@
           }
         },
         {
-          "name": "usdc_mint",
-          "docs": [
-            "USDC mint — validates that both token accounts are USDC"
-          ]
+          "name": "usdc_mint"
         },
         {
           "name": "token_program",
@@ -146,16 +150,23 @@
           "writable": true
         },
         {
-          "name": "vault_token_account",
+          "name": "backer_escrow_vault",
           "writable": true
         },
         {
-          "name": "vault_authority",
+          "name": "backer_vault_authority",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
+                  98,
+                  97,
+                  99,
+                  107,
+                  101,
+                  114,
+                  95,
                   118,
                   97,
                   117,
@@ -181,10 +192,7 @@
           }
         },
         {
-          "name": "usdc_mint",
-          "docs": [
-            "USDC mint"
-          ]
+          "name": "usdc_mint"
         },
         {
           "name": "token_program",
@@ -199,14 +207,118 @@
       ]
     },
     {
+      "name": "fund_backer_rewards",
+      "docs": [
+        "Fund backer multiplier rewards from the protocol treasury into the",
+        "backer escrow vault. This ensures backers get their promised multiplier",
+        "payout without competing with milestone funds.",
+        "",
+        "Callable by any holder of the treasury authority's signer keys",
+        "(or by a DAO-controlled process)."
+      ],
+      "discriminator": [
+        73,
+        51,
+        92,
+        133,
+        75,
+        155,
+        118,
+        202
+      ],
+      "accounts": [
+        {
+          "name": "treasury_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "backer_vault_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  97,
+                  99,
+                  107,
+                  101,
+                  114,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "backer_escrow_vault",
+          "writable": true
+        },
+        {
+          "name": "project",
+          "docs": [
+            "Project account — used to derive the backer vault PDA."
+          ]
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "initialize_treasury",
       "docs": [
-        "One-time setup: create the protocol treasury ATA so repay_loan has",
-        "somewhere to send USDC that isn't the project's milestone vault.",
-        "",
-        "NOTE: Treasury funds are currently locked — no withdraw instruction exists yet.",
-        "A `withdraw_treasury` instruction should be added before mainnet to allow",
-        "the protocol authority to reclaim accumulated repayments."
+        "One-time setup: create the protocol treasury ATA.",
+        "Treasury holds loan repayments and funds backer multiplier rewards."
       ],
       "discriminator": [
         124,
@@ -404,10 +516,6 @@
         },
         {
           "name": "treasury_token_account",
-          "docs": [
-            "Protocol treasury — repayments flow here, not back into the",
-            "project's milestone vault."
-          ],
           "writable": true
         },
         {
@@ -431,17 +539,10 @@
           }
         },
         {
-          "name": "project",
-          "docs": [
-            "Project account is read-only here — needed only so the client",
-            "can identify which credit line to repay."
-          ]
+          "name": "project"
         },
         {
-          "name": "usdc_mint",
-          "docs": [
-            "USDC mint"
-          ]
+          "name": "usdc_mint"
         },
         {
           "name": "token_program",
@@ -525,15 +626,26 @@
           }
         },
         {
-          "name": "vault_authority",
+          "name": "milestone_vault_authority",
           "docs": [
-            "Derived from the project key so each project gets its own vault authority."
+            "Milestone vault holds only the milestone funding amounts.",
+            "verify_milestone pays out of this vault only."
           ],
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
+                  109,
+                  105,
+                  108,
+                  101,
+                  115,
+                  116,
+                  111,
+                  110,
+                  101,
+                  95,
                   118,
                   97,
                   117,
@@ -559,23 +671,16 @@
           }
         },
         {
-          "name": "usdc_mint",
+          "name": "milestone_vault",
           "docs": [
-            "USDC mint — all token accounts in this instruction must use this mint."
-          ]
-        },
-        {
-          "name": "vault_token_account",
-          "docs": [
-            "Project vault: ATA of vault_authority for usdc_mint.",
-            "Created here so back_project / verify_milestone / claim_reward can assume it exists."
+            "Milestone vault ATA — holds milestone funding."
           ],
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "vault_authority"
+                "path": "milestone_vault_authority"
               },
               {
                 "kind": "const",
@@ -659,9 +764,155 @@
           }
         },
         {
+          "name": "backer_vault_authority",
+          "docs": [
+            "Backer escrow vault holds backer stakes separately.",
+            "claim_reward pays out of this vault. Multiplier premiums are",
+            "funded into this vault by the protocol treasury."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  97,
+                  99,
+                  107,
+                  101,
+                  114,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "project"
+              }
+            ]
+          }
+        },
+        {
+          "name": "backer_escrow_vault",
+          "docs": [
+            "Backer escrow vault ATA — holds backer stakes."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "backer_vault_authority"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
           "name": "developer",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "sns_name_account"
+        },
+        {
+          "name": "instructions_sysvar",
+          "address": "Sysvar1nstructions1111111111111111111111111"
         },
         {
           "name": "system_program",
@@ -706,6 +957,14 @@
         {
           "name": "verifier",
           "type": "pubkey"
+        },
+        {
+          "name": "builder_sns_domain",
+          "type": "string"
+        },
+        {
+          "name": "builder_identity_signature",
+          "type": "bytes"
         }
       ]
     },
@@ -731,16 +990,26 @@
           "writable": true
         },
         {
-          "name": "vault_token_account",
+          "name": "milestone_vault",
           "writable": true
         },
         {
-          "name": "vault_authority",
+          "name": "milestone_vault_authority",
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
+                  109,
+                  105,
+                  108,
+                  101,
+                  115,
+                  116,
+                  111,
+                  110,
+                  101,
+                  95,
                   118,
                   97,
                   117,
@@ -770,10 +1039,7 @@
           "signer": true
         },
         {
-          "name": "usdc_mint",
-          "docs": [
-            "USDC mint"
-          ]
+          "name": "usdc_mint"
         },
         {
           "name": "token_program",
@@ -784,6 +1050,68 @@
         {
           "name": "milestone_index",
           "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_treasury",
+      "docs": [
+        "Withdraw USDC from the protocol treasury.",
+        "Only the treasury_authority PDA signer can authorize this.",
+        "Currently guarded: no account holds the treasury seed signer.",
+        "Add this instruction when a DAO/multisig can control the treasury."
+      ],
+      "discriminator": [
+        40,
+        63,
+        122,
+        158,
+        144,
+        216,
+        83,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "treasury_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury_token_account",
+          "writable": true
+        },
+        {
+          "name": "recipient_token_account",
+          "writable": true
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
         }
       ]
     }
@@ -909,23 +1237,78 @@
     },
     {
       "code": 6018,
+      "name": "MilestoneCountMismatch",
+      "msg": "Milestone descriptions and amounts must have the same length."
+    },
+    {
+      "code": 6019,
       "name": "MilestoneDescriptionTooLong",
       "msg": "Milestone description exceeds maximum length."
     },
     {
-      "code": 6019,
+      "code": 6020,
+      "name": "SnsDomainTooLong",
+      "msg": "SNS domain exceeds maximum length."
+    },
+    {
+      "code": 6021,
+      "name": "InvalidSnsDomain",
+      "msg": "SNS identity must be a .sol domain."
+    },
+    {
+      "code": 6022,
+      "name": "InvalidIdentitySignature",
+      "msg": "SNS identity signature must be 64 bytes."
+    },
+    {
+      "code": 6023,
+      "name": "InvalidSnsNameProgramOwner",
+      "msg": "The SNS name account is not owned by the SNS program."
+    },
+    {
+      "code": 6024,
+      "name": "InvalidSnsNameAccountData",
+      "msg": "The SNS name account data is invalid."
+    },
+    {
+      "code": 6025,
+      "name": "InvalidSnsRootDomain",
+      "msg": "The SNS name account is not a top-level .sol domain."
+    },
+    {
+      "code": 6026,
+      "name": "UnauthorizedSnsOwner",
+      "msg": "The connected developer does not own the provided SNS name account."
+    },
+    {
+      "code": 6027,
+      "name": "MissingIdentityProofInstruction",
+      "msg": "Missing the preceding Ed25519 identity proof instruction."
+    },
+    {
+      "code": 6028,
+      "name": "InvalidIdentityProofInstruction",
+      "msg": "The Ed25519 identity proof instruction is malformed or does not match the expected proof."
+    },
+    {
+      "code": 6029,
       "name": "UnauthorizedDeveloper",
       "msg": "The developer is not authorized for this project."
     },
     {
-      "code": 6020,
+      "code": 6030,
       "name": "InvalidMultiplier",
       "msg": "Multiplier must be between 100 (1×) and 500 (5×)."
     },
     {
-      "code": 6021,
+      "code": 6031,
       "name": "CreditLimitExceeded",
       "msg": "Credit limit exceeded."
+    },
+    {
+      "code": 6032,
+      "name": "InsufficientTreasuryBalance",
+      "msg": "Insufficient treasury balance for the requested withdrawal."
     }
   ],
   "types": [
@@ -1021,6 +1404,18 @@
           {
             "name": "verifier",
             "type": "pubkey"
+          },
+          {
+            "name": "builder_sns_domain",
+            "type": "string"
+          },
+          {
+            "name": "builder_sns_name_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "builder_identity_signature",
+            "type": "bytes"
           },
           {
             "name": "hackathon_ids",

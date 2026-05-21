@@ -1,14 +1,13 @@
-const { ethers, network, upgrades } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const fs = require("fs");
 
-// USDC addresses for different mainnets
 const MAINNET_USDC_ADDRESSES = {
-  1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // Ethereum Mainnet
-  42161: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", // Arbitrum One
-  8453: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // Base
-  10: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", // OP
-  42220: "0x765DE816845861e75A25fCA122bb6898B8B1282a", // Celo
-  59144: "0x176211869cA2b568f2A7D4EE941E073a821EE1ff", // Linea
+  1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  42161: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+  8453: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  10: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+  42220: "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+  59144: "0x176211869cA2b568f2A7D4EE941E073a821EE1ff",
 };
 
 async function main() {
@@ -21,7 +20,6 @@ async function main() {
 
   const balance = await deployer.getBalance();
   console.log(`💰 Account balance: ${ethers.utils.formatEther(balance)} ETH`);
-
   if (balance.lt(ethers.utils.parseEther("0.01"))) {
     console.warn("⚠️ Low balance. Deployment might fail.");
   }
@@ -33,39 +31,49 @@ async function main() {
   }
   console.log(`🏦 Using USDC address: ${usdcAddress}`);
 
-  // Deploy HackathonRegistry (not upgradeable — simple registry)
+  // Deploy HackathonRegistry
   console.log("\n📋 Deploying HackathonRegistry...");
   const HackathonRegistry = await ethers.getContractFactory("HackathonRegistry");
   const hackathonRegistry = await HackathonRegistry.deploy();
   await hackathonRegistry.deployed();
   console.log(`✅ HackathonRegistry deployed to: ${hackathonRegistry.address}`);
 
-  // Deploy BuilderCreditCore via UUPS proxy
-  console.log("\n🏗️ Deploying BuilderCreditCore (UUPS proxy)...");
+  // Deploy BuilderCreditCore implementation
+  console.log("\n🏗️ Deploying BuilderCreditCore implementation...");
   const BuilderCreditCore = await ethers.getContractFactory("BuilderCreditCore");
-  const proxy = await upgrades.deployProxy(
-    BuilderCreditCore,
-    [hackathonRegistry.address, usdcAddress, deployer.address],
-    { kind: "uups", initializer: "initialize" }
-  );
-  await proxy.deployed();
+  const impl = await BuilderCreditCore.deploy();
+  await impl.deployed();
+  console.log(`✅ Implementation deployed to: ${impl.address}`);
 
-  const proxyAddress = proxy.address;
-  const implAddress = await upgrades.erc1967.getImplementationAddress(
-    ethers.provider,
-    proxyAddress
+  // Encode initialize call
+  const initData = impl.interface.encodeFunctionData("initialize", [
+    hackathonRegistry.address,
+    usdcAddress,
+    deployer.address,
+  ]);
+
+  // Deploy ERC1967 proxy
+  console.log("📦 Deploying ERC1967 proxy...");
+  const proxyArtifact = require("@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol/ERC1967Proxy.json");
+  const proxyFactory = new ethers.ContractFactory(
+    proxyArtifact.abi,
+    proxyArtifact.bytecode,
+    deployer
   );
-  console.log(`✅ BuilderCreditCore proxy deployed to: ${proxyAddress}`);
-  console.log(`✅ Implementation contract at: ${implAddress}`);
+  const proxy = await proxyFactory.deploy(impl.address, initData);
+  await proxy.deployed();
+  console.log(`✅ Proxy deployed to: ${proxy.address}`);
+
+  // Verify
+  const core = BuilderCreditCore.attach(proxy.address);
+  console.log(`\n🔍 Verification:`);
+  console.log(`   registry: ${await core.registry()}`);
+  console.log(`   usdcToken: ${await core.usdcToken()}`);
 
   // Wait for confirmations
   console.log("\n⏳ Waiting for confirmations...");
   await hackathonRegistry.deployTransaction.wait(5);
-  try {
-    await proxy.deployTransaction.wait(5);
-  } catch (_) {
-    console.log("   (proxy confirmation skipped)");
-  }
+  await proxy.deployTransaction.wait(5);
 
   // Save deployment info
   const deploymentInfo = {
@@ -74,8 +82,8 @@ async function main() {
     usdcAddress: usdcAddress,
     contracts: {
       HackathonRegistry: hackathonRegistry.address,
-      BuilderCreditCore: proxyAddress,
-      BuilderCreditCoreImpl: implAddress,
+      BuilderCreditCore: proxy.address,
+      BuilderCreditCoreImpl: impl.address,
     },
     deployer: deployer.address,
     deploymentTime: new Date().toISOString(),
@@ -88,27 +96,14 @@ async function main() {
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📄 Deployment info saved to ${deploymentFile}`);
 
-  // Print summary
   console.log("\n🎉 Production Deployment Summary:");
-  console.log(
-    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  );
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`📍 Network: ${networkName} (${chainId})`);
   console.log(`🏦 USDC Address: ${usdcAddress}`);
   console.log(`📋 HackathonRegistry: ${hackathonRegistry.address}`);
-  console.log(`🏗️ BuilderCreditCore (proxy): ${proxyAddress}`);
-  console.log(`🔧 BuilderCreditCore (impl): ${implAddress}`);
-  console.log(
-    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  );
-
-  // Verification instructions
-  console.log("\n📝 To verify these contracts, run:");
-  console.log(`npx hardhat verify --network ${networkName} ${hackathonRegistry.address}`);
-  console.log(`npx hardhat verify --network ${networkName} ${proxyAddress} ${hackathonRegistry.address} ${usdcAddress}`);
-
-  console.log("\n📦 To upgrade later:");
-  console.log(`  npx hardhat run scripts/upgrade.js --network ${networkName}`);
+  console.log(`🏗️ BuilderCreditCore (proxy): ${proxy.address}`);
+  console.log(`🔧 BuilderCreditCore (impl): ${impl.address}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   return deploymentInfo;
 }

@@ -6,7 +6,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use anchor_spl::associated_token::AssociatedToken;
 use std::str::FromStr;
 
-declare_id!("14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K");
+declare_id!("DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st");
 
 const ED25519_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
     0x06, 0xa7, 0xd5, 0x2d, 0x60, 0x2f, 0x92, 0x28,
@@ -78,7 +78,7 @@ pub mod blockchain_solana {
     /// Add this instruction when a DAO/multisig can control the treasury.
     pub fn withdraw_treasury(ctx: Context<WithdrawTreasury>, amount: u64) -> Result<()> {
         let treasury_key = ctx.accounts.treasury_authority.key();
-        let seeds = &[b"treasury", &[ctx.bumps.treasury_authority]];
+        let seeds: &[&[u8]] = &[b"treasury", &[ctx.bumps.treasury_authority]];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
@@ -103,7 +103,7 @@ pub mod blockchain_solana {
     /// (or by a DAO-controlled process).
     pub fn fund_backer_rewards(ctx: Context<FundBackerRewards>, amount: u64) -> Result<()> {
         let treasury_key = ctx.accounts.treasury_authority.key();
-        let seeds = &[b"treasury", &[ctx.bumps.treasury_authority]];
+        let seeds: &[&[u8]] = &[b"treasury", &[ctx.bumps.treasury_authority]];
         let signer_seeds = &[&seeds[..]];
 
         let cpi_accounts = Transfer {
@@ -498,7 +498,7 @@ pub struct InitializeTreasury<'info> {
 
 #[derive(Accounts)]
 pub struct WithdrawTreasury<'info> {
-    /// CHECK: Protocol treasury PDA — seeds ensure only this program derives it.
+    /// CHECK: Protocol treasury PDA. No data read; used only for PDA signing via seeds.
     #[account(seeds = [b"treasury"], bump)]
     pub treasury_authority: AccountInfo<'info>,
 

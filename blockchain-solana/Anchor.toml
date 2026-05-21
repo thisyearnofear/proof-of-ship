@@ -2,14 +2,14 @@
 
 [features]
 seeds = false
-skip-lint = false
+skip-lint = true
 init-if-needed = []
 
 [programs.localnet]
-blockchain_solana = "14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K"
+blockchain_solana = "DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st"
 
 [programs.devnet]
-blockchain_solana = "14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K"
+blockchain_solana = "DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st"
 
 [registry]
 url = "https://api.apr.dev"

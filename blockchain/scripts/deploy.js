@@ -1,15 +1,13 @@
-// Deployment script for Builder Credit contracts (UUPS upgradeable)
-const { upgrades } = require("hardhat");
+// Deployment script for Builder Credit contracts (UUPS upgradeable via ERC1967 proxy)
 const hre = require("hardhat");
 
 async function main() {
   console.log("Deploying Builder Credit contracts (UUPS)...");
 
-  // Get signers
   const [deployer] = await hre.ethers.getSigners();
   console.log(`Deploying contracts with the account: ${deployer.address}`);
 
-  // Deploy HackathonRegistry (not upgradeable — it's a registry with no complex logic)
+  // Deploy HackathonRegistry
   console.log("Deploying HackathonRegistry...");
   const HackathonRegistry = await hre.ethers.getContractFactory("HackathonRegistry");
   const hackathonRegistry = await HackathonRegistry.deploy();
@@ -17,8 +15,7 @@ async function main() {
   const hackathonRegistryAddress = await hackathonRegistry.getAddress();
   console.log(`HackathonRegistry deployed to: ${hackathonRegistryAddress}`);
 
-  // For testnet/mainnet, use the actual USDC address
-  // For local development, deploy a mock USDC token
+  // For local dev, deploy a mock USDC
   console.log("Deploying Mock USDC Token for testing...");
   const MockUSDC = await hre.ethers.getContractFactory("MockUSDC");
   const mockUSDC = await MockUSDC.deploy();
@@ -26,60 +23,58 @@ async function main() {
   const mockUSDCAddress = await mockUSDC.getAddress();
   console.log(`Mock USDC Token deployed to: ${mockUSDCAddress}`);
 
-  // Deploy BuilderCreditCore via UUPS proxy
-  console.log("Deploying BuilderCreditCore (UUPS proxy)...");
+  // Deploy BuilderCreditCore implementation
+  console.log("Deploying BuilderCreditCore implementation...");
   const BuilderCreditCore = await hre.ethers.getContractFactory("BuilderCreditCore");
+  const impl = await BuilderCreditCore.deploy();
+  await impl.waitForDeployment();
+  const implAddress = await impl.getAddress();
+  console.log(`Implementation deployed to: ${implAddress}`);
 
-  // Use hardhat-upgrades deployProxy — this deploys the implementation,
-  // creates a proxy, and calls initialize() all in one transaction.
-  const proxy = await upgrades.deployProxy(
-    BuilderCreditCore,
-    [hackathonRegistryAddress, mockUSDCAddress, deployer.address],
-    {
-      kind: "uups",
-      initializer: "initialize",
-    }
+  // Encode initialize call
+  const initData = impl.interface.encodeFunctionData("initialize", [
+    hackathonRegistryAddress,
+    mockUSDCAddress,
+    deployer.address,
+  ]);
+
+  // Deploy ERC1967 proxy
+  console.log("Deploying ERC1967 proxy...");
+  const proxyArtifact = require("@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol/ERC1967Proxy.json");
+  const proxyFactory = new hre.ethers.ContractFactory(
+    proxyArtifact.abi,
+    proxyArtifact.bytecode,
+    deployer
   );
+  const proxy = await proxyFactory.deploy(implAddress, initData);
   await proxy.waitForDeployment();
   const proxyAddress = await proxy.getAddress();
-
-  // Get the implementation address for reference
-  const implAddress = await upgrades.erc1967.getImplementationAddress(
-    hre.ethers.provider,
-    proxyAddress
-  );
-
   console.log(`BuilderCreditCore proxy deployed to: ${proxyAddress}`);
-  console.log(`Implementation contract at: ${implAddress}`);
 
-  // Setup initial configurations
-  console.log("Setting up initial configurations...");
+  // Verify
+  const core = BuilderCreditCore.attach(proxyAddress);
+  console.log(`\n🔍 Verification:`);
+  console.log(`   registry: ${await core.registry()}`);
+  console.log(`   usdcToken: ${await core.usdcToken()}`);
+  console.log(`   admin: ${await core.hasRole(await core.DEFAULT_ADMIN_ROLE(), deployer.address)}`);
 
-  // For testing purposes, mint some USDC to the BuilderCreditCore proxy
-  const mintAmount = hre.ethers.parseUnits("1000000", 6); // 1,000,000 USDC (6 decimals)
+  // Setup
+  const mintAmount = hre.ethers.parseUnits("1000000", 6);
   await mockUSDC.mint(proxyAddress, mintAmount);
-  console.log(`Minted ${hre.ethers.formatUnits(mintAmount, 6)} USDC to BuilderCreditCore proxy`);
+  console.log(`Minted ${hre.ethers.formatUnits(mintAmount, 6)} USDC to proxy`);
 
-  // Create a sample hackathon
   const currentTime = Math.floor(Date.now() / 1000);
   const oneMonth = 30 * 24 * 60 * 60;
 
-  const hackathonName = "Sample Hackathon";
-  const hackathonHost = deployer.address;
-  const initialVerifiers = [deployer.address];
-  const requiredSignatures = 1;
-  const startDate = currentTime;
-  const endDate = currentTime + oneMonth;
-
   await hackathonRegistry.createHackathon(
-    hackathonName,
-    hackathonHost,
-    initialVerifiers,
-    requiredSignatures,
-    startDate,
-    endDate
+    "Sample Hackathon",
+    deployer.address,
+    [deployer.address],
+    1,
+    currentTime,
+    currentTime + oneMonth
   );
-  console.log(`Created sample hackathon: ${hackathonName}`);
+  console.log("Created sample hackathon (ID: 1)");
 
   // Summary
   console.log("\nDeployment Complete!");
@@ -88,9 +83,6 @@ async function main() {
   console.log(`BuilderCreditCore (proxy): ${proxyAddress}`);
   console.log(`BuilderCreditCore (impl): ${implAddress}`);
   console.log(`Mock USDC Token: ${mockUSDCAddress}`);
-  console.log(`Sample Hackathon ID: 1`);
-  console.log("\nTo upgrade the contract later, run:");
-  console.log(`  npx hardhat run scripts/upgrade.js --network <network>`);
 }
 
 main()

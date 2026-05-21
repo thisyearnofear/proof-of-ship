@@ -16,7 +16,7 @@
 
 import { db } from '@/lib/firebase/clientApp';
 import { collection, getDocs, doc, getDoc, query, where, orderBy, setDoc, addDoc } from 'firebase/firestore';
-import { COLLECTIONS, getProjectCollection } from '@/config/collections';
+import { COLLECTIONS } from '@/config/collections';
 import { createProjectDocument, generateProjectSlug, validateProjectInput } from '@/lib/projects/projectNormalize';
 
 // Static repos for Celo fallback (imported lazily to avoid bundling in server contexts)
@@ -315,7 +315,7 @@ class DataService {
 
     const seenSlugs = new Set<string>();
 
-    // First load from generic "projects" collection
+    // Load all projects from the single 'projects' collection
     try {
       const ref = collection(db, 'projects');
       const q = query(ref, orderBy('createdAt', 'desc'));
@@ -359,21 +359,7 @@ class DataService {
         }
       }));
     } catch (error) {
-      console.error('Failed to load generic projects:', error);
-    }
-
-    // Now load from ecosystem-specific collections (to fill in any missing ones)
-    await Promise.all(ecosystems.map(async (eco) => {
-      try {
-        const ecoProjects = await this.loadEcosystemProjects(eco, eco === 'celo' ? celoDataTypes : baseDataTypes);
-        for (const project of ecoProjects) {
-          if (!seenSlugs.has(project.slug)) {
-            seenSlugs.add(project.slug);
-            projects[eco as keyof EcosystemProjects].push(project);
-          }
-        }
-      } catch (error) {
-        console.error(`Failed to load ${eco} projects:`, error);
+      console.error('Failed to load projects:', error);
       }
     }));
 
@@ -555,77 +541,31 @@ class DataService {
   async getProject(slug: string, ecosystem: string | null = null): Promise<Project | null> {
     const dataTypes = ['meta', 'commits', 'issues', 'prs'];
 
-    if (ecosystem && ecosystem !== 'celo') {
-      try {
-        const collectionName = getProjectCollection(ecosystem);
-        const ref = doc(db, collectionName, slug);
-        const snap = await getDoc(ref);
-        if (!snap.exists()) return null;
-
-        const snapData = snap.data();
-        const projectData: Project = { 
-          id: snap.id, 
-          slug: snapData.slug || slug,
-          name: snapData.name || '',
-          owner: snapData.owner || '',
-          repo: snapData.repo || '',
-          ecosystem, 
-          ...snapData 
-        };
-        if (projectData.owner && projectData.repo) {
-          const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
-          projectData.githubData = githubData;
-          projectData.stats = this.calculateProjectStats(githubData);
-        }
-        return projectData;
-      } catch (error) {
-        console.error(`Failed to load project ${slug} from ${ecosystem}:`, error);
-        return null;
-      }
-    }
-
-    // Try Celo (dynamic first, then static fallback)
     try {
-      const dynamicRef = doc(db, 'projects_celo', slug);
-      const dynamicSnap = await getDoc(dynamicRef);
-      if (dynamicSnap.exists()) {
-        const snapData = dynamicSnap.data();
-        const projectData: Project = { 
-          id: dynamicSnap.id, 
-          slug: snapData.slug || slug,
-          name: snapData.name || '',
-          owner: snapData.owner || '',
-          repo: snapData.repo || '',
-          ecosystem: 'celo', 
-          ...snapData 
-        };
-        if (projectData.owner && projectData.repo) {
-          const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
-          projectData.githubData = githubData;
-          projectData.stats = this.calculateProjectStats(githubData);
-        }
-        return projectData;
-      }
+      const ref = doc(db, 'projects', slug);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return null;
 
-      // Static fallback for Celo projects not in Firestore
-      const repos = await getStaticRepos();
-      const repoEntry = repos.find((r: any) => r.slug === slug);
-      if (repoEntry) {
-        const githubData = await this.fetchGitHubDataForProject(repoEntry.owner, repoEntry.repo, dataTypes);
-        return {
-          ...repoEntry,
-          ecosystem: 'celo',
-          source: 'static',
-          githubData,
-          stats: this.calculateProjectStats(githubData),
-          lastUpdated: new Date().toISOString(),
-        };
+      const snapData = snap.data();
+      const projectData: Project = { 
+        id: snap.id, 
+        slug: snapData.slug || slug,
+        name: snapData.name || '',
+        owner: snapData.owner || '',
+        repo: snapData.repo || '',
+        ecosystem: ecosystem || snapData.ecosystem || 'base', 
+        ...snapData 
+      };
+      if (projectData.owner && projectData.repo) {
+        const githubData = await this.fetchGitHubDataForProject(projectData.owner, projectData.repo, dataTypes);
+        projectData.githubData = githubData;
+        projectData.stats = this.calculateProjectStats(githubData);
       }
+      return projectData;
     } catch (error) {
-      console.error(`Failed to load Celo project ${slug}:`, error);
+      console.error(`Failed to load project ${slug}:`, error);
+      return null;
     }
-
-    return null;
   }
 
   // --------------------------------------------------------------------------
@@ -693,8 +633,7 @@ class DataService {
         bagsTokenAddress: inputData.bagsTokenAddress || null,
       };
 
-      await setDoc(doc(db, COLLECTIONS.PROJECTS_GENERIC, slug), projectDoc as any);
-      await setDoc(doc(db, getProjectCollection(inputData.ecosystem), slug), projectDoc as any);
+      await setDoc(doc(db, COLLECTIONS.PROJECTS, slug), projectDoc as any);
 
       await addDoc(collection(db, COLLECTIONS.ADMIN_QUEUE), {
         type: 'project_submission',

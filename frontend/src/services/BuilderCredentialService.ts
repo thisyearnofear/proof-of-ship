@@ -71,23 +71,20 @@ export class BuilderCredentialService {
    * Looks up the builder's projects, then collects attestations for those projects.
    */
   private async fetchAttestationsForBuilder(builderId: string): Promise<PayoutAttestation[]> {
-    // Find all projects owned by this builder
-    const ecosystems = ['projects', 'projects_celo', 'projects_base', 'projects_solana', 'projects_arc', 'projects_linea'];
+    // Find all projects owned by this builder from the single projects collection
     const projectSlugs: string[] = [];
 
-    for (const ecosystem of ecosystems) {
-      const snapshot = await db.collection(ecosystem)
-        .where('owners', 'array-contains', builderId)
-        .select('slug')
-        .get();
+    const snapshot = await db.collection('projects')
+      .where('owners', 'array-contains', builderId)
+      .select('slug')
+      .get();
 
-      snapshot.forEach(doc => {
-        const slug = doc.data().slug || doc.id;
-        if (!projectSlugs.includes(slug)) {
-          projectSlugs.push(slug);
-        }
-      });
-    }
+    snapshot.forEach(doc => {
+      const slug = doc.data().slug || doc.id;
+      if (!projectSlugs.includes(slug)) {
+        projectSlugs.push(slug);
+      }
+    });
 
     if (projectSlugs.length === 0) return [];
 

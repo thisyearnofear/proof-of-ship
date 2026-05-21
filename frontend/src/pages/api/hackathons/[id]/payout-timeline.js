@@ -36,11 +36,6 @@ import { db } from "../../../../lib/firebase/serverOnly";
 
 const ECOSYSTEM_COLLECTIONS = [
   'projects',
-  'projects_celo',
-  'projects_base',
-  'projects_solana',
-  'projects_arc',
-  'projects_linea',
 ];
 
 export default async function handler(req, res) {

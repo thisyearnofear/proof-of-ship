@@ -95,11 +95,6 @@ async function handler(req, res) {
 
         await projectRef.update(update);
 
-        if (existing.ecosystem) {
-          await db.collection(`projects_${existing.ecosystem}`).doc(slug)
-            .update(update).catch(() => {});
-        }
-
         return res.status(200).json({
           success: true,
           status: 'winding_down',
@@ -111,10 +106,6 @@ async function handler(req, res) {
 
       // No active backings — hard delete immediately
       await projectRef.delete();
-
-      if (existing.ecosystem) {
-        await db.collection(`projects_${existing.ecosystem}`).doc(slug).delete().catch(() => {});
-      }
 
       return res.status(200).json({ success: true, status: 'deleted' });
     } catch (error) {
@@ -184,9 +175,6 @@ async function handler(req, res) {
       }
     }
 
-    const oldEcosystem = existing.ecosystem;
-    const newEcosystem = updates.ecosystem || oldEcosystem;
-
     const nextDoc = {
       ...existing,
       ...updates,
@@ -195,14 +183,6 @@ async function handler(req, res) {
     };
 
     await projectRef.set(nextDoc, { merge: true });
-
-    if (newEcosystem) {
-      await db.collection(`projects_${newEcosystem}`).doc(slug).set(nextDoc);
-    }
-
-    if (oldEcosystem && newEcosystem && oldEcosystem !== newEcosystem) {
-      await db.collection(`projects_${oldEcosystem}`).doc(slug).delete();
-    }
 
     res.status(200).json({ success: true });
   } catch (error) {

@@ -11,9 +11,8 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/clientApp';
-import { COLLECTIONS } from '@/config/collections';
 import { enhanceProject } from '@/utils/projectMetrics';
 
 const ECOSYSTEMS = ['solana', 'celo', 'arc', 'base', 'linea', 'arbitrum', 'ethereum', 'optimism'];
@@ -60,50 +59,16 @@ export function useProjectData() {
     setError(null);
 
     try {
-      // Load from all ecosystem collections in parallel
-      const results = await Promise.allSettled(
-        ECOSYSTEMS.map(async (eco) => {
-          const collectionName = `projects_${eco}`;
-          try {
-            const ref = collection(db, collectionName);
-            const q = eco === 'base'
-              ? query(ref, where('status', '==', 'approved'))
-              : query(ref);
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-              ecosystem: eco, // ensure ecosystem is always set
-            }));
-          } catch (err) {
-            console.warn(`Failed to load ${collectionName}:`, err.message);
-            return [];
-          }
-        })
-      );
-
-      // Flatten all ecosystem projects
-      const allRaw = results
-        .filter(r => r.status === 'fulfilled')
-        .flatMap(r => r.value);
-
-      // Deduplicate by slug (same project may exist in generic + ecosystem collection)
-      const seen = new Map();
-      for (const p of allRaw) {
-        const key = p.slug || p.id;
-        if (!seen.has(key)) {
-          seen.set(key, p);
-        } else {
-          // Prefer the one with more data (longer description)
-          const existing = seen.get(key);
-          if ((p.description || '').length > (existing.description || '').length) {
-            seen.set(key, p);
-          }
-        }
-      }
+      // Load all projects from the single 'projects' collection
+      const ref = collection(db, 'projects');
+      const snapshot = await getDocs(ref);
+      const allRaw = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
       // Apply quality gate
-      const qualityProjects = [...seen.values()].filter(isBackerReady);
+      const qualityProjects = allRaw.filter(isBackerReady);
 
       // Enhance with derived metrics
       const enhanced = qualityProjects.map(p => enhanceProject(p));

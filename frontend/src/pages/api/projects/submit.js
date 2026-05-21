@@ -119,12 +119,6 @@ async function handler(req, res) {
     // Save to Firestore
    await db.collection("projects").doc(slug).set(projectDoc);
 
-    // Also save to ecosystem-specific collection for easier querying
-    await db
-      .collection(`projects_${projectData.ecosystem}`)
-      .doc(slug)
-      .set(projectDoc);
-
     // Grant the submitter edit permissions (used by the in-app editor)
     if (userId) {
       const userRef = db.collection("users").doc(userId);

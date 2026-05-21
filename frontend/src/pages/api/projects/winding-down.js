@@ -67,9 +67,6 @@ async function handler(req, res) {
 
         if (backingsSnap.size === 0) {
           await doc.ref.delete();
-          if (data.ecosystem) {
-            await db.collection(`projects_${data.ecosystem}`).doc(slug).delete().catch(() => {});
-          }
           deleted++;
           results.push({ slug, status: 'deleted' });
         } else {

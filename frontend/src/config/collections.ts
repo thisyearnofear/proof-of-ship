@@ -6,20 +6,8 @@
  */
 
 export const COLLECTIONS = {
-  // Project collections (per ecosystem)
-  PROJECTS: {
-    BASE: 'projects_base',
-    CELO: 'projects_celo',
-    ARBITRUM: 'projects_arbitrum',
-    ETHEREUM: 'projects_ethereum',
-    LINEA: 'projects_linea',
-    OPTIMISM: 'projects_optimism',
-    SOLANA: 'projects_solana',
-    ARC: 'projects_arc',
-  } as const,
-
-  // Generic project collection
-  PROJECTS_GENERIC: 'projects',
+  // Single project collection with ecosystem field
+  PROJECTS: 'projects',
 
   // Admin queue
   ADMIN_QUEUE: 'admin_queue',
@@ -44,10 +32,9 @@ export const COLLECTIONS = {
 } as const;
 
 export type CollectionName = 
-  | typeof COLLECTIONS.PROJECTS[keyof typeof COLLECTIONS.PROJECTS]
-  | typeof COLLECTIONS.PROJECTS_GENERIC
+  | typeof COLLECTIONS.PROJECTS
   | typeof COLLECTIONS.ADMIN_QUEUE
-  | typeof COLLECTIONS.USER_PROFILES
+  | typeof COLLECTIONS.USERS
   | typeof COLLECTIONS.VERIFICATION_REQUESTS
   | typeof COLLECTIONS.CREDIT_LINES
   | typeof COLLECTIONS.BACKINGS
@@ -57,25 +44,8 @@ export type CollectionName =
   | typeof COLLECTIONS.EVENTS;
 
 /**
- * Get collection name for a specific ecosystem
- */
-export const getProjectCollection = (ecosystem: string): string => {
-  const normalized = ecosystem.toLowerCase();
-  return COLLECTIONS.PROJECTS[normalized as keyof typeof COLLECTIONS.PROJECTS] 
-    || `${COLLECTIONS.PROJECTS_GENERIC}_${normalized}`;
-};
-
-/**
  * Check if a collection name is a valid project collection
  */
 export const isProjectCollection = (collection: string): boolean => {
-  return Object.values(COLLECTIONS.PROJECTS).includes(collection as any)
-    || collection === COLLECTIONS.PROJECTS_GENERIC;
-};
-
-/**
- * Get all ecosystem project collection names
- */
-export const getAllProjectCollections = (): string[] => {
-  return [...Object.values(COLLECTIONS.PROJECTS), COLLECTIONS.PROJECTS_GENERIC];
+  return collection === COLLECTIONS.PROJECTS;
 };

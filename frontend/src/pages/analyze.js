@@ -47,21 +47,18 @@ export default function AnalyzePage() {
         const ecosystems = ["solana", "celo", "arc", "base"];
         const all = [];
 
-        for (const eco of ecosystems) {
-          try {
-            const ref = collection(db, `projects_${eco}`);
-            const q = eco === "base"
-              ? query(ref, where("status", "==", "approved"), fbLimit(10))
-              : query(ref, fbLimit(10));
-            const snap = await getDocs(q);
-            snap.docs.forEach((doc) => {
-              const data = doc.data();
-              if (data.description && data.description.length > 15) {
-                all.push({ id: doc.id, ...data, ecosystem: eco });
-              }
-            });
-          } catch { /* skip failed ecosystems */ }
-        }
+        // Load from single projects collection
+        try {
+          const ref = collection(db, "projects");
+          const snap = await getDocs(query(ref, fbLimit(50)));
+          snap.docs.forEach((doc) => {
+            const data = doc.data();
+            const eco = data.ecosystem || "";
+            if (ecosystems.includes(eco) && data.description && data.description.length > 15) {
+              all.push({ id: doc.id, ...data });
+            }
+          });
+        } catch { /* skip */ }
 
         setProjects(all);
       } catch (err) {

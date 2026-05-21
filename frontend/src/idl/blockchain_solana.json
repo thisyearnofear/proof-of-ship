@@ -1144,6 +1144,60 @@
       ]
     }
   ],
+  "events": [
+    {
+      "name": "LoanRepaid",
+      "discriminator": [
+        202,
+        183,
+        88,
+        60,
+        211,
+        54,
+        142,
+        243
+      ]
+    },
+    {
+      "name": "MilestoneVerified",
+      "discriminator": [
+        91,
+        149,
+        114,
+        93,
+        85,
+        205,
+        131,
+        242
+      ]
+    },
+    {
+      "name": "ProjectBacked",
+      "discriminator": [
+        58,
+        47,
+        252,
+        23,
+        172,
+        113,
+        2,
+        17
+      ]
+    },
+    {
+      "name": "RewardClaimed",
+      "discriminator": [
+        49,
+        28,
+        87,
+        84,
+        158,
+        48,
+        229,
+        175
+      ]
+    }
+  ],
   "errors": [
     {
       "code": 6000,
@@ -1369,6 +1423,34 @@
       }
     },
     {
+      "name": "LoanRepaid",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "project",
+            "type": "pubkey"
+          },
+          {
+            "name": "developer",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "used_amount",
+            "type": "u64"
+          },
+          {
+            "name": "reputation",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "Milestone",
       "type": {
         "kind": "struct",
@@ -1388,6 +1470,34 @@
           {
             "name": "completed_at",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MilestoneVerified",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "project",
+            "type": "pubkey"
+          },
+          {
+            "name": "verifier",
+            "type": "pubkey"
+          },
+          {
+            "name": "milestone_index",
+            "type": "u8"
+          },
+          {
+            "name": "payout_amount",
+            "type": "u64"
+          },
+          {
+            "name": "milestones_completed",
+            "type": "u8"
           }
         ]
       }
@@ -1473,6 +1583,66 @@
           },
           {
             "name": "total_backing",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProjectBacked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "project",
+            "type": "pubkey"
+          },
+          {
+            "name": "backer",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "multiplier",
+            "type": "u64"
+          },
+          {
+            "name": "total_backing",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RewardClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "project",
+            "type": "pubkey"
+          },
+          {
+            "name": "backer",
+            "type": "pubkey"
+          },
+          {
+            "name": "backing_index",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "reward_amount",
+            "type": "u64"
+          },
+          {
+            "name": "multiplier",
             "type": "u64"
           }
         ]

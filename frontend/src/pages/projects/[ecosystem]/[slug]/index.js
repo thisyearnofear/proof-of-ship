@@ -16,7 +16,7 @@ import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
 import ShipsLog from "@/components/projects/ShipsLog";
 import ShareButtons from "@/components/common/ShareButtons";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
-import { SkeletonDetailPage } from "@/components/common/SkeletonLoader";
+import { SkeletonDetailPage } from "@/components/common/LoadingStates";
 import BackerActivity from "@/components/projects/BackerActivity";
 
 import {

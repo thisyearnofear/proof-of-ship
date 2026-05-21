@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::{
+use anchor_lang::{emit, solana_program::{
     sysvar::instructions as ix_sysvar,
-};
+}};
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use anchor_spl::associated_token::AssociatedToken;
 use std::str::FromStr;
@@ -299,6 +299,14 @@ pub mod blockchain_solana {
             .checked_add(boost)
             .ok_or(ErrorCode::ArithmeticOverflow)?;
 
+        emit!(ProjectBacked {
+            project: project.key(),
+            backer: backer.key(),
+            amount,
+            multiplier,
+            total_backing: project.total_backing,
+        });
+
         Ok(())
     }
 
@@ -340,6 +348,15 @@ pub mod blockchain_solana {
         }
 
         credit_line.last_updated = Clock::get()?.unix_timestamp;
+
+        emit!(LoanRepaid {
+            project: ctx.accounts.project.key(),
+            developer: developer.key(),
+            amount,
+            used_amount: credit_line.used_amount,
+            reputation: credit_line.reputation,
+        });
+
         Ok(())
     }
 
@@ -398,6 +415,14 @@ pub mod blockchain_solana {
             project.is_active = false;
         }
 
+        emit!(MilestoneVerified {
+            project: project.key(),
+            verifier: ctx.accounts.verifier.key(),
+            milestone_index,
+            payout_amount,
+            milestones_completed: project.milestones_completed,
+        });
+
         Ok(())
     }
 
@@ -438,9 +463,12 @@ pub mod blockchain_solana {
         // If it only holds amount, the transfer succeeds for just the principal.
         // If funded fully by treasury, the full reward is paid.
 
-        let reward_amount = backing
-            .amount
-            .checked_mul(backing.multiplier)
+        // Capture values before mutation for event emission
+        let backing_amount = backing.amount;
+        let backing_multiplier = backing.multiplier;
+
+        let reward_amount = backing_amount
+            .checked_mul(backing_multiplier)
             .ok_or(ErrorCode::ArithmeticOverflow)?
             .checked_div(100)
             .ok_or(ErrorCode::ArithmeticOverflow)?;
@@ -467,6 +495,15 @@ pub mod blockchain_solana {
             signer_seeds,
         );
         token::transfer(cpi_ctx, reward_amount)?;
+
+        emit!(RewardClaimed {
+            project: project.key(),
+            backer: backer.key(),
+            backing_index,
+            amount: backing_amount,
+            reward_amount,
+            multiplier: backing_multiplier,
+        });
 
         Ok(())
     }
@@ -866,6 +903,45 @@ pub enum ErrorCode {
     CreditLimitExceeded,
     #[msg("Insufficient treasury balance for the requested withdrawal.")]
     InsufficientTreasuryBalance,
+}
+
+// ── Events ───────────────────────────────────────────────────────
+
+#[event]
+pub struct ProjectBacked {
+    pub project: Pubkey,
+    pub backer: Pubkey,
+    pub amount: u64,
+    pub multiplier: u64,
+    pub total_backing: u64,
+}
+
+#[event]
+pub struct MilestoneVerified {
+    pub project: Pubkey,
+    pub verifier: Pubkey,
+    pub milestone_index: u8,
+    pub payout_amount: u64,
+    pub milestones_completed: u8,
+}
+
+#[event]
+pub struct RewardClaimed {
+    pub project: Pubkey,
+    pub backer: Pubkey,
+    pub backing_index: u32,
+    pub amount: u64,
+    pub reward_amount: u64,
+    pub multiplier: u64,
+}
+
+#[event]
+pub struct LoanRepaid {
+    pub project: Pubkey,
+    pub developer: Pubkey,
+    pub amount: u64,
+    pub used_amount: u64,
+    pub reputation: u64,
 }
 
 // ── Data structs ─────────────────────────────────────────────────

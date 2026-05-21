@@ -38,7 +38,6 @@ async function handler(req, res) {
     network, 
     projectPda, 
     developerTokenAccount, 
-    vaultTokenAccount, 
     milestoneIndex 
   } = req.query;
 
@@ -139,14 +138,14 @@ async function handler(req, res) {
             process.env.SOLANA_USDC_MINT || DEFAULT_DEVNET_USDC
           );
 
-          const [vaultAuthority] = PublicKey.findProgramAddressSync(
-            [Buffer.from("vault_authority"), projectPubkey.toBuffer()],
+          const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
+            [Buffer.from("milestone_vault_authority"), projectPubkey.toBuffer()],
             PROGRAM_ID
           );
 
-          const vaultTokenAccount = getAssociatedTokenAddressSync(
+          const milestoneVault = getAssociatedTokenAddressSync(
             usdcMint,
-            vaultAuthority,
+            milestoneVaultAuthority,
             true
           );
 
@@ -159,8 +158,8 @@ async function handler(req, res) {
             .accounts({
               project: projectPubkey,
               developerTokenAccount: developerAta,
-              vaultTokenAccount,
-              vaultAuthority,
+              milestoneVault,
+              milestoneVaultAuthority,
               usdcMint,
               verifier: keypair.publicKey,
               tokenProgram: TOKEN_PROGRAM_ID,

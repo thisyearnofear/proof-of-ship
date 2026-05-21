@@ -118,11 +118,16 @@ async function main() {
     [Buffer.from("credit_line"), dev.toBuffer()],
     program.programId
   );
-  const [vaultAuthority] = PublicKey.findProgramAddressSync(
-    [Buffer.from("vault_authority"), project.toBuffer()],
+  const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
+    [Buffer.from("milestone_vault_authority"), project.toBuffer()],
     program.programId
   );
-  const vaultTokenAccount = getAssociatedTokenAddressSync(usdcMint, vaultAuthority, true);
+  const milestoneVault = getAssociatedTokenAddressSync(usdcMint, milestoneVaultAuthority, true);
+  const [backerVaultAuthority] = PublicKey.findProgramAddressSync(
+    [Buffer.from("backer_vault_authority"), project.toBuffer()],
+    program.programId
+  );
+  const backerEscrowVault = getAssociatedTokenAddressSync(usdcMint, backerVaultAuthority, true);
   const identityMessage1 = buildIdentityClaimMessage(
     dev,
     snsNameAccount,
@@ -151,9 +156,11 @@ async function main() {
     .accounts({
       project,
       creditLine,
-      vaultAuthority,
+      milestoneVaultAuthority,
+      milestoneVault,
+      backerVaultAuthority,
+      backerEscrowVault,
       usdcMint,
-      vaultTokenAccount,
       developer: dev,
       snsNameAccount,
       instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -188,8 +195,8 @@ async function main() {
       developerCreditLine: creditLine,
       backer: backer.publicKey,
       backerTokenAccount: backerAta,
-      vaultTokenAccount,
-      vaultAuthority,
+      backerEscrowVault,
+      backerVaultAuthority,
       usdcMint,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
@@ -208,8 +215,8 @@ async function main() {
     .accounts({
       project,
       developerTokenAccount: developerAta,
-      vaultTokenAccount,
-      vaultAuthority,
+      milestoneVault,
+      milestoneVaultAuthority,
       verifier: dev,
       usdcMint,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -246,11 +253,16 @@ async function main() {
     [Buffer.from("project"), dev.toBuffer(), Buffer.from(projectName2)],
     program.programId
   );
-  const [vaultAuthority2] = PublicKey.findProgramAddressSync(
-    [Buffer.from("vault_authority"), project2.toBuffer()],
+  const [milestoneVaultAuthority2] = PublicKey.findProgramAddressSync(
+    [Buffer.from("milestone_vault_authority"), project2.toBuffer()],
     program.programId
   );
-  const vaultTokenAccount2 = getAssociatedTokenAddressSync(usdcMint, vaultAuthority2, true);
+  const milestoneVault2 = getAssociatedTokenAddressSync(usdcMint, milestoneVaultAuthority2, true);
+  const [backerVaultAuthority2] = PublicKey.findProgramAddressSync(
+    [Buffer.from("backer_vault_authority"), project2.toBuffer()],
+    program.programId
+  );
+  const backerEscrowVault2 = getAssociatedTokenAddressSync(usdcMint, backerVaultAuthority2, true);
   const identityMessage2 = buildIdentityClaimMessage(
     dev,
     snsNameAccount,
@@ -279,9 +291,11 @@ async function main() {
     .accounts({
       project: project2,
       creditLine,
-      vaultAuthority: vaultAuthority2,
+      milestoneVaultAuthority: milestoneVaultAuthority2,
+      milestoneVault: milestoneVault2,
+      backerVaultAuthority: backerVaultAuthority2,
+      backerEscrowVault: backerEscrowVault2,
       usdcMint,
-      vaultTokenAccount: vaultTokenAccount2,
       developer: dev,
       snsNameAccount,
       instructionsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -314,8 +328,8 @@ async function main() {
       developerCreditLine: creditLine,
       backer: backer2.publicKey,
       backerTokenAccount: backerAta2,
-      vaultTokenAccount: vaultTokenAccount2,
-      vaultAuthority: vaultAuthority2,
+      backerEscrowVault: backerEscrowVault2,
+      backerVaultAuthority: backerVaultAuthority2,
       usdcMint,
       tokenProgram: TOKEN_PROGRAM_ID,
     })

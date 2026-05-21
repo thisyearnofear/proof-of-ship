@@ -286,3 +286,129 @@ export const ErrorState = ({
     )}
   </div>
 );
+
+// ── SkeletonLoader equivalents (consolidated from SkeletonLoader.js) ──
+
+// Generic block skeleton — same as SkeletonBase but named for backward compat
+export const SkeletonBlock = ({ className = '' }) => (
+  <SkeletonBase className={className} />
+);
+
+// Text skeleton with variable line count
+export const SkeletonText = ({ lines = 3, className = '' }) => (
+  <div className={`space-y-2 ${className}`}>
+    {Array.from({ length: lines }).map((_, i) => (
+      <SkeletonBase
+        key={i}
+        className={`h-4 ${i === lines - 1 ? 'w-2/3' : 'w-full'}`}
+      />
+    ))}
+  </div>
+);
+
+// Generic card skeleton
+export const SkeletonCard = ({ className = '' }) => (
+  <NauticalSkeletonCard className={className}>
+    <div className="flex items-center gap-3 mb-4">
+      <SkeletonBase className="h-10 w-10 rounded-full" />
+      <div className="flex-1 space-y-2">
+        <SkeletonBase className="h-4 w-1/3" />
+        <SkeletonBase className="h-3 w-1/2" />
+      </div>
+    </div>
+    <div className="space-y-2">
+      <SkeletonBase className="h-3 w-full" />
+      <SkeletonBase className="h-3 w-full" />
+      <SkeletonBase className="h-3 w-2/3" />
+    </div>
+    <div className="flex gap-2 mt-4">
+      <SkeletonBase className="h-6 w-16 rounded-full" />
+      <SkeletonBase className="h-6 w-20 rounded-full" />
+    </div>
+  </NauticalSkeletonCard>
+);
+
+// Project grid skeleton
+export const SkeletonProjectGrid = ({ count = 6 }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {Array.from({ length: count }).map((_, i) => (
+      <SkeletonCard key={i} />
+    ))}
+  </div>
+);
+
+// Dashboard stat cards skeleton
+export const SkeletonDashboardStats = () => (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <NauticalSkeletonCard key={i}>
+        <div className="flex items-center space-x-3">
+          <SkeletonBase className="w-10 h-10 rounded-lg" />
+          <div className="flex-1 space-y-2">
+            <SkeletonBase className="h-6 w-16" />
+            <SkeletonBase className="h-3 w-20" />
+          </div>
+        </div>
+      </NauticalSkeletonCard>
+    ))}
+  </div>
+);
+
+// Table skeleton with configurable rows/cols
+export const SkeletonTable = ({ rows = 5, cols = 4 }) => (
+  <div className="bg-surface border border-default rounded-card overflow-hidden">
+    <div className="grid gap-0">
+      <div
+        className="grid gap-4 p-4 bg-surface-secondary border-b border-default"
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+      >
+        {Array.from({ length: cols }).map((_, i) => (
+          <SkeletonBase key={i} className="h-4 w-3/4" />
+        ))}
+      </div>
+      {Array.from({ length: rows }).map((_, r) => (
+        <div
+          key={r}
+          className="grid gap-4 p-4 border-b border-default last:border-0"
+          style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+        >
+          {Array.from({ length: cols }).map((_, c) => (
+            <SkeletonBase key={c} className="h-4 w-full" />
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// Full detail page skeleton (breadcrumbs + header + cards + text)
+export const SkeletonDetailPage = () => (
+  <div className="space-y-6">
+    <div className="flex items-center gap-2 mb-4">
+      <SkeletonBase className="h-4 w-16" />
+      <SkeletonBase className="h-4 w-4" />
+      <SkeletonBase className="h-4 w-24" />
+      <SkeletonBase className="h-4 w-4" />
+      <SkeletonBase className="h-4 w-32" />
+    </div>
+    <div className="flex items-center gap-4">
+      <SkeletonBase className="h-16 w-16 rounded-xl" />
+      <div className="flex-1 space-y-2">
+        <SkeletonBase className="h-8 w-1/3" />
+        <SkeletonBase className="h-4 w-2/3" />
+      </div>
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+    </div>
+    <div className="space-y-2">
+      <SkeletonBase className="h-3 w-full" />
+      <SkeletonBase className="h-3 w-full" />
+      <SkeletonBase className="h-3 w-2/3" />
+      <SkeletonBase className="h-3 w-full" />
+      <SkeletonBase className="h-3 w-1/2" />
+    </div>
+  </div>
+);

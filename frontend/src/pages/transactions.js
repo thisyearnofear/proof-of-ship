@@ -7,7 +7,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useNanopayment } from "@/contexts/WalletContext";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
-import { SkeletonTable } from "@/components/common/SkeletonLoader";
+import { SkeletonTable } from "@/components/common/LoadingStates";
 
 const AGENT_META = {
   underwrite: { icon: "🤖", name: "AI Underwriter", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },

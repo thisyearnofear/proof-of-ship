@@ -28,7 +28,7 @@ export default function WarRoomPage() {
     error, 
     assignedHackathons, 
     pendingMilestones, 
-    expeditions,
+    hackathonGroups,
     evidence,
     refresh 
   } = useWarRoomData();
@@ -179,7 +179,7 @@ export default function WarRoomPage() {
                 <PresentationChartLineIcon className="w-5 h-5 font-bold" />
                 <h2 className="font-black text-sm uppercase tracking-wider">Cross-Committee View</h2>
               </div>
-              <CrossCommitteeView expeditions={expeditions} />
+              <CrossCommitteeView hackathonGroups={hackathonGroups} />
             </section>
           </div>
 

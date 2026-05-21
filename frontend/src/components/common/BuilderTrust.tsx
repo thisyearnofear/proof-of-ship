@@ -3,7 +3,7 @@
  *
  * Shared trust signal component for builders on Solana.
  * Shows FairScale on-chain reputation with score, tier, and key behavioral signals.
- * Single source of truth — used in ExpeditionCard, BackingPanel, and UserProfile.
+ * Single source of truth — used in ProjectCard, BackingPanel, and UserProfile.
  *
  * Tracks: Solana ecosystem reputation infrastructure
  */
@@ -172,7 +172,7 @@ export function BuilderTrustSkeleton({ compact = false, className = '' }: { comp
 }
 
 /**
- * Compact trust pill — for ExpeditionCard badge row.
+ * Compact trust pill — for ProjectCard badge row.
  * Replaces the old FairScoreBadge compact mode with a richer signal.
  */
 export function BuilderTrustCompact({ address, className = '' }: { address: string; className?: string }) {

@@ -21,7 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import BackingPanel from './BackingPanel';
-import ProjectHealthChart from './expedition/ProjectHealthChart';
+import ProjectHealthChart from './backer/ProjectHealthChart';
 
 export default function ProjectDetails({ projectId, onMilestoneComplete }) {
   const { account } = useWallet();

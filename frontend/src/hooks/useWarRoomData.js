@@ -1,6 +1,6 @@
 /**
  * Hook for fetching War Room data
- * Aggregates hackathons, pending milestones, and expedition progress
+ * Aggregates hackathons, pending milestones, and hackathon group progress
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -17,7 +17,7 @@ export function useWarRoomData() {
   const [error, setError] = useState(null);
   const [assignedHackathons, setAssignedHackathons] = useState([]);
   const [pendingMilestones, setPendingMilestones] = useState([]);
-  const [expeditions, setExpeditions] = useState([]);
+  const [hackathonGroups, setHackathonGroups] = useState([]);
   const [evidence, setEvidence] = useState([]);
 
   const fetchData = useCallback(async () => {
@@ -166,33 +166,33 @@ export function useWarRoomData() {
           setEvidence(allEvidence.slice(0, 10));
         }
 
-        // 6. Fetch Expeditions
-        // For the demo, we'll aggregate expeditions based on expeditionId in hackathons
-        const expeditionsRef = collection(db, 'expeditions');
-        const expeditionsSnapshot = await getDocs(expeditionsRef);
-        const allExpeditions = expeditionsSnapshot.docs.map(doc => ({
+        // 6. Fetch hackathon groups
+        // Aggregates hackathons grouped by expeditionId for verifier assignment tracking
+        const hackathonGroupsRef = collection(db, 'expeditions');
+        const hackathonGroupsSnapshot = await getDocs(hackathonGroupsRef);
+        const allGroups = hackathonGroupsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
         
-        // Map hackathons to expeditions
-        const expeditionsWithHackathons = allExpeditions.map(exp => {
-          const expHackathons = allHackathons.filter(h => h.expeditionId === exp.id);
-          const progress = expHackathons.length > 0 
-            ? (expHackathons.filter(h => h.status === 'completed').length / expHackathons.length) * 100
+        // Map hackathons to groups
+        const groupsWithHackathons = allGroups.map(group => {
+          const groupHackathons = allHackathons.filter(h => h.expeditionId === group.id);
+          const progress = groupHackathons.length > 0 
+            ? (groupHackathons.filter(h => h.status === 'completed').length / groupHackathons.length) * 100
             : 0;
           
           return {
-            ...exp,
-            hackathons: expHackathons,
+            ...group,
+            hackathons: groupHackathons,
             progress
           };
-        }).filter(exp => exp.hackathons.some(h => userHackathons.some(uh => uh.id === h.id)));
+        }).filter(group => group.hackathons.some(h => userHackathons.some(uh => uh.id === h.id)));
         
-        setExpeditions(expeditionsWithHackathons);
+        setHackathonGroups(groupsWithHackathons);
       } else {
         setPendingMilestones([]);
-        setExpeditions([]);
+        setHackathonGroups([]);
       }
 
     } catch (err) {
@@ -212,7 +212,7 @@ export function useWarRoomData() {
     error,
     assignedHackathons,
     pendingMilestones,
-    expeditions,
+    hackathonGroups,
     evidence,
     refresh: fetchData,
   };

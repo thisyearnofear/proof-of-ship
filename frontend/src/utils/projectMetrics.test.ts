@@ -1,6 +1,6 @@
 /**
- * Expedition Metrics Tests
- * Unit tests for pure derivation functions used by useExpeditionData
+ * Project Metrics Tests
+ * Unit tests for pure derivation functions used by useProjectData
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -9,7 +9,7 @@ import {
   deriveMultiplier,
   deriveLastCheckIn,
   enhanceProject,
-} from './expeditionMetrics';
+} from './projectMetrics';
 
 const NOW = new Date('2026-05-01T12:00:00Z').getTime();
 

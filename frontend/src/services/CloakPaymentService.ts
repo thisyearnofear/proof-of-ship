@@ -4,7 +4,7 @@
  * Integrates Cloak SDK into Proof of Ship to enable shielded transfers for:
  * - Backer staking (hide position amounts to prevent copy-staking)
  * - Builder payouts (privacy for earnings/redemptions)
- * - Treasury flows (shielded expedition reward distributions)
+ * - Treasury flows (shielded payout reward distributions)
  *
  * Cloak is a UTXO shielded pool on Solana using Groth16 proofs generated client-side.
  * Tracks: Superteam Cloak Track ($5K)
@@ -215,7 +215,7 @@ class CloakPaymentService {
   /**
    * Make a batch private payout (treasury disbursement).
    *
-   * Used for expedition reward distribution:
+   * Used for payout reward distribution:
    * - Multiple builders receive payouts from the same treasury
    * - All amounts are hidden from the public ledger
    * - Each recipient gets their share via separate shielded transfers

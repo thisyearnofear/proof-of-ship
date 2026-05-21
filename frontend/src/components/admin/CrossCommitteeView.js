@@ -7,26 +7,26 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 
-export default function CrossCommitteeView({ expeditions }) {
-  if (expeditions.length === 0) {
+export default function CrossCommitteeView({ hackathonGroups }) {
+  if (!hackathonGroups || hackathonGroups.length === 0) {
     return (
       <Card className="p-6 bg-gray-50 border-dashed">
-        <p className="text-gray-500 text-sm text-center">No active expeditions found for your committees.</p>
+        <p className="text-gray-500 text-sm text-center">No active hackathon groups found for your committees.</p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-4">
-      {expeditions.map((exp) => (
-        <Card key={exp.id} className="p-4">
+      {hackathonGroups.map((group) => (
+        <Card key={group.id} className="p-4">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h4 className="font-bold text-gray-900">{exp.name}</h4>
-              <p className="text-xs text-gray-500">{exp.hackathons.length} Hackathons in Expedition</p>
+              <h4 className="font-bold text-gray-900">{group.name}</h4>
+              <p className="text-xs text-gray-500">{group.hackathons.length} Hackathons in Group</p>
             </div>
             <div className="text-right">
-              <span className="text-lg font-black text-blue-600">{Math.round(exp.progress)}%</span>
+              <span className="text-lg font-black text-blue-600">{Math.round(group.progress)}%</span>
               <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Overall Progress</p>
             </div>
           </div>
@@ -34,12 +34,12 @@ export default function CrossCommitteeView({ expeditions }) {
           <div className="w-full bg-gray-100 h-2 rounded-full mb-6 overflow-hidden">
             <div 
               className="bg-blue-600 h-full rounded-full transition-all duration-500" 
-              style={{ width: `${exp.progress}%` }}
+              style={{ width: `${group.progress}%` }}
             />
           </div>
 
           <div className="space-y-3">
-            {exp.hackathons.map((h) => (
+            {group.hackathons.map((h) => (
               <div key={h.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100">
                 <div className="flex items-center gap-3">
                   {h.status === 'completed' ? (

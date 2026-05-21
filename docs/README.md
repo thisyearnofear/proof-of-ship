@@ -98,12 +98,15 @@ Payout speed color coding: ≤7d lightning, ≤30d fast, ≤90d moderate, >90d s
 | Route | Who | What |
 |-------|-----|------|
 | `/` | Everyone | Landing page |
-| `/shippers` | Everyone | Project explorer |
-| `/credit` | Builders | Credit profile |
-| `/dashboard` | Builders | Unified builder dashboard |
-| `/back` | Backers | Discover + AI analysis workspace |
-| `/admin/war-room` | Verifiers | Milestone verification dashboard |
+| `/explore` | Everyone | Project discovery |
+| `/back` | Backers | Backer workspace: portfolio, AI analysis, discover |
+| `/build` | Builders | Builder dashboard: project submission, credit, milestones |
 | `/leaderboard` | Everyone | Builder / Backer / Hackathon rankings |
+| `/analyze` | Everyone | Standalone AI project analysis |
+| `/profile` | Everyone | User profile with credentials and portfolio |
+| `/compare` | Everyone | Side-by-side project comparison |
+| `/login` | Everyone | Role picker + GitHub + wallet auth |
+| `/admin/verification` | Verifiers | Milestone verification dashboard |
 
 ## Smart Contract Architecture
 

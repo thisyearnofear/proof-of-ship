@@ -30,7 +30,7 @@ export const AGENT_IDENTITIES = {
   rebalance: {
     domain: 'pos-rebalance.sol',
     displayName: 'Rebalance Agent',
-    description: 'Manages portfolio allocation across expeditions',
+    description: 'Manages portfolio allocation across hackathon groups',
     icon: '⚖️',
   },
 } as const;

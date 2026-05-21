@@ -24,8 +24,8 @@ export const COLLECTIONS = {
   // Admin queue
   ADMIN_QUEUE: 'admin_queue',
 
-  // User profiles
-  USER_PROFILES: 'user_profiles',
+  // User profiles (matches Firestore rules: /users/{userId})
+  USERS: 'users',
 
   // Verification requests
   VERIFICATION_REQUESTS: 'verification_requests',

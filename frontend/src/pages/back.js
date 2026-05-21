@@ -1,5 +1,5 @@
 /**
- * Back Page — unified Expedition marketplace + Portfolio tracker
+ * Back Page — unified project marketplace + Portfolio tracker
  */
 
 import React, { useState, useEffect } from "react";

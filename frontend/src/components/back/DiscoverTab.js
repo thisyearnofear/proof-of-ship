@@ -2,8 +2,8 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
 import { useBuilderCredit } from "@/contexts/WalletContext";
 import { useNanopayment } from "@/contexts/WalletContext";
-import { useExpeditionData } from "@/hooks/useExpeditionData";
-import ExpeditionCard from "@/components/expedition/ExpeditionCard";
+import { useProjectData } from "@/hooks/useProjectData";
+import ProjectCard from "@/components/backer/ProjectCard";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
@@ -36,7 +36,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function DiscoverTab() {
-  const { projects, loading, error, refresh } = useExpeditionData();
+  const { projects, loading, error, refresh } = useProjectData();
   const { connected, connect, account } = useWallet();
   const { backProject } = useBuilderCredit();
   const { payForScout, loading: nanopaymentLoading, nanopaymentDemoMode } = useNanopayment();
@@ -298,7 +298,7 @@ export default function DiscoverTab() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <ExpeditionCard key={project.id} project={project} onBack={handleBackProject} scoutScore={getScoutScore(project.id || project.slug)} />
+            <ProjectCard key={project.id} project={project} onBack={handleBackProject} scoutScore={getScoutScore(project.id || project.slug)} />
           ))}
         </div>
       )}

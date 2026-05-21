@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-05-21 — Payout Verification & Hackathon Leaderboard (4/7 pieces built)
+
+### Built
+- **PayoutVerifierService.ts** (541 lines) — 3-provider verification: Circle API, EVM raw RPC (parses Transfer event logs), Solana (parsed token balance diffs). Records attestations to `payoutAttestations` Firestore collection.
+- **POST /api/agent/payout-verify** — single + batch verification endpoint. Updates project `hackathons[]` with `payoutVerified`, `payoutConfidence`, `payoutActualAmount`, `payoutAt`, `payoutProvider`.
+- **claim_verification in /api/agent/analyze** — rule-based signal analysis + on-chain verification when tx evidence exists. Returns per-claim credibility (high/medium/low) and signalScore (0-100).
+- **Hackathon leaderboard tab** on `/leaderboard` — `FastestPayoutHero` featured card, ranked list with color-coded payout speed (≤7d lightning, ≤30d fast, ≤90d moderate, >90d slow), composite scoring (`payoutSpeed ×0.35 + completion ×0.30 + builderCount ×0.20 + volume ×0.15`). 5-min cache.
+- **GET /api/hackathons/leaderboard** — aggregates all projects' hackathon claims, computes avgPayoutDays, payoutCompletionRate, totalPrizeAmount, builderCount per hackathon.
+- **ClaimVerificationBadge** on project detail page — green check (high), amber shield (medium), red shield (low), gray pulse (loading). Calls analyze API on mount.
+- **Payout anchor contract** (pending) — `declareWinner` + `recordPayout` functions to add to `HackathonRegistry.sol` for on-chain winner attestation.
+- **builderCredentials collection** (pending) — Firestore collection for per-builder aggregate hackathon win data.
+- **Payout timeline** (pending) — visual timeline component on `/hackathons/[id]` showing declared → paid → verified per project.
+
+### Files Created
+- `frontend/src/services/PayoutVerifierService.ts` — verification service
+- `frontend/src/pages/api/agent/payout-verify.js` — payout verification API
+- `frontend/src/pages/api/hackathons/leaderboard.js` — leaderboard aggregation API
+
+### Files Changed
+- `frontend/src/pages/api/agent/analyze.js` — added `claim_verification` type
+- `frontend/src/pages/leaderboard.js` — added Hackathons tab with FastestPayoutHero + ranked list
+- `frontend/src/pages/projects/[ecosystem]/[slug]/index.js` — added ClaimVerificationBadge + analyze integration
+
 ## 2026-05-21 — Circle Agent Wallet Integration Verified
 
 - Created ARC-TESTNET agent wallet via Circle API: `e7034022-f0c8-5c35-8f96-667b680c250b` (`0xdea33f28b244cf467a402808757bf75065cb7ee8`)

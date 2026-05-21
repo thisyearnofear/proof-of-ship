@@ -51,7 +51,49 @@ The UI now avoids ambiguous progress states and makes it clear when a result cam
 - fallback logic
 - rule-based logic
 
-## Key Frontend Routes
+## Payout Verification & Hackathon Leaderboard
+
+A complete payout verification system and hackathon leaderboard that turns time-to-payout into a competitive signal.
+
+### Architecture
+
+```
+PayoutVerifierService.ts     # 3-provider verification (Circle API, EVM, Solana)
+payout-verify.js             # POST /api/agent/payout-verify (single + batch)
+analyze.js                   # claim_verification type — rule-based signals + on-chain proof
+payoutAttestations           # Firestore collection storing attestation records
+leaderboard.js               # /leaderboard page with 3 tabs (Builders / Backers / Hackathons)
+hackathons/leaderboard.js    # GET /api/hackathons/leaderboard — aggregation + composite score
+ClaimVerificationBadge       # Green/amber/red badge on project detail hackathon claims
+```
+
+### Verification Providers
+
+| Provider | Method | What it Checks |
+|----------|--------|----------------|
+| **Circle API** | `verifyCircleTransfer()` | Transaction status, amount match (±0.01 USDC), recipient match, `complete`/`paid` status |
+| **EVM (raw RPC)** | `verifyOnChainTransfer()` | Parses `Transfer` event logs from `eth_getTransactionReceipt`, decodes recipient + amount, cross-references USDC address per chain |
+| **Solana** | `verifySolanaTransfer()` | Scans `preTokenBalances`/`postTokenBalances` for USDC mint changes to recipient wallet |
+
+### Hackathon Leaderboard Scoring
+
+Composite score for each hackathon:
+
+- **With payout data:** `payoutSpeedScore × 0.35 + completionScore × 0.30 + builderScore × 0.20 + volumeScore × 0.15`
+- **Without payout data:** `completionScore × 0.40 + builderScore × 0.35 + volumeScore × 0.25`
+
+Payout speed color coding: ≤7d lightning, ≤30d fast, ≤90d moderate, >90d slow. Cached 5 min (stale-while-revalidate 10 min).
+
+### Verification Badge States
+
+| Credibility | Badge | Meaning |
+|-------------|-------|---------|
+| High | Green check | On-chain proof + wallet match + agent attestation |
+| Medium | Amber shield | Partial proof (e.g., URL claim only) |
+| Low | Red shield | No verifiable evidence |
+| Loading | Gray pulse | Verification in progress |
+
+### Key Frontend Routes
 
 | Route | Who | What |
 |-------|-----|------|
@@ -61,6 +103,7 @@ The UI now avoids ambiguous progress states and makes it clear when a result cam
 | `/dashboard` | Builders | Unified builder dashboard |
 | `/back` | Backers | Discover + AI analysis workspace |
 | `/admin/war-room` | Verifiers | Milestone verification dashboard |
+| `/leaderboard` | Everyone | Builder / Backer / Hackathon rankings |
 
 ## Smart Contract Architecture
 

@@ -22,6 +22,26 @@ export default function VerifierQueue({ milestones, onApprove, loadingMilestoneI
     );
   }
 
+  const handleWeftVerify = async (milestone) => {
+    try {
+      const response = await fetch('/api/v1/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          milestone_id: `${milestone.projectId}-${milestone.milestoneId}`,
+          project_data: {
+            repo_url: milestone.githubUrl,
+            goals: [milestone.description]
+          }
+        })
+      });
+      if (response.ok) alert('Verification triggered via Weft!');
+      else alert('Failed to trigger Weft verification');
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {milestones.map((milestone) => (
@@ -78,6 +98,14 @@ export default function VerifierQueue({ milestones, onApprove, loadingMilestoneI
               </div>
 
               <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleWeftVerify(milestone)}
+                  className="border-indigo-500 text-indigo-600"
+                >
+                  Verify via Weft
+                </Button>
                 <Button 
                   variant="outline" 
                   size="sm"

@@ -1,0 +1,622 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0x84766c8a6b1198ab043adaC17077A86a286304bd",
+      "txHash": "0xcbd0fe9230ec007dcd2eee44a2c83a43965c5dd25e7f0cc66ea67edff80850f9",
+      "kind": "uups"
+    },
+    {
+      "address": "0x6199698C2FE8600B0aFEE31887dcbdD9136FdCBF",
+      "txHash": "0xac78e00b7c4af1e3c1f9bf35b372d958dccba0297e2f27881ef264e68239306b",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "0a02ec32df91587846bbe36b60cd743b18dd0781cfa83ee36c85474e2eaff810": {
+      "address": "0x267f8449AdCc626ea276d55ba50C4A71b414Cc0e",
+      "txHash": "0xc36c87d8bf4c88b3d4ace411ea2889631c06f6318b91af5fe5609a59934689e5",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC1967UpgradeUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol:169"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "UUPSUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol:111"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)23_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "251",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "252",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:88"
+          },
+          {
+            "label": "_paused",
+            "offset": 0,
+            "slot": "301",
+            "type": "t_bool",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:29"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "302",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "PausableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol:116"
+          },
+          {
+            "label": "_projectIdCounter",
+            "offset": 0,
+            "slot": "351",
+            "type": "t_struct(Counter)3868_storage",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:48"
+          },
+          {
+            "label": "registry",
+            "offset": 0,
+            "slot": "352",
+            "type": "t_contract(IHackathonRegistry)6255",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:50"
+          },
+          {
+            "label": "usdcToken",
+            "offset": 0,
+            "slot": "353",
+            "type": "t_contract(IERC20)3120",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:51"
+          },
+          {
+            "label": "baseCreditAmount",
+            "offset": 0,
+            "slot": "354",
+            "type": "t_uint256",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:56"
+          },
+          {
+            "label": "creditMultiplier",
+            "offset": 0,
+            "slot": "355",
+            "type": "t_uint256",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:57"
+          },
+          {
+            "label": "maxCreditAmount",
+            "offset": 0,
+            "slot": "356",
+            "type": "t_uint256",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:58"
+          },
+          {
+            "label": "projects",
+            "offset": 0,
+            "slot": "357",
+            "type": "t_mapping(t_uint256,t_struct(Project)4024_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:109"
+          },
+          {
+            "label": "projectBackings",
+            "offset": 0,
+            "slot": "358",
+            "type": "t_mapping(t_uint256,t_array(t_struct(Backing)4033_storage)dyn_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:109"
+          },
+          {
+            "label": "projectCheckIns",
+            "offset": 0,
+            "slot": "359",
+            "type": "t_mapping(t_uint256,t_array(t_struct(CheckIn)4047_storage)dyn_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:110"
+          },
+          {
+            "label": "totalProjectBacking",
+            "offset": 0,
+            "slot": "360",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:111"
+          },
+          {
+            "label": "projectPledgedPrize",
+            "offset": 0,
+            "slot": "361",
+            "type": "t_mapping(t_uint256,t_uint256)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:112"
+          },
+          {
+            "label": "projectMilestones",
+            "offset": 0,
+            "slot": "362",
+            "type": "t_mapping(t_uint256,t_array(t_struct(Milestone)4042_storage)dyn_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:113"
+          },
+          {
+            "label": "projectTeams",
+            "offset": 0,
+            "slot": "363",
+            "type": "t_mapping(t_uint256,t_array(t_struct(TeamMember)4052_storage)dyn_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:114"
+          },
+          {
+            "label": "approvals",
+            "offset": 0,
+            "slot": "364",
+            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(MilestoneApproval)4061_storage))",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:115"
+          },
+          {
+            "label": "developerProjects",
+            "offset": 0,
+            "slot": "365",
+            "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:116"
+          },
+          {
+            "label": "backerProjects",
+            "offset": 0,
+            "slot": "366",
+            "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:118"
+          },
+          {
+            "label": "creditLines",
+            "offset": 0,
+            "slot": "367",
+            "type": "t_mapping(t_address,t_struct(CreditLine)4072_storage)",
+            "contract": "BuilderCreditCore",
+            "src": "contracts/BuilderCreditCore.sol:121"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Backing)4033_storage)dyn_storage": {
+            "label": "struct BuilderCreditCore.Backing[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(CheckIn)4047_storage)dyn_storage": {
+            "label": "struct BuilderCreditCore.CheckIn[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(Milestone)4042_storage)dyn_storage": {
+            "label": "struct BuilderCreditCore.Milestone[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(TeamMember)4052_storage)dyn_storage": {
+            "label": "struct BuilderCreditCore.TeamMember[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20)3120": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IHackathonRegistry)6255": {
+            "label": "contract IHackathonRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+            "label": "mapping(address => uint256[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(CreditLine)4072_storage)": {
+            "label": "mapping(address => struct BuilderCreditCore.CreditLine)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)23_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(Backing)4033_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct BuilderCreditCore.Backing[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(CheckIn)4047_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct BuilderCreditCore.CheckIn[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(Milestone)4042_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct BuilderCreditCore.Milestone[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_array(t_struct(TeamMember)4052_storage)dyn_storage)": {
+            "label": "mapping(uint256 => struct BuilderCreditCore.TeamMember[])",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_uint256,t_struct(MilestoneApproval)4061_storage))": {
+            "label": "mapping(uint256 => mapping(uint256 => struct BuilderCreditCore.MilestoneApproval))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(MilestoneApproval)4061_storage)": {
+            "label": "mapping(uint256 => struct BuilderCreditCore.MilestoneApproval)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(Project)4024_storage)": {
+            "label": "mapping(uint256 => struct BuilderCreditCore.Project)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_uint256)": {
+            "label": "mapping(uint256 => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Backing)4033_storage": {
+            "label": "struct BuilderCreditCore.Backing",
+            "members": [
+              {
+                "label": "backer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "multiplier",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "claimed",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(CheckIn)4047_storage": {
+            "label": "struct BuilderCreditCore.CheckIn",
+            "members": [
+              {
+                "label": "timestamp",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "metadata",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Counter)3868_storage": {
+            "label": "struct Counters.Counter",
+            "members": [
+              {
+                "label": "_value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(CreditLine)4072_storage": {
+            "label": "struct BuilderCreditCore.CreditLine",
+            "members": [
+              {
+                "label": "totalAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "usedAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "reputation",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "active",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "lastUpdated",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Milestone)4042_storage": {
+            "label": "struct BuilderCreditCore.Milestone",
+            "members": [
+              {
+                "label": "description",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "completed",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "completedAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(MilestoneApproval)4061_storage": {
+            "label": "struct BuilderCreditCore.MilestoneApproval",
+            "members": [
+              {
+                "label": "hasApproved",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "approvalCount",
+                "type": "t_uint8",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "isCompleted",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Project)4024_storage": {
+            "label": "struct BuilderCreditCore.Project",
+            "members": [
+              {
+                "label": "hackathonIds",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "developer",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "githubUrl",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "fundingAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "isActive",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "fundedAt",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "creditScore",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "milestonesCompleted",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "milestonesCount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              }
+            ],
+            "numberOfBytes": "320"
+          },
+          "t_struct(RoleData)23_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(TeamMember)4052_storage": {
+            "label": "struct BuilderCreditCore.TeamMember",
+            "members": [
+              {
+                "label": "member",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "share",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    }
+  }
+}

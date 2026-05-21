@@ -6,7 +6,7 @@ import { useNanopayment, useWallet } from '@/contexts/WalletContext';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
 import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';
-import { SkeletonBlock, SkeletonCard, SkeletonText } from '@/components/common/SkeletonLoader';
+import { SkeletonBlock, SkeletonCard, SkeletonText } from '@/components/common/LoadingStates';
 
 export default function ProfilePage() {
   const { currentUser, loading, userRole } = useUser();

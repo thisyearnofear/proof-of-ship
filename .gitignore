@@ -179,6 +179,7 @@ frontend/package-lock.json
 .amp/
 .cline/
 .opencode/
+.commandcode/
 .blackboxcli/
 CLAUDE.md
 GEMINI.md

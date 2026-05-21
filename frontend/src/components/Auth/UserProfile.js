@@ -24,6 +24,8 @@ export default function UserProfile() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isFrame, setIsFrame] = useState(false);
   const [unlinking, setUnlinking] = useState(null);
+  const [weftLinking, setWeftLinking] = useState(false);
+  const [linkedWeftIdentity, setLinkedWeftIdentity] = useState(null);
 
   // Primary Solana wallet for trust display
   const primarySolanaWallet = linkedWallets.find(w => w.chainFamily === 'solana')?.address;
@@ -46,6 +48,7 @@ export default function UserProfile() {
           const data = snap.data();
           setGithubUsername(String(data.githubUsername || ''));
           setNotificationsEnabled(!!data.notificationsEnabled);
+          setLinkedWeftIdentity(data.linkedWeftIdentity || null);
         }
       } catch (e) {
         if (!cancelled) setError('Failed to load profile');
@@ -56,6 +59,55 @@ export default function UserProfile() {
     load();
     return () => { cancelled = true; };
   }, [currentUser?.uid]);
+
+  const handleLinkWeftIdentity = async () => {
+    if (!linkedWallets.length) {
+      setError('Connect a wallet to link a Weft identity');
+      return;
+    }
+
+    try {
+      setWeftLinking(true);
+      setError(null);
+
+      // Use the primary wallet to sign the handshake message
+      const wallet = linkedWallets[0];
+      const message = `Link Weft Identity for Proof-of-Ship: ${currentUser.uid}`;
+
+      let signature;
+      if (wallet.chainFamily === 'solana') {
+         // Logic for solana signing using window.solana
+         signature = await window.solana.request({
+            method: 'signMessage',
+            params: { message: new TextEncoder().encode(message), display: 'utf8' }
+         });
+      } else {
+         // Default to metamask/evm
+         signature = await window.ethereum.request({
+            method: 'personal_sign',
+            params: [message, wallet.address]
+         });
+      }
+
+      const userRef = doc(db, 'users', currentUser.uid);
+      const identityData = {
+        address: wallet.address,
+        chain: wallet.chainFamily,
+        signature: signature.signature || signature,
+        timestamp: Date.now()
+      };
+
+      await setDoc(userRef, { linkedWeftIdentity: identityData }, { merge: true });
+      setLinkedWeftIdentity(identityData);
+      setSuccess('Weft identity linked successfully');
+    } catch (e) {
+      console.error(e);
+      setError('Failed to link Weft identity: ' + e.message);
+    } finally {
+      setWeftLinking(false);
+    }
+  };
+
 
   // Fetch Ethos score when linked wallets change
   useEffect(() => {
@@ -221,6 +273,33 @@ export default function UserProfile() {
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Used for your portfolio subdomain and project ownership verification.</p>
           </div>
         )}
+
+        {/* Weft Verification Identity */}
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">Weft Identity Verification</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Bridge your profile for autonomous auditing.</p>
+            </div>
+            {linkedWeftIdentity ? (
+              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs rounded-full font-medium">Linked ✓</span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleLinkWeftIdentity}
+                disabled={weftLinking}
+                className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded font-medium disabled:opacity-50"
+              >
+                {weftLinking ? 'Linking...' : 'Link Identity'}
+              </button>
+            )}
+          </div>
+          {linkedWeftIdentity && (
+            <p className="text-xs text-gray-400 font-mono break-all bg-white dark:bg-gray-900 p-2 rounded">
+              Linked: {linkedWeftIdentity.address} ({linkedWeftIdentity.chain})
+            </p>
+          )}
+        </div>
 
         {/* Verified Wallets */}
         <div>

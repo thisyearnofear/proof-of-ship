@@ -4,10 +4,14 @@
  * Ranks hackathons by verifiable on-chain metrics:
  * - Total projects submitted
  * - Number of winners
- * - Average payout time (days from outcome to payout)
+ * - Average payout time (days from hackathon end to payout — lower is better)
  * - Payout completion rate (% of winners who recorded payout)
  * - Total prize pool distributed
  * - Builder participation volume
+ *
+ * Payout speed requires both `hackathonEndDate` and `payoutAt`/`payoutVerifiedAt`
+ * on individual hackathon claims. The PayoutVerifier agent sets `payoutVerifiedAt`
+ * when it confirms an on-chain USDC transfer.
  *
  * GET /api/hackathons/leaderboard
  */
@@ -44,7 +48,8 @@ export default async function handler(req, res) {
             winners: 0,
             finalists: 0,
             payoutsRecorded: 0,
-            totalPayoutDays: 0,
+            payoutSpeedCount: 0,       // claims with both endDate + payout date
+            totalPayoutDays: 0,         // sum of payout days for speed computation
             totalPrizeAmount: 0,
             projects: [],
             uniqueBuilders: new Set(),
@@ -70,10 +75,32 @@ export default async function handler(req, res) {
           entry.finalists++;
         }
 
-        // Compute payout latency if both outcome and payout dates are available
-        if (claim.payoutAt) {
+        // Payout completion tracking
+        const hasPayout = claim.payoutVerifiedAt || claim.payoutAt;
+        if (hasPayout) {
           entry.payoutsRecorded++;
-          entry.totalPrizeAmount += 0; // Prize amount not stored per-claim currently
+          // Prize amount tracking if available
+          const amount = Number(claim.payoutActualAmount) || 0;
+          if (amount > 0) entry.totalPrizeAmount += amount;
+        }
+
+        // Payout speed: days from hackathonEndDate to payout
+        const payoutDateStr = claim.payoutVerifiedAt || claim.payoutAt;
+        const endDateStr = claim.hackathonEndDate;
+
+        if (payoutDateStr && endDateStr) {
+          const payoutDate = new Date(payoutDateStr);
+          const endDate = new Date(endDateStr);
+
+          if (!isNaN(payoutDate.getTime()) && !isNaN(endDate.getTime())) {
+            const diffMs = payoutDate.getTime() - endDate.getTime();
+            const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            // Only count positive or zero delays (ignore payouts before hackathon ended)
+            if (diffDays >= 0) {
+              entry.payoutSpeedCount++;
+              entry.totalPayoutDays += diffDays;
+            }
+          }
         }
 
         // Track most recent activity
@@ -91,30 +118,29 @@ export default async function handler(req, res) {
         ? Math.round((entry.payoutsRecorded / entry.winners) * 100)
         : 0;
 
-      const avgPayoutDays = entry.payoutsRecorded > 0
-        ? Math.round(entry.totalPayoutDays / entry.payoutsRecorded)
+      // Average payout days — only computed from claims where both dates exist
+      const avgPayoutDays = entry.payoutSpeedCount > 0
+        ? Math.round(entry.totalPayoutDays / entry.payoutSpeedCount)
         : null;
 
       const builderCount = entry.uniqueBuilders.size;
 
-      // Composite score: higher is better
-      // - Payout speed (weight 35): lower avgPayoutDays = higher score
-      // - Payout completion rate (weight 30): percentage of winners paid
-      // - Builder participation (weight 20): more builders = healthier
-      // - Project volume (weight 15): more projects = more activity
-      // Payout speed requires both payout dates AND winner-declared timestamps
-      // which aren't captured in the current data model, so we redistribute weight
-      const hasPayoutTimeline = avgPayoutDays !== null && avgPayoutDays > 0;
+      // ── Composite score (higher is better) ───────────────────────
+      // Payout speed (weight 35): lower avg days = higher score
+      // Formula: 100 - min(avgDays / 365 * 100, 100) — linearly decays to 0 over a year
+      // Payout completion (weight 30): % of winners paid
+      // Builder count (weight 20): more unique builders = healthier ecosystem
+      // Project volume (weight 15): more projects = more signal
+      const hasPayoutTimeline = avgPayoutDays !== null && avgPayoutDays >= 0;
 
       const payoutSpeedScore = hasPayoutTimeline
-        ? Math.max(0, Math.min(100, Math.round((1 - avgPayoutDays / 365) * 100)))
+        ? Math.max(0, 100 - Math.round((avgPayoutDays / 365) * 100))
         : null;
 
       const completionScore = payoutCompletionRate;
       const builderScore = Math.min(100, builderCount * 20);
       const volumeScore = Math.min(100, entry.totalProjects * 15);
 
-      // Redistribute payout speed weight across other factors when unavailable
       let score;
       if (payoutSpeedScore !== null) {
         score = Math.round(
@@ -124,6 +150,7 @@ export default async function handler(req, res) {
           volumeScore * 0.15
         );
       } else {
+        // Redistribute payout speed weight when timeline data is unavailable
         score = Math.round(
           completionScore * 0.40 +
           builderScore * 0.35 +
@@ -140,6 +167,7 @@ export default async function handler(req, res) {
         payoutsRecorded: entry.payoutsRecorded,
         payoutCompletionRate,
         avgPayoutDays,
+        totalPrizeAmount: Math.round(entry.totalPrizeAmount),
         builderCount: Array.from(entry.uniqueBuilders).length,
         lastActivity: entry.lastActivity || null,
         score,

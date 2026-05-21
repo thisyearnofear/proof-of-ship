@@ -58,13 +58,28 @@ export function cleanMilestones(milestones) {
 export function cleanHackathons(hackathons) {
   if (!Array.isArray(hackathons)) return [];
   return hackathons
-    .map((hackathon) => ({
-      name: String(hackathon?.name || '').trim(),
-      url: String(hackathon?.url || '').trim(),
-      outcome: String(hackathon?.outcome || '').trim(),
-      payoutAt: String(hackathon?.payoutAt || '').trim(),
-      notes: String(hackathon?.notes || '').trim()
-    }))
+    .map((hackathon) => {
+      const cleaned = {
+        name: String(hackathon?.name || '').trim(),
+        url: String(hackathon?.url || '').trim(),
+        outcome: String(hackathon?.outcome || '').trim(),
+        payoutAt: String(hackathon?.payoutAt || '').trim(),
+        notes: String(hackathon?.notes || '').trim()
+      };
+
+      // Preserve PayoutVerifier fields when present
+      if (hackathon.payoutVerifiedAt) cleaned.payoutVerifiedAt = hackathon.payoutVerifiedAt;
+      if (hackathon.payoutVerified) cleaned.payoutVerified = Boolean(hackathon.payoutVerified);
+      if (hackathon.payoutConfidence) cleaned.payoutConfidence = hackathon.payoutConfidence;
+      if (hackathon.payoutActualAmount != null) cleaned.payoutActualAmount = Number(hackathon.payoutActualAmount);
+      if (hackathon.payoutAttestationId) cleaned.payoutAttestationId = hackathon.payoutAttestationId;
+      if (hackathon.payoutProvider) cleaned.payoutProvider = hackathon.payoutProvider;
+
+      // Optional hackathon date range for payout speed computation
+      if (hackathon.hackathonEndDate) cleaned.hackathonEndDate = String(hackathon.hackathonEndDate).trim();
+
+      return cleaned;
+    })
     .filter((hackathon) =>
       hackathon.name || hackathon.url || hackathon.outcome || hackathon.payoutAt || hackathon.notes
     );

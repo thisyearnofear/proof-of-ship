@@ -281,6 +281,27 @@ function HackathonLeaderboardRow({ entry, rank }) {
 
   const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
 
+  // Payout speed color coding (lower days = faster = greener)
+  const payoutSpeedColor = entry.avgPayoutDays !== null
+    ? entry.avgPayoutDays <= 7
+      ? 'text-emerald-600'
+      : entry.avgPayoutDays <= 30
+        ? 'text-green-600'
+        : entry.avgPayoutDays <= 90
+          ? 'text-amber-600'
+          : 'text-red-600'
+    : 'text-text-tertiary';
+
+  const payoutSpeedLabel = entry.avgPayoutDays !== null
+    ? entry.avgPayoutDays <= 7
+      ? 'lightning fast'
+      : entry.avgPayoutDays <= 30
+        ? 'fast'
+        : entry.avgPayoutDays <= 90
+          ? 'moderate'
+          : 'slow'
+    : null;
+
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md ${
@@ -304,15 +325,24 @@ function HackathonLeaderboardRow({ entry, rank }) {
         </div>
         <p className="text-xs text-text-tertiary mt-0.5">
           {entry.totalProjects} project{entry.totalProjects !== 1 ? 's' : ''} · {entry.winners || 0} winner{(entry.winners || 0) !== 1 ? 's' : ''} · {entry.builderCount || 0} builder{(entry.builderCount || 0) !== 1 ? 's' : ''}
+          {entry.totalPrizeAmount > 0 && ` · $${(entry.totalPrizeAmount / 1000).toFixed(0)}k prizes`}
         </p>
       </div>
 
       {/* Payout metrics */}
       <div className="flex items-center gap-6">
-        {entry.avgPayoutDays !== null && (
+        {entry.avgPayoutDays !== null ? (
           <div className="text-right">
-            <div className="text-lg font-bold text-text-primary">{entry.avgPayoutDays}d</div>
-            <p className="text-xs text-text-tertiary">avg payout</p>
+            <div className={`text-lg font-bold ${payoutSpeedColor}`}>
+              {entry.avgPayoutDays}
+              <span className="text-sm ml-0.5">d</span>
+            </div>
+            <p className={`text-xs ${payoutSpeedColor}`}>{payoutSpeedLabel}</p>
+          </div>
+        ) : (
+          <div className="text-right">
+            <div className="text-lg font-bold text-text-tertiary">—</div>
+            <p className="text-xs text-text-tertiary">payout speed</p>
           </div>
         )}
 

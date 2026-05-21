@@ -1,0 +1,432 @@
+/**
+ * Builder Project Growth
+ *
+ * Shows the builder their Firestore-based projects alongside quality scores,
+ * missing actions, milestone progress, and quick edit/view/share actions.
+ * Sits alongside DeveloperDashboard (on-chain projects) on the /build Projects tab.
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useUser } from '@/contexts/UserContext';
+import { Card, CardHeader, CardTitle } from '@/components/common/Card';
+import Button from '@/components/common/Button';
+import { LoadingSpinner } from '@/components/common/LoadingStates';
+import { getProjectQuality } from '@/lib/projects/projectQuality';
+import { getEcosystemConfig } from '@/config/ecosystems';
+import Link from 'next/link';
+import {
+  SparklesIcon,
+  ArrowTopRightOnSquareIcon,
+  PencilSquareIcon,
+  ShareIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  DocumentTextIcon,
+  ChartBarIcon,
+  LightBulbIcon,
+  ClockIcon,
+} from '@heroicons/react/24/outline';
+
+export default function BuilderProjectGrowth() {
+  const { currentUser } = useUser();
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [expandedProject, setExpandedProject] = useState(null);
+  const [copiedSlug, setCopiedSlug] = useState(null);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    async function loadProjects() {
+      setLoading(true);
+      setError(null);
+      try {
+        const { db } = await import('@/lib/firebase/clientApp');
+        const { collection, query, where, getDocs } = await import('firebase/firestore');
+        const q = query(
+          collection(db, 'projects'),
+          where('submittedBy', '==', currentUser.uid)
+        );
+        const snap = await getDocs(q);
+        if (!cancelled) {
+          setProjects(
+            snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          );
+        }
+      } catch (e) {
+        console.warn('Failed to load builder projects:', e);
+        if (!cancelled) setError(e.message || 'Failed to load projects');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    loadProjects();
+    return () => { cancelled = true; };
+  }, [currentUser]);
+
+  // Aggregate missing items across all projects for the global checklist
+  const aggregateMissing = useCallback(() => {
+    const counts = {};
+    const labels = {};
+    for (const project of projects) {
+      const quality = getProjectQuality(project);
+      for (const item of quality.missing) {
+        counts[item.id] = (counts[item.id] || 0) + 1;
+        labels[item.id] = { label: item.label, action: item.action };
+      }
+    }
+    // Sort by most projects missing this item
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .map(([id, count]) => ({
+        id,
+        count,
+        total: projects.length,
+        ...(labels[id] || {}),
+      }));
+  }, [projects]);
+
+  const missingSummary = aggregateMissing();
+  const hasProjects = projects.length > 0;
+
+  const handleShare = async (slug, ecosystem) => {
+    const url = `${window.location.origin}/projects/${ecosystem}/${slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedSlug(slug);
+      setTimeout(() => setCopiedSlug(null), 2000);
+    } catch {
+      // Fallback
+      window.prompt('Copy project URL:', url);
+    }
+  };
+
+  // ── Empty state ──
+  if (!loading && !hasProjects) {
+    return (
+      <section>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <ChartBarIcon className="w-6 h-6 text-emerald-600" />
+            </div>
+            PROJECT GROWTH
+          </h2>
+          <Link href="/projects/new">
+            <Button size="sm" variant="outline" leftIcon={<DocumentTextIcon className="w-4 h-4" />}>
+              New Project
+            </Button>
+          </Link>
+        </div>
+        <Card className="p-12 bg-gradient-to-br from-slate-50 to-emerald-50 border-2 border-dashed border-slate-300 text-center">
+          <div className="w-20 h-20 bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <ChartBarIcon className="w-10 h-10 text-slate-400" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-800 mb-2">No Projects Yet</h3>
+          <p className="text-slate-600 max-w-lg mx-auto mb-6">
+            Submit your first project to start tracking quality scores, milestones, and listing improvements.
+          </p>
+          <Link href="/projects/new">
+            <Button leftIcon={<DocumentTextIcon className="w-5 h-5" />}>
+              Submit Your First Project
+            </Button>
+          </Link>
+        </Card>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+            <ChartBarIcon className="w-6 h-6 text-emerald-600" />
+          </div>
+          PROJECT GROWTH
+        </h2>
+        <Link href="/projects/new">
+          <Button size="sm" variant="outline" leftIcon={<DocumentTextIcon className="w-4 h-4" />}>
+            New Project
+          </Button>
+        </Link>
+      </div>
+
+      {/* Global Improve Checklist */}
+      {missingSummary.length > 0 && (
+        <Card className="p-6 border border-amber-200 bg-amber-50/50">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <LightBulbIcon className="w-6 h-6 text-amber-700" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-amber-900 text-lg mb-1">Improve Your Listings</h3>
+              <p className="text-amber-700 text-sm mb-4">
+                {missingSummary.length} signal{missingSummary.length !== 1 ? 's' : ''} missing across your projects.
+                Filling these helps backers and verifiers trust your work faster.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {missingSummary.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-amber-100 text-sm"
+                  >
+                    <ExclamationCircleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-slate-800 font-medium">{item.label}</span>
+                      <span className="text-slate-400 ml-1 text-xs">
+                        ({item.count}/{item.total})
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Loading state */}
+      {loading && (
+        <div className="flex justify-center py-12">
+          <LoadingSpinner size="lg" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <Card className="p-6 bg-red-50 border border-red-200">
+          <div className="flex items-start gap-3">
+            <ExclamationCircleIcon className="w-6 h-6 text-red-600 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-red-900 mb-1">Failed to load projects</p>
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Project Cards */}
+      {!loading && hasProjects && (
+        <div className="grid grid-cols-1 gap-4">
+          {projects.map((project) => {
+            const quality = getProjectQuality(project);
+            const ecosystemConfig = getEcosystemConfig(project.ecosystem);
+            const missing = quality.missing.slice(0, 3);
+            const missingCount = quality.missing.length;
+            const isExpanded = expandedProject === project.id;
+            const slug = project.slug || project.id;
+            const ecosystem = project.ecosystem || 'base';
+
+            return (
+              <Card
+                key={project.id}
+                className={`border transition-all duration-200 ${
+                  quality.tier === 'Launch-ready'
+                    ? 'border-emerald-200 bg-gradient-to-r from-emerald-50/30 to-white'
+                    : quality.tier === 'Strong'
+                    ? 'border-blue-200'
+                    : 'border-slate-200'
+                }`}
+              >
+                <div className="p-5">
+                  {/* Top row: name, ecosystem, status */}
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link
+                          href={`/projects/${ecosystem}/${slug}`}
+                          className="text-lg font-bold text-slate-900 hover:text-blue-600 transition-colors truncate"
+                        >
+                          {project.name || slug}
+                        </Link>
+                        {ecosystemConfig && (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${ecosystemConfig.bgColor} ${ecosystemConfig.textColor}`}
+                          >
+                            <span>{ecosystemConfig.icon}</span>
+                            <span>{ecosystemConfig.shortName}</span>
+                          </span>
+                        )}
+                        {project.status && project.status !== 'approved' && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            <ClockIcon className="w-3 h-3" />
+                            {String(project.status).replace(/_/g, ' ')}
+                          </span>
+                        )}
+                      </div>
+                      {project.description && (
+                        <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                          {project.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Quality score badge */}
+                    <div className="flex-shrink-0 text-center">
+                      <div
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                          quality.score >= 85
+                            ? 'bg-emerald-100'
+                            : quality.score >= 65
+                            ? 'bg-blue-100'
+                            : quality.score >= 40
+                            ? 'bg-amber-100'
+                            : 'bg-slate-100'
+                        }`}
+                      >
+                        <span
+                          className={`text-xl font-black ${
+                            quality.score >= 85
+                              ? 'text-emerald-700'
+                              : quality.score >= 65
+                              ? 'text-blue-700'
+                              : quality.score >= 40
+                              ? 'text-amber-700'
+                              : 'text-slate-500'
+                          }`}
+                        >
+                          {quality.score}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider mt-1 block ${
+                          quality.score >= 85
+                            ? 'text-emerald-600'
+                            : quality.score >= 65
+                            ? 'text-blue-600'
+                            : quality.score >= 40
+                            ? 'text-amber-600'
+                            : 'text-slate-400'
+                        }`}
+                      >
+                        {quality.tier}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quality bar */}
+                  <div className="w-full bg-slate-100 rounded-full h-2 mb-4">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        quality.score >= 85
+                          ? 'bg-emerald-500'
+                          : quality.score >= 65
+                          ? 'bg-blue-500'
+                          : quality.score >= 40
+                          ? 'bg-amber-500'
+                          : 'bg-slate-300'
+                      }`}
+                      style={{ width: `${quality.score}%` }}
+                    />
+                  </div>
+
+                  {/* Missing actions (compact) */}
+                  {missing.length > 0 && (
+                    <div className="space-y-1.5 mb-4">
+                      {missing.map((item) => (
+                        <div key={item.id} className="flex items-center gap-2 text-xs text-slate-600">
+                          <ExclamationCircleIcon className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                          <span className="truncate">{item.action}</span>
+                        </div>
+                      ))}
+                      {missingCount > 3 && (
+                        <button
+                          onClick={() => setExpandedProject(isExpanded ? null : project.id)}
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-5"
+                        >
+                          +{missingCount - 3} more
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Expanded: show all missing + milestone preview */}
+                  {isExpanded && (
+                    <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        All missing signals
+                      </p>
+                      {quality.missing.map((item) => (
+                        <div key={item.id} className="flex items-start gap-2 text-sm text-slate-700">
+                          <ExclamationCircleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-medium">{item.label}</span>
+                            <p className="text-xs text-slate-500">{item.action}</p>
+                          </div>
+                        </div>
+                      ))}
+
+                      {Array.isArray(project.milestones) && project.milestones.length > 0 && (
+                        <div className="pt-3 border-t border-slate-200">
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                            Milestones ({project.milestones.length})
+                          </p>
+                          <div className="space-y-1.5">
+                            {project.milestones.slice(0, 3).map((m, i) => (
+                              <div key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                                <CheckCircleIcon className="w-4 h-4 text-slate-300 flex-shrink-0 mt-0.5" />
+                                <span className="text-xs line-clamp-2">{String(m)}</span>
+                              </div>
+                            ))}
+                            {project.milestones.length > 3 && (
+                              <p className="text-xs text-slate-400 ml-6">
+                                +{project.milestones.length - 3} more
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {project.lookingForFunding && project.fundingAmount && (
+                        <div className="pt-3 border-t border-slate-200">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                            <SparklesIcon className="w-3.5 h-3.5" />
+                            Seeking ${project.fundingAmount}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                    <Link href={`/projects/${ecosystem}/${slug}/edit`}>
+                      <Button size="sm" variant="outline" leftIcon={<PencilSquareIcon className="w-3.5 h-3.5" />}>
+                        Edit
+                      </Button>
+                    </Link>
+                    <Link href={`/projects/${ecosystem}/${slug}`}>
+                      <Button size="sm" variant="ghost" leftIcon={<ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />}>
+                        View
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      leftIcon={<ShareIcon className="w-3.5 h-3.5" />}
+                      onClick={() => handleShare(slug, ecosystem)}
+                    >
+                      {copiedSlug === slug ? 'Copied!' : 'Share'}
+                    </Button>
+                    <button
+                      onClick={() => setExpandedProject(isExpanded ? null : project.id)}
+                      className="ml-auto text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
+                    >
+                      {isExpanded ? 'Less' : 'Details'}
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}

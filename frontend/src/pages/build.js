@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import { FinancialProvider } from "@/contexts/FinancialContext";
 
 import DeveloperDashboard from "@/components/DeveloperDashboard";
+import BuilderProjectGrowth from "@/components/projects/BuilderProjectGrowth";
 import FundingInterface from "@/components/FundingInterface";
 import CrossChainTransfer from "@/components/CrossChainTransfer";
 import TransferHistory from "@/components/TransferHistory";
@@ -163,7 +164,12 @@ export default function BuildPage() {
 
         {activeTab === "projects" && (
           <ErrorBoundary name="ProjectsTab" errorMessage="Failed to load projects.">
-            <DeveloperDashboard />
+            <div className="space-y-8">
+              <BuilderProjectGrowth />
+              <div className="border-t border-slate-200 pt-8">
+                <DeveloperDashboard />
+              </div>
+            </div>
           </ErrorBoundary>
         )}
 

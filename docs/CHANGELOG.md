@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-05-21 — Contracts Redeployed (Arc + Devnet) After Architecture Fixes
+
+- Solana program redeployed to **`DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st`** on devnet
+- EVM BuilderCreditCore redeployed on Arc Testnet via UUPS proxy:
+  - Proxy: `0x26272b687df2c3607aCa3B6116c24B7400c3fC94`
+  - Implementation: `0x2088E6C2c958E6d0d0b35d98b2d3B0E598527718`
+  - HackathonRegistry: `0x6E303E2B8F386BfDEb201AeD5c2c011b98F2c6Bd`
+- Deployment scripts refactored to deploy ERC1967 proxy directly (compatible with Arc RPC)
+- `.env.example` and IDL updated with new deployed addresses
+- Verified: registry, USDC token, admin role, sample hackathon all working on-chain
+
 ## 2026-05-21 — Architecture Fixes: Vault Solvency, EVM Upgradeability, Firestore Security
 
 ### Solana: Split Vault Architecture (fixes backer insolvency)

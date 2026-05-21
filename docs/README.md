@@ -87,14 +87,31 @@ The protocol treasury accumulates loan repayments and sponsor contributions. `fu
 `BuilderCreditCore` is deployed behind an OpenZeppelin UUPS proxy. The `initialize(registry, usdcToken, admin)` function replaces the constructor pattern. `_authorizeUpgrade()` is gated to `DEFAULT_ADMIN_ROLE`.
 
 ```bash
-# Deploy
+# Deploy (deploys implementation + ERC1967 proxy in one go)
 npx hardhat run scripts/deploy.js --network localhost
+npx hardhat run scripts/deployTestnet.js --network arcTestnet
+npx hardhat run scripts/deployProduction.js --network base
 
 # Upgrade later
-BUILDER_CREDIT_PROXY_ADDRESS=0x... npx hardhat run scripts/upgrade.js --network sepolia
+BUILDER_CREDIT_PROXY_ADDRESS=0x26272b... npx hardhat run scripts/upgrade.js --network arcTestnet
 ```
 
 When upgrading, new implementations must preserve the existing storage layout — append new variables at the end, never reorder or delete.
+
+### Current Deployments
+
+| Contract | Network | Address |
+|----------|---------|---------|
+| Solana Program | devnet | `DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st` |
+| BuilderCreditCore (proxy) | Arc Testnet | `0x26272b687df2c3607aCa3B6116c24B7400c3fC94` |
+| HackathonRegistry | Arc Testnet | `0x6E303E2B8F386BfDEb201AeD5c2c011b98F2c6Bd` |
+
+### Upgrading
+
+To upgrade BuilderCreditCore with new logic:
+1. Write a new contract preserving storage layout (append new vars at end)
+2. Deploy the new implementation: `npx hardhat run scripts/upgrade.js --network <network>`
+3. Set `BUILDER_CREDIT_PROXY_ADDRESS` env var to the proxy address
 
 ## Integrations
 

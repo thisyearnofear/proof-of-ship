@@ -147,7 +147,7 @@ export default function AdminSubmissionsPage() {
 
   if (currentUser === null) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-secondary flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -159,11 +159,11 @@ export default function AdminSubmissionsPage() {
         <title>Admin - Review Submissions</title>
       </Head>
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="min-h-screen bg-surface-secondary py-8">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-4xl font-bold text-primary mb-2">
               Review Submissions
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -198,7 +198,7 @@ export default function AdminSubmissionsPage() {
           ) : campaigns.length === 0 ? (
             <Card className="p-12 text-center">
               <ExclamationTriangleIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Campaigns</h3>
+              <h3 className="text-lg font-semibold text-primary mb-2">No Campaigns</h3>
               <p className="text-gray-600 dark:text-gray-400">No campaigns available to review</p>
             </Card>
           ) : (
@@ -206,7 +206,7 @@ export default function AdminSubmissionsPage() {
               {/* Campaign List */}
               <div className="lg:col-span-1">
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Campaigns</h3>
+                  <h3 className="font-semibold text-primary mb-3">Campaigns</h3>
                   <div className="space-y-2">
                     {campaigns.map(campaign => {
                       const campaignSubmissions = submissions.filter(s => s.campaignId === campaign.id);
@@ -217,7 +217,7 @@ export default function AdminSubmissionsPage() {
                           className={`w-full text-left p-3 rounded-lg transition ${
                             selectedCampaignId === campaign.id
                               ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-300'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+                              : 'bg-gray-100 dark:bg-gray-700 text-primary hover:bg-gray-200 dark:hover:bg-gray-600'
                           }`}
                         >
                           <p className="font-medium text-sm truncate">{campaign.title}</p>
@@ -235,7 +235,7 @@ export default function AdminSubmissionsPage() {
               <div className="lg:col-span-3 space-y-6">
                 {/* Submissions List */}
                 <Card className="p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                  <h3 className="font-semibold text-primary mb-3">
                     Submissions
                     {selectedCampaign && ` for "${selectedCampaign.title}"`}
                   </h3>
@@ -251,12 +251,12 @@ export default function AdminSubmissionsPage() {
                           className={`w-full text-left p-3 rounded-lg border-2 transition ${
                             selectedSubmissionId === submission.id
                               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+                              : 'border-default bg-surface hover:border-gray-300 dark:hover:border-gray-600'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">
+                              <p className="font-medium text-primary">
                                 {submission.testerId}
                               </p>
                               <p className="text-xs text-gray-600 dark:text-gray-400">

@@ -149,6 +149,109 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* The Capital Stack — Three Rails Visual */}
+      <div className="py-12 sm:py-16 bg-surface border-t border-default">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3">
+              Capital That Grows With You
+            </h2>
+            <p className="text-sm sm:text-base text-secondary max-w-2xl mx-auto">
+              Three capital instruments, one progression. Start where you are, level up as you ship.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-stretch gap-4 sm:gap-6">
+            {/* Rail 1 — Bags Token */}
+            <Card className="relative p-6 border-t-4 border-t-purple-500 bg-surface shadow-card hover:shadow-card-hover transition-shadow">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-600">Rail 1</span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 rounded-full">Pre-prize</span>
+              </div>
+              <h3 className="text-lg font-bold text-primary mb-2">Bags Token</h3>
+              <p className="text-sm text-secondary mb-4">
+                No prize pipeline yet? Launch a project token on Solana. Community buys in, you earn fee-share yield.
+              </p>
+              <ul className="space-y-2 text-sm text-secondary">
+                <li className="flex items-start gap-2">• Community capital from token buyers</li>
+                <li className="flex items-start gap-2">• Fee-share yield from trading volume</li>
+                <li className="flex items-start gap-2">• No verification required</li>
+              </ul>
+              <div className="mt-4 pt-4 border-t border-default">
+                <div className="flex items-center justify-between text-xs text-tertiary">
+                  <span>Backer yield: Fee-share %</span>
+                  <span>Risk: Market-driven</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Rail 1 → Rail 2 Arrow */}
+            <div className="hidden md:flex items-center self-center">
+              <svg className="w-6 h-6 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+
+            {/* Rail 2 — x402 Credit Line */}
+            <Card className="relative p-6 border-t-4 border-t-blue-500 bg-surface shadow-card hover:shadow-card-hover transition-shadow">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">Rail 2</span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 rounded-full">Mid-stage</span>
+              </div>
+              <h3 className="text-lg font-bold text-primary mb-2">x402 Credit Line</h3>
+              <p className="text-sm text-secondary mb-4">
+                Have milestones to ship? Get a USDC credit line backed by your future hackathon prizes.
+              </p>
+              <ul className="space-y-2 text-sm text-secondary">
+                <li className="flex items-start gap-2">• Up to $5,000 USDC credit</li>
+                <li className="flex items-start gap-2">• Collateralized by prize pipeline</li>
+                <li className="flex items-start gap-2">• AI agents verify milestones</li>
+              </ul>
+              <div className="mt-4 pt-4 border-t border-default">
+                <div className="flex items-center justify-between text-xs text-tertiary">
+                  <span>Backer yield: Principal + multiplier</span>
+                  <span>Risk: Milestone-driven</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Rail 2 → Rail 3 Arrow */}
+            <div className="hidden md:flex items-center self-center">
+              <svg className="w-6 h-6 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+
+            {/* Rail 3 — Prize Routing */}
+            <Card className="relative p-6 border-t-4 border-t-green-500 bg-surface shadow-card hover:shadow-card-hover transition-shadow">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-green-600">Rail 3</span>
+                <span className="px-2 py-0.5 text-[10px] font-semibold bg-green-100 text-green-700 rounded-full">Settlement</span>
+              </div>
+              <h3 className="text-lg font-bold text-primary mb-2">Prize Routing</h3>
+              <p className="text-sm text-secondary mb-4">
+                Won a hackathon? Route the prize through the platform to auto-repay backers and keep the rest.
+              </p>
+              <ul className="space-y-2 text-sm text-secondary">
+                <li className="flex items-start gap-2">• Auto-repay backers from prize</li>
+                <li className="flex items-start gap-2">• Payout verification on 3 chains</li>
+                <li className="flex items-start gap-2">• Leaderboard ranks fastest payouts</li>
+              </ul>
+              <div className="mt-4 pt-4 border-t border-default">
+                <div className="flex items-center justify-between text-xs text-tertiary">
+                  <span>Backer yield: Principal + multiplier</span>
+                  <span>Risk: Prize-dependent</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <p className="text-center text-xs sm:text-sm text-tertiary mt-8">
+            The rails are composable — use one or all three. The agent layer recommends which fits your stage.
+          </p>
+        </div>
+      </div>
+
       {/* Features Section - Lazily loaded */}
       <Suspense fallback={
         <div className="bg-surface py-12 sm:py-16 border-t border-default">
@@ -263,11 +366,11 @@ export default function LandingPage() {
             </Button>
 
             <Button
-              onClick={() => router.push("/about")}
+              onClick={() => router.push("/explore")}
               variant="outline"
               className="border-white text-white hover:bg-surface hover:text-blue-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
             >
-              📖 Learn More
+              📖 Explore Projects
             </Button>
           </div>
         </div>

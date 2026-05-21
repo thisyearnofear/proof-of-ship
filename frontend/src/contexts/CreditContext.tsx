@@ -11,17 +11,10 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { PublicKey } from '@solana/web3.js';
 import { ethers } from 'ethers';
 import { useWallet } from './WalletContext';
+import { useUser } from './UserContext';
 import { getSolanaConnection } from './wallet/constants';
-
-// Lazy imports to keep module loading light
-function lazyUserContext() {
-  return require('@/contexts/UserContext').useUser();
-}
-function lazyFirebase() {
-  const { db: clientDb } = require('@/lib/firebase/clientApp');
-  const { collection, query, where, getDocs, orderBy } = require('firebase/firestore');
-  return { db: clientDb, collection, query, where, getDocs, orderBy };
-}
+import { db } from '@/lib/firebase/clientApp';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 interface CreditContextType {
   creditProfile: any;
@@ -63,8 +56,7 @@ export const useBuilderCredit = () => {
 
 export function CreditProvider({ children }: { children: ReactNode }) {
   const wallet = useWallet();
-  const { currentUser } = lazyUserContext();
-  const { db, collection, query, where, getDocs, orderBy } = lazyFirebase();
+  const { currentUser } = useUser();
 
   const [chainBalances, setChainBalances] = useState<Record<string, string>>({});
   const [isFetchingBalances, setIsFetchingBalances] = useState(false);

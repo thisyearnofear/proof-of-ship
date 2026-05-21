@@ -26,6 +26,12 @@ const nextConfig = {
       { source: '/dashboard', destination: '/build?tab=projects', permanent: true },
       { source: '/expedition', destination: '/back', permanent: true },
       { source: '/backer-portfolio', destination: '/back?tab=portfolio', permanent: true },
+      // Removed pages — redirect to closest equivalents
+      { source: '/fleet', destination: '/explore', permanent: true },
+      { source: '/campaigns', destination: '/build', permanent: true },
+      { source: '/feedback', destination: '/', permanent: true },
+      { source: '/design', destination: '/', permanent: true },
+      { source: '/about', destination: '/', permanent: true },
     ];
   },
   // Common configuration for all environments

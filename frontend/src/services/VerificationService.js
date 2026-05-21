@@ -121,6 +121,7 @@ class VerificationService {
     let isValidProof = false;
     let detectedChain = 'unknown';
 
+    // Strict verification: ecosystem must match proof format
     if (ecosystem === 'solana' || ecosystem === 'sol') {
       isValidProof = isSolanaHash;
       detectedChain = 'solana';
@@ -128,15 +129,6 @@ class VerificationService {
       // Default to EVM for other ecosystems (base, ethereum, optimism, etc.)
       isValidProof = isEvmHash;
       detectedChain = 'evm';
-    }
-
-    // Agentic Integration: If we're unsure but format matches another chain, 
-    // we could potentially allow it but flag it for AI analysis
-    if (!isValidProof && (isEvmHash || isSolanaHash)) {
-      console.warn(`Proof format matches ${isEvmHash ? 'EVM' : 'Solana'} but hackathon ecosystem is ${ecosystem}`);
-      // For now, we'll be flexible to support cross-chain proofs if the format is valid
-      isValidProof = true;
-      detectedChain = isEvmHash ? 'evm' : 'solana';
     }
 
     return {

@@ -275,9 +275,9 @@ export default function Navbar() {
                             )}</Menu.Item>
                             {userRole !== 'backer' && (
                               <Menu.Item>{({ active }) => (
-                                <Link href="/admin/war-room"
+                                <Link href="/admin/verification"
                                   className={classNames(active ? "bg-orange-50 dark:bg-orange-900/20" : "", "flex items-center px-4 py-2 text-sm text-orange-700 dark:text-orange-400 font-semibold")}>
-                                  <ShieldCheckIcon className="mr-3 h-4 w-4" /> Verification War Room
+                                  <ShieldCheckIcon className="mr-3 h-4 w-4" /> Verification Dashboard
                                 </Link>
                               )}</Menu.Item>
                             )}

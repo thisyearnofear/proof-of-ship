@@ -18,12 +18,17 @@ import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SkeletonDetailPage } from "@/components/common/LoadingStates";
 import BackerActivity from "@/components/projects/BackerActivity";
 import { ProjectHero, ProjectMilestoneTimeline, ProjectProofPanel } from "@/components/projects/ProjectShowcase";
+import BuilderIdentityPanel from "@/components/projects/BuilderIdentityPanel";
+import ProjectLinksPanel from "@/components/projects/ProjectLinksPanel";
+import ProjectBackerSummary from "@/components/projects/ProjectBackerSummary";
+import EnhancedDetailsSection from "@/components/projects/EnhancedDetailsSection";
 
 import {
   ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
   ClockIcon,
   TagIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 
 export default function ProjectDetailPage() {
@@ -192,6 +197,29 @@ export default function ProjectDetailPage() {
             <div className="lg:col-span-2 space-y-6">
               <ProjectMilestoneTimeline milestones={project.milestones} />
 
+              <EnhancedDetailsSection project={project} />
+
+              {project.lookingForFunding && project.fundingAmount && (
+                <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="w-10 h-10 bg-emerald-200 rounded-xl flex items-center justify-center">
+                      <CurrencyDollarIcon className="w-6 h-6 text-emerald-700" />
+                    </span>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">Seeking funding</h2>
+                      <p className="text-sm text-gray-600">
+                        This project is looking for ${Number(project.fundingAmount).toLocaleString()} in support
+                      </p>
+                    </div>
+                  </div>
+                  {Array.isArray(project.milestones) && project.milestones.length > 0 && (
+                    <p className="text-sm text-gray-600 ml-[3.25rem]">
+                      {project.milestones.length} milestone{project.milestones.length > 1 ? 's' : ''} defined
+                    </p>
+                  )}
+                </Card>
+              )}
+
               <BackerActivity projectSlug={slug} />
               
               <ShipsLog projectSlug={slug} canEdit={canEdit} />
@@ -241,28 +269,21 @@ export default function ProjectDetailPage() {
             </div>
 
             <div className="space-y-6">
-              <ProjectProofPanel
+              <ProjectProofPanel project={project} />
+
+              <ProjectLinksPanel project={project} />
+
+              <BuilderIdentityPanel
                 project={project}
-                ownerEthosLoading={ownerEthosLoading}
                 ownerEthosUser={ownerEthosUser}
+                ownerEthosLoading={ownerEthosLoading}
                 EthosScoreBadge={EthosScoreBadge}
               />
 
-              <Card className="p-6 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Feedback
-                </h2>
-                <p className="text-gray-700 mb-6">
-                  Help improve this project by sharing your experience!
-                </p>
-                <Button
-                  variant="default"
-                  onClick={() => router.push(`/feedback?project=${encodeURIComponent(slug)}`)}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg"
-                >
-                  Leave feedback
-                </Button>
-              </Card>
+              <ProjectBackerSummary
+                project={project}
+                onFeedback={() => router.push(`/feedback?project=${encodeURIComponent(slug)}`)}
+              />
             </div>
           </div>
 

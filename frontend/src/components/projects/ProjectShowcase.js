@@ -103,15 +103,12 @@ export function ProjectHero({ project, ecosystemConfig, title, githubUrl, canEdi
   );
 }
 
-export function ProjectProofPanel({ project, ownerEthosLoading, ownerEthosUser, EthosScoreBadge }) {
+export function ProjectProofPanel({ project }) {
   const proofItems = [
     { label: 'Repository', value: project.owner && project.repo ? `${project.owner}/${project.repo}` : null },
     { label: 'Contract', value: project.contractAddress },
     { label: 'Deployment Tx', value: project.deploymentTxHash },
     { label: 'Open source', value: project.isOpenSource ? 'Yes' : 'Not marked' },
-    { label: 'Website', value: project.website || project.liveUrl },
-    { label: 'X / Twitter', value: project.twitter },
-    { label: 'Discord', value: project.discord }
   ];
 
   return (
@@ -130,20 +127,6 @@ export function ProjectProofPanel({ project, ownerEthosLoading, ownerEthosUser, 
             </span>
           </div>
         ))}
-
-        <div className="flex items-center justify-between gap-4 pt-1">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Submitted by</span>
-          <span className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-            {project.submittedBy || '-'}
-            {project.ownerWalletAddress && (
-              ownerEthosLoading ? (
-                <span className="text-xs text-gray-500">Loading</span>
-              ) : ownerEthosUser ? (
-                <EthosScoreBadge score={ownerEthosUser.score} ethosUser={ownerEthosUser} size="sm" showLabel={false} />
-              ) : null
-            )}
-          </span>
-        </div>
       </div>
     </section>
   );

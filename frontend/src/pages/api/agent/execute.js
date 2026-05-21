@@ -21,6 +21,7 @@
  */
 
 import { db } from "@/lib/firebase/serverOnly";
+import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 import { realCircleService } from "@/services/RealCircleService";
 
 const ARC_CHAIN_ID = 5042002;
@@ -83,14 +84,41 @@ export default async function handler(req, res) {
     });
   }
 
-  if (!realCircleService.isConfigured()) {
+  // Agent wallet may use separate test credentials (different wallet set)
+  const agentApiKey = process.env.TEST_CIRCLE_API_KEY || process.env.CIRCLE_API_KEY;
+  const agentSecret = process.env.CIRCLE_ENTITY_SECRET;
+  const agentWalletSetId = process.env.CIRCLE_AGENT_WALLET_SET_ID;
+
+  if (!agentApiKey || !agentSecret) {
     return res.status(500).json({
       error: "Circle API not configured",
-      missing: ["CIRCLE_API_KEY", "CIRCLE_ENTITY_SECRET"].filter(
-        (k) => !process.env[k]
-      ),
+      missing: [!agentApiKey && "CIRCLE_API_KEY", !agentSecret && "CIRCLE_ENTITY_SECRET"].filter(Boolean),
     });
   }
+
+  // Create a dedicated client for the agent wallet
+  const agentClient = initiateDeveloperControlledWalletsClient({
+    apiKey: agentApiKey,
+    entitySecret: agentSecret,
+  });
+
+  const getWalletById = async (walletId) => {
+    const resp = await agentClient.getWallet({ id: walletId });
+    return resp.data?.wallet;
+  };
+
+  const createTx = async (walletId, destinationAddress, contractAddress, calldata) => {
+    const { randomUUID } = require("crypto");
+    const resp = await agentClient.createTransaction({
+      idempotencyKey: randomUUID(),
+      walletId,
+      destinationAddress,
+      contractAddress,
+      calldata,
+      fee: { feeLevel: "MEDIUM" },
+    });
+    return resp.data?.transaction;
+  };
 
   const { projects } = req.body || {};
   if (!projects || !Array.isArray(projects) || projects.length === 0) {
@@ -99,8 +127,7 @@ export default async function handler(req, res) {
 
   try {
     // Verify agent wallet exists and get its address
-    const walletResp = await realCircleService.getWalletById(agentWalletId);
-    const agentWallet = walletResp.data.wallet;
+    const agentWallet = await getWalletById(agentWalletId);
     const agentAddress = agentWallet.address;
 
     const totalAmount = projects.reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -108,32 +135,20 @@ export default async function handler(req, res) {
     // Pre-approve BuilderCreditCore to spend agent's USDC (one-time)
     // Uses Circle API to create a contract call: USDC.approve(BuilderCreditCore, max)
     const approveCalldata = encodeApproveCall(contractAddress);
-    await realCircleService.createTransaction({
-      walletId: agentWalletId,
-      destinationAddress: USDC_ADDRESS,
-      contractAddress: USDC_ADDRESS,
-      calldata: approveCalldata,
-      feeLevel: "MEDIUM",
-    });
+    await createTx(agentWalletId, USDC_ADDRESS, USDC_ADDRESS, approveCalldata);
 
     // Execute backings via Circle-signed contract calls
     const results = [];
     for (const project of projects) {
       try {
         const calldata = encodeBackCall(project.id, project.multiplier, project.amount);
-        const txResp = await realCircleService.createTransaction({
-          walletId: agentWalletId,
-          destinationAddress: contractAddress,
-          contractAddress: contractAddress,
-          calldata: calldata,
-          feeLevel: "MEDIUM",
-        });
+        const tx = await createTx(agentWalletId, contractAddress, contractAddress, calldata);
 
         results.push({
           projectId: project.id,
           amount: project.amount,
           multiplier: project.multiplier,
-          txHash: txResp.data.transaction?.txHash || txResp.data.transaction?.id,
+          txHash: tx?.txHash || tx?.id,
           status: "success",
         });
       } catch (err) {

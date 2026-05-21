@@ -1,33 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { RocketLaunchIcon, ChatBubbleLeftRightIcon, CurrencyDollarIcon, SparklesIcon } from '@heroicons/react/24/outline';
-
-const MOCK_ACTIVITIES = [
-  { id: 1, type: 'ship', user: 'alice.sol', message: 'Deployed v2 of the smart contracts', time: '2m ago' },
-  { id: 2, type: 'fund', user: 'bob.eth', message: 'Backed "DeFi Voyager" with 500 USDC', time: '5m ago' },
-  { id: 3, type: 'verify', user: 'Verifier Agent', message: 'Verified milestone "Frontend MVP" for Project X', time: '12m ago' },
-  { id: 4, type: 'ship', user: 'charlie.sol', message: 'Added SNS support to the dashboard', time: '15m ago' },
-];
+import React, { useState, useEffect, useCallback } from 'react';
+import { RocketLaunchIcon, ChatBubbleLeftRightIcon, CurrencyDollarIcon, SparklesIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 
 export const LiveActivityFeed = () => {
-  const [activities, setActivities] = useState(MOCK_ACTIVITIES);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchFeed = useCallback(async () => {
+    try {
+      const res = await fetch('/api/activity/feed?limit=10');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.activities)) {
+        setActivities(data.activities);
+      }
+    } catch {
+      // Silently fail — feed is cosmetic
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // In a real app, this would be a websocket or firestore listener
-    const interval = setInterval(() => {
-      // Rotate activities for demo feel
-      setActivities(prev => {
-        const last = prev[prev.length - 1];
-        return [ { ...last, id: Date.now(), time: 'Just now' }, ...prev.slice(0, 3)];
-      });
-    }, 8000);
+    fetchFeed();
+    // Poll every 30s for new activity
+    const interval = setInterval(fetchFeed, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchFeed]);
 
   const getIcon = (type) => {
     switch (type) {
       case 'ship': return <RocketLaunchIcon className="w-4 h-4 text-blue-500" />;
       case 'fund': return <CurrencyDollarIcon className="w-4 h-4 text-green-500" />;
       case 'verify': return <SparklesIcon className="w-4 h-4 text-indigo-500" />;
+      case 'follow': return <UserPlusIcon className="w-4 h-4 text-pink-500" />;
       default: return <ChatBubbleLeftRightIcon className="w-4 h-4 text-gray-500" />;
     }
   };
@@ -40,25 +45,45 @@ export const LiveActivityFeed = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
           </span>
-          Live Ship Feed
+          Live Feed
         </h3>
-        <span className="text-[10px] text-blue-600 font-medium">REAL-TIME</span>
+        {!loading && activities.length > 0 && (
+          <span className="text-[10px] text-blue-600 font-medium">REAL-TIME</span>
+        )}
       </div>
-      <div className="space-y-4">
-        {activities.map((activity) => (
-          <div key={activity.id} className="flex gap-3 animate-fade-in-up">
-            <div className="mt-0.5 bg-blue-50 rounded-full p-1.5 h-fit">
-              {getIcon(activity.type)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-baseline gap-2">
-                <span className="text-xs font-bold text-gray-900 truncate">{activity.user}</span>
-                <span className="text-[10px] text-gray-400 flex-shrink-0">{activity.time}</span>
+      <div className="space-y-4 min-h-[120px]">
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex gap-3 animate-pulse">
+                <div className="w-7 h-7 rounded-full bg-gray-200" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 w-24 bg-gray-200 rounded" />
+                  <div className="h-2.5 w-full bg-gray-100 rounded" />
+                </div>
               </div>
-              <p className="text-xs text-gray-600 truncate">{activity.message}</p>
-            </div>
+            ))}
           </div>
-        ))}
+        ) : activities.length === 0 ? (
+          <p className="text-xs text-gray-400 text-center py-6">
+            No recent activity. Follow builders to see their updates here.
+          </p>
+        ) : (
+          activities.map((activity) => (
+            <div key={activity.id} className="flex gap-3 animate-fade-in-up">
+              <div className="mt-0.5 bg-blue-50 rounded-full p-1.5 h-fit">
+                {getIcon(activity.type)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-baseline gap-2">
+                  <span className="text-xs font-bold text-gray-900 truncate">{activity.user}</span>
+                  <span className="text-[10px] text-gray-400 flex-shrink-0">{activity.time}</span>
+                </div>
+                <p className="text-xs text-gray-600 truncate">{activity.message}</p>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

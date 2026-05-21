@@ -92,6 +92,103 @@ export default async function handler(req, res) {
       console.warn("Portfolio projects query failed:", projectErr.message);
     }
 
+    let followerCount = 0;
+    try {
+      const countSnap = await db
+        .collection("follows")
+        .where("followedId", "==", userDoc.id)
+        .count()
+        .get();
+      followerCount = countSnap.data().count;
+    } catch { /* follows index may not exist yet */ }
+
+    // Fetch recent follow events targeting this user
+    let followEvents = [];
+    try {
+      const followSnap = await db
+        .collection("follow_events")
+        .where("followedId", "==", userDoc.id)
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get();
+
+      for (const docSnap of followSnap.docs) {
+        const data = docSnap.data();
+        const followerName = data.followerDisplayName || data.followerGithubUsername || "Someone";
+        followEvents.push({
+          id: docSnap.id,
+          type: "follow",
+          message: data.type === "follow"
+            ? `${followerName} started following`
+            : `${followerName} unfollowed`,
+          timestamp: data.createdAt,
+          userHandle: data.followerDisplayName || data.followerGithubUsername,
+        });
+      }
+    } catch (err) {
+      // follow_events index may not exist yet — don't fail the whole request
+      console.warn("Follow events query failed:", err.message);
+    }
+
+    // Fetch recent Ships Log entries across all user projects
+    let recentActivity = [];
+    const projectSlugs = projects.map((p) => p.slug || p.id).filter(Boolean);
+
+    if (projectSlugs.length > 0) {
+      try {
+        // Firestore doesn't support WHERE-IN with more than 10 values in a single
+        // composite query, so we batch in groups of 10
+        const BATCH_SIZE = 10;
+        const batches = [];
+
+        for (let i = 0; i < projectSlugs.length; i += BATCH_SIZE) {
+          const batch = projectSlugs.slice(i, i + BATCH_SIZE);
+          batches.push(
+            db
+              .collection("ships_logs")
+              .where("projectSlug", "in", batch)
+              .orderBy("timestamp", "desc")
+              .limit(20)
+              .get()
+          );
+        }
+
+        const snapshots = await Promise.all(batches);
+        const activityMap = new Map();
+
+        for (const snapshot of snapshots) {
+          for (const docSnap of snapshot.docs) {
+            const entry = { id: docSnap.id, ...docSnap.data() };
+            // Deduplicate by id
+            if (!activityMap.has(docSnap.id)) {
+              activityMap.set(docSnap.id, entry);
+            }
+          }
+        }
+
+        recentActivity = Array.from(activityMap.values())
+          .sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")))
+          .slice(0, 30);
+
+        // Merge follow events and re-sort
+        recentActivity = [...recentActivity, ...followEvents]
+          .sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")))
+          .slice(0, 30);
+      } catch (logErr) {
+        // Ships logs query can fail if indexes are missing — don't fail the whole request
+        console.warn("Ships logs query failed:", logErr.message);
+      }
+    }
+
+    // Compute aggregate stats
+    const totalStars = projects.reduce((sum, p) => sum + (p.stats?.stars || 0), 0);
+    const totalCommits = projects.reduce((sum, p) => sum + (p.stats?.commits || 0), 0);
+    const totalForks = projects.reduce((sum, p) => sum + (p.stats?.forks || 0), 0);
+    const projectsWithHealth = projects.filter(p => p.stats?.healthScore);
+    const avgHealth = projectsWithHealth.length > 0
+      ? Math.round(projectsWithHealth.reduce((sum, p) => sum + (p.stats?.healthScore || 0), 0) / projectsWithHealth.length)
+      : 0;
+
     res.status(200).json({
       user: {
         uid: userDoc.id,
@@ -99,8 +196,18 @@ export default async function handler(req, res) {
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
         walletAddress: user.walletAddress || null,
+        bio: user.bio || null,
       },
       projects,
+      recentActivity,
+      stats: {
+        totalProjects: projects.length,
+        totalStars,
+        totalCommits,
+        totalForks,
+        avgHealth,
+        ecosystems: new Set(projects.map(p => p.ecosystem).filter(Boolean)).size,
+      },
     });
   } catch (error) {
     console.error("Error loading portfolio:", error);

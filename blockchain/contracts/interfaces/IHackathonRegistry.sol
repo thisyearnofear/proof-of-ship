@@ -4,7 +4,8 @@ pragma solidity ^0.8.17;
 /**
  * @title IHackathonRegistry
  * @dev Interface for the HackathonRegistry contract
- * Provides functions for verifying hackathon verifiers and signature requirements
+ * Provides functions for verifying hackathon verifiers, signature requirements,
+ * and winner/payout anchoring.
  */
 interface IHackathonRegistry {
     /**
@@ -45,4 +46,41 @@ interface IHackathonRegistry {
      * @return Array of verifier addresses
      */
     function getHackathonVerifiers(uint256 hackathonId) external view returns (address[] memory);
+    
+    /**
+     * @dev Declares a winner for a hackathon with prize metadata.
+     * Anchors the declaration timestamp on-chain.
+     */
+    function declareWinner(
+        uint256 hackathonId,
+        address winner,
+        string calldata projectName,
+        uint256 prizeAmount
+    ) external;
+    
+    /**
+     * @dev Records a payout for a previously declared winner.
+     * Completes the time delta: declaredAt → paidAt.
+     */
+    function recordPayout(
+        uint256 hackathonId,
+        address winner,
+        string calldata payoutTxHash
+    ) external;
+    
+    /**
+     * @dev Gets the number of winners declared for a hackathon
+     */
+    function getWinnerCount(uint256 hackathonId) external view returns (uint256);
+    
+    /**
+     * @dev Gets payout statistics for a hackathon
+     */
+    function getPayoutStats(uint256 hackathonId) external view returns (
+        uint256 totalWinners,
+        uint256 paidWinners,
+        uint256 totalPrizeAmount,
+        uint256 minPayoutLatency,
+        uint256 maxPayoutLatency
+    );
 }

@@ -205,5 +205,22 @@ service cloud.firestore {
       allow read: if isAdminUser();
       allow write: if false;
     }
+
+    // Payout attestations — verification results from the PayoutVerifier agent.
+    // Read: publicly visible so anyone can verify a payout claim.
+    // Write: only server-side via admin SDK (rules bypassed).
+    match /payoutAttestations/{attestationId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Builder credentials — per-builder aggregate of hackathon win attestations.
+    // Each doc: { builderId, totalPrizesWon, totalPrizesVerified, hackathonWins[], lastPayoutAt, payoutReliability }
+    // Read: any authenticated user can view credentials.
+    // Write: only server-side via admin SDK (rules bypassed).
+    match /builderCredentials/{builderId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
   }
 }

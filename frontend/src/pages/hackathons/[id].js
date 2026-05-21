@@ -8,6 +8,7 @@ import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import PayoutTimeline from '@/components/hackathons/PayoutTimeline';
 
 import {
   CalendarIcon,
@@ -292,6 +293,15 @@ export default function HackathonDetailPage() {
                   )}
                 </div>
               </Card>
+
+              {/* Payout Timeline */}
+              {isCompleted && hackathon && (
+                <PayoutTimeline
+                  hackathonId={id}
+                  hackathonName={hackathon.name}
+                  isCompleted={isCompleted}
+                />
+              )}
 
               {/* Participants Section */}
               <Card>

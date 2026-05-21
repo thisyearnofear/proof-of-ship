@@ -32,11 +32,23 @@ contract HackathonRegistry is IHackathonRegistry, AccessControl, Pausable {
         string name;
     }
     
+    struct WinnerDeclaration {
+        address winner;
+        string projectName;
+        uint256 prizeAmount;
+        uint256 declaredAt;     // block.timestamp when declareWinner was called
+        uint256 paidAt;          // block.timestamp when recordPayout was called (0 = unpaid)
+        string payoutTxHash;    // transaction hash of the actual USDC transfer
+    }
+    
     // Hackathon ID => Verifier Configuration
     mapping(uint256 => HackathonVerifiers) public hackathons;
     
     // Hackathon name => Hackathon ID (for lookup)
     mapping(string => uint256) public hackathonsByName;
+    
+    // Winner declarations: hackathonId => winnerAddress[] (ordered by declaration time)
+    mapping(uint256 => WinnerDeclaration[]) public winnerDeclarations;
     
     // Events
     event HackathonCreated(uint256 indexed hackathonId, string name, address host, uint8 requiredSignatures);
@@ -44,6 +56,8 @@ contract HackathonRegistry is IHackathonRegistry, AccessControl, Pausable {
     event VerifierRemoved(uint256 indexed hackathonId, address verifier);
     event HackathonStatusChanged(uint256 indexed hackathonId, bool active);
     event RequiredSignaturesChanged(uint256 indexed hackathonId, uint8 previousRequired, uint8 newRequired);
+    event WinnerDeclared(uint256 indexed hackathonId, address indexed winner, string projectName, uint256 prizeAmount, uint256 declaredAt);
+    event PayoutRecorded(uint256 indexed hackathonId, address indexed winner, string payoutTxHash, uint256 paidAt);
     
     /**
      * @dev Constructor
@@ -356,5 +370,165 @@ contract HackathonRegistry is IHackathonRegistry, AccessControl, Pausable {
      */
     function unpause() external onlyRole(PLATFORM_ADMIN_ROLE) {
         _unpause();
+    }
+    
+    // ──────────────────────────────────────────────
+    //  Winner & Payout Anchor
+    // ──────────────────────────────────────────────
+    
+    /**
+     * @dev Declares a winner for a hackathon with prize metadata.
+     * Only callable by the hackathon host or a platform admin.
+     * Anchors the declaration timestamp on-chain for payout latency computation.
+     * @param hackathonId ID of the hackathon
+     * @param winner Address of the winning participant
+     * @param projectName Name of the winning project
+     * @param prizeAmount Amount of the prize in USDC
+     */
+    function declareWinner(
+        uint256 hackathonId,
+        address winner,
+        string calldata projectName,
+        uint256 prizeAmount
+    )
+        external
+        whenNotPaused
+    {
+        HackathonVerifiers storage hackathon = hackathons[hackathonId];
+        
+        require(hackathon.host != address(0), "Hackathon does not exist");
+        require(
+            hackathon.host == msg.sender || hasRole(PLATFORM_ADMIN_ROLE, msg.sender),
+            "Not authorized"
+        );
+        require(winner != address(0), "Invalid winner address");
+        require(prizeAmount > 0, "Prize amount must be greater than 0");
+        
+        winnerDeclarations[hackathonId].push(WinnerDeclaration({
+            winner: winner,
+            projectName: projectName,
+            prizeAmount: prizeAmount,
+            declaredAt: block.timestamp,
+            paidAt: 0,
+            payoutTxHash: ""
+        }));
+        
+        emit WinnerDeclared(hackathonId, winner, projectName, prizeAmount, block.timestamp);
+    }
+    
+    /**
+     * @dev Records a payout for a previously declared winner.
+     * Called when the actual USDC transfer settles (by host, admin, or verifier agent).
+     * Completes the time delta: declaredAt → paidAt.
+     * @param hackathonId ID of the hackathon
+     * @param winner Address of the winner being paid
+     * @param payoutTxHash Transaction hash of the USDC payout
+     */
+    function recordPayout(
+        uint256 hackathonId,
+        address winner,
+        string calldata payoutTxHash
+    )
+        external
+        whenNotPaused
+    {
+        HackathonVerifiers storage hackathon = hackathons[hackathonId];
+        
+        require(hackathon.host != address(0), "Hackathon does not exist");
+        require(
+            hackathon.host == msg.sender || 
+            hasRole(PLATFORM_ADMIN_ROLE, msg.sender) ||
+            this.isVerifier(hackathonId, msg.sender),
+            "Not authorized"
+        );
+        
+        WinnerDeclaration[] storage declarations = winnerDeclarations[hackathonId];
+        bool found = false;
+        
+        // Find the latest unpaid declaration for this winner
+        for (uint256 i = declarations.length; i > 0; i--) {
+            WinnerDeclaration storage decl = declarations[i - 1];
+            if (decl.winner == winner && decl.paidAt == 0) {
+                decl.paidAt = block.timestamp;
+                decl.payoutTxHash = payoutTxHash;
+                found = true;
+                break;
+            }
+        }
+        
+        require(found, "No unpaid declaration found for this winner");
+        
+        emit PayoutRecorded(hackathonId, winner, payoutTxHash, block.timestamp);
+    }
+    
+    /**
+     * @dev Gets all winner declarations for a hackathon
+     * @param hackathonId ID of the hackathon
+     * @return Array of winner declarations
+     */
+    function getWinnerDeclarations(uint256 hackathonId)
+        external
+        view
+        returns (WinnerDeclaration[] memory)
+    {
+        return winnerDeclarations[hackathonId];
+    }
+    
+    /**
+     * @dev Gets the number of winners declared for a hackathon
+     * @param hackathonId ID of the hackathon
+     * @return Count of winner declarations
+     */
+    function getWinnerCount(uint256 hackathonId)
+        external
+        view
+        returns (uint256)
+    {
+        return winnerDeclarations[hackathonId].length;
+    }
+    
+    /**
+     * @dev Gets payout statistics for a hackathon
+     * @param hackathonId ID of the hackathon
+     * @return totalWinners Total number of winners declared
+     * @return paidWinners Number of winners who have been paid
+     * @return totalPrizeAmount Sum of all declared prizes
+     * @return minPayoutLatency Minimum payout latency in seconds
+     * @return maxPayoutLatency Maximum payout latency in seconds
+     */
+    function getPayoutStats(uint256 hackathonId)
+        external
+        view
+        returns (
+            uint256 totalWinners,
+            uint256 paidWinners,
+            uint256 totalPrizeAmount,
+            uint256 minPayoutLatency,
+            uint256 maxPayoutLatency
+        )
+    {
+        WinnerDeclaration[] storage declarations = winnerDeclarations[hackathonId];
+        
+        totalWinners = declarations.length;
+        minPayoutLatency = type(uint256).max;
+        maxPayoutLatency = 0;
+        
+        for (uint256 i = 0; i < declarations.length; i++) {
+            totalPrizeAmount += declarations[i].prizeAmount;
+            
+            if (declarations[i].paidAt > 0) {
+                paidWinners++;
+                
+                uint256 latency = declarations[i].paidAt - declarations[i].declaredAt;
+                if (latency < minPayoutLatency) minPayoutLatency = latency;
+                if (latency > maxPayoutLatency) maxPayoutLatency = latency;
+            }
+        }
+        
+        // No paid winners means min/max are 0
+        if (paidWinners == 0) {
+            minPayoutLatency = 0;
+            maxPayoutLatency = 0;
+        }
     }
 }

@@ -29,6 +29,8 @@ import {
   ClockIcon,
   TagIcon,
   CurrencyDollarIcon,
+  ShieldExclamationIcon,
+  CheckBadgeIcon,
 } from "@heroicons/react/24/outline";
 
 export default function ProjectDetailPage() {
@@ -45,6 +47,8 @@ export default function ProjectDetailPage() {
   const [isAdminClient, setIsAdminClient] = useState(false);
   const [ownerEthosUser, setOwnerEthosUser] = useState(null);
   const [ownerEthosLoading, setOwnerEthosLoading] = useState(false);
+  const [verifiedClaims, setVerifiedClaims] = useState(null);
+  const [claimsVerifying, setClaimsVerifying] = useState(false);
 
   useEffect(() => {
     if (!ecosystem || !slug) return;
@@ -80,6 +84,24 @@ export default function ProjectDetailPage() {
 
         // Opportunistically load extra details (issues/PRs) in the background.
         loadProjectDetails(slug, ecosystem).catch(() => {});
+
+        // Verify hackathon claims
+        if (Array.isArray(data.hackathons) && data.hackathons.length > 0) {
+          setClaimsVerifying(true);
+          fetch('/api/agent/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'claim_verification', project: { hackathons: data.hackathons } }),
+          })
+            .then(r => r.json().catch(() => ({})))
+            .then(body => {
+              if (!cancelled && body.success && body.analysis?.claims) {
+                setVerifiedClaims(body.analysis.claims);
+              }
+            })
+            .catch(() => {})
+            .finally(() => { if (!cancelled) setClaimsVerifying(false); });
+        }
         
         // Fetch Ethos score for project owner
         if (data.ownerWalletAddress && !cancelled) {
@@ -173,6 +195,40 @@ export default function ProjectDetailPage() {
           {title}
           {ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""}
         </title>
+        <meta
+          name="description"
+          content={project.description || `${title} — a ${ecosystemConfig?.shortName || ecosystem} project on Proof of Ship.`}
+        />
+        <meta property="og:title" content={`${title}${ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""} — Proof of Ship`} />
+        <meta
+          property="og:description"
+          content={project.description ? `${project.description.slice(0, 200)}${project.description.length > 200 ? "..." : ""}` : `${title} on ${ecosystemConfig?.shortName || ecosystem}`}
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://proofofship.app/projects/${ecosystem}/${slug}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${title}${ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""} — Proof of Ship`} />
+        <meta
+          name="twitter:description"
+          content={project.description?.slice(0, 200) || `${title} on ${ecosystemConfig?.shortName || ecosystem}`}
+        />
+        {(() => {
+          const ogParams = new URLSearchParams({
+            type: "project",
+            name: title || "",
+            ecosystem: project.ecosystem || ecosystem || "",
+            description: (project.description || "").slice(0, 300),
+            stars: String(project.stats?.stars || 0),
+            health: String(project.stats?.healthScore || project.stats?.velocity || 0),
+            verified: project.verified ? "true" : "false",
+          });
+          return (
+            <>
+              <meta property="og:image" content={`/api/og?${ogParams.toString()}`} />
+              <meta name="twitter:image" content={`/api/og?${ogParams.toString()}`} />
+            </>
+          );
+        })()}
       </Head>
 
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -301,9 +357,15 @@ export default function ProjectDetailPage() {
                   <div key={idx} className="p-5 bg-gray-50 rounded-xl border border-gray-100 hover:border-pink-200 transition-all">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 text-lg">
-                          {h.name || `Hackathon ${idx + 1}`}
-                        </h3>
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className="font-bold text-gray-900 text-lg">
+                            {h.name || `Hackathon ${idx + 1}`}
+                          </h3>
+                          <ClaimVerificationBadge
+                            claim={verifiedClaims?.[idx]}
+                            loading={claimsVerifying}
+                          />
+                        </div>
                         <p className="text-sm text-gray-600 mt-2">
                           {h.outcome ? `Outcome: ${h.outcome}` : "Outcome: —"}
                         </p>
@@ -312,19 +374,34 @@ export default function ProjectDetailPage() {
                         )}
                       </div>
                       
-                      {h.url && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(h.url, "_blank", "noopener,noreferrer")
-                          }
-                          rightIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
-                          className="shrink-0"
-                        >
-                          Link
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {verifiedClaims?.[idx] && (
+                          <button
+                            onClick={() => {
+                              const signals = verifiedClaims[idx];
+                              alert(
+                                `Signals: ${signals.signals?.join(', ') || 'none'}\nMissing: ${signals.missing?.join(', ') || 'none'}\nCredibility: ${signals.credibility || 'unknown'}\nScore: ${signals.signalScore || 0}/100`
+                              );
+                            }}
+                            className="text-xs text-gray-400 hover:text-gray-600 underline"
+                            title="View verification details"
+                          >
+                            Details
+                          </button>
+                        )}
+                        {h.url && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.open(h.url, "_blank", "noopener,noreferrer")
+                            }
+                            rightIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
+                          >
+                            Link
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -613,6 +690,44 @@ function BulkApproveForm({ projectSlug }) {
         <Button loading={loading} onClick={onSubmit}>Process batch</Button>
       </div>
     </div>
+  );
+}
+
+function ClaimVerificationBadge({ claim, loading }) {
+  if (loading) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 text-xs">
+        <span className="w-3 h-3 rounded-full bg-gray-300 animate-pulse" />
+        Verifying...
+      </span>
+    );
+  }
+
+  if (!claim) return null;
+
+  if (claim.credibility === 'high') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium border border-green-200">
+        <CheckBadgeIcon className="w-3.5 h-3.5" />
+        Verified
+      </span>
+    );
+  }
+
+  if (claim.credibility === 'medium') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200">
+        <ShieldExclamationIcon className="w-3.5 h-3.5" />
+        Partial
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-xs font-medium border border-red-200">
+      <ShieldExclamationIcon className="w-3.5 h-3.5" />
+      Unverified
+    </span>
   );
 }
 

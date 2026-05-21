@@ -35,6 +35,78 @@ Focus on what the score means for their borrowing capacity and what would improv
       return res.status(200).json({ success: true, analysis, source: 'cloud' });
     }
 
+    if (type === 'claim_verification' && project) {
+      const hackathonClaims = project.hackathons || [];
+
+      if (hackathonClaims.length === 0) {
+        return res.status(200).json({
+          success: true,
+          analysis: {
+            summary: 'No hackathon claims to verify.',
+            verified: false,
+            claims: []
+          },
+          source: 'rule-based'
+        });
+      }
+
+      const verifiedClaims = hackathonClaims.map((claim, idx) => {
+        // Rule-based verification: check for signals that make a claim credible
+        const signals = [];
+        const missing = [];
+
+        if (claim.name) signals.push('hackathon_name');
+        else missing.push('hackathon_name');
+
+        if (claim.url && claim.url.startsWith('http')) signals.push('submission_url');
+        else missing.push('public_url');
+
+        if (claim.outcome === 'winner' || claim.outcome === 'finalist') {
+          signals.push('positive_outcome');
+        } else if (claim.outcome) {
+          signals.push('recorded_outcome');
+        } else {
+          missing.push('recorded_outcome');
+        }
+
+        if (claim.payoutAt) {
+          signals.push('payout_recorded');
+          try {
+            const payoutDate = new Date(claim.payoutAt);
+            if (!isNaN(payoutDate.getTime())) {
+              signals.push('valid_payout_date');
+            }
+          } catch {}
+        } else {
+          missing.push('payout_date');
+        }
+
+        const signalScore = Math.round((signals.length / (signals.length + missing.length)) * 100);
+
+        return {
+          hackathonName: claim.name || `Hackathon ${idx + 1}`,
+          outcome: claim.outcome || 'Not specified',
+          payoutAt: claim.payoutAt || null,
+          signals,
+          missing,
+          credibility: signalScore >= 80 ? 'high' : signalScore >= 50 ? 'medium' : 'low',
+          signalScore
+        };
+      });
+
+      const avgScore = Math.round(verifiedClaims.reduce((sum, c) => sum + c.signalScore, 0) / verifiedClaims.length);
+
+      return res.status(200).json({
+        success: true,
+        analysis: {
+          summary: `Verified ${verifiedClaims.length} hackathon claim(s). Average credibility: ${avgScore}/100.`,
+          verified: avgScore >= 50,
+          claims: verifiedClaims
+        },
+        source: 'rule-based'
+      });
+    }
+
     if (type === 'listing_improvement' && project) {
       const quality = getProjectQuality(project);
       const prompt = `Review this builder project listing and return JSON only:

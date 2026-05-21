@@ -25,12 +25,13 @@ import {
 const TABS = [
   { id: "builders", label: "Top Builders", icon: RocketLaunchIcon },
   { id: "backers", label: "Top Backers", icon: BanknotesIcon },
+  { id: "hackathons", label: "Hackathons", icon: TrophyIcon },
 ];
 
 export default function LeaderboardPage() {
   const [tab, setTab] = useState("builders");
   const [loading, setLoading] = useState(true);
-  const [entries, setEntries] = useState({ builders: [], backers: [] });
+  const [entries, setEntries] = useState({ builders: [], backers: [], hackathons: [] });
 
   useEffect(() => {
     let cancelled = false;
@@ -49,17 +50,35 @@ export default function LeaderboardPage() {
       } catch (err) {
         console.warn("Leaderboard fetch failed:", err);
         if (!cancelled) {
-          setEntries({ builders: [], backers: [] });
+          setEntries({ builders: [], backers: [], hackathons: [] });
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
+
+    // Fetch hackathon leaderboard separately
+    async function loadHackathons() {
+      try {
+        const res = await fetch("/api/hackathons/leaderboard");
+        if (!res.ok) throw new Error("Failed to load hackathon leaderboard");
+        const data = await res.json();
+        if (!cancelled) {
+          setEntries((prev) => ({
+            ...prev,
+            hackathons: data.hackathons || [],
+          }));
+        }
+      } catch (err) {
+        console.warn("Hackathon leaderboard fetch failed:", err);
+      }
+    }
     load();
+    loadHackathons();
     return () => { cancelled = true; };
   }, []);
 
-  const currentList = tab === "builders" ? entries.builders : entries.backers;
+  const currentList = tab === "builders" ? entries.builders : tab === "backers" ? entries.backers : entries.hackathons;
 
   return (
     <ErrorBoundary name="LeaderboardPage" errorMessage="Failed to load leaderboard.">
@@ -108,6 +127,8 @@ export default function LeaderboardPage() {
             </div>
           ) : currentList.length === 0 ? (
             <EmptyState tab={tab} />
+          ) : tab === "hackathons" ? (
+            <HackathonLeaderboardList entries={currentList} />
           ) : (
             <LeaderboardList entries={currentList} type={tab} />
           )}
@@ -197,19 +218,40 @@ function LeaderboardRow({ entry, rank, type }) {
 }
 
 function EmptyState({ tab }) {
+  const config = {
+    builders: {
+      label: "builders",
+      message: "Be the first to submit a project and climb the leaderboard.",
+      link: "/build",
+      cta: "Submit a project",
+    },
+    backers: {
+      label: "backers",
+      message: "Be the first to back a project and earn your spot.",
+      link: "/back",
+      cta: "Back a project",
+    },
+    hackathons: {
+      label: "hackathons",
+      message: "No hackathon data yet. Submit a project with hackathon claims to start ranking.",
+      link: "/build",
+      cta: "Submit a project",
+    },
+  };
+
+  const c = config[tab] || config.builders;
+
   return (
     <Card className="p-12 text-center">
       <TrophyIcon className="w-12 h-12 text-text-tertiary mx-auto mb-4" />
       <h3 className="text-lg font-semibold text-text-primary mb-2">
-        No {tab === "builders" ? "builders" : "backers"} yet
+        No {c.label} yet
       </h3>
       <p className="text-text-secondary mb-6 max-w-md mx-auto">
-        {tab === "builders"
-          ? "Be the first to submit a project and climb the leaderboard."
-          : "Be the first to back a project and earn your spot."}
+        {c.message}
       </p>
-      <Link href={tab === "builders" ? "/build" : "/back"}>
-        <Button>{tab === "builders" ? "Submit a project" : "Back a project"}</Button>
+      <Link href={c.link}>
+        <Button>{c.cta}</Button>
       </Link>
     </Card>
   );
@@ -218,4 +260,78 @@ function EmptyState({ tab }) {
 function truncateAddress(addr) {
   if (!addr) return "Unknown";
   return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+}
+
+function HackathonLeaderboardList({ entries }) {
+  return (
+    <div className="space-y-3">
+      {entries.map((entry, idx) => (
+        <HackathonLeaderboardRow key={entry.name} entry={entry} rank={idx + 1} />
+      ))}
+    </div>
+  );
+}
+
+function HackathonLeaderboardRow({ entry, rank }) {
+  const rankStyles = {
+    1: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700",
+    2: "bg-gray-50 dark:bg-gray-800/30 border-gray-300 dark:border-gray-600",
+    3: "bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700",
+  };
+
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+
+  return (
+    <div
+      className={`flex items-center gap-4 p-4 rounded-xl border transition-all hover:shadow-md ${
+        rankStyles[rank] || "bg-surface-primary border-border-primary"
+      }`}
+    >
+      {/* Rank */}
+      <div className="w-12 text-center text-lg font-bold">{medal}</div>
+
+      {/* Identity */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-text-primary truncate">
+            {entry.name}
+          </span>
+          {entry.ecosystem && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 uppercase">
+              {entry.ecosystem}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-text-tertiary mt-0.5">
+          {entry.totalProjects} project{entry.totalProjects !== 1 ? 's' : ''} · {entry.winners || 0} winner{(entry.winners || 0) !== 1 ? 's' : ''} · {entry.builderCount || 0} builder{(entry.builderCount || 0) !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      {/* Payout metrics */}
+      <div className="flex items-center gap-6">
+        {entry.avgPayoutDays !== null && (
+          <div className="text-right">
+            <div className="text-lg font-bold text-text-primary">{entry.avgPayoutDays}d</div>
+            <p className="text-xs text-text-tertiary">avg payout</p>
+          </div>
+        )}
+
+        <div className="text-right">
+          <div className={`text-lg font-bold ${entry.payoutCompletionRate >= 80 ? 'text-green-600' : entry.payoutCompletionRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+            {entry.payoutCompletionRate}%
+          </div>
+          <p className="text-xs text-text-tertiary">paid</p>
+        </div>
+      </div>
+
+      {/* Score */}
+      <div className="text-right min-w-[80px]">
+        <div className="text-lg font-bold text-text-primary flex items-center gap-1 justify-end">
+          <TrophyIcon className="w-4 h-4 text-yellow-500" />
+          {entry.score}
+        </div>
+        <p className="text-xs text-text-tertiary">reputation</p>
+      </div>
+    </div>
+  );
 }

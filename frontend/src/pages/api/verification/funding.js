@@ -1,4 +1,4 @@
-import verificationService from '@/services/VerificationService';
+import verificationService from '@/lib/verification/VerificationService';
 
 /**
  * Funding Eligibility Verification API Endpoint

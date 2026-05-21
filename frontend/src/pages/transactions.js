@@ -64,19 +64,19 @@ export default function TransactionsPage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-2xl font-bold text-primary">
               ⚡ Transaction Explorer
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-secondary mt-1">
               Real x402 nanopayment activity from your session
             </p>
           </div>
           {walletAddress && (
             <div className="text-right">
-              <p className="text-xs text-gray-400 dark:text-gray-500 font-mono truncate max-w-[200px]">
+              <p className="text-xs text-tertiary font-mono truncate max-w-[200px]">
                 {walletAddress}
               </p>
-              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-lg font-bold text-primary">
                 ${parseFloat(balance.available || 0).toFixed(2)} USDC
               </p>
             </div>
@@ -85,25 +85,25 @@ export default function TransactionsPage() {
 
         {/* Stats cards — only real data */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total Transactions</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalTx}</p>
+          <div className="bg-surface rounded-xl border border-default p-4">
+            <p className="text-xs text-secondary">Total Transactions</p>
+            <p className="text-2xl font-bold text-primary">{stats.totalTx}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total Spent</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface rounded-xl border border-default p-4">
+            <p className="text-xs text-secondary">Total Spent</p>
+            <p className="text-2xl font-bold text-primary">
               ${stats.totalSpent.toFixed(3)}
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Agent Types Used</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface rounded-xl border border-default p-4">
+            <p className="text-xs text-secondary">Agent Types Used</p>
+            <p className="text-2xl font-bold text-primary">
               {Object.keys(stats.agentCounts).length}
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Cost / Query</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface rounded-xl border border-default p-4">
+            <p className="text-xs text-secondary">Avg Cost / Query</p>
+            <p className="text-2xl font-bold text-primary">
               {stats.totalTx > 0
                 ? `$${(stats.totalSpent / stats.totalTx).toFixed(3)}`
                 : "—"}
@@ -145,7 +145,7 @@ export default function TransactionsPage() {
         {/* Transaction list */}
         {!isInitialized ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
+            <p className="text-secondary mb-4">
               Initialize your wallet to see transactions
             </p>
             <Link
@@ -156,14 +156,14 @@ export default function TransactionsPage() {
             </Link>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-center py-12 bg-surface rounded-xl border border-default">
             <p className="text-4xl mb-3">📭</p>
-            <p className="text-gray-500 dark:text-gray-400 mb-2">
+            <p className="text-secondary mb-2">
               {filter === "all"
                 ? "No transactions yet"
                 : `No ${AGENT_META[filter]?.name || filter} transactions`}
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-tertiary">
               Try an AI agent on the{" "}
               <Link href="/back" className="text-teal-600 hover:underline">
                 Back
@@ -172,16 +172,16 @@ export default function TransactionsPage() {
             </p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-surface rounded-xl border border-default overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Agent</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Details</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Amount</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
-                    <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Time</th>
+                  <tr className="bg-gray-50 dark:bg-gray-750 border-b border-default">
+                    <th className="text-left px-4 py-3 text-xs font-medium text-secondary uppercase">Agent</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-secondary uppercase">Details</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-secondary uppercase">Amount</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-secondary uppercase">Status</th>
+                    <th className="text-right px-4 py-3 text-xs font-medium text-secondary uppercase">Time</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -195,17 +195,17 @@ export default function TransactionsPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <p className="text-gray-900 dark:text-gray-100 text-xs truncate max-w-[200px]">
+                          <p className="text-primary text-xs truncate max-w-[200px]">
                             {tx.projectName || tx.description || tx.agentName || "—"}
                           </p>
                           {tx.txHash && (
-                            <p className="text-[10px] text-gray-400 dark:text-gray-500 font-mono truncate max-w-[160px]">
+                            <p className="text-[10px] text-tertiary font-mono truncate max-w-[160px]">
                               {tx.txHash}
                             </p>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <span className={`font-semibold text-xs ${tx.type === "deposit" ? "text-green-600" : "text-gray-900 dark:text-gray-100"}`}>
+                          <span className={`font-semibold text-xs ${tx.type === "deposit" ? "text-green-600" : "text-primary"}`}>
                             {tx.type === "deposit" ? "+" : "-"}${parseFloat(tx.amount || 0).toFixed(3)}
                           </span>
                           <p className="text-[10px] text-gray-400">USDC</p>
@@ -220,7 +220,7 @@ export default function TransactionsPage() {
                             {tx.status || "pending"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        <td className="px-4 py-3 text-right text-xs text-secondary whitespace-nowrap">
                           {tx.timestamp ? timeAgo(tx.timestamp) : "—"}
                         </td>
                       </tr>
@@ -233,8 +233,8 @@ export default function TransactionsPage() {
         )}
 
         {/* x402 flow explanation */}
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 border border-default">
+          <h3 className="text-sm font-semibold text-primary mb-2">
             How x402 Nanopayments Work
           </h3>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-400">

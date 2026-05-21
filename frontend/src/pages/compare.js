@@ -94,18 +94,18 @@ export default function ComparePage() {
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-2xl font-bold text-primary">
             📊 Compare Projects
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-secondary mt-1">
             Select up to {MAX_COMPARE} projects to compare AI agent scores side-by-side
           </p>
         </div>
 
         {/* Project selector */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-surface rounded-xl border border-default p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-sm font-semibold text-primary">
               Select Projects ({selected.length}/{MAX_COMPARE})
             </h3>
             <input
@@ -113,7 +113,7 @@ export default function ComparePage() {
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-teal-500 w-48"
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-primary focus:ring-1 focus:ring-teal-500 w-48"
             />
           </div>
 
@@ -124,7 +124,7 @@ export default function ComparePage() {
               ))}
             </div>
           ) : filteredProjects.length === 0 ? (
-            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+            <p className="text-sm text-tertiary text-center py-4">
               No projects found.{" "}
               <Link href="/projects/new" className="text-teal-600 hover:underline">
                 Submit one
@@ -145,13 +145,13 @@ export default function ComparePage() {
                       isSelected
                         ? "border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300"
                         : disabled
-                        ? "border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                        ? "border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-muted cursor-not-allowed"
                         : "border-gray-200 dark:border-gray-600 hover:border-teal-300 dark:hover:border-teal-600 text-gray-700 dark:text-gray-300"
                     }`}
                   >
                     <p className="font-medium truncate">{p.name || p.id}</p>
                     {p.ecosystem && (
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500">{p.ecosystem}</p>
+                      <p className="text-[10px] text-tertiary">{p.ecosystem}</p>
                     )}
                   </button>
                 );
@@ -164,7 +164,7 @@ export default function ComparePage() {
         {selected.length >= 2 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-semibold text-primary">
                 Comparison ({selected.length} projects)
               </h3>
               <button
@@ -184,15 +184,15 @@ export default function ComparePage() {
                 return (
                   <div
                     key={project.id}
-                    className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5"
+                    className="bg-surface rounded-xl border border-default p-5"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                        <h4 className="font-semibold text-primary text-sm">
                           {project.name || project.id}
                         </h4>
                         {project.ecosystem && (
-                          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                          <span className="text-[10px] text-tertiary">
                             {project.ecosystem}
                           </span>
                         )}
@@ -206,7 +206,7 @@ export default function ComparePage() {
                     </div>
 
                     {project.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                      <p className="text-xs text-secondary mb-4 line-clamp-2">
                         {project.description}
                       </p>
                     )}
@@ -231,7 +231,7 @@ export default function ComparePage() {
                           >
                             {result.healthScore}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <p className="text-xs text-secondary mt-1">
                             Health Score
                           </p>
                         </div>
@@ -241,7 +241,7 @@ export default function ComparePage() {
                           <div className="space-y-1.5">
                             {Object.entries(result.breakdown).map(([key, val]) => (
                               <div key={key} className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500 dark:text-gray-400 capitalize">
+                                <span className="text-secondary capitalize">
                                   {key.replace(/([A-Z])/g, " $1").trim()}
                                 </span>
                                 <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ export default function ComparePage() {
                         {/* AI Analysis */}
                         {result.aiAnalysis && (
                           <div className="border-t border-gray-100 dark:border-gray-700 pt-2">
-                            <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
+                            <p className="text-[10px] font-medium text-secondary mb-1">
                               AI Analysis
                             </p>
                             <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3">
@@ -281,7 +281,7 @@ export default function ComparePage() {
 
                         {/* Cache info */}
                         {result.cached && (
-                          <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+                          <p className="text-[10px] text-tertiary text-center">
                             Cached result from {result.cachedAge}
                           </p>
                         )}
@@ -305,18 +305,18 @@ export default function ComparePage() {
         )}
 
         {selected.length < 2 && selected.length > 0 && (
-          <div className="text-center py-8 text-sm text-gray-400 dark:text-gray-500">
+          <div className="text-center py-8 text-sm text-tertiary">
             Select at least one more project to compare
           </div>
         )}
 
         {selected.length === 0 && !loading && projects.length > 0 && (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-center py-12 bg-surface rounded-xl border border-default">
             <p className="text-4xl mb-3">📊</p>
-            <p className="text-gray-500 dark:text-gray-400 mb-2">
+            <p className="text-secondary mb-2">
               Select 2-3 projects above to compare their AI scores
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-tertiary">
               Each analysis costs $0.05 USDC via x402 nanopayment
             </p>
           </div>

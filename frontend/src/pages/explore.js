@@ -123,7 +123,7 @@ function ActiveFilterChips({ filters, onRemove, onClearAll }) {
   if (!filters || filters.length === 0) return null;
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
-      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Filters:</span>
+      <span className="text-xs text-secondary font-medium">Filters:</span>
       {filters.map((f, i) => (
         <span
           key={`${f.label}-${i}`}
@@ -401,7 +401,7 @@ function ProjectsTab() {
             placeholder="Search projects by name, description, or owner..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100"
+            className="w-full pl-10 pr-10 py-3 rounded-xl border border-secondary bg-surface text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100"
           />
           {searchQuery && (
             <button
@@ -418,7 +418,7 @@ function ProjectsTab() {
           <select
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2.5 border border-secondary rounded-xl text-sm bg-surface dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>
@@ -428,10 +428,10 @@ function ProjectsTab() {
           </select>
 
           {/* View toggle */}
-          <div className="flex rounded-xl border border-gray-300 dark:border-gray-600 overflow-hidden">
+          <div className="flex rounded-xl border border-secondary overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2.5 ${viewMode === "grid" ? "bg-blue-600 text-white" : "bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:text-gray-400"}`}
+              className={`p-2.5 ${viewMode === "grid" ? "bg-blue-600 text-white" : "bg-surface text-gray-500 hover:text-gray-700 dark:text-gray-400"}`}
               title="Grid view"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -440,7 +440,7 @@ function ProjectsTab() {
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-2.5 ${viewMode === "list" ? "bg-blue-600 text-white" : "bg-white dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:text-gray-400"}`}
+              className={`p-2.5 ${viewMode === "list" ? "bg-blue-600 text-white" : "bg-surface text-gray-500 hover:text-gray-700 dark:text-gray-400"}`}
               title="List view"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -455,7 +455,7 @@ function ProjectsTab() {
             className={`p-2.5 rounded-xl border transition-colors ${
               showFilters || hasActiveFilters
                 ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300"
-                : "border-gray-300 dark:border-gray-600 text-gray-500 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                : "border-secondary text-gray-500 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
             title="Filters"
           >
@@ -475,7 +475,7 @@ function ProjectsTab() {
       {showFilters && (
         <Card className="p-5 mb-4 border-2 border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
               <AdjustmentsHorizontalIcon className="w-4 h-4" />
               Filters
             </h3>
@@ -503,7 +503,7 @@ function ProjectsTab() {
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       selectedEcosystems.includes(eco.id)
                         ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                        : "bg-surface text-gray-600 dark:text-gray-300 border border-default hover:border-blue-300"
                     }`}
                   >
                     {eco.label}
@@ -525,7 +525,7 @@ function ProjectsTab() {
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       selectedCategories.includes(cat.id)
                         ? "bg-purple-600 text-white shadow-sm"
-                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-purple-300"
+                        : "bg-surface text-gray-600 dark:text-gray-300 border border-default hover:border-purple-300"
                     }`}
                   >
                     {cat.label}
@@ -583,17 +583,17 @@ function ProjectsTab() {
 
       {/* ── Results bar ── */}
       <div ref={resultsRef} className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-secondary">
           {hasActiveFilters || searchQuery ? (
             <>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{processedProjects.length}</span> result
+              <span className="font-medium text-primary">{processedProjects.length}</span> result
               {processedProjects.length !== 1 ? "s" : ""}
               {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
             </>
           ) : (
             <>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{stats.total}</span> projects across{" "}
-              <span className="font-medium text-gray-900 dark:text-gray-100">{stats.ecosystems}</span> ecosystems
+              <span className="font-medium text-primary">{stats.total}</span> projects across{" "}
+              <span className="font-medium text-primary">{stats.ecosystems}</span> ecosystems
             </>
           )}
         </p>
@@ -611,11 +611,11 @@ function ProjectsTab() {
       {/* ── Project Grid / List ── */}
       {pagedProjects.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
             <MagnifyingGlassIcon className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No projects found</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+          <h3 className="text-lg font-semibold text-primary mb-2">No projects found</h3>
+          <p className="text-sm text-secondary max-w-md mx-auto mb-6">
             {hasActiveFilters
               ? "Try adjusting your filters or search query."
               : "Be the first to submit a project!"}
@@ -659,15 +659,15 @@ function ProjectsTab() {
 
       {/* ── Pagination ── */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-default">
+          <p className="text-sm text-secondary">
             Page {currentPage} of {totalPages}
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setPage((p) => Math.max(1, p - 1)); scrollToResults(); }}
               disabled={currentPage <= 1}
-              className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-secondary text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <ChevronLeftIcon className="w-4 h-4 inline mr-1" />
               Previous
@@ -702,7 +702,7 @@ function ProjectsTab() {
             <button
               onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); scrollToResults(); }}
               disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-secondary text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Next
               <ChevronRightIcon className="w-4 h-4 inline ml-1" />
@@ -830,7 +830,7 @@ function BuildersTab() {
             placeholder="Search builders by name, bio, or GitHub handle..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-            className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100"
+            className="w-full pl-10 pr-10 py-3 rounded-xl border border-secondary bg-surface text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100"
           />
           {searchQuery && (
             <button
@@ -847,7 +847,7 @@ function BuildersTab() {
           <select
             value={selectedEcosystem}
             onChange={(e) => { setSelectedEcosystem(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2.5 border border-secondary rounded-xl text-sm bg-surface dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All ecosystems</option>
             {ECOSYSTEM_OPTIONS.map((eco) => (
@@ -859,7 +859,7 @@ function BuildersTab() {
           <select
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2.5 border border-secondary rounded-xl text-sm bg-surface dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
           >
             {BUILDER_SORT_OPTIONS.map((opt) => (
               <option key={opt.id} value={opt.id}>{opt.label}</option>
@@ -877,16 +877,16 @@ function BuildersTab() {
 
       {/* ── Results bar ── */}
       <div ref={resultsRef} className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-secondary">
           {hasActiveFilters ? (
             <>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{builders.length}</span> builder
+              <span className="font-medium text-primary">{builders.length}</span> builder
               {builders.length !== 1 ? "s" : ""}
               {searchQuery && <> for &ldquo;{searchQuery}&rdquo;</>}
             </>
           ) : (
             <>
-              <span className="font-medium text-gray-900 dark:text-gray-100">{totalBuilders}</span> active builders
+              <span className="font-medium text-primary">{totalBuilders}</span> active builders
             </>
           )}
         </p>
@@ -895,11 +895,11 @@ function BuildersTab() {
       {/* ── Builder Grid ── */}
       {pagedBuilders.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
             <UsersIcon className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No builders found</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+          <h3 className="text-lg font-semibold text-primary mb-2">No builders found</h3>
+          <p className="text-sm text-secondary max-w-md mx-auto mb-6">
             {hasActiveFilters
               ? "Try adjusting your search or filters."
               : "No builders have submitted projects yet."}
@@ -925,15 +925,15 @@ function BuildersTab() {
 
       {/* ── Pagination ── */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-default">
+          <p className="text-sm text-secondary">
             Page {currentPage} of {totalPages}
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setPage((p) => Math.max(1, p - 1)); scrollToResults(); }}
               disabled={currentPage <= 1}
-              className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-secondary text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <ChevronLeftIcon className="w-4 h-4 inline mr-1" />
               Previous
@@ -968,7 +968,7 @@ function BuildersTab() {
             <button
               onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); scrollToResults(); }}
               disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-secondary text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Next
               <ChevronRightIcon className="w-4 h-4 inline ml-1" />
@@ -1067,7 +1067,7 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 group"
+      className="bg-surface rounded-xl border border-default overflow-hidden cursor-pointer hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 group"
     >
       {/* Top gradient bar */}
       <div className={`h-2 ${
@@ -1097,7 +1097,7 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
               {builder.displayName}
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-secondary truncate">
               @{builder.githubUsername}
             </p>
           </div>
@@ -1111,7 +1111,7 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
         )}
 
         {/* Stats row */}
-        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+        <div className="flex items-center gap-3 text-xs text-secondary mb-3">
           <span className="flex items-center gap-1">
             <CodeBracketIcon className="w-3.5 h-3.5" />
             {builder.projectCount} {builder.projectCount === 1 ? "project" : "projects"}
@@ -1135,7 +1135,7 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
             </span>
           )}
           {extraEcosystems > 0 && (
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">+{extraEcosystems} more</span>
+            <span className="text-[10px] text-tertiary">+{extraEcosystems} more</span>
           )}
           {builder.averageHealth > 0 && (
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${tierColors[healthTier]}`}>
@@ -1169,7 +1169,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
                   Trending Now
                   <SparklesIcon className="w-4 h-4 text-orange-500" />
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-secondary">
                   Most active and highest quality projects right now
                 </p>
               </div>
@@ -1200,7 +1200,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
                     <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate pr-2">
                       {project.name}
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-secondary">
                       {project.ecosystem?.toUpperCase()}
                     </p>
                   </div>
@@ -1213,7 +1213,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
                       className={`p-1 rounded-md transition-colors ${
                         isBookmarked(project.slug)
                           ? "text-amber-500 hover:text-amber-600"
-                          : "text-gray-300 dark:text-gray-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+                          : "text-muted hover:text-amber-400 opacity-0 group-hover:opacity-100"
                       }`}
                     >
                       {isBookmarked(project.slug) ? (
@@ -1229,7 +1229,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
                   {project.description || "Active project"}
                 </p>
 
-                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex items-center gap-3 text-xs text-secondary pt-2 border-t border-gray-100 dark:border-gray-700">
                   <span className="flex items-center gap-1">
                     <span className={`w-1.5 h-1.5 rounded-full ${
                       project.trendingScore >= 80 ? "bg-green-500" : project.trendingScore >= 60 ? "bg-yellow-500" : "bg-orange-500"
@@ -1260,7 +1260,7 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 group"
+      className="bg-surface rounded-xl border border-default overflow-hidden cursor-pointer hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 group"
     >
       {/* Image */}
       {project.imageUrl ? (
@@ -1285,12 +1285,12 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
               {ecosystemConfig && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                <span className="text-xs text-secondary flex items-center gap-1">
                   {ecosystemConfig.icon} {ecosystemConfig.shortName}
                 </span>
               )}
               {project.category && (
-                <span className="text-xs text-gray-400 dark:text-gray-500">· {project.category}</span>
+                <span className="text-xs text-tertiary">· {project.category}</span>
               )}
             </div>
           </div>
@@ -1301,7 +1301,7 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
             className={`p-1.5 rounded-lg transition-all flex-shrink-0 ${
               isBookmarked
                 ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                : "text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                : "text-muted opacity-0 group-hover:opacity-100 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
             }`}
             title={isBookmarked ? "Remove bookmark" : "Bookmark project"}
           >
@@ -1339,7 +1339,7 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
 
         {/* Stats + Quality */}
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-3 text-xs text-secondary">
             {project.stats?.commits > 0 && <span>{project.stats.commits} commits</span>}
             {project.stats?.stars > 0 && <span>{project.stats.stars} ★</span>}
             {project.lookingForFunding && (
@@ -1387,7 +1387,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 cursor-pointer hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 group"
+      className="bg-surface rounded-xl border border-default p-4 cursor-pointer hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700 transition-all duration-200 group"
     >
       <div className="flex items-center gap-4">
         {/* Thumbnail */}
@@ -1413,7 +1413,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
               {project.name}
             </h3>
             {ecosystemConfig && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+              <span className="text-xs text-secondary flex-shrink-0">
                 {ecosystemConfig.icon} {ecosystemConfig.shortName}
               </span>
             )}
@@ -1428,7 +1428,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
               {project.description}
             </p>
           )}
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-3 mt-1.5 text-xs text-secondary">
             {project.stats?.commits > 0 && <span>{project.stats.commits} commits</span>}
             {project.stats?.stars > 0 && <span>{project.stats.stars} ★</span>}
             <span className={`font-medium ${
@@ -1451,7 +1451,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
             className={`p-1.5 rounded-lg transition-all ${
               isBookmarked
                 ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                : "text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 hover:text-amber-400"
+                : "text-muted opacity-0 group-hover:opacity-100 hover:text-amber-400"
             }`}
             title={isBookmarked ? "Remove bookmark" : "Bookmark project"}
           >
@@ -1461,7 +1461,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
               <BookmarkOutline className="w-4 h-4" />
             )}
           </button>
-          <ChevronRightIcon className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 transition-colors" />
+          <ChevronRightIcon className="w-4 h-4 text-muted group-hover:text-gray-500 transition-colors" />
         </div>
       </div>
     </div>

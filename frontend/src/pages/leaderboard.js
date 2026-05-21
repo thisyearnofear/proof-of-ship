@@ -155,7 +155,7 @@ function LeaderboardList({ entries, type }) {
 function LeaderboardRow({ entry, rank, type }) {
   const rankStyles = {
     1: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700",
-    2: "bg-gray-50 dark:bg-gray-800/30 border-gray-300 dark:border-gray-600",
+    2: "bg-gray-50 dark:bg-gray-800/30 border-secondary",
     3: "bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700",
   };
 
@@ -307,28 +307,28 @@ function FastestPayoutHero({ entries }) {
             {fastest.avgPayoutDays}
             <span className="text-sm font-normal text-gray-500">days</span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Average payout time</p>
+          <p className="text-xs text-secondary mt-1">Average payout time</p>
         </div>
 
         <div className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-yellow-200/60 p-3.5 text-center">
           <div className={`text-2xl font-bold ${fastest.payoutCompletionRate >= 80 ? 'text-green-700 dark:text-green-400' : fastest.payoutCompletionRate >= 50 ? 'text-amber-700 dark:text-amber-400' : 'text-red-700 dark:text-red-400'}`}>
             {fastest.payoutCompletionRate}%
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Winners paid</p>
+          <p className="text-xs text-secondary mt-1">Winners paid</p>
         </div>
 
         <div className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-yellow-200/60 p-3.5 text-center">
           <div className="text-2xl font-bold text-gray-800 dark:text-white">
             {fastest.builderCount}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Active builders</p>
+          <p className="text-xs text-secondary mt-1">Active builders</p>
         </div>
 
         <div className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-yellow-200/60 p-3.5 text-center">
           <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-400">
             {fastest.totalPrizeAmount > 0 ? `$${Math.round(fastest.totalPrizeAmount / 1000)}k` : '—'}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total prizes</p>
+          <p className="text-xs text-secondary mt-1">Total prizes</p>
         </div>
       </div>
 
@@ -340,7 +340,7 @@ function FastestPayoutHero({ entries }) {
               <BoltIcon className="w-4 h-4 text-yellow-500" />
               {runnerUp.name}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-secondary">
               · {runnerUp.builderCount} builder{runnerUp.builderCount !== 1 ? 's' : ''}
             </span>
           </div>
@@ -369,7 +369,7 @@ function HackathonLeaderboardList({ entries }) {
 function HackathonLeaderboardRow({ entry, rank }) {
   const rankStyles = {
     1: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700",
-    2: "bg-gray-50 dark:bg-gray-800/30 border-gray-300 dark:border-gray-600",
+    2: "bg-gray-50 dark:bg-gray-800/30 border-secondary",
     3: "bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700",
   };
 
@@ -412,7 +412,7 @@ function HackathonLeaderboardRow({ entry, rank }) {
             {entry.name}
           </span>
           {entry.ecosystem && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 uppercase">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-gray-600 dark:text-gray-400 uppercase">
               {entry.ecosystem}
             </span>
           )}

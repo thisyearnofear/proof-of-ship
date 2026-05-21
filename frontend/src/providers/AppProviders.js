@@ -14,6 +14,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import NoSSR from '@/providers/NoSSR/NoSSR';
 
 import { WalletProvider } from '@/contexts/WalletContext';
+import { NanopaymentProvider } from '@/contexts/NanopaymentContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { AppProvider } from '@/contexts/AppContext';
 import { FinancialProvider } from '@/contexts/FinancialContext';
@@ -37,11 +38,13 @@ export default function AppProviders({ children }) {
           <ToastProvider position='top-right' maxToasts={5}>
             <UserProvider>
               <WalletProvider demand={false}>
-                <FinancialProvider>
-                  <EnhancedGithubProvider>
-                    {children}
-                  </EnhancedGithubProvider>
-                </FinancialProvider>
+                <NanopaymentProvider>
+                  <FinancialProvider>
+                    <EnhancedGithubProvider>
+                      {children}
+                    </EnhancedGithubProvider>
+                  </FinancialProvider>
+                </NanopaymentProvider>
               </WalletProvider>
             </UserProvider>
           </ToastProvider>

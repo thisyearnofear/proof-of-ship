@@ -20,12 +20,14 @@ import { SolanaWalletProvider } from '@/providers/SolanaWalletProvider';
 import { ethers, providers, Signer } from 'ethers';
 import { getUSDCAddress } from '../config/networks';
 import { walletService } from '../services/walletService';
-import { nanopaymentService } from '@/services/nanopaymentService';
 
-import type { WalletContextType, CreditProfile, NanopaymentTransaction, NetworkConfig } from './wallet/types';
-export type { WalletContextType, CreditProfile, NanopaymentTransaction } from './wallet/types';
-import { AGENT_PRICES, NETWORK_CONFIGS, getSolanaEndpoint, getSolanaConnection } from './wallet/constants';
-export { AGENT_PRICES } from './wallet/constants';
+import type { WalletContextType, CreditProfile, NetworkConfig } from './wallet/types';
+export type { WalletContextType, CreditProfile } from './wallet/types';
+import { NETWORK_CONFIGS, getSolanaEndpoint, getSolanaConnection } from './wallet/constants';
+
+// Nanopayment consumers now import from NanopaymentContext directly.
+// Re-export for backward compatibility.
+export { useNanopayment } from './NanopaymentContext';
 
 // ============================================================================
 // Context
@@ -69,19 +71,6 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   // Circle Wallet state
   const [circleWallets, setCircleWallets] = useState<any[]>([]);
   const [circleConfig, setCircleConfig] = useState<any>(null);
-  
-  // Nanopayment state
-  const [nanopaymentInitialized, setNanopaymentInitialized] = useState(false);
-  const [nanopaymentBalance, setNanopaymentBalance] = useState({ available: '0', locked: '0' });
-  const [nanopaymentAddress, setNanopaymentAddress] = useState<string | null>(null);
-  const [nanopaymentTransactions, setNanopaymentTransactions] = useState<NanopaymentTransaction[]>([]);
-  const [nanopaymentDemoMode, setNanopaymentDemoMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nanopayment-demo-mode');
-      return saved !== null ? saved === 'true' : (process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development');
-    }
-    return process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development';
-  });
   
   // Builder Credit state
   const [creditProfile, setCreditProfile] = useState<CreditProfile | null>(null);
@@ -198,160 +187,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     }
   }, []);
-  
-  // Nanopayment methods
-  const initializeNanopayment = useCallback(async (pk: `0x${string}`) => {
-    try {
-      setLoading(true);
-      const client = await nanopaymentService.initialize({
-        chain: 'arcTestnet',
-        privateKey: pk,
-      });
-      const address = client.account?.address;
-      setNanopaymentAddress(address ?? null);
-      setNanopaymentInitialized(true);
-      const bal = await nanopaymentService.getBalance();
-      setNanopaymentBalance(bal);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  
-  const initializeNanopaymentDemo = useCallback(() => {
-    setNanopaymentInitialized(true);
-    setNanopaymentAddress('0xDEMO');
-    setNanopaymentBalance({ available: '10.00', locked: '0.00' });
-  }, []);
-  
-  const depositNanopayment = useCallback(async (amountUSDC: number) => {
-    if (!nanopaymentInitialized) throw new Error('Wallet not initialized');
-    setLoading(true);
-    try {
-      const result = await nanopaymentService.deposit(amountUSDC);
-      const bal = await nanopaymentService.getBalance();
-      setNanopaymentBalance(bal);
-      addNanopaymentTransaction({
-        id: Date.now().toString(),
-        type: 'deposit',
-        agentName: 'Deposit',
-        amount: amountUSDC,
-        status: 'confirmed',
-        timestamp: new Date().toISOString(),
-        txHash: result.txHash,
-      } as NanopaymentTransaction);
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  }, [nanopaymentInitialized]);
-  
-  const addNanopaymentTransaction = useCallback((tx: NanopaymentTransaction) => {
-    setNanopaymentTransactions(prev => [tx, ...prev].slice(0, 50));
-  }, []);
-  
-  const payForAgent = useCallback(async (agentType: string, params: any = {}) => {
-    const useDemoMode = nanopaymentDemoMode || !nanopaymentInitialized;
-    if (!nanopaymentInitialized && useDemoMode) {
-      initializeNanopaymentDemo();
-    }
-
-    const requiredAmount = typeof params.amount === 'number'
-      ? params.amount
-      : (AGENT_PRICES[agentType] || 0.05);
-
-    setLoading(true);
-    try {
-      let endpoint;
-      let displayName;
-
-      switch (agentType) {
-        case 'underwrite':
-          endpoint = `/api/agent/underwrite?projectId=${params.projectId}`;
-          displayName = 'AI Underwriter';
-          break;
-        case 'scout':
-          endpoint = '/api/agent/scout';
-          displayName = 'AI Scout';
-          break;
-        case 'verify':
-          endpoint = `/api/agent/verify?prId=${params.prId}&lines=${params.lines}`;
-          displayName = 'Verifier Agent';
-          break;
-        case 'rebalance':
-          endpoint = '/api/agent/rebalance';
-          displayName = 'AI Portfolio Manager';
-          break;
-        default:
-          throw new Error(`Unknown agent: ${agentType}`);
-      }
-
-      const baseUrl = params.baseUrl || '';
-      let result;
-
-      if (useDemoMode) {
-        const resp = await fetch(`${baseUrl}${endpoint}`, {
-          headers: { 'x-demo-key': 'demo' },
-        });
-        const data = await resp.json().catch(() => null);
-        result = {
-          success: resp.ok,
-          status: resp.ok ? 'paid' : (resp.status === 402 ? 'payment_required' : 'failed'),
-          data,
-          error: resp.ok ? undefined : (data?.error || data?.message || 'Request failed'),
-          txHash: data?.agentInfo?.txHash || `0xdemo${Date.now().toString(16)}`,
-        };
-      } else {
-        if (!nanopaymentService.isInitialized()) {
-          throw new Error('Live Arc payment wallet is not initialized');
-        }
-        result = await nanopaymentService.pay(`${baseUrl}${endpoint}`);
-      }
-
-      const tx: NanopaymentTransaction = {
-        id: Date.now().toString(),
-        type: agentType,
-        agentName: displayName,
-        amount: requiredAmount,
-        status: result.success ? 'confirmed' : (result.status || 'failed'),
-        timestamp: new Date().toISOString(),
-        txHash: result.txHash,
-        projectName: params.projectName,
-      };
-
-      addNanopaymentTransaction(tx);
-
-      if (result.success) {
-        setNanopaymentBalance(prev => ({
-          ...prev,
-          available: (Math.max(0, parseFloat(prev.available) - requiredAmount)).toFixed(2),
-        }));
-      }
-
-      return { ...result, demoMode: useDemoMode, transaction: tx };
-    } finally {
-      setLoading(false);
-    }
-  }, [nanopaymentDemoMode, nanopaymentInitialized, initializeNanopaymentDemo, addNanopaymentTransaction]);
-  
-  const payForHealthScore = useCallback(async (projectId: string, baseUrl?: string, projectName?: string) => {
-    return payForAgent('underwrite', { projectId, baseUrl, projectName });
-  }, [payForAgent]);
-  
-  const payForScout = useCallback(async (baseUrl?: string) => {
-    return payForAgent('scout', { baseUrl });
-  }, [payForAgent]);
-  
-  const payForVerification = useCallback(async (prId: string, lines: number, baseUrl?: string) => {
-    const cost = (lines / 10) * AGENT_PRICES.verify;
-    return payForAgent('verify', { prId, lines, amount: cost, baseUrl });
-  }, [payForAgent]);
-  
-  const payForRebalance = useCallback(async (baseUrl?: string) => {
-    return payForAgent('rebalance', { baseUrl });
-  }, [payForAgent]);
-  
+ 
   // Builder Credit methods
   const loadCreditProfile = useCallback(async () => {
     if (activeChainFamily === 'solana') {
@@ -669,21 +505,6 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     networkConfigs: NETWORK_CONFIGS, getCurrentUSDCAddress,
     // Circle Wallet
     circleWallets, circleConfig, createCircleWallet, refreshCircleWallets, transferUSDC,
-    // Nanopayment
-    nanopaymentInitialized, 
-    nanopaymentDemoMode,
-    setNanopaymentDemoMode: (mode: boolean) => {
-      setNanopaymentDemoMode(mode);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('nanopayment-demo-mode', mode.toString());
-      }
-    },
-    nanopaymentBalance: nanopaymentBalance ?? { available: '0', locked: '0' }, 
-    nanopaymentAddress: nanopaymentAddress ?? undefined, 
-    nanopaymentTransactions,
-    initializeNanopayment: (pk: string) => initializeNanopayment(pk as `0x${string}`), 
-    initializeNanopaymentDemo, depositNanopayment,
-    payForAgent, payForHealthScore, payForScout, payForVerification, payForRebalance,
     // Builder Credit
     creditProfile, repayLoan, loadCreditProfile, requestFunding,
     postCheckIn: async (projectId: number, metadata: string) => {
@@ -1070,55 +891,8 @@ export const useBuilderCredit = () => {
   };
 };
 
-// useNanopayment - maps to WalletContext nanopayment functionality
-export const useNanopayment = () => {
-  const wallet = useWallet();
-  const [streamingPayment, setStreamingPayment] = useState<{ agentType: string; amount: number } | null>(null);
-  
-  // Wrap payForAgent to track streaming state (memoized to prevent re-renders)
-  const payForAgentWithStreaming = useCallback(async (agentType: string, params = {}) => {
-    setStreamingPayment({ agentType, amount: AGENT_PRICES[agentType] || 0.01 });
-    try {
-      const result = await wallet.payForAgent(agentType, params);
-      setStreamingPayment(null);
-      return result;
-    } catch (err) {
-      setStreamingPayment(null);
-      throw err;
-    }
-  }, [wallet.payForAgent]);
-  
-  return {
-    // Nanopayment state
-    isInitialized: wallet.nanopaymentInitialized,
-    nanopaymentDemoMode: wallet.nanopaymentDemoMode,
-    setNanopaymentDemoMode: wallet.setNanopaymentDemoMode,
-    loading: wallet.loading,
-    error: wallet.error,
-    balance: wallet.nanopaymentBalance,
-    walletAddress: wallet.nanopaymentAddress,
-    transactions: wallet.nanopaymentTransactions,
-    nanopaymentAddress: wallet.nanopaymentAddress,
-    streamingPayment,
-    // Nanopayment methods
-    initialize: wallet.initializeNanopayment,
-    initializeWithDemo: wallet.initializeNanopaymentDemo,
-    deposit: wallet.depositNanopayment,
-    pay: (endpoint: string, options?: any) => payForAgentWithStreaming('chat', { endpoint, ...options }),
-    payForAgent: payForAgentWithStreaming as (agentType: string, params?: any) => Promise<any>,
-    payForVerification: wallet.payForVerification,
-    payForScout: wallet.payForScout,
-    payForUnderwrite: wallet.payForHealthScore,
-    payForRebalance: wallet.payForRebalance,
-    // Agent pricing (for display)
-    agentPrices: {
-      underwrite: 0.05,
-      scout: 0.01,
-      verify: 0.001,
-      rebalance: 0.01,
-    },
-  };
-};
+// useNanopayment is now in NanopaymentContext.tsx — import from there directly.
+// WalletContext re-exports it for backward compatibility.
 
 // ============================================================================
 // Main Provider Wrapper (with MetaMask SDK error recovery)

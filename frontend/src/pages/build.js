@@ -169,6 +169,34 @@ export default function BuildPage() {
               <div className="border-t border-slate-200 pt-8">
                 <DeveloperDashboard />
               </div>
+              {/* Bags — Rail 1: launch a project token on Solana */}
+              <div className="border-t border-slate-200 pt-8">
+                <Card className="p-6 border-t-4 border-t-purple-500 bg-gradient-to-br from-purple-50 to-white">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-purple-600">Rail 1</span>
+                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 rounded-full">Pre-prize</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-primary">Launch a Bags Token</h3>
+                      <p className="text-sm text-secondary mt-1 max-w-xl">
+                        Don't have a prize pipeline yet? Launch a project token on Solana via Bags. 
+                        Community buys in, you earn fee-share yield from trading volume.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="flex-shrink-0 border-purple-300 text-purple-700 hover:bg-purple-600 hover:text-white"
+                      onClick={() => window.open('https://bags.gg', '_blank')}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                      Launch on Bags
+                    </Button>
+                  </div>
+                </Card>
+              </div>
             </div>
           </ErrorBoundary>
         )}

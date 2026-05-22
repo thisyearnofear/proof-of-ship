@@ -60,7 +60,11 @@ const ONBOARDING_STEPS = [
 
 export default function OnboardingFlow({ onComplete }) {
   const router = useRouter();
-  const { connect, account, provider } = useWallet();
+  const {
+    connect, account, provider,
+    connectSolana, solanaAddress, solanaConnected,
+    activeChainFamily, setActiveChainFamily,
+  } = useWallet();
   const { currentUser } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(new Set());
@@ -77,9 +81,15 @@ export default function OnboardingFlow({ onComplete }) {
 
   useEffect(() => {
     if (account && !completedSteps.has('wallet')) {
-      handleWalletConnected();
+      handleWalletConnected('evm');
     }
   }, [account]);
+
+  useEffect(() => {
+    if (solanaAddress && solanaConnected && !completedSteps.has('wallet')) {
+      handleWalletConnected('solana');
+    }
+  }, [solanaAddress, solanaConnected]);
 
   const loadExistingProfile = async () => {
     try {
@@ -109,25 +119,43 @@ export default function OnboardingFlow({ onComplete }) {
     return ONBOARDING_STEPS.findIndex(step => !completed.has(step.id));
   };
 
-  const handleWalletConnected = async () => {
-    if (!account || !provider) return;
+  const handleWalletConnected = async (family) => {
+    if (family === 'solana') {
+      if (!solanaAddress) return;
+    } else {
+      if (!account) return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
-      // Step 1: Connect wallet and create profile
-      const profile = await decentralizedAuth.connectWallet(provider);
-      
-      // Step 2: Verify identity with signature
-      await decentralizedAuth.verifyIdentity(provider, account);
-      
+      const address = family === 'solana' ? solanaAddress : account;
+
+      // Build profile directly (decentralizedAuth is EVM-only)
+      const profile = {
+        address,
+        chainFamily: family,
+        connectedAt: new Date().toISOString(),
+        profiles: {
+          wallet: { address, verified: true }
+        },
+        creditScore: 0,
+        completionStatus: {
+          wallet: true,
+          github: false,
+          farcaster: false,
+          lens: false,
+          onchain: false
+        }
+      };
+
       setUserProfile(profile);
       setCompletedSteps(prev => new Set([...prev, 'wallet']));
-      
+      setActiveChainFamily(family);
+
       // Auto-advance to next step
       setTimeout(() => setCurrentStep(1), 1000);
-      
     } catch (err) {
       setError(err.message);
     } finally {
@@ -135,12 +163,25 @@ export default function OnboardingFlow({ onComplete }) {
     }
   };
 
-  const handleConnectWallet = async () => {
+  const handleConnectEvmWallet = async () => {
     setLoading(true);
     setError(null);
-    
     try {
+      setActiveChainFamily('evm');
       await connect();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnectSolanaWallet = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setActiveChainFamily('solana');
+      await connectSolana();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -260,28 +301,76 @@ export default function OnboardingFlow({ onComplete }) {
 
     switch (step.id) {
       case 'wallet':
+        const evmConnected = !!account;
+        const solConnected = solanaConnected && !!solanaAddress;
+        const anyConnected = evmConnected || solConnected;
+        const connectedAddress = evmConnected ? account : solConnected ? solanaAddress : null;
+
         return (
           <StepCard
             step={step}
             completed={completedSteps.has('wallet')}
             loading={loading}
             error={error}
-            onAction={handleConnectWallet}
-            actionText={account ? 'Connected' : 'Connect Wallet'}
-            disabled={!!account}
+            onAction={handleConnectEvmWallet}
+            actionText={anyConnected ? 'Connected' : 'Connect Wallet'}
+            disabled={anyConnected}
           >
             <p className="text-gray-600 mb-4">
-              Connect your MetaMask wallet to get started. This will be your primary identity on the platform.
+              Connect your wallet to get started. This will be your primary identity on the platform.
+              We support both EVM (MetaMask, Rabby, etc.) and Solana wallets.
             </p>
-            {account && (
+
+            {anyConnected ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                 <div className="flex items-center space-x-2">
                   <CheckCircleIcon className="w-5 h-5 text-green-600" />
                   <span className="text-green-800 font-medium">Wallet Connected</span>
                 </div>
-                <p className="text-green-700 text-sm mt-1">
-                  {account ? `${account.slice(0, 6)}...${account.slice(-4)}` : 'Connected'}
+                <p className="text-green-700 text-sm mt-1 font-mono">
+                  {connectedAddress ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}` : 'Connected'}
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700">
+                    {evmConnected ? 'EVM' : 'Solana'}
+                  </span>
                 </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <button
+                  onClick={handleConnectEvmWallet}
+                  disabled={loading}
+                  className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-200 hover:border-blue-400 bg-blue-50/50 hover:bg-blue-50 transition-all disabled:opacity-50 text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <WalletIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">EVM Wallet</p>
+                    <p className="text-xs text-gray-500">MetaMask, Rabby, Coinbase</p>
+                  </div>
+                </button>
+                <button
+                  onClick={handleConnectSolanaWallet}
+                  disabled={loading}
+                  className="flex items-center gap-3 p-4 rounded-xl border-2 border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 transition-all disabled:opacity-50 text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M4 16.5l3.5-3.5H18l-3.5 3.5H4zm0-4l3.5-3.5H18l-3.5 3.5H4z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">Solana Wallet</p>
+                    <p className="text-xs text-gray-500">Phantom, Solflare, Backpack</p>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {loading && (
+              <div className="flex items-center justify-center gap-2 py-3 text-sm text-gray-500">
+                <LoadingSpinner size="sm" />
+                Connecting wallet...
               </div>
             )}
           </StepCard>

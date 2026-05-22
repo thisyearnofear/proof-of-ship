@@ -44,6 +44,13 @@ export default function BuildPage() {
   } = wallet;
   const { creditProfile, developerProjects, projectDetails, contractLoading, usdcBalance } = builderCredit;
 
+  // Rail detection — which capital rail is this builder on?
+  const doesHaveProjects = Array.isArray(developerProjects) && developerProjects.length > 0;
+  const hasBagsToken = false; // TODO: detect from Bags SDK once wired
+  const hasHackathonWins = Array.isArray(developerProjects) && developerProjects.some(
+    p => Array.isArray(p.hackathons) && p.hackathons.some(h => h.outcome === 'winner' || h.outcome === 'finalist')
+  );
+
   // Backers should be on /back, not /build
   useEffect(() => {
     if (userRole === 'backer') {
@@ -132,6 +139,43 @@ export default function BuildPage() {
     <>
       <Head><title>Build | Builder Credit</title></Head>
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Rail progression indicator */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100 rounded-xl">
+            <div className="hidden sm:flex items-center gap-2 text-xs font-medium">
+              <span className={`px-2 py-1 rounded-full ${!hasBagsToken ? 'bg-purple-200 text-purple-800' : 'bg-purple-100 text-purple-600'}`}>
+                🎒 Rail 1: Bags
+              </span>
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className={`px-2 py-1 rounded-full ${doesHaveProjects && !hasBagsToken ? 'bg-blue-200 text-blue-800' : !doesHaveProjects ? 'bg-gray-100 text-gray-500' : 'bg-blue-100 text-blue-600'}`}>
+                💳 Rail 2: Credit
+              </span>
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span className={`px-2 py-1 rounded-full ${hasHackathonWins ? 'bg-green-200 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                🏆 Rail 3: Prize Routing
+              </span>
+            </div>
+            <div className="flex-1 text-xs sm:text-sm text-gray-700">
+              {!doesHaveProjects && !hasBagsToken && !hasHackathonWins && (
+                <span>Start on <strong>Rail 1</strong> — launch a project token on Bags, or submit a project to unlock <strong>Rail 2</strong> credit.</span>
+              )}
+              {doesHaveProjects && !hasHackathonWins && (
+                <span>You're on <strong>Rail 2</strong> (credit). Win a hackathon to unlock <strong>Rail 3</strong> — auto-repay backers from your prize.</span>
+              )}
+              {hasHackathonWins && (
+                <span>You're on <strong>Rail 3</strong> (prize routing). Your hackathon wins are verified and can auto-repay backers.</span>
+              )}
+              {hasBagsToken && !doesHaveProjects && (
+                <span>You're on <strong>Rail 1</strong> (Bags). Submit a project with milestones to unlock <strong>Rail 2</strong> credit.</span>
+              )}
+            </div>
+          </div>
+        </div>
+
         {activeChainFamily === 'solana' && solanaConnected && solanaAddress && (
           <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900">
             Connected builder identity:{" "}

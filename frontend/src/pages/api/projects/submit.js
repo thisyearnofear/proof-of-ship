@@ -146,9 +146,9 @@ async function handler(req, res) {
             },
             { merge: true }
           );
-        );
+        }
       }
-    }
+    });
 
     // Log submission for admin review
     await db.collection("admin_queue").add({

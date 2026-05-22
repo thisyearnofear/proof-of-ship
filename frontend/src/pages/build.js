@@ -51,6 +51,16 @@ export default function BuildPage() {
     p => Array.isArray(p.hackathons) && p.hackathons.some(h => h.outcome === 'winner' || h.outcome === 'finalist')
   );
 
+  // Auto-detect connected wallet — if Solana is connected and EVM isn't,
+  // default to Solana without requiring the user to click the toggle
+  useEffect(() => {
+    if (solanaConnected && !connected && activeChainFamily !== 'solana') {
+      setActiveChainFamily('solana');
+    } else if (connected && !solanaConnected && activeChainFamily !== 'evm') {
+      setActiveChainFamily('evm');
+    }
+  }, [solanaConnected, connected, activeChainFamily, setActiveChainFamily]);
+
   // Backers should be on /back, not /build
   useEffect(() => {
     if (userRole === 'backer') {

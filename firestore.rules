@@ -205,5 +205,13 @@ service cloud.firestore {
       allow read: if isAdminUser();
       allow write: if false;
     }
+
+    // Platform stats — public read for lead magnet progress bar.
+    // Single doc: platformStats/stats.
+    // Write: only server-side via admin SDK (rules bypassed).
+    match /platformStats/{statId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

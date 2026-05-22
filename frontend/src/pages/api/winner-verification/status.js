@@ -44,6 +44,24 @@ export default async function handler(req, res) {
     });
   }
 
+  // Compute queue position for pending claims
+  let queuePosition = null;
+  let totalPending = 0;
+
+  try {
+    const allPendingSnap = await db
+      .collection('winnerClaims')
+      .where('status', '==', 'pending')
+      .orderBy('submittedAt', 'asc')
+      .get();
+
+    totalPending = allPendingSnap.size;
+    const idx = allPendingSnap.docs.findIndex(d => d.data().uid === uid);
+    if (idx >= 0) queuePosition = idx + 1;
+  } catch {
+    // Non-fatal — queue position is a nice-to-have
+  }
+
   // Check winnerClaims (pending)
   const claimsSnap = await db
     .collection('winnerClaims')
@@ -58,10 +76,14 @@ export default async function handler(req, res) {
       verified: false,
       wins: [],
       hasPendingClaim: true,
+      queuePosition,
+      totalPending,
       pendingClaim: {
         id: claimsSnap.docs[0].id,
         hackathonName: claim.hackathonName,
         submittedAt: claim.submittedAt,
+        email: claim.email || null,
+        wantsCall: Boolean(claim.wantsCall),
       },
     });
   }

@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   }
 
   const uid = decodedToken.uid;
-  const { hackathonName, announcementUrl, githubRepo, outcome } = req.body;
+  const { hackathonName, announcementUrl, githubRepo, outcome, email, telegram, wantsCall } = req.body;
 
   // Validate required fields
   if (!hackathonName || !hackathonName.trim()) {
@@ -49,6 +49,10 @@ export default async function handler(req, res) {
 
   if (!['winner', 'finalist'].includes(outcome)) {
     return res.status(400).json({ error: 'Outcome must be "winner" or "finalist"' });
+  }
+
+  if (!email || !email.trim()) {
+    return res.status(400).json({ error: 'Email is required for verification notification' });
   }
 
   // Check if user already has a pending claim
@@ -81,15 +85,20 @@ export default async function handler(req, res) {
     announcementUrl: announcementUrl.trim(),
     githubRepo: githubRepo.trim(),
     outcome,
+    email: email.trim(),
+    telegram: telegram || null,
+    wantsCall: Boolean(wantsCall),
     status: 'pending',
     submittedAt: now,
     updatedAt: now,
   });
 
-  // Also set a flag on the user document so we can show "pending" state without
-  // hitting the full claim list
+  // Sync email + flags to user document
   await db.collection('users').doc(uid).set(
     {
+      email: email.trim(),
+      telegram: telegram || null,
+      wantsCall: Boolean(wantsCall),
       winnerClaimPending: true,
       winnerClaimId: claimRef.id,
       winnerClaimSubmittedAt: now,

@@ -10,10 +10,10 @@
  *   3. Pending review (not verified, has pending claim)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
-import { Input, Textarea, Select } from '@/components/common/Input';
+import { Input, Textarea, Select, Checkbox } from '@/components/common/Input';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 import {
   TrophyIcon,
@@ -22,6 +22,9 @@ import {
   ArrowRightIcon,
   SparklesIcon,
   XCircleIcon,
+  UserGroupIcon,
+  ChatBubbleLeftRightIcon,
+  EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 
 export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error }) {
@@ -29,18 +32,31 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
   const [announcementUrl, setAnnouncementUrl] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [outcome, setOutcome] = useState('winner');
+  const [email, setEmail] = useState('');
+  const [telegram, setTelegram] = useState('');
+  const [wantsCall, setWantsCall] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
-  // If there's already a pending claim on the server, show that state
+  // Platform stats for the progress bar
+  const [platformStats, setPlatformStats] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/platform/stats')
+      .then(r => r.json())
+      .then(setPlatformStats)
+      .catch(() => {});
+  }, []);
+
+  // If there's already a pending claim on the server, show lead magnet state
   if (pendingClaim) {
-    return <PendingReviewState />;
+    return <PendingLeadMagnet pendingClaim={pendingClaim} platformStats={platformStats} />;
   }
 
-  // If already submitted locally, show pending review
+  // If already submitted locally, show lead magnet state
   if (submitted) {
-    return <PendingReviewState />;
+    return <PendingLeadMagnet pendingClaim={{ hackathonName }} platformStats={platformStats} />;
   }
 
   const handleSubmit = async (e) => {
@@ -66,11 +82,20 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
       return;
     }
 
+    if (!email.trim()) {
+      setSubmitError('Email is required so we can notify you when verified');
+      setSubmitting(false);
+      return;
+    }
+
     const result = await onSubmitClaim({
       hackathonName: hackathonName.trim(),
       announcementUrl: announcementUrl.trim(),
       githubRepo: githubRepo.trim(),
       outcome,
+      email: email.trim(),
+      telegram: telegram.trim() || null,
+      wantsCall,
     });
 
     setSubmitting(false);
@@ -183,6 +208,36 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
           </Select>
         </div>
 
+        <div className="border-t border-default pt-4">
+          <p className="text-sm font-semibold text-primary mb-3">Stay in the loop</p>
+          <div className="space-y-3">
+            <div>
+              <Input
+                label="Email *"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <p className="text-xs text-tertiary mt-1">We'll notify you the moment you're verified.</p>
+            </div>
+            <div>
+              <Input
+                label="Telegram / Discord (optional)"
+                placeholder="@username"
+                value={telegram}
+                onChange={(e) => setTelegram(e.target.value)}
+              />
+            </div>
+            <Checkbox
+              label="I'd like a 1:1 call with the founder"
+              checked={wantsCall}
+              onChange={(e) => setWantsCall(e.target.checked)}
+            />
+          </div>
+        </div>
+
         {submitError && (
           <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400 flex items-start gap-2">
             <XCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -223,25 +278,112 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
   );
 }
 
-function PendingReviewState() {
+function PendingLeadMagnet({ pendingClaim, platformStats }) {
+  const [queuePosition, setQueuePosition] = useState(null);
+  const [totalPending, setTotalPending] = useState(0);
+
+  useEffect(() => {
+    if (!pendingClaim?.id) return;
+    fetch('/api/winner-verification/status')
+      .then(r => r.json())
+      .then(data => {
+        if (data.queuePosition != null) setQueuePosition(data.queuePosition);
+        if (data.totalPending != null) setTotalPending(data.totalPending);
+      })
+      .catch(() => {});
+  }, [pendingClaim?.id]);
+
+  const winnersOnboarded = platformStats?.winnersOnboarded || 0;
+  const targetWinners = platformStats?.targetWinners || 500;
+  const progressPercent = Math.min(Math.round((winnersOnboarded / targetWinners) * 100), 100);
+
   return (
-    <Card className="p-8 max-w-lg mx-auto text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 shadow-lg mb-4">
-        <ClockIcon className="w-8 h-8 text-white" />
-      </div>
-      <h2 className="text-xl font-bold text-primary mb-2">
-        Claim Pending Review
-      </h2>
-      <p className="text-secondary mb-6">
-        Your hackathon winner claim has been submitted. The founder will review it and
-        verify you within 24 hours. Check back soon!
-      </p>
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
-        <CheckCircleIcon className="w-5 h-5 text-blue-600" />
-        <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-          We&apos;ll notify you when verified
-        </span>
-      </div>
-    </Card>
+    <div className="space-y-4 max-w-lg mx-auto">
+      {/* Pending claim card */}
+      <Card className="p-8 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg mb-4">
+          <TrophyIcon className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-primary mb-2">
+          You&apos;re in the Queue
+        </h2>
+        <p className="text-secondary mb-4 max-w-sm mx-auto">
+          Your hackathon claim for <strong>{pendingClaim?.hackathonName}</strong> is
+          pending review. The founder personally vets every builder.
+        </p>
+
+        {/* Queue position */}
+        {queuePosition != null && (
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 mb-4">
+            <UserGroupIcon className="w-5 h-5 text-blue-600" />
+            <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+              You&apos;re #{queuePosition} of {totalPending} in the queue
+            </span>
+          </div>
+        )}
+
+        {/* Platform progress bar */}
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-secondary mb-1.5">
+            <span>Winners onboarded</span>
+            <span>{winnersOnboarded} / {targetWinners}</span>
+          </div>
+          <div className="w-full h-2.5 rounded-full bg-gray-200 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <p className="text-xs text-tertiary mt-1">
+            {targetWinners - winnersOnboarded} spots remaining before we open to referrals
+          </p>
+        </div>
+
+        {/* Founder's commitment */}
+        <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 text-left mb-4">
+          <p className="text-sm font-semibold text-amber-900 mb-1">From the founder</p>
+          <p className="text-sm text-amber-800 leading-relaxed">
+            I personally review every claim. Here's what happens next:
+          </p>
+          <ol className="text-sm text-amber-700 mt-2 space-y-1 list-decimal pl-4">
+            <li>I open your Twitter announcement and GitHub repo to verify the win</li>
+            <li>I review your project for post-hackathon activity</li>
+            <li>I approve you — you'll get a notification and can start submitting projects</li>
+          </ol>
+        </div>
+
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
+          <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
+          <span className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">
+            We'll notify you when verified
+          </span>
+        </div>
+      </Card>
+
+      {/* Call CTA card */}
+      <Card className="p-6 border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+            <ChatBubbleLeftRightIcon className="w-6 h-6 text-amber-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-primary mb-1">Want to chat?</h3>
+            <p className="text-sm text-secondary mb-3">
+              I'd love to hear about your project, test your product, and give feedback.
+              Every builder who wants a call gets one.
+            </p>
+            <a
+              href="https://calendly.com/proofofship/15min"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-800 underline"
+            >
+              Book a 15-min call
+              <ArrowRightIcon className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 }

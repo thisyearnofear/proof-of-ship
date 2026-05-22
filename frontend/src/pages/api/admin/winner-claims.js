@@ -70,13 +70,13 @@ export default async function handler(req, res) {
     }
   }
 
-  // PUT — approve or reject a claim
+  // PUT — approve, reject, or mark as contacted
   if (req.method === 'PUT') {
-    const { claimId, action, reason } = req.body;
+    const { claimId, action, reason, notes } = req.body;
 
-    if (!claimId || !['approve', 'reject'].includes(action)) {
+    if (!claimId || !['approve', 'reject', 'contacted'].includes(action)) {
       return res.status(400).json({
-        error: 'claimId and action ("approve" | "reject") are required',
+        error: 'claimId and action ("approve" | "reject" | "contacted") are required',
       });
     }
 
@@ -137,6 +137,7 @@ export default async function handler(req, res) {
           reviewedBy: decodedToken.uid,
           reviewedAt: now,
           updatedAt: now,
+          ...(notes ? { reviewNotes: notes } : {}),
         });
 
         return res.status(200).json({
@@ -155,6 +156,7 @@ export default async function handler(req, res) {
           reviewedBy: decodedToken.uid,
           reviewedAt: now,
           updatedAt: now,
+          ...(notes ? { reviewNotes: notes } : {}),
         });
 
         // Clear pending flag on user
@@ -171,6 +173,23 @@ export default async function handler(req, res) {
           success: true,
           action: 'rejected',
           uid: claimData.uid,
+        });
+      }
+
+      if (action === 'contacted') {
+        const now = new Date().toISOString();
+
+        await claimRef.update({
+          contactedAt: now,
+          reviewedBy: decodedToken.uid,
+          updatedAt: now,
+          ...(notes ? { reviewNotes: notes } : {}),
+        });
+
+        return res.status(200).json({
+          success: true,
+          action: 'contacted',
+          claimId,
         });
       }
     } catch (err) {

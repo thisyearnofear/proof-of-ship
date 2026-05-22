@@ -22,6 +22,7 @@ import BuilderIdentityPanel from "@/components/projects/BuilderIdentityPanel";
 import ProjectLinksPanel from "@/components/projects/ProjectLinksPanel";
 import ProjectBackerSummary from "@/components/projects/ProjectBackerSummary";
 import EnhancedDetailsSection from "@/components/projects/EnhancedDetailsSection";
+import BagsMarketCard from "@/components/common/BagsMarketCard";
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -328,6 +329,10 @@ export default function ProjectDetailPage() {
               <ProjectProofPanel project={project} />
 
               <ProjectLinksPanel project={project} />
+
+              {project?.bagsTokenAddress && (
+                <BagsMarketCard mint={project.bagsTokenAddress} />
+              )}
 
               <BuilderIdentityPanel
                 project={project}

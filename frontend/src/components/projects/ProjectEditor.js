@@ -1277,24 +1277,70 @@ export default function ProjectEditor({ projectSlug }) {
 
           {form.ecosystem === 'solana' && (
             <div className="md:col-span-2">
-              <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">💰</span>
-                    <div>
-                      <h4 className="font-semibold text-emerald-900">Bags Boost (Hackathon Special)</h4>
-                      <p className="text-sm text-emerald-700">Launch a token on Bags alongside your credit request for community-backed liquidity.</p>
-                    </div>
+              <div className="bg-gradient-to-br from-emerald-50 to-amber-50 border border-emerald-200 p-4 rounded-xl">
+                <div className="flex items-start gap-3 mb-3">
+                  <span className="text-xl mt-0.5">🚀</span>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Token Launch Readiness</h4>
+                    <p className="text-sm text-gray-600">Launch a project token on Bags once you've proven traction. Tokens launched after reaching milestones tend to perform better with backers.</p>
+                  </div>
+                </div>
+
+                {/* Readiness indicators */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="p-3 rounded-lg bg-white/70 border border-emerald-100 text-center">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Hackathon Wins</p>
+                    <p className="text-lg font-bold">
+                      <span className={form.hackathons.filter(h => h.outcome === 'winner').length >= 2 ? 'text-emerald-600' : 'text-gray-400'}>
+                        {form.hackathons.filter(h => h.outcome === 'winner').length}
+                      </span>
+                      <span className="text-gray-300 text-sm">/2</span>
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {form.hackathons.filter(h => h.outcome === 'winner').length >= 2 ? '✓ Met' : 'Wins needed'}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/70 border border-emerald-100 text-center">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Backers</p>
+                    <p className="text-lg font-bold">
+                      <span className="text-gray-400">0</span>
+                      <span className="text-gray-300 text-sm">/5</span>
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">After launch</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/70 border border-emerald-100 text-center">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Description</p>
+                    <p className="text-lg font-bold">
+                      <span className={form.description.trim().length >= 50 ? 'text-emerald-600' : 'text-gray-400'}>
+                        {form.description.trim().length >= 50 ? '✓' : Math.min(Math.round(form.description.trim().length / 50 * 100), 99)}
+                      </span>
+                      <span className="text-gray-300 text-sm">{form.description.trim().length >= 50 ? '' : '%'}</span>
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {form.description.trim().length >= 50 ? 'Complete' : 'Min 50 chars'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Toggle */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/70 border border-emerald-100">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Launch token on Bags</p>
+                    <p className="text-xs text-gray-500">
+                      {form.launchOnBags
+                        ? 'Token will be created when you submit.'
+                        : 'Enable to configure your token.'}
+                    </p>
                   </div>
                   <Checkbox
-                    label="Active"
+                    label=""
                     checked={form.launchOnBags}
                     onChange={(e) => setField("launchOnBags", e.target.checked)}
                   />
                 </div>
 
                 {form.launchOnBags && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-emerald-100">
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-lg bg-white/70 border border-emerald-100">
                     <Input
                       label="Token Name"
                       placeholder="e.g. Proof of Ship Token"
@@ -1307,7 +1353,7 @@ export default function ProjectEditor({ projectSlug }) {
                       value={form.bagsTokenMetadata.symbol}
                       onChange={(e) => setField("bagsTokenMetadata", { ...form.bagsTokenMetadata, symbol: e.target.value.toUpperCase() })}
                     />
-                    <div className="md:col-span-2">
+                    <div className="sm:col-span-2">
                       <Textarea
                         label="Token Description"
                         placeholder="Describe the utility or vision for your project token..."

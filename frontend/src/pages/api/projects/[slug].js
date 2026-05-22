@@ -28,6 +28,9 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "imageUrl",
   "liveUrl",
   "otherCategoryDetail",
+  "launchOnBags",
+  "bagsTokenAddress",
+  "bagsTokenMetadata",
 ]);
 
 async function handler(req, res) {

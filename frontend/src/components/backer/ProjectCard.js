@@ -62,6 +62,19 @@ export default function ProjectCard({ project, onBack, scoutScore }) {
             {ecoStyle.label}
           </span>
 
+          {/* Token launch readiness — only for Solana projects */}
+          {project.ecosystem === 'solana' && (
+            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+              project.tokenLaunchReady
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : project.tokenLaunchProgress > 50
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-gray-50 text-gray-500 border-gray-200'
+            }`}>
+              🚀 {project.tokenLaunchReady ? 'Ready' : `${project.tokenLaunchProgress || 0}%`}
+            </span>
+          )}
+
           {/* Category Badge */}
           <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
             {project.category}

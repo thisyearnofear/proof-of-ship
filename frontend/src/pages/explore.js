@@ -1094,7 +1094,7 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+            <h3 className="font-semibold text-primary dark:text-white text-sm truncate">
               {builder.displayName}
             </h3>
             <p className="text-xs text-secondary truncate">
@@ -1165,7 +1165,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
                 <ArrowTrendingUpIcon className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h2 className="text-lg font-bold text-primary dark:text-white flex items-center gap-2">
                   Trending Now
                   <SparklesIcon className="w-4 h-4 text-orange-500" />
                 </h2>
@@ -1197,7 +1197,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
 
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate pr-2">
+                    <h3 className="font-semibold text-primary dark:text-white text-sm truncate pr-2">
                       {project.name}
                     </h3>
                     <p className="text-xs text-secondary">
@@ -1280,7 +1280,7 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
         {/* Header */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+            <h3 className="font-semibold text-primary dark:text-white text-sm truncate">
               {project.name}
             </h3>
             <div className="flex items-center gap-2 mt-0.5">
@@ -1409,7 +1409,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+            <h3 className="font-semibold text-primary dark:text-white text-sm truncate">
               {project.name}
             </h3>
             {ecosystemConfig && (
@@ -1510,7 +1510,7 @@ function HackathonsTab() {
 
   return (
     <>
-      <div className="flex gap-1 bg-white rounded-lg p-1 border w-fit mb-6">
+      <div className="flex gap-1 bg-surface rounded-lg p-1 border-default w-fit mb-6">
         {["all", "upcoming", "active", "completed"].map((f) => (
           <button
             key={f}
@@ -1527,7 +1527,7 @@ function HackathonsTab() {
       {empty ? (
         <div className="text-center py-16">
           <TrophyIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No hackathons found</h3>
+          <h3 className="text-lg font-medium text-primary mb-2">No hackathons found</h3>
           <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">
             Hackathon data is loaded from the platform database. Check back soon or submit your hackathon
             project!
@@ -1549,7 +1549,7 @@ function HackathonsTab() {
                 <div key={key} className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div className={`p-1.5 rounded-lg ${bg}`}>{icon}</div>
-                    <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+                    <h2 className="text-lg font-semibold text-primary">{title}</h2>
                     <span className="text-gray-400 text-sm">({grouped[key].length})</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1559,13 +1559,13 @@ function HackathonsTab() {
                           <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
                             {h.ecosystem?.toUpperCase()}
                           </span>
-                          <h3 className="text-lg font-semibold text-gray-900 mt-2">{h.name}</h3>
+                          <h3 className="text-lg font-semibold text-primary mt-2">{h.name}</h3>
                           <p className="text-sm text-gray-600 mt-1">
                             {new Date(h.startDate).toLocaleDateString()} –{" "}
                             {new Date(h.endDate).toLocaleDateString()}
                           </p>
                           {h.prizePool && (
-                            <p className="text-sm font-medium text-gray-900 mt-2">
+                            <p className="text-sm font-medium text-primary mt-2">
                               ${h.prizePool.toLocaleString()} in prizes
                             </p>
                           )}

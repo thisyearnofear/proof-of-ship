@@ -3,38 +3,65 @@
  *
  * Integrates FairScale's Solana reputation API for wallet-level trust signals.
  * Shows backers a pre-commitment trust signal for builders based on real
- * on-chain activity: portfolio flow, capital conviction, tempo, bot-likelihood,
- * diversity, earned badges, and humanity signals.
+ * on-chain activity.
  *
  * API spec: https://swagger.api.fairscale.xyz
- * Auth: fairkey header
  * Endpoint: GET /score?wallet=<address> on api2.fairscale.xyz
  * Response: fairscore (combined), fairscore_base (wallet-only), social_score,
  *           tier (bronze/silver/gold/platinum), badges, features (15 signals)
- *
- * When FAIRSCALE_API_KEY is set, calls the real API.
- * Otherwise, generates deterministic demo scores from address hash.
  */
 
 const FAIRSCALE_API = 'https://api2.fairscale.xyz';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
-// In-memory cache: address -> { data, timestamp }
-const scoreCache = new Map();
+interface CacheEntry {
+  data: FairScoreResult;
+  ts: number;
+}
 
-// Map FairScale's tier enum to human-readable labels and colors
-const TIER_MAP = {
+const scoreCache = new Map<string, CacheEntry>();
+
+interface TierMeta {
+  label: string;
+  color: string;
+}
+
+export interface FairScoreResult {
+  address: string;
+  score: number | null;
+  tier: string;
+  tierColor: string;
+  fairscoreBase: number | null;
+  socialScore: number | null;
+  badges: string[];
+  features: Record<string, any> | null;
+  isDemo: boolean;
+}
+
+interface FairScaleApiResponse {
+  fairscore?: number;
+  fair_score?: number;
+  fairscore_base?: number;
+  social_score?: number;
+  tier?: string;
+  badges?: string[];
+  features?: Record<string, any>;
+}
+
+const TIER_MAP: Record<string, TierMeta> = {
   platinum: { label: 'Excellent', color: 'green' },
   gold:     { label: 'Good', color: 'blue' },
   silver:   { label: 'Neutral', color: 'gray' },
   bronze:   { label: 'Questionable', color: 'orange' },
 };
 
-function mapTier(tier) {
+function mapTier(tier: string): TierMeta {
   return TIER_MAP[tier] || { label: 'Unknown', color: 'gray' };
 }
 
 class FairScoreService {
+  private apiKey: string | undefined;
+
   constructor() {
     this.apiKey = typeof window === 'undefined'
       ? process.env.FAIRSCALE_API_KEY
@@ -43,10 +70,8 @@ class FairScoreService {
 
   /**
    * Get FairScore for a single Solana wallet address.
-   * @param {string} address - Solana wallet address (base58)
-   * @returns {Promise<FairScoreResult>}
    */
-  async getScore(address) {
+  async getScore(address: string): Promise<FairScoreResult> {
     if (!address) return this._emptyResult(address);
 
     const cached = scoreCache.get(address);
@@ -54,7 +79,7 @@ class FairScoreService {
       return cached.data;
     }
 
-    let result;
+    let result: FairScoreResult;
     if (this.apiKey) {
       result = await this._fetchFromAPI(address);
     } else {
@@ -67,13 +92,10 @@ class FairScoreService {
 
   /**
    * Get FairScores for multiple addresses.
-   * FairScale has no batch endpoint — parallel individual requests with concurrency cap.
-   * @param {string[]} addresses - Array of Solana wallet addresses
-   * @returns {Promise<Map<string, FairScoreResult>>}
    */
-  async getScores(addresses) {
-    const results = new Map();
-    const uncached = [];
+  async getScores(addresses: string[]): Promise<Map<string, FairScoreResult>> {
+    const results = new Map<string, FairScoreResult>();
+    const uncached: string[] = [];
 
     for (const addr of addresses) {
       const cached = scoreCache.get(addr);
@@ -86,7 +108,6 @@ class FairScoreService {
 
     if (uncached.length === 0) return results;
 
-    // Parallel fetch with concurrency cap (avoid hammering API)
     const CONCURRENCY = 5;
     for (let i = 0; i < uncached.length; i += CONCURRENCY) {
       const batch = uncached.slice(i, i + CONCURRENCY);
@@ -105,7 +126,7 @@ class FairScoreService {
   /**
    * Get tier metadata for a score value.
    */
-  getTier(score) {
+  getTier(score: number | null | undefined): TierMeta {
     if (score === null || score === undefined) return { label: 'New', color: 'gray' };
     if (score >= 80) return { label: 'Excellent', color: 'green' };
     if (score >= 60) return { label: 'Good', color: 'blue' };
@@ -117,21 +138,16 @@ class FairScoreService {
   /**
    * Clear the score cache.
    */
-  clearCache() {
+  clearCache(): void {
     scoreCache.clear();
   }
 
-  /**
-   * Fetch complete score from FairScale API.
-   * GET /score?wallet=<address> with fairkey header.
-   * @private
-   */
-  async _fetchFromAPI(address) {
+  private async _fetchFromAPI(address: string): Promise<FairScoreResult> {
     try {
       const url = `${FAIRSCALE_API}/score?wallet=${encodeURIComponent(address)}`;
       const res = await fetch(url, {
         method: 'GET',
-        headers: { 'fairkey': this.apiKey },
+        headers: { 'fairkey': this.apiKey! },
       });
 
       if (!res.ok) {
@@ -139,11 +155,10 @@ class FairScoreService {
         return this._generateFromSignals(address);
       }
 
-      const data = await res.json();
+      const data: FairScaleApiResponse = await res.json();
 
-      // FairScale returns: fairscore, fairscore_base, social_score, tier, badges, features
       const score = data.fairscore ?? data.fair_score ?? null;
-      const tierMeta = mapTier(data.tier);
+      const tierMeta = mapTier(data.tier || '');
 
       return {
         address,
@@ -156,23 +171,18 @@ class FairScoreService {
         features: data.features || null,
         isDemo: false,
       };
-    } catch (err) {
+    } catch (err: any) {
       console.warn('[FairScale] API call failed:', err.message);
       return this._generateFromSignals(address);
     }
   }
 
-  /**
-   * Generate a score from address hash — deterministic demo/fallback.
-   * @private
-   */
-  _generateFromSignals(address) {
+  private _generateFromSignals(address: string): FairScoreResult {
     let hash = 0;
     for (let i = 0; i < address.length; i++) {
       hash = ((hash << 5) - hash + address.charCodeAt(i)) | 0;
     }
     const absHash = Math.abs(hash);
-
     const score = 40 + (absHash % 46);
     const tier = this.getTier(score);
 
@@ -189,11 +199,7 @@ class FairScoreService {
     };
   }
 
-  /**
-   * Empty result for null/invalid addresses.
-   * @private
-   */
-  _emptyResult(address) {
+  private _emptyResult(address: string): FairScoreResult {
     return {
       address: address || '',
       score: null,

@@ -90,7 +90,7 @@ export default function EcosystemPage() {
               {ecosystemConfig.icon}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{ecosystemConfig.name}</h1>
+              <h1 className="text-3xl font-bold text-primary">{ecosystemConfig.name}</h1>
               <p className="text-lg text-gray-600">{ecosystemConfig.longDescription}</p>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function EcosystemPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <Card className="p-4 text-center"><div className="text-2xl font-bold text-gray-900">{stats.total}</div><div className="text-sm text-gray-600">Total</div></Card>
+        <Card className="p-4 text-center"><div className="text-2xl font-bold text-primary">{stats.total}</div><div className="text-sm text-gray-600">Total</div></Card>
         <Card className="p-4 text-center"><div className="text-2xl font-bold text-green-600">{stats.active}</div><div className="text-sm text-gray-600">Active</div></Card>
         <Card className="p-4 text-center"><div className="text-2xl font-bold text-blue-600">{stats.totalCommits}</div><div className="text-sm text-gray-600">Commits</div></Card>
         <Card className="p-4 text-center"><div className="text-2xl font-bold text-purple-600">{stats.averageHealth}%</div><div className="text-sm text-gray-600">Avg Health</div></Card>
@@ -118,7 +118,7 @@ export default function EcosystemPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Port Identity & Rules */}
           <Card className="p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-bold text-primary mb-4 flex items-center">
               <span className="mr-2">📜</span> Port Rules & Requirements
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -147,12 +147,12 @@ export default function EcosystemPage() {
           {/* Trade Winds (Boosts) */}
           {ecosystemConfig.tradeWinds && ecosystemConfig.tradeWinds.length > 0 && (
             <Card className="p-6 border-2 border-orange-100 bg-orange-50/30">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <h3 className="text-lg font-bold text-primary mb-4 flex items-center">
                 <span className="mr-2">🌬️</span> Active Trade Winds
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {ecosystemConfig.tradeWinds.map((boost, i) => (
-                  <div key={i} className="bg-white p-4 rounded-lg border border-orange-100 shadow-sm flex items-center justify-between">
+                  <div key={i} className="bg-surface p-4 rounded-lg border-default border-orange-100 shadow-sm flex items-center justify-between">
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wider">
@@ -206,7 +206,7 @@ export default function EcosystemPage() {
             <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg">
               {Object.entries(VIEW_MODES).map(([mode, config]) => (
                 <button key={mode} onClick={() => setViewMode(mode)} title={config.name}
-                  className={`p-2 rounded-md transition-colors ${viewMode === mode ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}>
+                  className={`p-2 rounded-md transition-colors ${viewMode === mode ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-primary'}`}>
                   <config.icon className="w-4 h-4" />
                 </button>
               ))}
@@ -245,7 +245,7 @@ export default function EcosystemPage() {
       {processedProjects.length === 0 ? (
         <Card className="p-12 text-center">
           <div className="text-6xl mb-4">{ecosystemConfig.icon}</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
+          <h3 className="text-lg font-medium text-primary mb-2">No projects found</h3>
           <p className="text-gray-600">Try adjusting your filters to see more projects.</p>
         </Card>
       ) : (
@@ -261,7 +261,7 @@ export default function EcosystemPage() {
         <Card className="p-6 mt-8 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Inspired by these projects?</h3>
+              <h3 className="text-lg font-semibold text-primary mb-2">Inspired by these projects?</h3>
               <p className="text-gray-600">Get your developer credit score and unlock funding.</p>
             </div>
             <Button onClick={() => router.push('/credit')} className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white whitespace-nowrap">

@@ -143,7 +143,7 @@ export default function HackathonDetailPage() {
         </Head>
 
         {/* Hackathon Header */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-surface border-b border-default">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center gap-4 mb-4">
               <Link
@@ -157,7 +157,7 @@ export default function HackathonDetailPage() {
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
                   {hackathon.name}
                   {isCompleted && (
                     <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
@@ -187,7 +187,7 @@ export default function HackathonDetailPage() {
                 {participationStatus && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
                     <CheckBadgeIcon className="h-5 w-5 text-green-600" />
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-primary">
                       {participationStatus.charAt(0).toUpperCase() + participationStatus.slice(1)}
                     </span>
                   </div>
@@ -242,7 +242,7 @@ export default function HackathonDetailPage() {
               {/* Overview Card */}
               <Card>
                 <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Overview</h2>
+                  <h2 className="text-xl font-semibold text-primary mb-4">Overview</h2>
                   <p className="text-gray-600 mb-6">
                     {hackathon.description || 'No description provided for this hackathon.'}
                   </p>
@@ -250,9 +250,9 @@ export default function HackathonDetailPage() {
                   {/* Prize Information */}
                   {hackathon.prizePool > 0 && (
                     <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-2">Prize Pool</h3>
+                      <h3 className="font-medium text-primary mb-2">Prize Pool</h3>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-gray-900">
+                        <span className="text-3xl font-bold text-primary">
                           ${hackathon.prizePool.toLocaleString()}
                         </span>
                         <span className="text-gray-600">in prizes</span>
@@ -263,7 +263,7 @@ export default function HackathonDetailPage() {
                   {/* Tracks */}
                   {hackathon.tracks && hackathon.tracks.length > 0 && (
                     <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-2">Tracks</h3>
+                      <h3 className="font-medium text-primary mb-2">Tracks</h3>
                       <div className="flex flex-wrap gap-2">
                         {hackathon.tracks.map(track => (
                           <span
@@ -280,7 +280,7 @@ export default function HackathonDetailPage() {
                   {/* Verification Contract */}
                   {hackathon.verificationContract && (
                     <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-2">Verification</h3>
+                      <h3 className="font-medium text-primary mb-2">Verification</h3>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600 break-all">
                           {hackathon.verificationContract}
@@ -307,7 +307,7 @@ export default function HackathonDetailPage() {
               <Card>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold text-gray-900">Participants</h2>
+                    <h2 className="text-xl font-semibold text-primary">Participants</h2>
                     <span className="text-gray-500">
                       {hackathon.participants.length} {hackathon.participants.length === 1 ? 'participant' : 'participants'}
                     </span>
@@ -316,7 +316,7 @@ export default function HackathonDetailPage() {
                   {/* Winners */}
                   {hackathon.participants.filter(p => p.participationStatus === 'winner').length > 0 && (
                     <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <h3 className="font-medium text-primary mb-3 flex items-center gap-2">
                         <TrophyIcon className="h-5 w-5 text-yellow-600" />
                         Winners
                       </h3>
@@ -337,7 +337,7 @@ export default function HackathonDetailPage() {
                   {/* Other Participants */}
                   {hackathon.participants.filter(p => p.participationStatus !== 'winner').length > 0 && (
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <h3 className="font-medium text-primary mb-3 flex items-center gap-2">
                         <UsersIcon className="h-5 w-5 text-gray-600" />
                         Participants
                       </h3>
@@ -363,7 +363,7 @@ export default function HackathonDetailPage() {
               {/* Quick Actions */}
               <Card>
                 <div className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                  <h3 className="font-semibold text-primary mb-4">Quick Actions</h3>
                   <div className="space-y-3">
                     <Button variant="outline" size="sm" className="w-full justify-start">
                       <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
@@ -388,7 +388,7 @@ export default function HackathonDetailPage() {
               {/* Hackathon Info */}
               <Card>
                 <div className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Information</h3>
+                  <h3 className="font-semibold text-primary mb-4">Information</h3>
                   <div className="space-y-3 text-sm">
                     <InfoItem icon={<CalendarIcon />} label="Start Date" value={new Date(hackathon.startDate).toLocaleDateString()} />
                     <InfoItem icon={<CalendarIcon />} label="End Date" value={new Date(hackathon.endDate).toLocaleDateString()} />
@@ -420,7 +420,7 @@ function ParticipantCard({ participant, hackathon }) {
           {participant.user?.displayName?.charAt(0) || 'U'}
         </div>
         <div>
-          <div className="font-medium text-gray-900">
+          <div className="font-medium text-primary">
             {participant.user?.displayName || participant.user?.githubUsername || 'Unknown User'}
           </div>
           <div className="text-sm text-gray-500">
@@ -431,7 +431,7 @@ function ParticipantCard({ participant, hackathon }) {
       </div>
 
       {participant.prizeAmount > 0 && (
-        <div className="font-medium text-gray-900">
+        <div className="font-medium text-primary">
           ${participant.prizeAmount.toLocaleString()}
         </div>
       )}
@@ -453,7 +453,7 @@ function InfoItem({ icon, label, value }) {
       </div>
       <div>
         <div className="text-gray-500 text-xs">{label}</div>
-        <div className="text-gray-900 font-medium">{value}</div>
+        <div className="text-primary font-medium">{value}</div>
       </div>
     </div>
   );

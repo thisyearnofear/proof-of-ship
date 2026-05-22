@@ -76,7 +76,7 @@ export default function PayoutSimulationPage() {
       <div className="max-w-6xl mx-auto">
         <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
               <CalculatorIcon className="w-8 h-8 text-blue-600" />
               Payout Waterfall Simulator
             </h1>
@@ -98,7 +98,7 @@ export default function PayoutSimulationPage() {
           {/* Inputs Column */}
           <div className="space-y-6">
             <Card className="p-6">
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
                 <BanknotesIcon className="w-5 h-5 text-gray-500" />
                 Prize Pool Input
               </h3>
@@ -116,7 +116,7 @@ export default function PayoutSimulationPage() {
             </Card>
 
             <Card className="p-6">
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
                 <UserGroupIcon className="w-5 h-5 text-gray-500" />
                 Backer Tiers
               </h3>
@@ -155,7 +155,7 @@ export default function PayoutSimulationPage() {
           {/* Visualization Column */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-8">
-              <h3 className="font-bold text-gray-900 mb-8 flex items-center gap-2">
+              <h3 className="font-bold text-primary mb-8 flex items-center gap-2">
                 <BeakerIcon className="w-5 h-5 text-gray-500" />
                 Waterfall Distribution Model
               </h3>
@@ -221,8 +221,8 @@ export default function PayoutSimulationPage() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-gray-100">
-                        <td className="py-4 font-black text-gray-900">Total Distribution</td>
-                        <td className="py-4 text-right font-black text-gray-900" colSpan={2}>
+                        <td className="py-4 font-black text-primary">Total Distribution</td>
+                        <td className="py-4 text-right font-black text-primary" colSpan={2}>
                           ${(simulationResults.tier1.fulfilled + simulationResults.tier2.fulfilled + simulationResults.tier3.fulfilled + simulationResults.builder + simulationResults.treasury).toLocaleString()}
                         </td>
                         <td></td>

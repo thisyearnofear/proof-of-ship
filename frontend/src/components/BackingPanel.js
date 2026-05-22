@@ -192,7 +192,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
       <div className="flex items-center mb-4">
         <RocketLaunchIcon className="w-6 h-6 text-indigo-600 mr-2" />
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-900">Stake on This Builder</h3>
+          <h3 className="text-lg font-bold text-primary">Stake on This Builder</h3>
           {showBuilderIdentity && (
             <div className="text-sm text-gray-600 mt-1">
               Backing{" "}
@@ -346,7 +346,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
                 <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500" />
                 Backer Confidence
               </div>
-              <div className="text-sm font-bold text-gray-900">
+              <div className="text-sm font-bold text-primary">
                 ${parseFloat(totalBacking || 0).toFixed(2)} USDC
               </div>
             </div>

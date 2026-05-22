@@ -260,7 +260,7 @@ export default function UserPortfolioPage() {
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
               <XMarkIcon className="w-8 h-8 text-red-500" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-primary mb-2">
               Builder not found
             </h1>
             <p className="text-gray-600 mb-8 max-w-md mx-auto">
@@ -526,7 +526,7 @@ export default function UserPortfolioPage() {
             <div>
               {/* Section header + filters */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-primary">
                   Projects
                   {hasAnyFilter && (
                     <span className="text-sm font-normal text-gray-500 ml-2">
@@ -659,7 +659,7 @@ export default function UserPortfolioPage() {
                   <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                     <CodeBracketIcon className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h2 className="text-xl font-semibold text-primary mb-2">
                     {hasAnyFilter ? "No matching projects" : "No projects yet"}
                   </h2>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
@@ -727,7 +727,7 @@ function StatCard({ icon, label, value, color = "indigo" }) {
         </div>
         <div>
           <p className="text-xs text-gray-500 font-medium">{label}</p>
-          <p className="text-xl font-bold text-gray-900">{value}</p>
+          <p className="text-xl font-bold text-primary">{value}</p>
         </div>
       </div>
     </Card>

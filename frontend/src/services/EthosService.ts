@@ -7,32 +7,55 @@ const ETHOS_API_BASE = 'https://api.ethos.network/api/v2';
 const ETHOS_CLIENT_HEADER = 'proof-of-ship@1.0.0';
 
 // In-memory cache for Ethos scores to minimize API calls
-const scoreCache = new Map();
+const scoreCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+interface UserKey {
+  address: string;
+  // blockchain: string;
+}
+
+interface EthosUser {
+  // ethn
+  score?: number;
+  userkeys?: string[];
+  // score_decay?: number;
+  // token_granted: Record<string, any>;
+  // eth_balance_history: Record<string, any>;
+  // original_score: number;
+  // internal_score: number;
+  // internal_score_updated_block: number;
+  // updated_block: number;
+  [key: string]: any;
+}
+
+interface ScoreTier {
+  label: string;
+  color: string;
+  bgColor: string;
+  textColor: string;
+  borderColor: string;
+}
 
 class EthosService {
   /**
    * Fetch Ethos credibility score(s) for wallet address(es)
-   * @param {string|string[]} addresses - Single address or array of addresses
-   * @returns {Promise<Object|Object[]>} User data including score, or array of user data
    */
-  async getScoresByAddress(addresses) {
+  async getScoresByAddress(addresses: string | string[]): Promise<EthosUser | EthosUser[] | null> {
     const isArray = Array.isArray(addresses);
     const addressList = isArray ? addresses : [addresses];
     
-    // Filter out invalid addresses
-    const validAddresses = addressList.filter(addr => 
-      addr && typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
+    const validAddresses = addressList.filter((addr): addr is string => 
+      typeof addr === 'string' && /^0x[a-fA-F0-9]{40}$/.test(addr)
     );
 
     if (validAddresses.length === 0) {
       return isArray ? [] : null;
     }
 
-    // Check cache first
     const now = Date.now();
-    const uncachedAddresses = [];
-    const results = {};
+    const uncachedAddresses: string[] = [];
+    const results: Record<string, EthosUser | null> = {};
 
     for (const addr of validAddresses) {
       const cached = scoreCache.get(addr.toLowerCase());
@@ -43,7 +66,6 @@ class EthosService {
       }
     }
 
-    // Fetch uncached addresses
     if (uncachedAddresses.length > 0) {
       try {
         const response = await fetch(`${ETHOS_API_BASE}/users/by/address`, {
@@ -57,7 +79,6 @@ class EthosService {
 
         if (!response.ok) {
           console.warn(`Ethos API returned ${response.status} for addresses:`, uncachedAddresses);
-          // Cache null results to avoid repeated failed requests
           uncachedAddresses.forEach(addr => {
             scoreCache.set(addr.toLowerCase(), { data: null, timestamp: now });
             results[addr.toLowerCase()] = null;
@@ -65,13 +86,11 @@ class EthosService {
         } else {
           const data = await response.json();
           
-          // data is an array of user objects
           if (Array.isArray(data)) {
-            data.forEach(user => {
+            data.forEach((user: EthosUser) => {
               if (user) {
-                // Cache by all userkeys (addresses) in the response
-                const userkeys = user.userkeys || [];
-                userkeys.forEach(key => {
+                const userkeys: string[] = user.userkeys || [];
+                userkeys.forEach((key: string) => {
                   if (key.startsWith('0x')) {
                     scoreCache.set(key.toLowerCase(), { data: user, timestamp: now });
                     results[key.toLowerCase()] = user;
@@ -81,7 +100,6 @@ class EthosService {
             });
           }
 
-          // Mark addresses that weren't found as null
           uncachedAddresses.forEach(addr => {
             if (!results[addr.toLowerCase()]) {
               scoreCache.set(addr.toLowerCase(), { data: null, timestamp: now });
@@ -91,7 +109,6 @@ class EthosService {
         }
       } catch (error) {
         console.error('Error fetching Ethos scores:', error);
-        // Cache null results
         uncachedAddresses.forEach(addr => {
           scoreCache.set(addr.toLowerCase(), { data: null, timestamp: now });
           results[addr.toLowerCase()] = null;
@@ -99,7 +116,6 @@ class EthosService {
       }
     }
 
-    // Return results in the same format as input
     if (isArray) {
       return validAddresses.map(addr => results[addr.toLowerCase()] || null);
     } else {
@@ -109,10 +125,8 @@ class EthosService {
 
   /**
    * Get score tier based on score value
-   * @param {number} score - Ethos credibility score
-   * @returns {Object} Tier information with label, color, and range
    */
-  getScoreTier(score) {
+  getScoreTier(score: number | null | undefined): ScoreTier {
     if (score === null || score === undefined) {
       return {
         label: 'New to Ethos',
@@ -168,28 +182,24 @@ class EthosService {
 
   /**
    * Get Ethos profile URL for a user
-   * @param {string} usernameOrAddress - Ethos username or wallet address
-   * @returns {string} Profile URL
    */
-  getProfileUrl(usernameOrAddress) {
+  getProfileUrl(usernameOrAddress: string | null | undefined): string | null {
     if (!usernameOrAddress) return null;
     
-    // If it's an address, use address format
     if (usernameOrAddress.startsWith('0x')) {
       return `https://app.ethos.network/profile/address/${usernameOrAddress}`;
     }
     
-    // Otherwise assume it's a username
     return `https://app.ethos.network/profile/${usernameOrAddress}`;
   }
 
   /**
    * Clear the cache (useful for testing or forcing refresh)
    */
-  clearCache() {
+  clearCache(): void {
     scoreCache.clear();
   }
 }
 
-// Export singleton instance
-export default new EthosService();
+const ethosService = new EthosService();
+export default ethosService;

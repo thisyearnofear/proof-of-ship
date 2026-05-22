@@ -119,7 +119,7 @@ export default function TransferHistory() {
     <div id="transfer-history-section" className="space-y-4">
       <Card className="p-6 bg-gray-50">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Transfer History</h2>
+          <h2 className="text-xl font-bold text-primary">Transfer History</h2>
           
           <div className="flex items-center space-x-2">
             <select
@@ -220,7 +220,7 @@ export default function TransferHistory() {
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Transfer Details</h4>
+                          <h4 className="font-medium text-primary mb-2">Transfer Details</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-500">Transaction Hash:</span>
@@ -258,7 +258,7 @@ export default function TransferHistory() {
                         </div>
                         
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Fee Breakdown</h4>
+                          <h4 className="font-medium text-primary mb-2">Fee Breakdown</h4>
                           <div className="space-y-2 text-sm">
                             {transfer.estimated.feeCosts && transfer.estimated.feeCosts.length > 0 ? (
                               transfer.estimated.feeCosts.map((fee, index) => (

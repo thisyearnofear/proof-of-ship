@@ -186,7 +186,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
       <Card className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{project.name}</h2>
+            <h2 className="text-2xl font-bold text-primary">{project.name}</h2>
             {isValidSolanaAddress(project.developer || '') && (
               <div className="mt-1 text-sm text-gray-600">
                 Builder{" "}
@@ -256,7 +256,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
 
       {/* Predictive Health & Confidence Section */}
       <Card className="p-6 border-l-4 border-blue-500">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
           <GlobeAltIcon className="w-5 h-5 text-blue-600" />
           Predictive Market Metrics
         </h3>
@@ -277,7 +277,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Active Backers</span>
-                <span className="text-sm font-bold text-gray-900">14 Scouts</span>
+                <span className="text-sm font-bold text-primary">14 Scouts</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Projected ROI</span>
@@ -332,7 +332,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
 
       {/* Milestones */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Milestones</h3>
+        <h3 className="text-lg font-semibold text-primary mb-4">Project Milestones</h3>
         
         <div className="space-y-4">
           {project.milestones.map((milestone, index) => (
@@ -351,7 +351,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
                     )}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-primary">
                       Milestone {index + 1}
                     </div>
                     <div className="text-gray-700 mt-1">
@@ -367,7 +367,7 @@ export default function ProjectDetails({ projectId, onMilestoneComplete }) {
                 </div>
                 
                 <div className="flex flex-col items-end">
-                  <div className="flex items-center text-gray-900 font-medium">
+                  <div className="flex items-center text-primary font-medium">
                     <BanknotesIcon className="w-5 h-5 mr-1 text-gray-600" />
                     ${parseFloat(milestone.reward).toFixed(2)} USDC
                   </div>

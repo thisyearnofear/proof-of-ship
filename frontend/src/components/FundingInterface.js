@@ -315,7 +315,7 @@ export default function FundingInterface({
             )}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-primary">
               Reputation-Backed Funding
             </h3>
             <p className="text-gray-600">
@@ -370,7 +370,7 @@ export default function FundingInterface({
         {/* Project Form */}
         {showProjectForm && (
           <div className="mt-6 mb-6 p-4 border border-gray-200 rounded-lg">
-            <h4 className="text-lg font-medium text-gray-900 mb-4">Project Details</h4>
+            <h4 className="text-lg font-medium text-primary mb-4">Project Details</h4>
             
             <div className="space-y-4">
               <div>
@@ -627,7 +627,7 @@ export default function FundingInterface({
       {/* Funding History */}
       {fundingHistory.length > 0 && (
         <Card className="p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">
+          <h4 className="text-lg font-semibold text-primary mb-4">
             Funding History
           </h4>
           <div className="space-y-3">
@@ -637,7 +637,7 @@ export default function FundingInterface({
                   <div className="flex items-center space-x-3">
                     <WalletIcon className="w-5 h-5 text-gray-400" />
                     <div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-primary">
                         {funding.name || `Project #${funding.projectId}`}
                       </div>
                       <div className="text-sm text-gray-600">

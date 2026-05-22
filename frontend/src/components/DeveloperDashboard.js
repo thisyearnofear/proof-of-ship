@@ -610,7 +610,7 @@ export default function DeveloperDashboard() {
       {showRepayModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Repay Loan</h3>
+            <h3 className="text-lg font-semibold text-primary mb-4">Repay Loan</h3>
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">

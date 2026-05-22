@@ -205,7 +205,7 @@ export default function LoginPage() {
   // ─── EIP-6963 wallet picker modal ─────────────────────────────────────────
   const renderEvmPicker = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-primary">Choose EVM Wallet</h3>
           <button onClick={() => setEvmPickerOpen(false)}

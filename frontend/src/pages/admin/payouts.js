@@ -123,7 +123,7 @@ export default function AdminPayoutsPage() {
                     className={`flex-1 px-6 py-4 font-medium text-center ${
                       tab === 'payouts'
                         ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-secondary hover:text-gray-900 dark:hover:text-gray-200'
+                        : 'text-secondary hover:text-primary dark:hover:text-gray-200'
                     }`}
                   >
                     USDC Payouts ({payouts.length})
@@ -133,7 +133,7 @@ export default function AdminPayoutsPage() {
                     className={`flex-1 px-6 py-4 font-medium text-center ${
                       tab === 'allocations'
                         ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-secondary hover:text-gray-900 dark:hover:text-gray-200'
+                        : 'text-secondary hover:text-primary dark:hover:text-gray-200'
                     }`}
                   >
                     Token Allocations ({allocations.length})
@@ -181,14 +181,14 @@ export default function AdminPayoutsPage() {
                         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                           <div>
                             <p className="text-secondary">Circle Transfer ID</p>
-                            <p className="font-mono text-xs text-gray-900 dark:text-gray-300">
+                            <p className="font-mono text-xs text-primary dark:text-gray-300">
                               {payout.circleTransferId || 'Pending'}
                             </p>
                           </div>
                           {payout.transactionHash && (
                             <div>
                               <p className="text-secondary">Transaction Hash</p>
-                              <p className="font-mono text-xs text-gray-900 dark:text-gray-300">
+                              <p className="font-mono text-xs text-primary dark:text-gray-300">
                                 {payout.transactionHash}
                               </p>
                             </div>

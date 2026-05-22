@@ -105,6 +105,7 @@ export default function ProjectEditor({ projectSlug }) {
   const [imageUrl, setImageUrl] = useState(draft?.imageUrl || "");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState(null);
+  const [galleryMedia, setGalleryMedia] = useState(draft?.media || []);
 
   // Auto-save draft to localStorage immediately, then debounce Firestore save
   useEffect(() => {
@@ -377,6 +378,54 @@ export default function ProjectEditor({ projectSlug }) {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [form.githubUrl, isEditMode]);
 
+  const handleGalleryImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    setUploadingImage(true);
+    setImageError(null);
+
+    const uploaded = [];
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError(`"${file.name}" is too large (max 5MB)`);
+        continue;
+      }
+      try {
+        const timestamp = Date.now() + Math.random();
+        const slug = projectSlug || `temp-${currentUser?.uid || 'anon'}`;
+        const storagePath = `projects/${slug}/gallery/${timestamp}-${file.name}`;
+        const storageRef = ref(storage, storagePath);
+        const snapshot = await uploadBytes(storageRef, file, { contentType: file.type });
+        const url = await getDownloadURL(snapshot.ref);
+        uploaded.push({ url, type: 'image', caption: '' });
+      } catch (err) {
+        console.error('Gallery upload failed:', err);
+        setImageError(`Failed to upload ${file.name}`);
+      }
+    }
+
+    if (uploaded.length) {
+      setGalleryMedia((prev) => [...prev, ...uploaded]);
+    }
+    setUploadingImage(false);
+  };
+
+  const handleAddVideoUrl = () => {
+    const url = prompt('Paste a video URL (YouTube, Loom, Vimeo):');
+    if (!url || !url.trim()) return;
+    setGalleryMedia((prev) => [...prev, { url: url.trim(), type: 'video', caption: '' }]);
+  };
+
+  const handleRemoveMedia = (idx) => {
+    setGalleryMedia((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleUpdateMediaCaption = (idx, caption) => {
+    setGalleryMedia((prev) => prev.map((m, i) => i === idx ? { ...m, caption } : m));
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -438,7 +487,7 @@ export default function ProjectEditor({ projectSlug }) {
   };
 
   const validate = () => {
-    const normalized = normalizeProjectInput({ ...form, imageUrl });
+    const normalized = normalizeProjectInput({ ...form, imageUrl, media: galleryMedia });
     const projectValidation = validateProjectInput(normalized);
     if (!projectValidation.isValid) return projectValidation.errors[0];
     if (githubUsername) {
@@ -459,7 +508,7 @@ export default function ProjectEditor({ projectSlug }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "listing_improvement",
-          project: normalizeProjectInput({ ...form, imageUrl })
+          project: normalizeProjectInput({ ...form, imageUrl, media: galleryMedia })
         })
       });
       const body = await res.json().catch(() => ({}));
@@ -531,7 +580,7 @@ export default function ProjectEditor({ projectSlug }) {
 
     setSaving(true);
 
-    const cleaned = normalizeProjectInput({ ...form, imageUrl: imageUrl || null });
+    const cleaned = normalizeProjectInput({ ...form, imageUrl: imageUrl || null, media: galleryMedia });
 
     try {
       if (isEditMode) {
@@ -1021,7 +1070,7 @@ export default function ProjectEditor({ projectSlug }) {
           <p className="text-xs text-gray-500 mb-2">
             Shown on project cards and backer feeds. Auto-resized to 1200×630. Max 2MB.
           </p>
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 flex-wrap">
             {imageUrl ? (
               <div className="relative w-40 h-[84px] rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex-shrink-0">
                 <img src={imageUrl} alt="Project preview" className="w-full h-full object-cover" />
@@ -1044,6 +1093,69 @@ export default function ProjectEditor({ projectSlug }) {
             {uploadingImage && <LoadingSpinner size="sm" />}
             {imageError && <span className="text-xs text-red-600">{imageError}</span>}
           </div>
+        </div>
+
+        {/* Gallery — additional images + video embeds */}
+        <div className="border-t border-gray-100 pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Media gallery
+              </label>
+              <p className="text-xs text-gray-500">
+                Additional images and videos. First image is the hero, rest form a gallery.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleAddVideoUrl}
+                className="text-xs font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+              >
+                + Add video URL
+              </button>
+              <label className="text-xs font-medium text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200 hover:border-blue-300 cursor-pointer transition-colors">
+                + Add images
+                <input type="file" accept="image/*" multiple onChange={handleGalleryImageUpload} className="hidden" />
+              </label>
+            </div>
+          </div>
+
+          {galleryMedia.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+              {galleryMedia.map((item, idx) => (
+                <div key={idx} className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50 aspect-video">
+                  {item.type === 'video' ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white">
+                      <svg className="w-8 h-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <img src={item.url} alt={item.caption || `Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveMedia(idx)}
+                    className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5 text-white opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                  >
+                    ✕
+                  </button>
+                  {item.caption && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
+                      <p className="text-[10px] text-white truncate">{item.caption}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {galleryMedia.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-4 border border-dashed border-gray-200 rounded-lg">
+              No gallery items yet. Add images or video URLs to showcase your project.
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

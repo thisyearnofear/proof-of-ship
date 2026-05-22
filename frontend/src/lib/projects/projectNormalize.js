@@ -55,6 +55,21 @@ export function cleanMilestones(milestones) {
   return milestones.map((milestone) => String(milestone || '').trim()).filter(Boolean);
 }
 
+export function cleanMedia(media) {
+  if (!Array.isArray(media)) return [];
+  return media
+    .map((item) => {
+      const url = String(item?.url || '').trim();
+      if (!url) return null;
+      return {
+        url,
+        type: item?.type === 'video' ? 'video' : 'image',
+        caption: String(item?.caption || '').trim(),
+      };
+    })
+    .filter(Boolean);
+}
+
 export function cleanHackathons(hackathons) {
   if (!Array.isArray(hackathons)) return [];
   return hackathons
@@ -117,6 +132,8 @@ export function normalizeProjectInput(input = {}) {
     accentColor: input.accentColor || null,
     // Quick win: archive state (soft-delete)
     archived: Boolean(input.archived),
+    // Media gallery: [{ url, type: 'image'|'video', caption }]
+    media: cleanMedia(input.media),
   };
 }
 

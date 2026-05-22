@@ -1,5 +1,6 @@
 import Button from '@/components/common/Button';
 import ShareButtons from '@/components/common/ShareButtons';
+import ProjectGallery from '@/components/projects/ProjectGallery';
 import { getProjectQuality } from '@/lib/projects/projectQuality';
 import { getAccentColor } from '@/lib/projects/projectNormalize';
 import {
@@ -14,14 +15,16 @@ export function ProjectHero({ project, ecosystemConfig, title, githubUrl, canEdi
   const quality = getProjectQuality(project);
   const accent = getAccentColor(project.accentColor);
 
+  const hasMedia = !!(project.imageUrl || (Array.isArray(project.media) && project.media.length > 0));
+
   return (
     <section className={`overflow-hidden rounded-2xl border ${accent.borderClass} bg-white dark:bg-gray-800 shadow-sm`}>
-      {project.imageUrl && (
-        <div className="aspect-[16/7] w-full overflow-hidden bg-gray-100 dark:bg-gray-900">
-          <img src={project.imageUrl} alt={title} className="h-full w-full object-cover" />
-        </div>
+      {hasMedia && (
+        <ProjectGallery
+          imageUrl={project.imageUrl || null}
+          media={project.media || []}
+        />
       )}
-
       <div className="p-6 sm:p-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
           <div className="space-y-4 flex-1">

@@ -28,6 +28,7 @@ const ALLOWED_UPDATE_FIELDS = new Set([
   "imageUrl",
   "liveUrl",
   "otherCategoryDetail",
+  "media",
   "launchOnBags",
   "bagsTokenAddress",
   "bagsTokenMetadata",

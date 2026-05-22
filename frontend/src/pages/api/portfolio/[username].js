@@ -180,6 +180,19 @@ export default async function handler(req, res) {
       }
     }
 
+    // Check if user is a verified hackathon winner
+    let verifiedWinner = false;
+    let winnerData = null;
+    try {
+      const winnerSnap = await db.collection('hackathonWinners').doc(userDoc.id).get();
+      if (winnerSnap.exists) {
+        verifiedWinner = true;
+        winnerData = winnerSnap.data();
+      }
+    } catch {
+      // Non-fatal — just don't show the badge
+    }
+
     // Compute aggregate stats
     const totalStars = projects.reduce((sum, p) => sum + (p.stats?.stars || 0), 0);
     const totalCommits = projects.reduce((sum, p) => sum + (p.stats?.commits || 0), 0);
@@ -197,6 +210,11 @@ export default async function handler(req, res) {
         photoURL: user.photoURL || null,
         walletAddress: user.walletAddress || null,
         bio: user.bio || null,
+        verifiedWinner,
+        winnerData: winnerData ? {
+          totalWins: winnerData.totalWins || 0,
+          lastVerifiedAt: winnerData.lastVerifiedAt || null,
+        } : null,
       },
       projects,
       recentActivity,

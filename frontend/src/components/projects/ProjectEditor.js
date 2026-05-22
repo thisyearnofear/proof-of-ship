@@ -12,6 +12,8 @@ import { submitProject } from "@/services/DataService";
 import Confetti from "@/components/common/Confetti";
 import ProjectPreviewPanel from "@/components/projects/ProjectPreviewPanel";
 import AccentColorPicker from "@/components/projects/AccentColorPicker";
+import WinnerGate from "@/components/projects/WinnerGate";
+import useWinnerStatus from "@/hooks/useWinnerStatus";
 import { storage } from "@/lib/firebase/clientApp";
 import { parseGitHubRepoUrl } from "@/lib/projects/githubRepo";
 import { normalizeProjectInput, validateProjectInput, checkDuplicateGitHubUrl } from "@/lib/projects/projectNormalize";
@@ -31,6 +33,7 @@ const DEFAULT_CATEGORIES = [
 
 export default function ProjectEditor({ projectSlug }) {
   const { currentUser, hasProjectPermission } = useUser();
+  const { isVerified, pendingClaim, loading: winnerLoading, error: winnerError, submitClaim } = useWinnerStatus();
   // providerData.uid for GitHub is the numeric ID — actual username is in reloadUserInfo.screenName
   const githubUsername = currentUser?.reloadUserInfo?.screenName
     || currentUser?.providerData?.find((p) => p.providerId === "github.com")?.displayName?.toLowerCase().replace(/\s/g, '')
@@ -673,6 +676,18 @@ export default function ProjectEditor({ projectSlug }) {
           You do not have permission to edit this project.
         </div>
       </Card>
+    );
+  }
+
+  // Winner gate — new project submissions require verified hackathon winner status
+  if (!isEditMode && !winnerLoading && !isVerified) {
+    return (
+      <WinnerGate
+        onSubmitClaim={submitClaim}
+        loading={winnerLoading}
+        pendingClaim={pendingClaim}
+        error={winnerError}
+      />
     );
   }
 

@@ -187,5 +187,23 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if false;
     }
+
+    // Hackathon winners — verified past hackathon winners.
+    // Each doc: { uid, wins[], totalWins, lastVerifiedAt, ... }
+    // Read: any authenticated user can view winner status.
+    // Write: only server-side via admin SDK (rules bypassed — written by admin API).
+    match /hackathonWinners/{winnerId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // Winner claims — pending hackathon winner verification requests.
+    // Each doc: { uid, hackathonName, announcementUrl, githubRepo, outcome, status, ... }
+    // Read: admin-only (contains user-submitted proof links).
+    // Write: only server-side via admin SDK (rules bypassed — submitted+reviewed by API).
+    match /winnerClaims/{claimId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
   }
 }

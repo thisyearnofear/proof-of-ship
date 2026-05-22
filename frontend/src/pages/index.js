@@ -14,6 +14,7 @@ import {
   ArrowRightIcon,
   MagnifyingGlassIcon,
   SparklesIcon as SparklesIconOutline,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 
 // Lazy-loaded component sections - code-split for better performance
@@ -98,21 +99,22 @@ export default function LandingPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 relative">
           <div className="text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-6 animate-fade-in-up">
-              <span className="animate-ping w-2 h-2 bg-blue-500 rounded-full"></span>
-              Mainnet Live on Arc & Solana
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold uppercase tracking-wider mb-6 animate-fade-in-up">
+              <TrophyIcon className="w-3.5 h-3.5" />
+              Exclusive to Past Hackathon Winners
             </div>
             <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-primary mb-4 sm:mb-6 leading-tight tracking-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              Ship Code,
+              Built by Winners,
               <br />
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent drop-shadow-sm">
-                Unlock Credit
+              <span className="bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-sm">
+                Funded on Proof
               </span>
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-secondary mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
-              Your on-chain reputation becomes collateral. Ship milestones, AI agents
-              verify, backers stake USDC — no traditional collateral needed.
+              The only platform where past hackathon winners continue the projects
+              they already proved worth building. AI agents verify milestones, backers
+              stake USDC, and payout speed is public data.
             </p>
 
             <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
@@ -348,27 +350,28 @@ export default function LandingPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-12 sm:py-16 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-amber-600 to-yellow-600 py-12 sm:py-16 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 text-center relative">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
-            Ready to Ship?
+            Won a Hackathon? Keep Shipping.
           </h2>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
-            Join builders earning credit from their reputation. Backers stake, AI agents analyze, builders ship.
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-amber-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
+            The platform for past hackathon winners. Prove your win, continue your project,
+            and access credit backed by your reputation.
           </p>
 
           <div className="flex flex-col gap-3 sm:gap-4 justify-center px-4 sm:px-0">
             <Button
               onClick={handleGetStarted}
-              className="bg-surface text-blue-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
+              className="bg-surface text-amber-800 hover:bg-gray-100 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold shadow-lg min-h-touch w-full sm:w-auto"
             >
-              ✨ Start Shipping
+              🏆 Start Shipping
             </Button>
 
             <Button
               onClick={() => router.push("/explore")}
               variant="outline"
-              className="border-white text-white hover:bg-surface hover:text-blue-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
+              className="border-white text-white hover:bg-surface hover:text-amber-600 px-4 sm:px-8 py-2.5 sm:py-4 text-sm sm:text-base md:text-lg font-semibold min-h-touch w-full sm:w-auto"
             >
               📖 Explore Projects
             </Button>

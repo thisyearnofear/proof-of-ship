@@ -29,6 +29,7 @@ import {
   XMarkIcon,
   UserPlusIcon,
   UserMinusIcon,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 
 const ECOSYSTEM_ICONS = {
@@ -356,6 +357,13 @@ export default function UserPortfolioPage() {
                       <h1 className="text-2xl font-extrabold tracking-tight">
                         {displayName}
                       </h1>
+                      {/* Verified Winner Badge */}
+                      {portfolio?.user?.verifiedWinner && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-400/40" title={`Verified hackathon winner${portfolio.user.winnerData?.totalWins ? ` · ${portfolio.user.winnerData.totalWins} win${portfolio.user.winnerData.totalWins !== 1 ? 's' : ''}` : ''}`}>
+                          <TrophyIcon className="w-3.5 h-3.5" />
+                          Verified Winner
+                        </span>
+                      )}
                       {/* Ethos Credibility Score Badge */}
                       {portfolio?.user?.walletAddress ? (
                         ethosLoading ? (

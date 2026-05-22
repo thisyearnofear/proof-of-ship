@@ -10,7 +10,7 @@ import ethosService from '@/services/EthosService';
 import { EthosScoreBadge, EthosProfileLink } from '@/components/ethos';
 import SnsIdentityBadge from '@/components/common/SnsIdentityBadge';
 import { BuilderTrustFull } from '@/components/common/BuilderTrust';
-import { PencilSquareIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, LinkIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 
 function EmailToggle({ label, description, checked, onChange }) {
@@ -64,6 +64,8 @@ export default function UserProfile() {
   const [unlinking, setUnlinking] = useState(null);
   const [weftLinking, setWeftLinking] = useState(false);
   const [linkedWeftIdentity, setLinkedWeftIdentity] = useState(null);
+  const [verifiedWinner, setVerifiedWinner] = useState(false);
+  const [winnerData, setWinnerData] = useState(null);
   const fileInputRef = useRef(null);
 
   // Primary Solana wallet for trust display
@@ -98,6 +100,8 @@ export default function UserProfile() {
           setEmailBackerActivity(data.emailBackerActivity !== false); // default true
           setEmailMarketing(!!data.emailMarketing);
           setLinkedWeftIdentity(data.linkedWeftIdentity || null);
+          setVerifiedWinner(!!data.verifiedWinner);
+          setWinnerData(data.winnerData || null);
         }
       } catch (e) {
         if (!cancelled) setError('Failed to load profile');
@@ -391,6 +395,12 @@ export default function UserProfile() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white truncate">{resolvedDisplayName}</h2>
+            {verifiedWinner && (
+              <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800 flex-shrink-0" title={winnerData?.totalWins ? `Verified winner of ${winnerData.totalWins} hackathon${winnerData.totalWins !== 1 ? 's' : ''}` : 'Verified hackathon winner'}>
+                <TrophyIcon className="w-3 h-3" />
+                Verified Winner
+              </span>
+            )}
             {userRole && (
               <span className={`px-2 py-0.5 text-xs font-medium rounded flex-shrink-0 ${isBacker ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'}`}>
                 {isBacker ? 'Backer' : 'Builder'}

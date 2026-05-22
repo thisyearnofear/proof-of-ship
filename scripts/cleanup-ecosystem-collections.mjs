@@ -10,12 +10,36 @@
  *
  * Usage: node scripts/cleanup-ecosystem-collections.mjs
  *
- * Requires FIREBASE_SERVICE_ACCOUNT env var or firebase-admin credentials.
+ * Reads Firebase credentials from .env.local (FIREBASE_PROJECT_ID,
+ * FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).
  * Safe to run multiple times — collections that don't exist are skipped.
  */
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env.local from project root — manually parse multi-line PEM key
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const envText = readFileSync(resolve(__dirname, '..', '.env.local'), 'utf8');
+const envLines = envText.split('\n');
+let env = {};
+let currentKey = null;
+let currentVal = '';
+for (const line of envLines) {
+  if (line.startsWith('FIREBASE_') && line.includes('=')) {
+    if (currentKey) env[currentKey] = currentVal;
+    const eqIdx = line.indexOf('=');
+    currentKey = line.slice(0, eqIdx);
+    currentVal = line.slice(eqIdx + 1);
+  } else if (currentKey) {
+    currentVal += '\n' + line;
+  }
+}
+if (currentKey) env[currentKey] = currentVal;
+
+const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+const { getFirestore } = await import('firebase-admin/firestore');
 
 const ECOSYSTEM_COLLECTIONS = [
   'projects_celo',
@@ -29,16 +53,23 @@ const ECOSYSTEM_COLLECTIONS = [
 ];
 
 async function main() {
-  // Initialize Firebase Admin
   if (!getApps().length) {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      initializeApp();
-    } else {
-      console.error('No Firebase credentials found. Set FIREBASE_SERVICE_ACCOUNT or GOOGLE_APPLICATION_CREDENTIALS.');
+    const projectId = env.FIREBASE_PROJECT_ID;
+    const clientEmail = env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = env.FIREBASE_PRIVATE_KEY;
+
+    if (!projectId || !clientEmail || !privateKey) {
+      console.error('Missing Firebase credentials in .env.local');
       process.exit(1);
     }
+
+    initializeApp({
+      credential: cert({
+        projectId,
+        clientEmail,
+        privateKey,  // dotenv handles multi-line values correctly
+      }),
+    });
   }
 
   const db = getFirestore();
@@ -55,7 +86,6 @@ async function main() {
 
     console.log(`[DELETE] ${collectionName} — ${snapshot.size} docs`);
 
-    // Delete in batches of 500 (Firestore limit)
     let batch = db.batch();
     let batchCount = 0;
     let collectionDeleted = 0;

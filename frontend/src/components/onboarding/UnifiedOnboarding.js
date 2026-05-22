@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import { Modal } from '../common/Modal';
-import OnboardingFlow from './OnboardingFlow';
 import { 
   SparklesIcon, 
   MapIcon, 
   ShieldCheckIcon, 
   ArrowRightIcon,
-  XMarkIcon,
   ChevronRightIcon,
   ChevronLeftIcon
 } from '@heroicons/react/24/outline';
@@ -45,15 +42,15 @@ const TOUR_STEPS = [
 ];
 
 export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
-  const [view, setView] = useState('tour'); // 'tour' or 'flow'
   const [currentTourStep, setCurrentTourStep] = useState(0);
-  const router = useRouter();
 
   const handleNextTour = () => {
     if (currentTourStep < TOUR_STEPS.length - 1) {
       setCurrentTourStep(currentTourStep + 1);
     } else {
-      setView('flow');
+      // Last step — close the onboarding tour and let the user explore
+      localStorage.setItem('hasSeenUnifiedOnboarding', 'true');
+      onClose?.();
     }
   };
 
@@ -64,15 +61,7 @@ export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
   };
 
   const handleSkipTour = () => {
-    setView('flow');
-  };
-
-  const handleFlowComplete = async (profile, creditData) => {
-    if (onComplete) {
-      await onComplete(profile, creditData);
-    } else {
-      router.push('/credit');
-    }
+    localStorage.setItem('hasSeenUnifiedOnboarding', 'true');
     onClose?.();
   };
 
@@ -89,96 +78,76 @@ export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
       className="overflow-hidden"
     >
       <div className="relative">
-        {view === 'tour' ? (
-          <div className="p-4 sm:p-6">
-            <div className="flex flex-col items-center text-center py-8">
-              <div className={`mx-auto w-24 h-24 ${TOUR_STEPS[currentTourStep].color} text-white rounded-3xl flex items-center justify-center mb-8 shadow-xl transform transition-transform duration-500 hover:-translate-y-1`}>
-                {React.createElement(TOUR_STEPS[currentTourStep].icon, { className: 'w-12 h-12' })}
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col items-center text-center py-8">
+            <div className={`mx-auto w-24 h-24 ${TOUR_STEPS[currentTourStep].color} text-white rounded-3xl flex items-center justify-center mb-8 shadow-xl transform transition-transform duration-500 hover:-translate-y-1`}>
+              {React.createElement(TOUR_STEPS[currentTourStep].icon, { className: 'w-12 h-12' })}
+            </div>
+
+            <h2 className="text-3xl font-black text-primary mb-4 tracking-tight">
+              {TOUR_STEPS[currentTourStep].title}
+            </h2>
+
+            <p className="text-lg text-secondary mb-10 max-w-2xl leading-relaxed">
+              {TOUR_STEPS[currentTourStep].description}
+            </p>
+
+            <div className="w-full max-w-2xl">
+              <div className="flex items-center justify-between text-sm text-secondary mb-3">
+                <span>{`Step ${currentTourStep + 1} of ${TOUR_STEPS.length}`}</span>
+                <span>{`${tourProgress}% complete`}</span>
               </div>
-
-              <h2 className="text-3xl font-black text-primary mb-4 tracking-tight">
-                {TOUR_STEPS[currentTourStep].title}
-              </h2>
-
-              <p className="text-lg text-secondary mb-10 max-w-2xl leading-relaxed">
-                {TOUR_STEPS[currentTourStep].description}
-              </p>
-
-              <div className="w-full max-w-2xl">
-                <div className="flex items-center justify-between text-sm text-secondary mb-3">
-                  <span>{`Step ${currentTourStep + 1} of ${TOUR_STEPS.length}`}</span>
-                  <span>{`${tourProgress}% complete`}</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-surface-secondary overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary-500 transition-all duration-300"
-                    style={{ width: `${tourProgress}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col w-full gap-4 mt-8 max-w-2xl mx-auto">
-                <div className="flex items-center justify-between w-full bg-surface-secondary p-4 rounded-2xl border border-default">
-                  <Button
-                    variant="ghost"
-                    onClick={handleBackTour}
-                    className={currentTourStep === 0 ? 'invisible' : ''}
-                    leftIcon={<ChevronLeftIcon className="w-4 h-4" />}
-                  >
-                    Back
-                  </Button>
-
-                  <div className="flex gap-2">
-                    {TOUR_STEPS.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          i === currentTourStep ? 'w-10 bg-primary-500' : 'w-2 bg-gray-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    onClick={handleNextTour}
-                    rightIcon={<ChevronRightIcon className="w-4 h-4" />}
-                    className="shadow-md"
-                  >
-                    {currentTourStep === TOUR_STEPS.length - 1 ? 'Get Started' : 'Next'}
-                  </Button>
-                </div>
-
-                {currentTourStep < TOUR_STEPS.length - 1 && (
-                  <button
-                    onClick={handleSkipTour}
-                    className="text-tertiary hover:text-primary text-sm font-medium transition-colors self-start"
-                  >
-                    Skip to profile connection
-                  </button>
-                )}
+              <div className="h-2 w-full rounded-full bg-surface-secondary overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary-500 transition-all duration-300"
+                  style={{ width: `${tourProgress}%` }}
+                />
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-4 sm:p-6 max-h-[85vh] overflow-hidden">
-            <div className="flex items-center gap-4 mb-6 px-2 sm:px-4">
-              <button
-                onClick={() => setView('tour')}
-                className="p-2 hover:bg-surface-hover rounded-full transition-colors"
-                aria-label="Back to tour"
-              >
-                <ChevronLeftIcon className="w-5 h-5 text-secondary" />
-              </button>
-              <div>
-                <h2 className="text-xl font-bold text-primary">Identity verification</h2>
-                <p className="text-sm text-secondary">Connect your accounts to build reputation.</p>
+
+            <div className="flex flex-col w-full gap-4 mt-8 max-w-2xl mx-auto">
+              <div className="flex items-center justify-between w-full bg-surface-secondary p-4 rounded-2xl border border-default">
+                <Button
+                  variant="ghost"
+                  onClick={handleBackTour}
+                  className={currentTourStep === 0 ? 'invisible' : ''}
+                  leftIcon={<ChevronLeftIcon className="w-4 h-4" />}
+                >
+                  Back
+                </Button>
+
+                <div className="flex gap-2">
+                  {TOUR_STEPS.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        i === currentTourStep ? 'w-10 bg-primary-500' : 'w-2 bg-gray-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <Button
+                  variant="primary"
+                  onClick={handleNextTour}
+                  rightIcon={<ChevronRightIcon className="w-4 h-4" />}
+                  className="shadow-md"
+                >
+                  {currentTourStep === TOUR_STEPS.length - 1 ? 'Explore the Platform' : 'Next'}
+                </Button>
               </div>
+
+              {currentTourStep < TOUR_STEPS.length - 1 && (
+                <button
+                  onClick={handleSkipTour}
+                  className="text-tertiary hover:text-primary text-sm font-medium transition-colors self-start"
+                >
+                  Skip tour
+                </button>
+              )}
             </div>
-            <div className="h-px bg-border mb-4" />
-            <OnboardingFlow onComplete={handleFlowComplete} onClose={onClose} />
           </div>
-        )}
+        </div>
       </div>
     </Modal>
   );

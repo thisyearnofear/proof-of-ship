@@ -13,8 +13,9 @@ import { fetchWithCache, clearCache, cancelAllRequests, dataService } from './Da
 export type { CacheEntry, FetchOptions } from './DataServiceCore';
 export type { ProjectStats, Project, EcosystemProjects, EcosystemStats } from './DataServiceCore';
 
-// Re-exported singleton (backward compat with EnhancedDataService consumers)
+// Re-exported singleton (backward compat with enhancedDataService and dataService consumers)
 export const enhancedDataService = dataService;
+export { dataService };
 
 // Re-exported class (backward compat with type references)
 export { DataService } from './DataServiceCore';

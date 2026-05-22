@@ -5,6 +5,18 @@
 /* Shimmer animation for skeletons */
 @keyframes shimmer {
   0% { background-position: -200px 0; }
+
+/* Solana wallet adapter modal — must render above onboarding overlay */
+.wallet-adapter-modal {
+  z-index: 2000 !important;
+}
+.wallet-adapter-modal-overlay {
+  z-index: 2001 !important;
+}
+.wallet-adapter-modal-container {
+  z-index: 2002 !important;
+  position: relative;
+}
   100% { background-position: calc(200px + 100%) 0; }
 }
 

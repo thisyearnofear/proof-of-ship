@@ -5,7 +5,13 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { enhancedDataService } from "@/services/DataService";
+import { 
+  loadAllProjects, 
+  getProject as getProjectImport, 
+  searchProjects as searchProjectsImport, 
+  getEcosystemStats 
+} from "@/services/ProjectDataService";
+import { dataService } from "@/services/DataService";
 
 const EnhancedGithubContext = createContext({});
 
@@ -71,7 +77,7 @@ export function EnhancedGithubProvider({ children }) {
       setErrors({});
 
       // Load projects with essential data only (meta + commits)
-      const allProjects = await enhancedDataService.loadAllProjects('all', {
+      const allProjects = await loadAllProjects('all', {
         celoDataTypes: ["meta", "commits"],
         baseDataTypes: ["meta", "commits"]
       });
@@ -101,7 +107,7 @@ export function EnhancedGithubProvider({ children }) {
       setErrors({});
 
       // Load projects with all data types
-      const allProjects = await enhancedDataService.loadAllProjects('all', {
+      const allProjects = await loadAllProjects('all', {
         celoDataTypes: ["meta", "commits", "issues", "prs"],
         baseDataTypes: ["meta", "commits", "issues", "prs"],
         forceRefresh: true
@@ -127,7 +133,7 @@ export function EnhancedGithubProvider({ children }) {
 
   const loadEcosystemStats = async () => {
     try {
-      const stats = await enhancedDataService.getEcosystemStats();
+      const stats = await getEcosystemStats();
       setEcosystemStats(stats);
     } catch (error) {
       console.error('Failed to load ecosystem stats:', error);
@@ -215,7 +221,7 @@ export function EnhancedGithubProvider({ children }) {
 
   const searchProjects = async (query, ecosystem = 'all') => {
     try {
-      return await enhancedDataService.searchProjects(query, ecosystem);
+      return await searchProjectsImport(query, ecosystem);
     } catch (error) {
       console.error('Failed to search projects:', error);
       return [];
@@ -224,7 +230,7 @@ export function EnhancedGithubProvider({ children }) {
 
   const getProject = async (slug, ecosystem = null) => {
     try {
-      return await enhancedDataService.getProject(slug, ecosystem);
+      return await getProjectImport(slug, ecosystem);
     } catch (error) {
       console.error('Failed to get project:', error);
       return null;

@@ -176,7 +176,7 @@ export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
               </div>
             </div>
             <div className="h-px bg-border mb-4" />
-            <OnboardingFlow onComplete={handleFlowComplete} />
+            <OnboardingFlow onComplete={handleFlowComplete} onClose={onClose} />
           </div>
         )}
       </div>

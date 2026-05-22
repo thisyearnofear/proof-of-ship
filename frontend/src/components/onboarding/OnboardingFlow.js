@@ -58,7 +58,7 @@ const ONBOARDING_STEPS = [
   }
 ];
 
-export default function OnboardingFlow({ onComplete }) {
+export default function OnboardingFlow({ onComplete, onClose }) {
   const router = useRouter();
   const {
     connect, account, provider,
@@ -164,6 +164,7 @@ export default function OnboardingFlow({ onComplete }) {
   };
 
   const handleConnectEvmWallet = async () => {
+    onClose?.();
     setLoading(true);
     setError(null);
     try {
@@ -177,6 +178,9 @@ export default function OnboardingFlow({ onComplete }) {
   };
 
   const handleConnectSolanaWallet = async () => {
+    // Close the onboarding modal first so the Solana wallet selector
+    // (from @solana/wallet-adapter-react-ui) renders above it
+    onClose?.();
     setLoading(true);
     setError(null);
     try {

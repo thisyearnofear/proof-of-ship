@@ -7,8 +7,7 @@
  * Uses firebase-admin SDK (bypasses security rules).
  */
 
-import { db } from '../../../lib/firebase/serverOnly';
-import { admin } from '../../../lib/firebase/serverOnly';
+import { db, auth } from '../../../lib/firebase/serverOnly';
 
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization;
@@ -19,7 +18,7 @@ export default async function handler(req, res) {
   const idToken = authHeader.split('Bearer ')[1];
   let decodedToken;
   try {
-    decodedToken = await admin.auth().verifyIdToken(idToken);
+    decodedToken = await auth.verifyIdToken(idToken);
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }

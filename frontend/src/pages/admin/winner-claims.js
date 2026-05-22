@@ -21,7 +21,7 @@ import {
   TrophyIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ExternalLinkIcon,
+  ArrowTopRightOnSquareIcon,
   ClockIcon,
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline';

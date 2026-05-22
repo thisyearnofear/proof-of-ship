@@ -103,6 +103,14 @@ module.exports = {
       minWidth: {
         touch: '2.75rem',
       },
+      zIndex: {
+        dropdown: 'var(--z-dropdown, 1000)',
+        sticky: 'var(--z-sticky, 1100)',
+        overlay: 'var(--z-overlay, 1300)',
+        modal: 'var(--z-modal, 1400)',
+        toast: 'var(--z-toast, 1700)',
+        tooltip: 'var(--z-tooltip, 1800)',
+      },
       borderRadius: {
         card: 'var(--radius-card, 0.5rem)',
         button: 'var(--radius-button, 0.375rem)',
@@ -146,6 +154,9 @@ module.exports = {
       },
     },
   },
+  safelist: [
+    { pattern: /^z-(modal|toast|overlay|dropdown|tooltip|sticky)$/ },
+  ],
   plugins: [],
   corePlugins: {
     aspectRatio: true,

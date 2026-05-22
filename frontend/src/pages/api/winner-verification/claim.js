@@ -9,8 +9,7 @@
  * Response: { success, claimId }
  */
 
-import { db } from '../../../lib/firebase/serverOnly';
-import { admin } from '../../../lib/firebase/serverOnly';
+import { db, auth } from '../../../lib/firebase/serverOnly';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -27,7 +26,7 @@ export default async function handler(req, res) {
 
   let decodedToken;
   try {
-    decodedToken = await admin.auth().verifyIdToken(idToken);
+    decodedToken = await auth.verifyIdToken(idToken);
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }

@@ -312,9 +312,7 @@ export default function OnboardingFlow({ onComplete }) {
             completed={completedSteps.has('wallet')}
             loading={loading}
             error={error}
-            onAction={handleConnectEvmWallet}
-            actionText={anyConnected ? 'Connected' : 'Connect Wallet'}
-            disabled={anyConnected}
+            hideAction
           >
             <p className="text-gray-600 mb-4">
               Connect your wallet to get started. This will be your primary identity on the platform.
@@ -618,6 +616,7 @@ function StepCard({
   actionText, 
   skipText,
   disabled,
+  hideAction,
   children 
 }) {
   return (
@@ -658,32 +657,34 @@ function StepCard({
         </div>
       )}
 
-      <div className="flex space-x-3">
-        <Button
-          onClick={onAction}
-          disabled={loading || disabled || completed}
-          className={`flex-1 ${completed ? 'bg-green-600' : 'bg-gradient-to-r from-blue-600 to-purple-600'} text-white`}
-        >
-          {loading ? (
-            <>
-              <LoadingSpinner size="sm" className="mr-2" />
-              Connecting...
-            </>
-          ) : (
-            actionText
-          )}
-        </Button>
-        
-        {onSkip && !step.required && !completed && (
+      {!hideAction && (
+        <div className="flex space-x-3">
           <Button
-            onClick={onSkip}
-            variant="outline"
-            disabled={loading}
+            onClick={onAction}
+            disabled={loading || disabled || completed}
+            className={`flex-1 ${completed ? 'bg-green-600' : 'bg-gradient-to-r from-blue-600 to-purple-600'} text-white`}
           >
-            {skipText}
+            {loading ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                Connecting...
+              </>
+            ) : (
+              actionText
+            )}
           </Button>
-        )}
-      </div>
+          
+          {onSkip && !step.required && !completed && (
+            <Button
+              onClick={onSkip}
+              variant="outline"
+              disabled={loading}
+            >
+              {skipText}
+            </Button>
+          )}
+        </div>
+      )}
     </Card>
   );
 }

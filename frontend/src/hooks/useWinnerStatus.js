@@ -51,7 +51,10 @@ export default function useWinnerStatus() {
       }
 
       try {
-        const res = await fetch('/api/winner-verification/status');
+        const token = await currentUser.getIdToken();
+        const res = await fetch('/api/winner-verification/status', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!res.ok) {
           if (res.status === 404) {
             // Not verified yet — that's fine

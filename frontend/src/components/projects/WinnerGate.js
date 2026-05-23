@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useUser } from '@/contexts/UserContext';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { Input, Textarea, Select, Checkbox } from '@/components/common/Input';
@@ -119,7 +120,7 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
         </h2>
         <p className="text-secondary max-w-lg mx-auto">
           Proof of Ship is exclusive to builders who have won a hackathon and are continuing
-          that project. Show us your win and we&apos;ll verify you within 24 hours.
+          that project. Show us your win and we&apos;ll verify you ASAP.
         </p>
       </div>
 
@@ -271,7 +272,7 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
         </Button>
 
         <p className="text-xs text-tertiary text-center">
-          The founder reviews every claim personally. You&apos;ll typically get verified within 24 hours.
+          The founder reviews every claim personally. You&apos;ll typically get verified ASAP.
         </p>
       </form>
     </Card>
@@ -279,19 +280,28 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
 }
 
 function PendingLeadMagnet({ pendingClaim, platformStats }) {
+  const { currentUser } = useUser();
   const [queuePosition, setQueuePosition] = useState(null);
   const [totalPending, setTotalPending] = useState(0);
 
   useEffect(() => {
     if (!pendingClaim?.id) return;
-    fetch('/api/winner-verification/status')
-      .then(r => r.json())
-      .then(data => {
-        if (data.queuePosition != null) setQueuePosition(data.queuePosition);
-        if (data.totalPending != null) setTotalPending(data.totalPending);
-      })
-      .catch(() => {});
-  }, [pendingClaim?.id]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = currentUser ? await currentUser.getIdToken() : null;
+        const res = await fetch('/api/winner-verification/status', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
+        if (!cancelled) {
+          if (data.queuePosition != null) setQueuePosition(data.queuePosition);
+          if (data.totalPending != null) setTotalPending(data.totalPending);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [pendingClaim?.id, currentUser]);
 
   const winnersOnboarded = platformStats?.winnersOnboarded || 0;
   const targetWinners = platformStats?.targetWinners || 500;

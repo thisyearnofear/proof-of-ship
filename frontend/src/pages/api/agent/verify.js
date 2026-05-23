@@ -12,6 +12,7 @@ import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
+import { withAgentAuth } from "@/lib/agentAuth";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
@@ -118,64 +119,54 @@ async function handler(req, res) {
       };
     }
 
-    if (verification.approved && network === "solana" && projectPda) {
-      try {
-        const solanaRpc = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
-        const connection = new Connection(solanaRpc, "confirmed");
-        const agentKey = process.env.SOLANA_AGENT_KEY;
-        
-        if (agentKey) {
-          const keypair = Keypair.fromSecretKey(bs58.decode(agentKey));
-          const wallet = new anchor.Wallet(keypair);
-          const provider = new anchor.AnchorProvider(connection, wallet, {
+    // IMPORTANT: The verifier agent ONLY returns an approval decision.
+    // On-chain execution (verify_milestone) is NOT performed here.
+    // This prevents automatic USDC movement from the agent wallet without
+    // explicit user confirmation. To execute on-chain, use a separate
+    // dedicated endpoint with its own payment + auth guards.
+    //
+    // The on-chain data is included in the response so the caller can
+    // independently verify the project state and decide whether to proceed.
+    let onChainContext = null;
+    if (network === "solana" && projectPda) {
+      onChainContext = {
+        projectPda,
+        milestoneIndex: milestoneIndex || "0",
+        network: "solana",
+        note: "On-chain execution requires a separate authenticated request. This is only a preview of what would be verified.",
+      };
+
+      // Optionally fetch on-chain project state for informational purposes
+      // (read-only — no transaction is submitted)
+      if (process.env.SOLANA_RPC_URL) {
+        try {
+          const connection = new Connection(
+            process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com",
+            "confirmed"
+          );
+          const projectPubkey = new PublicKey(projectPda);
+          const idlWithAddress = { ...IDL, address: PROGRAM_ID.toBase58() };
+          const dummyWallet = new anchor.Wallet(
+            Keypair.generate()
+          );
+          const provider = new anchor.AnchorProvider(connection, dummyWallet, {
             preflightCommitment: "confirmed",
           });
-          const idlWithAddress = { ...IDL, address: PROGRAM_ID.toBase58() };
           const program = new Program(idlWithAddress, provider);
-
-          const projectPubkey = new PublicKey(projectPda);
-          const usdcMint = new PublicKey(
-            process.env.SOLANA_USDC_MINT || DEFAULT_DEVNET_USDC
-          );
-
-          const [milestoneVaultAuthority] = PublicKey.findProgramAddressSync(
-            [Buffer.from("milestone_vault_authority"), projectPubkey.toBuffer()],
-            PROGRAM_ID
-          );
-
-          const milestoneVault = getAssociatedTokenAddressSync(
-            usdcMint,
-            milestoneVaultAuthority,
-            true
-          );
-
           const projectAcct = await program.account.project.fetch(projectPubkey);
-          const developerPk = new PublicKey(projectAcct.developer);
-          const developerAta = getAssociatedTokenAddressSync(usdcMint, developerPk);
 
-          const tx = await program.methods
-            .verifyMilestone(parseInt(milestoneIndex || 0))
-            .accounts({
-              project: projectPubkey,
-              developerTokenAccount: developerAta,
-              milestoneVault,
-              milestoneVaultAuthority,
-              usdcMint,
-              verifier: keypair.publicKey,
-              tokenProgram: TOKEN_PROGRAM_ID,
-            })
-            .rpc();
-
-          verification.onChainTx = tx;
-          verification.onChainStatus = "success";
-        } else {
-          console.warn("SOLANA_AGENT_KEY not configured, skipping on-chain payout");
-          verification.onChainStatus = "skipped (no agent key)";
+          onChainContext = {
+            ...onChainContext,
+            developer: projectAcct.developer.toBase58(),
+            milestonesCompleted: projectAcct.milestonesCompleted,
+            milestonesCount: projectAcct.milestonesCount,
+            isActive: projectAcct.isActive,
+            onChainDataFetched: true,
+          };
+        } catch (fetchErr) {
+          console.warn("Could not fetch on-chain project state (non-fatal):", fetchErr.message);
+          onChainContext.onChainDataFetched = false;
         }
-      } catch (solErr) {
-        console.error("Solana on-chain verification failed:", solErr);
-        verification.onChainStatus = "failed";
-        verification.onChainError = solErr.message;
       }
     }
 
@@ -197,6 +188,7 @@ async function handler(req, res) {
         ...(aisaPayment && { aisaPayment }),
       },
       verification,
+      onChainContext,
       timestamp: new Date().toISOString(),
     };
 
@@ -211,4 +203,5 @@ async function handler(req, res) {
 }
 
 // For the hackathon, we assume a standard 100 lines PR costing 0.01 USDC
-export default withNanopayment(handler, 0.01);
+// Protected by optional API key auth (if AGENT_API_KEY is set)
+export default withAgentAuth(withNanopayment(handler, 0.01));

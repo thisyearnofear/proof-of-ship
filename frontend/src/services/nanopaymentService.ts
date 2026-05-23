@@ -32,9 +32,14 @@ class NanopaymentService {
 
   async initialize(config: NanopaymentConfig) {
     this.config = config;
+
+    // Map user-facing chain names to the GatewayClient's SupportedChainName.
+    // The @circle-fin/x402-batching SDK natively supports "arcTestnet"
+    // (GATEWAY_DOMAINS.arcTestnet = 26). Previously this was incorrectly
+    // mapped to "arbitrum", which would route payments to the wrong chain.
     const chain = config.chain === "arc" || config.chain === "arcTestnet"
-      ? "arbitrum"
-      : "arbitrumSepolia";
+      ? "arcTestnet" as const
+      : "arbitrumSepolia" as const;
 
     this.client = new GatewayClient({
       chain,
@@ -75,13 +80,21 @@ class NanopaymentService {
     return { txHash: result.txHash || result.hash || '' };
   }
 
-  async pay(url: string, fallbackHeaders?: Record<string, string>): Promise<PaymentResult> {
+  async pay(url: string, options?: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    body?: string;
+    headers?: Record<string, string>;
+  }): Promise<PaymentResult> {
     if (!this.client) {
       throw new Error("NanopaymentClient not initialized");
     }
 
     try {
-      const result = await this.client.pay(url, fallbackHeaders) as { data?: any; status?: number; headers?: Record<string, string> };
+      const result = await this.client.pay(url, {
+        method: options?.method || 'GET',
+        body: options?.body,
+        headers: options?.headers,
+      }) as { data?: any; status?: number; headers?: Record<string, string> };
       const { data, status, headers } = result;
 
       if (status === 402) {

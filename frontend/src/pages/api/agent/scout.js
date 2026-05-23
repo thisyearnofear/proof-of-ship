@@ -16,6 +16,7 @@ import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scorin
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
+import { withAgentAuth } from "@/lib/agentAuth";
 
 async function scoutHandler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -40,26 +41,56 @@ async function scoutHandler(req, res) {
       }
     }
 
-    // Fetch all projects from Firestore
+    // Fetch projects from Firestore with pagination and filtering
+    const SCOUT_PAGE_LIMIT = 200; // Max projects to evaluate per scout run
     let projects = [];
     try {
-      const snapshot = await db.collection("projects").get();
+      let query = db.collection("projects")
+        .orderBy("submittedAt", "desc")
+        .limit(SCOUT_PAGE_LIMIT);
+
+      // Optional ecosystem filter
+      if (req.query.ecosystem && req.query.ecosystem !== "all") {
+        query = query.where("ecosystem", "==", req.query.ecosystem);
+      }
+
+      const snapshot = await query.get();
       projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (err) {
-      console.error("Failed to fetch projects from Firestore:", {
-        message: err.message,
-        code: err.code,
-        stack: err.stack
-      });
-      return res.status(500).json({
-        ...agentIdentityResponse('scout'),
-        success: false,
-        status: 'error',
-        error: 'Failed to fetch projects',
-        details: err.message,
-        projects: [],
-        summary: { evaluated: 0, recommended: 0, totalStake: '$0.00' }
-      });
+      // If orderBy fails (missing index), fall back to unordered query
+      if (err.code === "failed-precondition" || err.message?.includes("index")) {
+        try {
+          const snapshot = await db.collection("projects")
+            .limit(SCOUT_PAGE_LIMIT)
+            .get();
+          projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        } catch (fallbackErr) {
+          console.error("Scout fallback query also failed:", fallbackErr.message);
+          return res.status(500).json({
+            ...agentIdentityResponse('scout'),
+            success: false,
+            status: 'error',
+            error: 'Failed to fetch projects',
+            details: fallbackErr.message,
+            projects: [],
+            summary: { evaluated: 0, recommended: 0, totalStake: '$0.00' }
+          });
+        }
+      } else {
+        console.error("Failed to fetch projects from Firestore:", {
+          message: err.message,
+          code: err.code,
+        });
+        return res.status(500).json({
+          ...agentIdentityResponse('scout'),
+          success: false,
+          status: 'error',
+          error: 'Failed to fetch projects',
+          details: err.message,
+          projects: [],
+          summary: { evaluated: 0, recommended: 0, totalStake: '$0.00' }
+        });
+      }
     }
 
     // Score each project
@@ -163,7 +194,7 @@ async function scoutHandler(req, res) {
         const prompt = `Summarize the investment landscape for these ${scored.length} blockchain projects in 2 sentences. 
         Top projects: ${topNames}. 
         Overall ecosystem health score: ${avgScore}/100.
-        Pay special attention to Solana-based projects if present, as they represent a key growth area.`;
+        Consider all ecosystems equally — Solana, Arc, Celo, Base, Linea, Arbitrum, Ethereum, and Optimism projects should all be evaluated on their own merits.`;
 
         const aisaFetch = getAisaFetch();
         const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
@@ -225,4 +256,5 @@ async function scoutHandler(req, res) {
 }
 
 // AI Scout costs 0.01 USDC per run
-export default withNanopayment(scoutHandler, 0.01);
+// Protected by optional API key auth (if AGENT_API_KEY is set)
+export default withAgentAuth(withNanopayment(scoutHandler, 0.01));

@@ -37,7 +37,7 @@ export interface NanopaymentContextType {
   payForScout: (baseUrl?: string) => Promise<any>;
   payForUnderwrite: (projectId: string, baseUrl?: string, projectName?: string) => Promise<any>;
   payForRebalance: (baseUrl?: string) => Promise<any>;
-  agentPrices: { underwrite: number; scout: number; verify: number; rebalance: number };
+  agentPrices: { underwrite: number; scout: number; verify: number; rebalance: number; chat: number };
 }
 
 // ── Context ────────────────────────────────────────────────────────
@@ -164,16 +164,39 @@ export function NanopaymentProvider({ children }: { children: ReactNode }) {
           endpoint = '/api/agent/rebalance';
           displayName = 'AI Portfolio Manager';
           break;
+        case 'chat':
+          endpoint = '/api/agent/chat';
+          displayName = 'AI Chat';
+          break;
         default:
           throw new Error(`Unknown agent: ${agentType}`);
       }
 
       const baseUrl = params.baseUrl || '';
+      const isChat = agentType === 'chat';
+      let requestOptions: { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: string; headers?: Record<string, string> } = {};
+      if (isChat) {
+        requestOptions = {
+          method: 'POST',
+          body: JSON.stringify({
+            message: params.message,
+            history: params.history || [],
+            modelTier: 'premium',
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
       let result: any;
 
       if (useDemoMode) {
         const resp = await fetch(`${baseUrl}${endpoint}`, {
-          headers: { 'x-demo-key': 'demo' },
+          ...(isChat ? { method: 'POST' } : {}),
+          headers: {
+            ...(isChat ? { 'Content-Type': 'application/json' } : {}),
+            'x-demo-key': 'demo',
+          },
+          ...(isChat ? { body: requestOptions.body } : {}),
         });
         const data = await resp.json().catch(() => null);
         result = {
@@ -187,7 +210,7 @@ export function NanopaymentProvider({ children }: { children: ReactNode }) {
         if (!nanopaymentService.isInitialized()) {
           throw new Error('Live Arc payment wallet is not initialized');
         }
-        result = await nanopaymentService.pay(`${baseUrl}${endpoint}`);
+        result = await nanopaymentService.pay(`${baseUrl}${endpoint}`, isChat ? requestOptions : undefined);
       }
 
       const tx: NanopaymentTransaction = {
@@ -260,6 +283,7 @@ export function NanopaymentProvider({ children }: { children: ReactNode }) {
       scout: 0.01,
       verify: 0.001,
       rebalance: 0.01,
+      chat: 0.005,
     },
   };
 

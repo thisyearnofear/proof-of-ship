@@ -4,6 +4,11 @@
  * POST /api/agent/execute
  * Body: { projects: [{ id, amount, multiplier }] }
  *
+ * ⚠️  SECURITY: This endpoint is wrapped with withNanopayment() and withAgentAuth().
+ *     On-chain backings are only executed when both payment AND auth are verified.
+ *     Previously this endpoint had no payment guard — anyone could trigger
+ *     USDC transfers from the agent wallet.
+ *
  * Uses Circle's raw REST API directly for contract execution transactions
  * (the SDK v10.3.1 has an axios interceptor bug with contract execution).
  *
@@ -17,6 +22,8 @@
 
 import { db } from "@/lib/firebase/serverOnly";
 import { generateEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
+import { withNanopayment } from "@/lib/nanopayment";
+import { withAgentAuth } from "@/lib/agentAuth";
 
 const USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
 
@@ -159,11 +166,22 @@ export default async function handler(req, res) {
       transactions: results,
     });
 
+    // Log the nanopayment that funded this execution
+    const paymentInfo = req.nanopayment
+      ? {
+          paymentTxHash: req.nanopayment.txHash,
+          paymentAmount: req.nanopayment.amount,
+          paymentVerified: req.nanopayment.verified,
+          paymentDemo: req.nanopayment.demo,
+        }
+      : {};
+
     return res.status(200).json({
       success: true,
       runId,
       agentWalletId,
       circleManaged: true,
+      ...paymentInfo,
       summary: {
         backed: successful.length,
         failed: failed.length,
@@ -176,3 +194,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Execution failed", details: error.message });
   }
 }
+
+// Apply middleware chain: auth → nanopayment → handler
+// This ensures both API key auth AND x402 payment are required
+// before any on-chain USDC can be moved from the agent wallet.
+const wrappedHandler = withAgentAuth(withNanopayment(handler, 0.01));
+export default wrappedHandler;

@@ -11,6 +11,7 @@ export const AGENT_PRICES: Record<string, number> = {
   scout: 0.01,
   verify: 0.001,
   rebalance: 0.01,
+  chat: 0.005,
 };
 
 export const NETWORK_CONFIGS: Record<number, NetworkConfig> = {

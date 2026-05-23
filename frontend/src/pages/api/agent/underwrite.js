@@ -13,6 +13,7 @@ import { withNanopayment } from "@/lib/nanopayment";
 import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
+import { withAgentAuth } from "@/lib/agentAuth";
 
 async function handler(req, res) {
   if (req.method !== "GET") {
@@ -144,5 +145,6 @@ async function handler(req, res) {
   }
 }
 
-// Wrap the handler with the Circle Nanopayment middleware, requiring a 0.05 USDC fee.
-export default withNanopayment(handler, 0.05);
+// Wrap the handler with auth + nanopayment middleware.
+// Protected by optional API key auth (if AGENT_API_KEY is set).
+export default withAgentAuth(withNanopayment(handler, 0.05));

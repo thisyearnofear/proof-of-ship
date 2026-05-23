@@ -25,7 +25,7 @@ function describeSource(source) {
 }
 
 export default function AIChatWidget() {
-  const { nanopaymentDemoMode } = useNanopayment();
+  const { payForAgent } = useNanopayment();
   const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -117,44 +117,64 @@ export default function AIChatWidget() {
         // ignore local inference errors
       }
 
-      if (!reply) {
-        const headers = {
-          "Content-Type": "application/json",
-        };
-        if (nanopaymentDemoMode) {
-          headers["x-demo-key"] = "demo";
-        }
+      if (!reply && requestedTier === "premium") {
+        try {
+          const result = await payForAgent('chat', {
+            message: trimmed,
+            history: messagesRef.current.slice(-6),
+          });
 
+          if (result.success && result.data?.reply) {
+            reply = result.data.reply;
+            source = result.data.resultSource || "live_ai";
+            meta = {
+              status: result.data.status,
+              nextAction: result.data.nextAction,
+              paymentStatus: result.data.agentInfo?.paymentStatus,
+            };
+          } else if (result.status === 'payment_required') {
+            setPaymentError({
+              message: "Payment required to use AI assistant",
+              amount: 0.005,
+            });
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: "Premium guidance needs a payment wallet first. Set one up on the AI Agents workspace to continue.",
+                type: "payment_required",
+              },
+            ]);
+            setLoading(false);
+            return;
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: result.error || "Sorry, I couldn't process that. Try again!" },
+            ]);
+            setLoading(false);
+            return;
+          }
+        } catch {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "Payment setup is incomplete. Open the AI Agents workspace to set up your wallet, then try premium again." },
+          ]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (!reply) {
         const res = await fetch("/api/agent/chat", {
           method: "POST",
-          headers,
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: trimmed,
             history: messagesRef.current.slice(-6),
             modelTier: requestedTier,
           }),
         });
-
-        if (res.status === 402) {
-          const data = await res.json();
-          setPaymentError({
-            message: data.message || "Payment required to use AI assistant",
-            amount: data.priceUSD || 0.005,
-            demo: data.demo,
-            instructions: data.instructions,
-          });
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: "Premium guidance needs a payment wallet first. You can keep using the free guide, or switch to the AI Agents workspace to set up demo or live mode.",
-              type: "payment_required",
-            },
-          ]);
-          setLoading(false);
-          return;
-        }
 
         const data = await res.json();
         if (data.success && data.reply) {
@@ -192,7 +212,7 @@ export default function AIChatWidget() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, modelTier, nanopaymentDemoMode]);
+  }, [input, loading, modelTier, payForAgent]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -359,7 +379,7 @@ export default function AIChatWidget() {
 
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-sm">
                   <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">Recommended path:</span> keep using the free guide, or open the AI Agents workspace to enable demo or live mode before trying premium guidance again.
+                    <span className="font-medium">Recommended path:</span> open the AI Agents workspace to set up your payment wallet, then switch back to premium guidance.
                   </p>
                 </div>
 

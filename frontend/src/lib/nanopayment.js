@@ -14,13 +14,14 @@
 
 import crypto from 'crypto';
 import rateLimit from '@/utils/rateLimit';
-import { ARC_TESTNET_CHAIN_ID, TESTNET_USDC_ADDRESSES } from '@/config/tokens';
+import { ARC_TESTNET_CHAIN_ID, TESTNET_USDC_ADDRESSES, TESTNET_CHAIN_INFO } from '@/config/tokens';
 
 const PRICE_PER_REQUEST = 0.05;
 const CURRENCY = "USDC";
 
-// Arc Testnet RPC — single source from tokens config
-const ARC_RPC = "https://rpc.testnet.arc.network";
+// Arc Testnet RPC — sourced from the canonical tokens config (single source of truth)
+const ARC_CHAIN_INFO = TESTNET_CHAIN_INFO[ARC_TESTNET_CHAIN_ID];
+const ARC_RPC = ARC_CHAIN_INFO?.rpcUrl || "https://rpc.testnet.arc.network";
 const ARC_USDC = TESTNET_USDC_ADDRESSES[ARC_TESTNET_CHAIN_ID];
 
 // EIP-3009 authorizationState selector: authorizationState(address,bytes32) → uint8

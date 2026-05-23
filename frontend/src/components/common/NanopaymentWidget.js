@@ -75,6 +75,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
     transactions,
     agentPrices,
     initializeWithDemo,
+    initialize,
     deposit,
     payForAgent,
   } = useNanopayment();
@@ -86,12 +87,26 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
   const [depositAmount, setDepositAmount] = useState("1");
   const [lastResult, setLastResult] = useState(null);
   const [resultMessage, setResultMessage] = useState(null);
+  const [initError, setInitError] = useState(null);
 
   useEffect(() => {
     if (!isInitialized && (process.env.NEXT_PUBLIC_DEMO_MODE === "true" || process.env.NODE_ENV === "development")) {
       initializeWithDemo();
     }
   }, []);
+
+  const handleInitializeLive = async (privateKey) => {
+    setInitError(null);
+    try {
+      await initialize(privateKey);
+    } catch (err) {
+      setInitError(err.message || 'Failed to initialize wallet');
+    }
+  };
+
+  if (!isInitialized && process.env.NEXT_PUBLIC_DEMO_MODE !== "true" && process.env.NODE_ENV !== "development") {
+    return <UninitializedWidget onInitialize={initializeWithDemo} onInitializeLive={handleInitializeLive} initError={initError} />;
+  }
 
   const handleServiceClick = async (service) => {
     if (!isInitialized) {
@@ -459,14 +474,25 @@ function WalletCard({ label, amount, color }) {
   );
 }
 
-function UninitializedWidget({ onInitialize }) {
+function UninitializedWidget({ onInitialize, onInitializeLive, initError }) {
+  const [showLive, setShowLive] = useState(false);
+  const [privateKey, setPrivateKey] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!privateKey.trim()) return;
+    setSubmitting(true);
+    await onInitializeLive(privateKey.trim());
+    setSubmitting(false);
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
       <div className="text-center">
         <RocketLaunchIcon className="w-12 h-12 mx-auto text-indigo-500 mb-4" />
         <h3 className="font-bold text-lg text-gray-900 mb-2">Start with a payment wallet</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Use demo mode to test the flow, or switch to live mode when you want real USDC-backed analysis.
+          Test the flow in demo mode, or connect a real wallet for live USDC-backed analysis.
         </p>
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
           <p className="text-xs text-gray-400 mb-2">Common actions:</p>
@@ -474,11 +500,55 @@ function UninitializedWidget({ onInitialize }) {
             <p><span className="font-medium">Scout:</span> $0.01 per scan</p>
             <p><span className="font-medium">Underwriter:</span> $0.05 per project</p>
             <p><span className="font-medium">Verifier:</span> $0.001 per 10 lines</p>
+            <p><span className="font-medium">Premium Chat:</span> $0.005 per message</p>
           </div>
         </div>
-        <Button variant="primary" onClick={onInitialize}>
+
+        <Button variant="primary" onClick={onInitialize} className="w-full mb-3">
           Start in demo mode
         </Button>
+
+        <div className="relative mb-3">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white px-2 text-gray-400">or</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowLive(!showLive)}
+          className="text-sm font-medium text-indigo-600 hover:text-indigo-700 mb-3"
+        >
+          {showLive ? "Cancel" : "Connect a real wallet"}
+        </button>
+
+        {showLive && (
+          <div className="space-y-3">
+            <div className="bg-amber-50 rounded-lg p-3 text-left text-xs text-amber-800">
+              Enter your Arc wallet&apos;s private key. The key stays in memory and is never persisted or sent anywhere except to your local GatewayClient for signing payments.
+            </div>
+            <input
+              type="password"
+              value={privateKey}
+              onChange={(e) => setPrivateKey(e.target.value)}
+              placeholder="0x..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {initError && (
+              <p className="text-xs text-red-600 text-left">{initError}</p>
+            )}
+            <Button
+              variant="secondary"
+              onClick={handleSubmit}
+              disabled={!privateKey.trim() || submitting}
+              className="w-full"
+            >
+              {submitting ? "Connecting..." : "Connect wallet"}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -53,11 +53,7 @@ async function chatHandler(req, res) {
     let status = "ok";
     const usePremiumModel = modelTier === "premium";
 
-    if (!usePremiumModel) {
-      reply = getContextualReply(message);
-      aiPayment = { provider: "contextual", model: "free-guide", status: "free" };
-      resultSource = "free_guide";
-    }
+    // Free guide tries the same LLM providers; falls back to keyword replies if none are available
 
     if (!reply && FEATHERLESS_API_KEY) {
       try {
@@ -226,7 +222,7 @@ function getContextualReply(message) {
 let paidChatHandlerPromise;
 function getPaidChatHandler() {
   if (!paidChatHandlerPromise) {
-    paidChatHandlerPromise = withNanopayment(chatHandler, 0.005);
+    paidChatHandlerPromise = withNanopayment(chatHandler, 0.005, { serverSponsored: true });
   }
   return paidChatHandlerPromise;
 }

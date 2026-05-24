@@ -127,7 +127,7 @@ vercel --prod              # redeploy
 
 - **Payments API:** `LIVE_API_KEY` for transfers and webhooks
 - **W3S Wallets API:** Entity secret + `LIVE_API_KEY` for developer-controlled wallets
-- **Webhook:** `https://proofofship.com/api/circle/webhook` — signed with HMAC-SHA256
+- **Webhook:** `https://proof-of-ship.vercel.app/api/circle/webhook` — signed with HMAC-SHA256
 - **Test environment:** Separate `TEST_API_KEY` + test wallet set for sandbox
 
 ### Firestore

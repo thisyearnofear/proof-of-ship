@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 
     const agentRes = await fetch(agentUrl, {
       headers: {
-        "x-demo-key": "demo",
+        "x-test-mode": "true",
         "Content-Type": "application/json",
       },
     });

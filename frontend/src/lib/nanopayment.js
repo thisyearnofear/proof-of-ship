@@ -6,7 +6,7 @@
  *
  * Features:
  * - Real x402 flow with EIP-3009 signature verification on Arc Testnet
- * - Demo mode (when NEXT_PUBLIC_DEMO_MODE=true)
+ * - Test mode (explicit opt-in via ALLOW_DEMO_PAYMENTS=true)
  * - Graceful degradation when Arc RPC is unreachable
  *
  * Part of "Agentic Economy on Arc" hackathon submission.
@@ -31,6 +31,17 @@ const AUTHORIZATION_STATE_SELECTOR = "0x9c868ac0";
 // Rate limiter: 30 agent requests per minute per IP
 const limiter = rateLimit({ interval: 60 * 1000, uniqueTokenPerInterval: 500 });
 
+// ── Startup guard ──────────────────────────────────────────────────
+// Test mode must be explicitly enabled. In production, it is always disabled
+// regardless of the env var — this prevents accidental exposure.
+if (process.env.ALLOW_DEMO_PAYMENTS === 'true' && process.env.NODE_ENV === 'production') {
+  console.error(
+    'SECURITY: ALLOW_DEMO_PAYMENTS=true is set in production. ' +
+    'Test mode is disabled in production regardless of this setting. ' +
+    'Remove this env var from your production environment.'
+  );
+}
+
 function createPaymentRequirement(amountUSDC = PRICE_PER_REQUEST) {
   return {
     payment: {
@@ -46,8 +57,15 @@ function createPaymentRequirement(amountUSDC = PRICE_PER_REQUEST) {
   };
 }
 
-function isDemoMode() {
-  return process.env.NEXT_PUBLIC_DEMO_MODE === "true" || process.env.NODE_ENV === 'development';
+/**
+ * Test mode requires an explicit opt-in via ALLOW_DEMO_PAYMENTS=true.
+ * In production, test mode is always disabled regardless of the env var.
+ * NODE_ENV=development alone is no longer sufficient — developers must
+ * explicitly set the flag to test without payments.
+ */
+function isTestMode() {
+  if (process.env.NODE_ENV === 'production') return false;
+  return process.env.ALLOW_DEMO_PAYMENTS === 'true';
 }
 
 /**
@@ -97,8 +115,9 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
       return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
     }
 
-    if (isDemoMode()) {
-      return demoModeFlow(handler, requiredAmount)(req, res);
+    if (isTestMode()) {
+      console.log('[nanopayment] Test mode active — skipping payment verification');
+      return testModeFlow(handler, requiredAmount)(req, res);
     }
 
     const paymentSignature = req.headers["payment-signature"];
@@ -176,7 +195,7 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
         signature: paymentSignature,
         verified: verificationStatus === "verified",
         verificationStatus,
-        demo: false,
+        testMode: false,
         timestamp: new Date().toISOString(),
       };
 
@@ -185,7 +204,7 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
           ...req.nanopayment,
           verified: verificationStatus === "verified",
           verificationStatus,
-          demo: false,
+          testMode: false,
         };
       }
 
@@ -200,19 +219,20 @@ export async function withNanopayment(handler, requiredAmount = PRICE_PER_REQUES
   };
 }
 
-function demoModeFlow(handler, requiredAmount) {
+function testModeFlow(handler, requiredAmount) {
   return async (req, res) => {
     const receiptHeader = req.headers["x-nanopayment-receipt"];
     const paymentSignature = req.headers["payment-signature"];
-    const demoKey = req.headers["x-demo-key"] || "demo";
+    const testModeKey = req.headers["x-test-mode"];
 
-    if (!receiptHeader && !paymentSignature && demoKey !== "demo") {
+    // In test mode, accept requests with x-test-mode header OR any payment header
+    if (!receiptHeader && !paymentSignature && testModeKey !== "true") {
       return res.status(402).json({
         error: "Payment Required",
-        message: `Demo mode: This Agent API requires a nanopayment of ${requiredAmount} ${CURRENCY}.`,
+        message: `This Agent API requires a nanopayment of ${requiredAmount} ${CURRENCY}.`,
         payment: createPaymentRequirement(requiredAmount).payment,
-        demo: true,
-        note: "Add x-demo-key: demo header to test without payment",
+        testModeAvailable: true,
+        note: "Set ALLOW_DEMO_PAYMENTS=true and send x-test-mode: true header to skip payment",
       });
     }
 
@@ -222,7 +242,7 @@ function demoModeFlow(handler, requiredAmount) {
       network: "arc (testnet)",
       signature: paymentSignature,
       verified: false,
-      demo: true,
+      testMode: true,
       timestamp: new Date().toISOString(),
     };
 

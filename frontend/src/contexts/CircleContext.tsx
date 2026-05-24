@@ -76,7 +76,6 @@ export function CircleProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const walletParams = {
-        idempotencyKey: `wallet-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         metadata: {
           name: config.name || 'Developer Wallet',
           userId: config.userId || 'anonymous',
@@ -99,7 +98,6 @@ export function CircleProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const transferRequest = {
-        idempotencyKey: `transfer-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         walletId,
         amount: amount.toString(),
         destinationAddress,

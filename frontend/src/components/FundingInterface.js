@@ -263,7 +263,7 @@ export default function FundingInterface({
           <div className="flex items-center space-x-2">
             <InformationCircleIcon className="w-5 h-5 text-yellow-600" />
             <span className="text-yellow-800 text-sm">
-              Circle API not configured. Funding features are in demo mode.
+              Funding unavailable — Circle API credentials not configured. Set CIRCLE_API_KEY, CIRCLE_ENTITY_SECRET, and CIRCLE_WALLET_SET_ID to enable.
             </span>
           </div>
         </Card>

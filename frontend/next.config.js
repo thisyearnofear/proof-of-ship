@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Deliberate: ~37 pre-existing TS errors from third-party packages without types.
+  // Tracked as a known backlog item. Run `npx tsc --noEmit` to audit.
   eslint: {
     ignoreDuringBuilds: true,
   },

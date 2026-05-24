@@ -62,7 +62,7 @@ async function handler(req, res) {
     // 3. Enrich with AI analysis
     let aiAnalysis = null;
     let aisaPayment = null;
-    let resultSource = req.nanopayment?.demo ? "demo" : "rule_based";
+    let resultSource = "rule_based";
 
     if (isAisaConfigured()) {
       try {
@@ -119,7 +119,7 @@ async function handler(req, res) {
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: "arc",
-        paymentStatus: req.nanopayment.demo ? "demo" : (req.nanopayment.verificationStatus || "unverified"),
+        paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"),
         aisaPayment,
       },
       project: {

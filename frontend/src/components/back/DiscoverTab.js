@@ -86,7 +86,7 @@ export default function DiscoverTab() {
 
   useEffect(() => {
     fetch("/api/agent/scout", {
-      headers: { "x-demo-key": "demo" }
+      headers: { "x-test-mode": "true" }
     })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
@@ -191,7 +191,7 @@ export default function DiscoverTab() {
             <p className="text-xs text-indigo-600 mt-1">
               {scoutData?.summary
                 ? `Last scan: ${scoutData.summary.evaluated} projects evaluated · ${scoutData.summary.totalStake}`
-                : `Cost: 0.01 USDC per scan · Mode: ${nanopaymentDemoMode ? 'demo' : 'live'}`}
+                : `Cost: 0.01 USDC per scan · Mode: ${nanopaymentDemoMode ? 'test' : 'live'}`}
             </p>
           </div>
           <Button

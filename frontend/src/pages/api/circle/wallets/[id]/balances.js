@@ -1,86 +1,59 @@
 /**
  * Circle API Wallet Balances Endpoint
- * Retrieves token balances for a specific wallet
- *
- * Supports:
- * - GET: Get token balances for a specific wallet
+ * Retrieves token balances for a specific wallet using RealCircleService (W3S)
  */
 
-import {
-  initializeCircleSDK,
-  formatCircleError,
-  formatTokenAmount
-} from '../../../../../utils/circleApi';
-
+import { realCircleService } from '../../../../../services/RealCircleService';
 import {
   withApiMiddleware,
   parseQueryParams
 } from '../../../../../utils/apiMiddleware';
 
-/**
- * Handler for the wallet balances endpoint
- */
 async function walletBalancesHandler(req, res) {
-  // Get wallet ID from the request URL
   const { id } = req.query;
-  
+
   if (!id) {
     return res.status(400).json({
       success: false,
       error: 'Wallet ID is required'
     });
   }
-  
-  // Parse other query parameters
+
   const params = parseQueryParams(req.query, {
     stringParams: ['tokenId']
   });
-  
-  // Initialize Circle SDK
-  const circle = initializeCircleSDK();
-  
+
   try {
-    // Get balances for this wallet
-    const response = await circle.wallets.listWalletBalances({
-      walletId: id,
-      ...(params.tokenId ? { tokenId: params.tokenId } : {})
-    });
-    
-    if (!response.data) {
-      throw new Error('Invalid response from Circle API');
-    }
-    
-    // Format the balances to include additional information
-    const balances = response.data.balances || [];
-    
-    // Add formatted amounts and additional display information
-    const formattedBalances = balances.map(balance => {
-      // Get token symbol
-      const symbol = balance.token?.symbol || 'UNKNOWN';
-      
-      // Calculate display amount using our utility function
-      const amount = balance.amount || '0';
-      const displayAmount = formatTokenAmount(amount, symbol);
-      
+    const response = await realCircleService.getWalletBalances(id);
+    const rawBalances = response.data?.tokenBalances || response.data?.balances || [];
+
+    const filteredBalances = params.tokenId
+      ? rawBalances.filter(balance => balance.token?.id === params.tokenId || balance.tokenId === params.tokenId)
+      : rawBalances;
+
+    const formattedBalances = filteredBalances.map(balance => {
+      const symbol = balance.token?.symbol || balance.symbol || 'UNKNOWN';
+      const amount = balance.amount || balance.balance || '0';
+      // USDC has 6 decimals; ETH/MATIC have 18
+      const decimals = symbol === 'USDC' ? 6 : 18;
+      const numericAmount = parseFloat(amount) / Math.pow(10, decimals);
+      const displayAmount = numericAmount.toFixed(decimals === 6 ? 2 : 4);
+
       return {
         ...balance,
         displayAmount,
         formattedAmount: `${displayAmount} ${symbol}`,
-        blockchain: balance.blockchain || 'ETH'
+        blockchain: balance.blockchain || balance.chain || 'ETH'
       };
     });
-    
-    // Calculate total balances
+
     const totalBalances = formattedBalances.reduce((acc, balance) => {
-      // Group by currency
-      const symbol = balance.token?.symbol || 'UNKNOWN';
-      if (!acc[symbol]) {
-        acc[symbol] = 0;
-      }
+      const symbol = balance.token?.symbol || balance.symbol || 'UNKNOWN';
+      if (!acc[symbol]) acc[symbol] = 0;
       acc[symbol] += parseFloat(balance.displayAmount || 0);
       return acc;
     }, {});
-    
+
     return res.status(200).json({
       success: true,
       data: {
@@ -91,12 +64,13 @@ async function walletBalancesHandler(req, res) {
       }
     });
   } catch (error) {
-    const errorResponse = formatCircleError(error);
-    return res.status(errorResponse.status).json(errorResponse);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get wallet balances'
+    });
   }
 }
 
-// Apply API middleware with appropriate configuration
 export default withApiMiddleware(walletBalancesHandler, {
   allowedMethods: ['GET'],
   rateLimit: 20,

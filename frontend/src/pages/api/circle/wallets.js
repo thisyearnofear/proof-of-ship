@@ -21,22 +21,8 @@ async function walletsHandler(req, res) {
         data: result.data,
       });
     } else if (req.method === "POST") {
-      // Create wallet
-      const {
-        idempotencyKey,
-        entitySecretCiphertext,
-        walletSetId,
-        blockchains,
-        count,
-        metadata,
-      } = req.body;
-
-      if (!idempotencyKey) {
-        return res.status(400).json({
-          success: false,
-          error: "Idempotency key is required",
-        });
-      }
+      // Create wallet — idempotencyKey is derived server-side from the payload
+      const { metadata } = req.body;
 
       const config = {
         name: metadata?.name || "Developer Wallet",

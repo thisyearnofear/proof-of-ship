@@ -1,58 +1,40 @@
 /**
  * Circle API Configuration Endpoint
  * Provides wallet configuration for frontend applications
- *
- * IMPORTANT: This endpoint securely provides configuration without exposing API keys
  */
 
-import { getCircleEnvironment } from '../../../utils/circleApi';
+import { realCircleService } from '../../../services/RealCircleService';
 import { withApiMiddleware } from '../../../utils/apiMiddleware';
 
-/**
- * Handler for the configuration API endpoint
- */
 async function configHandler(req, res) {
-  // Get required configuration
-  const apiKey = process.env.CIRCLE_API_KEY;
-  const { walletSetId, entitySecret, environment, isProduction } = getCircleEnvironment();
-  
-  // Check for required configuration
-  if (!apiKey) {
+  const { walletSetId, environment, configured, clientConfigured } = realCircleService.getConfig().data;
+
+  if (!clientConfigured) {
     return res.status(500).json({
       success: false,
-      error: 'Circle API key not configured'
+      error: 'Circle client not configured'
     });
   }
-  
-  if (!walletSetId) {
-    return res.status(500).json({
-      success: false,
-      error: 'Circle Wallet Set ID not configured'
-    });
-  }
-  
-  // Entity secret is used server-side only — never expose to the client
-  const warnings = [];
-  if (!entitySecret) {
-    warnings.push('Circle Entity Secret not configured');
-  }
-  
-  // Get supported tokens and blockchains from environment if available
+
   const supportedTokens = process.env.CIRCLE_SUPPORTED_TOKENS
     ? process.env.CIRCLE_SUPPORTED_TOKENS.split(',')
     : ['USDC', 'ETH', 'MATIC'];
-    
+
   const supportedBlockchains = process.env.CIRCLE_SUPPORTED_BLOCKCHAINS
     ? process.env.CIRCLE_SUPPORTED_BLOCKCHAINS.split(',')
     : ['ARC', 'ETH', 'MATIC', 'AVAX', 'ARB'];
 
-  // Prepare configuration for frontend
-  // Note: We don't send API keys or secrets to the frontend
+  const warnings = [];
+  if (!walletSetId) {
+    warnings.push('Circle Wallet Set ID not configured');
+  }
+
   const config = {
     walletSetId,
-    // entitySecretCiphertext removed — server-side only
-    entitySecretConfigured: !!entitySecret,
+    entitySecretConfigured: !!process.env.CIRCLE_ENTITY_SECRET,
     environment,
+    configured,
+    clientConfigured,
     supportedTokens,
     supportedBlockchains,
     tokenInfo: {
@@ -73,15 +55,10 @@ async function configHandler(req, res) {
         chains: ['MATIC']
       }
     },
-    lastUpdated: new Date().toISOString()
+    lastUpdated: new Date().toISOString(),
+    developerMode: environment !== 'production'
   };
-  
-  // Add developerMode flag for non-production environments
-  if (!isProduction) {
-    config.developerMode = true;
-  }
-  
-  // Return success response with environment status
+
   return res.status(200).json({
     success: true,
     data: config,
@@ -89,9 +66,8 @@ async function configHandler(req, res) {
   });
 }
 
-// Apply API middleware with appropriate configuration
 export default withApiMiddleware(configHandler, {
   allowedMethods: ['GET'],
-  rateLimit: 60, // Increased from 5 to handle more concurrent users
+  rateLimit: 60,
   rateLimitKey: 'CIRCLE_CONFIG_API'
 });

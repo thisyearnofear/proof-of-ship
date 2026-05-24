@@ -3,31 +3,102 @@
  * Uses @circle-fin/developer-controlled-wallets for W3S API
  */
 
+import crypto from "crypto";
 import {
   initiateDeveloperControlledWalletsClient,
   type CircleDeveloperControlledWalletsClient,
 } from "@circle-fin/developer-controlled-wallets";
-import { TESTNET_USDC_ADDRESSES, ARC_TESTNET_CHAIN_ID } from "../config/tokens";
+import { db } from "@/lib/firebase/serverOnly";
+import {
+  TESTNET_USDC_ADDRESSES,
+  MAINNET_USDC_ADDRESSES,
+  ARC_TESTNET_CHAIN_ID,
+  BUILDER_CREDIT_CORE_ADDRESSES,
+} from "../config/tokens";
+import { calculateFundingAmount as sharedCalculateFundingAmount } from "../lib/funding/calculateFundingAmount";
+
+const PLACEHOLDER_CONTRACT = "0x7890123456789012345678901234567890123456";
+
+/**
+ * Build the contract allowlist from runtime sources:
+ *   - BUILDER_CREDIT_ARC_ADDRESS / BUILDER_CREDIT_CONTRACT_ADDRESS env vars
+ *   - Real (non-placeholder) entries in BUILDER_CREDIT_CORE_ADDRESSES
+ *   - All known USDC token contracts (needed for approve() calls)
+ *   - Optional comma-separated CIRCLE_ALLOWED_CONTRACTS env override
+ *
+ * Built lazily (per-call) so tests and runtime env changes are picked up.
+ */
+function buildAllowedContractAddresses(): Set<string> {
+  const allowed = new Set<string>();
+
+  const envContracts = [
+    process.env.BUILDER_CREDIT_ARC_ADDRESS,
+    process.env.BUILDER_CREDIT_CONTRACT_ADDRESS,
+    ...(process.env.CIRCLE_ALLOWED_CONTRACTS || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  ];
+
+  for (const addr of envContracts) {
+    if (addr && /^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      allowed.add(addr.toLowerCase());
+    }
+  }
+
+  for (const addr of Object.values(BUILDER_CREDIT_CORE_ADDRESSES) as string[]) {
+    if (addr && addr.toLowerCase() !== PLACEHOLDER_CONTRACT.toLowerCase()) {
+      allowed.add(addr.toLowerCase());
+    }
+  }
+
+  for (const addr of Object.values(TESTNET_USDC_ADDRESSES) as string[]) {
+    if (typeof addr === "string" && /^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      allowed.add(addr.toLowerCase());
+    }
+  }
+  for (const addr of Object.values(MAINNET_USDC_ADDRESSES) as string[]) {
+    if (typeof addr === "string" && /^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      allowed.add(addr.toLowerCase());
+    }
+  }
+
+  return allowed;
+}
+
+// Function selector allowlist:
+//   0x095ea7b3 = approve(address,uint256)        — ERC-20
+//   0xa9059cbb = transfer(address,uint256)       — ERC-20
+//   0x23b872dd = transferFrom(address,address,uint256) — ERC-20
+//   keccak256("backProject(uint256,uint256,uint256)")[0:4]
+const KNOWN_FUNCTION_SELECTORS = new Set<string>([
+  "0x095ea7b3",
+  "0xa9059cbb",
+  "0x23b872dd",
+  "0x3a2b68f9",
+]);
+
+type FeeLevel = "LOW" | "MEDIUM" | "HIGH";
 
 interface WalletConfig {
   name?: string;
   description?: string;
   userId?: string;
   metadata?: Record<string, any>;
+  idempotencyKey?: string;
 }
 
 interface TransactionConfig {
   walletId: string;
   blockchain?: string;
   tokenId?: string;
-  amount: string;
+  amount?: string;
   destinationAddress: string;
-  feeLevel?: string;
+  feeLevel?: FeeLevel;
   metadata?: Record<string, any>;
-  /** Contract address for smart contract interactions (e.g., BuilderCreditCore.backProject) */
   contractAddress?: string;
-  /** ABI-encoded calldata for the contract call */
   calldata?: string;
+  idempotencyKey?: string;
 }
 
 interface FundingResult {
@@ -36,12 +107,22 @@ interface FundingResult {
   fundingAmount: number;
   creditScore: number;
   message: string;
-  mock?: boolean;
 }
 
 interface CircleResponse<T = any> {
   success: boolean;
   data: T;
+}
+
+interface IdempotencyRecord {
+  key: string;
+  action: string;
+  scope: string;
+  status: "pending" | "submitted" | "confirmed" | "failed";
+  payload?: Record<string, any>;
+  circleTxId?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 class RealCircleService {
@@ -71,25 +152,113 @@ class RealCircleService {
     });
   }
 
+  isClientConfigured(): boolean {
+    return !!(this.client && this.apiKey && this.entitySecret);
+  }
+
+  isWalletConfigured(): boolean {
+    return this.isClientConfigured() && !!this.walletSetId;
+  }
+
   isConfigured(): boolean {
-    return !!(this.client && this.apiKey && this.walletSetId);
+    return this.isWalletConfigured();
   }
 
-  generateIdempotencyKey(prefix = "tx"): string {
-    return `${prefix}-${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2, 15)}`;
+  generateIdempotencyKey(prefix = "tx", fingerprint?: string): string {
+    if (fingerprint) {
+      const hash = crypto.createHash("sha256").update(fingerprint).digest("hex").slice(0, 24);
+      return `${prefix}-${hash}`;
+    }
+    return `${prefix}-${crypto.randomUUID()}`;
   }
 
-  /**
-   * Create a new Circle wallet
-   */
+  validateWalletAddress(address: string): boolean {
+    return /^0x[a-fA-F0-9]{40}$/.test(address || "");
+  }
+
+  private async getIdempotencyRecord(key: string): Promise<IdempotencyRecord | null> {
+    try {
+      const snap = await db.collection("circleIdempotency").doc(key).get();
+      return snap.exists ? (snap.data() as IdempotencyRecord) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async reserveIdempotencyKey(
+    key: string,
+    action: string,
+    scope: string,
+    payload: Record<string, any>
+  ): Promise<IdempotencyRecord | null> {
+    const existing = await this.getIdempotencyRecord(key);
+    if (existing) return existing;
+
+    const record: IdempotencyRecord = {
+      key,
+      action,
+      scope,
+      status: "pending",
+      payload,
+      createdAt: new Date().toISOString(),
+    };
+
+    await db.collection("circleIdempotency").doc(key).set(record);
+    return null;
+  }
+
+  private async updateIdempotency(
+    key: string,
+    updates: Partial<IdempotencyRecord>
+  ): Promise<void> {
+    await db.collection("circleIdempotency").doc(key).set(
+      {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
+  }
+
+  private validateContractCall(contractAddress: string, calldata: string): void {
+    if (!contractAddress || !/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
+      throw new Error("Invalid contract address");
+    }
+    if (!calldata || !/^0x[a-fA-F0-9]+$/.test(calldata) || calldata.length < 10) {
+      throw new Error("Invalid calldata");
+    }
+
+    const allowedContracts = buildAllowedContractAddresses();
+    const normalizedAddress = contractAddress.toLowerCase();
+    if (!allowedContracts.has(normalizedAddress)) {
+      throw new Error(
+        `Contract address ${normalizedAddress} is not in the Circle allowlist`
+      );
+    }
+
+    const selector = calldata.slice(0, 10).toLowerCase();
+    if (!KNOWN_FUNCTION_SELECTORS.has(selector)) {
+      throw new Error(
+        `Contract calldata selector ${selector} is not allowlisted`
+      );
+    }
+  }
+
   async createWallet(config: WalletConfig = {}): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
+    if (!this.isWalletConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
-    const idempotencyKey = this.generateIdempotencyKey("wallet");
+    const fingerprint = JSON.stringify({
+      userId: config.userId || null,
+      name: config.name || null,
+      description: config.description || null,
+    });
+    const idempotencyKey = config.idempotencyKey || this.generateIdempotencyKey("wallet", fingerprint);
+    const existing = await this.reserveIdempotencyKey(idempotencyKey, "createWallet", "wallet", config);
+    if (existing?.circleTxId && existing.status !== "failed") {
+      return { success: true, data: { wallets: [{ id: existing.circleTxId }] } };
+    }
 
     try {
       const response = await this.client!.createWallets({
@@ -99,17 +268,20 @@ class RealCircleService {
         count: 1,
       });
 
+      await this.updateIdempotency(idempotencyKey, {
+        status: "submitted",
+        circleTxId: response.data?.wallets?.[0]?.id,
+      });
+
       return { success: true, data: response.data };
     } catch (error: any) {
+      await this.updateIdempotency(idempotencyKey, { status: "failed" });
       throw new Error(`Wallet creation failed: ${error.message}`);
     }
   }
 
-  /**
-   * Get all wallets for the wallet set
-   */
   async getWallets(walletSetId: string | null = null): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
+    if (!this.isWalletConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
@@ -117,19 +289,15 @@ class RealCircleService {
       const response = await this.client!.listWallets({
         walletSetId: walletSetId || this.walletSetId,
       });
-
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Get wallets failed: ${error.message}`);
     }
   }
 
-  /**
-   * Get wallet by ID
-   */
   async getWalletById(walletId: string): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
-      throw new Error("Circle API not properly configured");
+    if (!this.isClientConfigured()) {
+      throw new Error("Circle API client not properly configured");
     }
 
     try {
@@ -140,12 +308,9 @@ class RealCircleService {
     }
   }
 
-  /**
-   * Get wallet balances
-   */
   async getWalletBalances(walletId: string): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
-      throw new Error("Circle API not properly configured");
+    if (!this.isClientConfigured()) {
+      throw new Error("Circle API client not properly configured");
     }
 
     try {
@@ -156,51 +321,83 @@ class RealCircleService {
     }
   }
 
-  /**
-   * Create a transaction — supports USDC transfers AND smart contract calls.
-   *
-   * For USDC transfers: set destinationAddress + amount + tokenId.
-   * For contract calls (e.g. backProject): set contractAddress + calldata + destinationAddress.
-   * Circle signs and broadcasts the transaction using the wallet's stored key.
-   */
   async createTransaction(config: TransactionConfig): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
-      throw new Error("Circle API not properly configured");
+    if (!this.isClientConfigured()) {
+      throw new Error("Circle API client not properly configured");
     }
 
-    const idempotencyKey = this.generateIdempotencyKey("tx");
-    const txParams: Record<string, any> = {
-      idempotencyKey,
+    const feeLevel = config.feeLevel || "HIGH";
+    const fingerprint = JSON.stringify({
       walletId: config.walletId,
+      tokenId: config.tokenId || null,
       destinationAddress: config.destinationAddress,
-      fee: { feeLevel: "HIGH" },
-    };
+      amount: config.amount || null,
+      feeLevel,
+      contractAddress: config.contractAddress || null,
+      calldata: config.calldata || null,
+    });
+    const idempotencyKey = config.idempotencyKey || this.generateIdempotencyKey(config.contractAddress ? "ctx" : "tx", fingerprint);
+    const existing = await this.reserveIdempotencyKey(
+      idempotencyKey,
+      config.contractAddress ? "contractExecution" : "transfer",
+      config.contractAddress ? "contract" : "transfer",
+      config
+    );
 
-    // Smart contract call mode (e.g., BuilderCreditCore.backProject)
-    if (config.contractAddress && config.calldata) {
-      txParams.contractAddress = config.contractAddress;
-      txParams.calldata = config.calldata;
-      txParams.tokenId = config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID];
-    } else {
-      // Standard USDC transfer mode
-      txParams.tokenId = config.tokenId || (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID];
-      txParams.amount = [config.amount];
+    if (existing?.circleTxId && existing.status !== "failed") {
+      return { success: true, data: { id: existing.circleTxId } };
     }
 
     try {
-      const response = await this.client!.createTransaction(txParams);
+      if (config.contractAddress && config.calldata) {
+        this.validateContractCall(config.contractAddress, config.calldata);
+
+        const response = await this.client!.createContractExecutionTransaction({
+          idempotencyKey,
+          walletId: config.walletId,
+          contractAddress: config.contractAddress,
+          callData: config.calldata,
+          feeLevel: feeLevel as any,
+        });
+
+        await this.updateIdempotency(idempotencyKey, {
+          status: "submitted",
+          circleTxId: response.data?.id || response.data?.transaction?.id,
+        });
+
+        return { success: true, data: response.data };
+      }
+
+      if (!config.amount) {
+        throw new Error("amount is required for transfer transactions");
+      }
+
+      const response = await this.client!.createTransaction({
+        idempotencyKey,
+        walletId: config.walletId,
+        tokenId:
+          config.tokenId ||
+          (TESTNET_USDC_ADDRESSES as Record<number, string>)[ARC_TESTNET_CHAIN_ID],
+        destinationAddress: config.destinationAddress,
+        amount: [config.amount],
+        fee: { feeLevel },
+      });
+
+      await this.updateIdempotency(idempotencyKey, {
+        status: "submitted",
+        circleTxId: response.data?.id || response.data?.transaction?.id,
+      });
+
       return { success: true, data: response.data };
     } catch (error: any) {
+      await this.updateIdempotency(idempotencyKey, { status: "failed" });
       throw new Error(`Transaction creation failed: ${error.message}`);
     }
   }
 
-  /**
-   * Get transaction status
-   */
   async getTransactionStatus(transactionId: string): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
-      throw new Error("Circle API not properly configured");
+    if (!this.isClientConfigured()) {
+      throw new Error("Circle API client not properly configured");
     }
 
     try {
@@ -211,30 +408,24 @@ class RealCircleService {
     }
   }
 
-  /**
-   * Get Circle config info for the frontend
-   */
-  getConfig(): { success: boolean; data: { walletSetId: string; environment: string; configured: boolean } } {
+  getConfig(): { success: boolean; data: { walletSetId: string; environment: string; configured: boolean; clientConfigured: boolean } } {
     return {
       success: true,
       data: {
         walletSetId: this.walletSetId || "",
         environment: this.environment,
-        configured: this.isConfigured(),
+        configured: this.isWalletConfigured(),
+        clientConfigured: this.isClientConfigured(),
       },
     };
   }
 
-  /**
-   * Test API connection (list wallets as a connectivity check)
-   */
   async ping(): Promise<CircleResponse> {
-    if (!this.isConfigured()) {
+    if (!this.isWalletConfigured()) {
       throw new Error("Circle API not properly configured");
     }
 
     try {
-      // List wallets as a connectivity test
       const response = await this.client!.listWallets({
         walletSetId: this.walletSetId!,
       });
@@ -244,81 +435,42 @@ class RealCircleService {
     }
   }
 
-  /**
-   * Process developer funding
-   */
   async processDeveloperFunding(
     developerAddress: string,
     creditScore: number,
     metadata: Record<string, any> = {}
   ): Promise<FundingResult> {
-    if (!this.isConfigured()) {
-      console.warn("Circle API not configured, using mock funding");
-      return this.mockFunding(developerAddress, creditScore, metadata);
+    if (!this.isWalletConfigured()) {
+      throw new Error("Circle API not configured for wallet operations");
     }
 
-    try {
-      const fundingAmount = this.calculateFundingAmount(creditScore);
-
-      if (fundingAmount <= 0) {
-        throw new Error("Not eligible for funding");
-      }
-
-      const wallet = await this.createWallet({
-        name: `Developer Wallet - ${metadata.githubUsername || "Unknown"}`,
-        description: `Funding wallet for developer ${developerAddress}`,
-        userId: developerAddress,
-        metadata: { creditScore, developerAddress, ...metadata },
-      });
-
-      return {
-        success: true,
-        walletId: wallet.data.wallets[0].id,
-        fundingAmount,
-        creditScore,
-        message: "Wallet created successfully. Funding will be processed separately.",
-      };
-    } catch (error: any) {
-      throw new Error(`Developer funding failed: ${error.message}`);
-    }
-  }
-
-  /**
-   * Mock funding for when Circle API is not configured
-   */
-  mockFunding(
-    developerAddress: string,
-    creditScore: number,
-    metadata: Record<string, any> = {}
-  ): FundingResult {
     const fundingAmount = this.calculateFundingAmount(creditScore);
+    if (fundingAmount <= 0) {
+      throw new Error("Not eligible for funding");
+    }
+
+    const wallet = await this.createWallet({
+      name: `Developer Wallet - ${metadata.githubUsername || "Unknown"}`,
+      description: `Funding wallet for developer ${developerAddress}`,
+      userId: developerAddress,
+      metadata: { creditScore, developerAddress, ...metadata },
+    });
 
     return {
       success: true,
-      walletId: `mock-wallet-${Date.now()}`,
+      walletId: wallet.data.wallets[0].id,
       fundingAmount,
       creditScore,
-      message: "Mock funding processed (Circle API not configured)",
-      mock: true,
+      message: "Wallet created successfully. Funding will be processed separately.",
     };
   }
 
-  /**
-   * Calculate funding amount based on credit score
-   */
   calculateFundingAmount(creditScore: number): number {
-    if (creditScore < 400) return 0;
-    if (creditScore >= 800) return 5000;
-
-    const minFunding = 500;
-    const maxFunding = 5000;
-    const range = maxFunding - minFunding;
-    const scoreRange = 800 - 400;
-    const adjustedScore = creditScore - 400;
-
-    return Math.floor(minFunding + (range * adjustedScore) / scoreRange);
+    return sharedCalculateFundingAmount(creditScore);
   }
 }
+
+export { calculateFundingAmount } from "../lib/funding/calculateFundingAmount";
 
 // Export singleton instance
 export const realCircleService = new RealCircleService();

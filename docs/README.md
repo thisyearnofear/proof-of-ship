@@ -40,16 +40,16 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 The main happy path is now:
 1. Open **Back → Discover**
 2. Run **Scout** or open **AI Agents**
-3. Use **demo** or **live** payment mode
+3. Pay with USDC on Arc (or enable test mode to skip payments)
 4. Review the returned `status`, `resultSource`, and `nextAction`
 5. Decide whether to back the project
 
 The UI now avoids ambiguous progress states and makes it clear when a result came from:
 - live AI
 - cache
-- demo mode
-- fallback logic
 - rule-based logic
+- fallback logic
+- test mode (when explicitly enabled)
 
 ## Payout Verification & Hackathon Leaderboard
 
@@ -161,7 +161,7 @@ To upgrade BuilderCreditCore with new logic:
 
 ## Integrations
 
-- **Circle / Arc** — USDC settlement and nanopayment-backed agent calls
+- **Circle W3S (Developer-Controlled Wallets)** — USDC settlement, wallet management, and smart contract execution on Arc. Single service (`RealCircleService`) handles all Circle API calls. Webhook endpoint at `/api/circle/webhook` for push-based transaction settlement. Contract calls validated against an allowlist of `BuilderCreditCore` deployments.
 - **MetaMask SDK** — wallet connection
 - **Solana Name Service (SNS)** — .sol identity
 - **Cloak** — private USDC transfers

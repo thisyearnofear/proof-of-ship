@@ -26,9 +26,34 @@ The chat assistant uses a cascading provider strategy:
 ## Quick Start
 
 ```bash
-npm run setup        # install all dependencies
-npm run dev          # frontend dev server
-npm run blockchain:test  # run contract tests
+npm run setup        # install all dependencies (pnpm required)
+npm run dev          # frontend dev server at localhost:3000
+npm run blockchain:test  # run Solidity contract tests
+```
+
+### Testing
+
+```bash
+# Frontend unit tests
+cd frontend && npx vitest run
+
+# Type checking
+cd frontend && npx tsc --noEmit
+
+# Smart contract tests
+npm run blockchain:test
+
+# Solana program tests
+cd blockchain-solana && anchor test
+```
+
+### Firebase Emulator (local dev)
+
+```bash
+# Requires firebase-tools: npm install -g firebase-tools
+firebase init emulators  # one-time: select Firestore + Auth + Storage
+firebase emulators:start
+# Set FIRESTORE_EMULATOR_HOST=localhost:8080 and use demo-* project IDs
 ```
 
 ## On-Chain (Solana Devnet)

@@ -65,7 +65,7 @@ async function handler(req, res) {
 
     let verification;
     let aisaPayment = null;
-    let resultSource = req.nanopayment?.demo ? "demo" : "fallback";
+    let resultSource = "fallback";
     let status = "fallback";
 
     if (isAisaConfigured()) {
@@ -184,7 +184,7 @@ async function handler(req, res) {
         feePaid: req.nanopayment.amount,
         txHash: req.nanopayment.txHash,
         network: network || "arc",
-        paymentStatus: req.nanopayment.demo ? "demo" : (req.nanopayment.verificationStatus || "unverified"),
+        paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"),
         ...(aisaPayment && { aisaPayment }),
       },
       verification,

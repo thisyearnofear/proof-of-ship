@@ -13,28 +13,23 @@ Get started with the platform in minutes.
 
 To use AI agents (Scout, Underwriter, Verifier), you need a payment wallet with USDC on Arc.
 
-### Option 1: Demo Mode (Recommended for Testing)
+### Get USDC on Arc Testnet
 
-Demo mode is free and lets you test the full AI agent flow without real payments.
+1. Visit the [Arc Faucet](https://www.circle.com/en/USDC)
+2. Or ask in the Proof of Ship Discord
 
-1. Go to **Back → Economy** tab
-2. Click **"Use Demo Mode"**
-3. That's it — you can now run AI agents for free
+### Set Up Your Wallet
 
-### Option 2: Live USDC Wallet
+1. Go to **Back → Economy**
+2. Click **"Set up payment wallet"**
+3. Follow the prompts to deposit USDC
+4. Verify your balance is showing
 
-For real nanopayments:
+### Test Mode (Optional)
 
-1. **Get USDC** on Arc testnet:
-   - Visit the [Arc Faucet](https://www.circle.com/en/USDC)
-   - Or ask in the Proof of Ship Discord
-
-2. **Set up your wallet** on **Back → Economy**:
-   - Connect your wallet
-   - Click **"Set Up Payment"**
-   - Follow the prompts to deposit USDC
-
-3. **Verify** your balance is showing
+For testing without real payments, enable test mode in the Economy tab toggle.
+Test mode skips payment verification and marks responses as `test_mode`.
+Requires `ALLOW_DEMO_PAYMENTS=true` on the server (never enabled in production).
 
 ## Using AI Agents
 
@@ -71,17 +66,18 @@ Each agent returns:
 - **resultSource**: Where the result came from:
   - `live_ai` — real AI analysis
   - `cached` — previous result (faster)
-  - `demo` — demo mode (free)
   - `rule_based` — scoring algorithm
+  - `fallback` — degraded output
 - **nextAction**: Suggested next step
 - **agentInfo**: Payment details and tx hash
+- **agentInfo.paymentStatus**: `verified`, `test_mode`, `degraded`, or `unverified`
 
 ## Troubleshooting
 
 ### "Payment Required" Error
 
-- Switch to **demo mode** for free testing
-- Or **deposit USDC** in your payment wallet
+- **Deposit USDC** in your payment wallet on the Economy tab
+- Or enable **test mode** in the Economy tab toggle (requires server-side `ALLOW_DEMO_PAYMENTS=true`)
 
 ### "Project Not Found"
 

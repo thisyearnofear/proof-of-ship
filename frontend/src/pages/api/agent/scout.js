@@ -184,7 +184,7 @@ async function scoutHandler(req, res) {
     // AIsa-powered ecosystem analysis (optional)
     let ecosystemAnalysis = null;
     let aisaPayment = null;
-    let resultSource = req.nanopayment?.demo ? "demo" : "rule_based";
+    let resultSource = "rule_based";
     if (isAisaConfigured()) {
       try {
         const avgScore = scored.length > 0
@@ -228,7 +228,7 @@ async function scoutHandler(req, res) {
         feePaid: req.nanopayment?.amount || 0,
         txHash: req.nanopayment?.txHash,
         network: "arc",
-        paymentStatus: req.nanopayment?.demo ? "demo" : (req.nanopayment?.verificationStatus || "unverified"),
+        paymentStatus: req.nanopayment?.testMode ? "test_mode" : (req.nanopayment?.verificationStatus || "unverified"),
         ...(aisaPayment && { aisaPayment }),
       },
       runId,

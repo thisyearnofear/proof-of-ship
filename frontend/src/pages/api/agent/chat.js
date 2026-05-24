@@ -178,7 +178,7 @@ async function chatHandler(req, res) {
         cost,
         txHash: req.nanopayment?.txHash,
         network: "arc",
-        paymentStatus: req.nanopayment?.demo ? "demo" : (req.nanopayment?.verificationStatus || "unverified"),
+        paymentStatus: req.nanopayment?.testMode ? "test_mode" : (req.nanopayment?.verificationStatus || "unverified"),
         ...(aiPayment && { aiPayment }),
       },
     });
@@ -201,7 +201,7 @@ function getContextualReply(message) {
     return "We have 3 AI agents: **Underwriter** ($0.05) scores project health, **Scout** ($0.01) finds top projects across ecosystems, and **Verifier** ($0.01) checks code quality. Try them on the **Back** page → Economy tab!";
   }
   if (lower.match(/x402|nanopay|payment|usdc|cost|price/)) {
-    return "x402 nanopayments let you pay small USDC amounts for AI analysis. Set up your payment wallet on the **Back** page to unlock stronger agent flows — demo mode also works for testing.";
+    return "x402 nanopayments let you pay small USDC amounts for AI analysis. Set up your payment wallet on the **Back** page to unlock agent flows.";
   }
   if (lower.match(/explore|browse|find|search|project/)) {
     return "Head to the **Explore** page to browse projects across 7 ecosystems. Use the search bar to filter by name or category. Click any project for details and AI analysis!";

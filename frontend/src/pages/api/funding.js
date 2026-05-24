@@ -107,7 +107,7 @@ async function handler(req, res) {
           environment,
           message: isConfigured 
             ? `Circle API configured for ${environment} environment`
-            : 'Circle API not configured - using mock mode'
+            : 'Circle API not configured'
         });
 
       case 'transferUSDC':

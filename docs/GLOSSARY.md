@@ -12,7 +12,9 @@ Defines every domain-specific term used across the codebase and docs.
 | **Cloak** | Service | Privacy layer for shielded USDC transfers on Solana. Keeps backer positions and payment amounts hidden. |
 | **Compass Score** | Metric | Backer portfolio health score — measures diversification, returns, and risk |
 | **Expedition** | *(deprecated)* | Old name for a project presented to a backer. Replaced by **project**. |
+| **Entity Secret** | Config | Circle API credential used to sign requests to the W3S SDK. Server-side only — must never reach the frontend. Set via `CIRCLE_ENTITY_SECRET` env var. |
 | **Health Score** | Metric | Project quality score (0-100) derived from GitHub activity, description, and submission completeness |
+| **Idempotency Key** | Config | Unique token submitted with each Circle API request to prevent duplicate transactions on retry. Persisted in Firestore (`circleIdempotency` collection) before submission. |
 | **Milestone** | Concept | A verifiable deliverable a builder commits to shipping. Milestone verification triggers USDC release. |
 | **Nanopayment** | Payment | Sub-cent USDC payment for AI agent calls via x402 protocol on Arc |
 | **QVAC** | Service | Tether's local-first AI inference SDK. On-device analysis that never sends project data to the cloud. |
@@ -23,4 +25,5 @@ Defines every domain-specific term used across the codebase and docs.
 | **Trade Winds** | Config | Ecosystem-specific credit boost multipliers |
 | **Underwriter** | Agent | AI agent that evaluates projects and returns a health score with next-action guidance. $0.05/call. |
 | **Verifier** | Agent | AI agent that reviews milestone PRs and code deliverables. $0.001/10 LOC. |
+| **W3S** | SDK | Circle's Developer-Controlled Wallets SDK (`@circle-fin/developer-controlled-wallets`). Manages wallet creation, USDC transfers, and smart contract execution. Replaces the older `@circle-fin/circle-sdk` for all server-side operations. |
 | **x402** | Protocol | Nanopayment protocol on Arc for per-call AI agent billing |

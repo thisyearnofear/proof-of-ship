@@ -12,7 +12,6 @@ interface WalletConfig {
 }
 
 interface TransferRequest {
-    idempotencyKey: string;
     walletId: string;
     amount: string;
     destinationAddress: string;

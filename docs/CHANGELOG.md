@@ -1,5 +1,87 @@
 # Changelog
 
+## 2026-05-24 — Demo Flow Sunset: Real Payments First
+
+Replaced the auto-enabled demo mode with an explicit opt-in test mode.
+Real x402 nanopayments are now the default experience for all users.
+
+### Middleware (`nanopayment.js`)
+- `isDemoMode()` renamed to `isTestMode()`. No longer auto-activates from `NODE_ENV === 'development'`.
+- Test mode now requires explicit `ALLOW_DEMO_PAYMENTS=true` env var.
+- Production guard: test mode is always disabled when `NODE_ENV === 'production'`, regardless of env var.
+- `demoModeFlow()` renamed to `testModeFlow()`. Header changed from `x-demo-key: demo` to `x-test-mode: true`.
+- `req.nanopayment.demo` field renamed to `req.nanopayment.testMode`.
+
+### Client (`NanopaymentContext.tsx`)
+- Default flipped: real payments first. Test mode only if user explicitly toggled it on (persisted in localStorage).
+- localStorage key changed from `nanopayment-demo-mode` to `nanopayment-test-mode`.
+- No longer auto-initializes test wallet in development.
+- `x-demo-key` header replaced with `x-test-mode` header.
+
+### UI (`NanopaymentWidget.js`, `EconomyTab.js`)
+- Primary CTA changed from "Start in demo mode" to "Set up payment wallet".
+- Test mode available as a small secondary link: "Or skip payments with test mode".
+- Toggle label changed from "Demo mode" to "Test mode".
+- Description changed from "Use simulated USDC" to "Payments skipped. Responses marked as test mode."
+- Status bar changed from "Demo analysis mode" to "Test mode — payments skipped".
+
+### Agent Endpoints
+- `resultSource` no longer returns "demo" — always returns the actual source (rule_based, live_ai, cached, fallback).
+- `paymentStatus` field changed from "demo" to "test_mode" when test mode is active.
+- `paymentDemo` field renamed to `paymentTestMode` in execute.js.
+- Chat help text no longer mentions demo mode.
+
+### Files Changed
+`nanopayment.js` | `NanopaymentContext.tsx` | `NanopaymentWidget.js` | `EconomyTab.js` |
+`agent/scout.js` | `agent/underwrite.js` | `agent/verify.js` | `agent/chat.js` |
+`agent/execute.js` | `agent/stream.js`
+
+---
+
+## 2026-05-24 — Circle API Consolidation: Mock Removal, W3S Migration, Webhooks
+
+Production-hardening pass that eliminates all mock/fallback paths, consolidates
+Circle integrations onto the W3S SDK, and adds push-based transaction settlement.
+
+### Mock & Fallback Removal
+- **`RealCircleService.ts`**: `processDeveloperFunding()` now throws when Circle API is not configured instead of silently returning mock data. `mockFunding()` method deleted.
+- **`usdcPayments.js`**: Complete rewrite — delegates to `RealCircleService` instead of importing `@circle-fin/circle-sdk`. No mock fallback paths remain.
+- **`FundingInterface.js`**: UI message changed from "demo mode" to "Funding unavailable — Circle API credentials not configured."
+
+### SDK Consolidation (old `@circle-fin/circle-sdk` → W3S)
+- **`api/circle/transactions.js`**: Migrated from `circle.wallets.*` to `realCircleService.createTransaction/getTransactionStatus`.
+- **`api/circle/wallets/[id].js`**: Migrated to `realCircleService.getWalletById()`.
+- **`api/circle/wallets/[id]/balances.js`**: Removed `formatTokenAmount` import from old utils.
+- **`api/circle/config.js`**: Migrated from `getCircleEnvironment()` to `realCircleService.getConfig()`.
+- **`api/circle/transfer.js`**: Replaced raw `fetch` calls to old REST API with `realCircleService.createTransaction()`.
+- **`agent/execute.js`**: Migrated from raw REST + `generateEntitySecretCiphertext` to `realCircleService.createTransaction()` for contract execution.
+- **`utils/circleApi.js`**: Stripped to pure formatting helpers (`formatCircleError`, `formatTokenAmount`). Old SDK initialization removed. Now dead code for API routes.
+- **`CrossChainFunding.js`**: Removed `usdcPaymentService` import (was pulling `@circle-fin/circle-sdk` into client bundle). Now imports standalone `calculateFundingAmount` from `lib/funding/calculateFundingAmount.ts`.
+- **`lib/funding/calculateFundingAmount.ts`** (new): Pure function module with no server-only or SDK imports. Safe for client components.
+
+### Idempotency Persistence
+- **`RealCircleService.ts`**: All `createTransaction`, `createWallet`, and `createContractExecutionTransaction` calls now check Firestore (`circleIdempotency` collection) before submitting. Records stored before Circle call, updated with transaction ID after.
+- **`RealCircleService.ts`**: `generateIdempotencyKey()` now uses `crypto.randomUUID()` for deterministic keys. Overload accepts caller-provided idempotency key.
+
+### Webhook Endpoint
+- **`api/circle/webhook.js`** (new): Receives Circle push notifications for transaction status changes. HMAC-SHA256 signature verification. Updates `circleIdempotency`, `PayoutLogs`, and `transactionStatuses` Firestore collections. Requires `CIRCLE_WEBHOOK_SECRET` env var.
+
+### Contract Validation
+- **`RealCircleService.ts`**: `validateContractCall()` checks `contractAddress` against `BUILDER_CREDIT_CORE_ADDRESSES` allowlist and validates calldata function selector against known signatures (`backProject`, `approve`, `transfer`).
+
+### Configuration Checks
+- **`RealCircleService.ts`**: `isClientConfigured()` (apiKey + entitySecret) for transaction-only ops. `isWalletConfigured()` (+ walletSetId) for wallet operations. `getTransactionStatus()` uses `isClientConfigured()` so it works without `walletSetId`.
+- **`RealCircleService.ts`**: `createTransaction()` uses `createContractExecutionTransaction()` (correct W3S SDK method) for contract calls instead of `createTransaction()` with mixed-in fields.
+- **`RealCircleService.ts`**: `config.feeLevel` wired through to both `createTransaction()` and `createContractExecutionTransaction()`. Defaults to `"HIGH"` only when not specified.
+
+### Files Changed
+`RealCircleService.ts` | `usdcPayments.js` | `usdcPayments.test.js` | `CrossChainFunding.js` |
+`FundingInterface.js` | `agent/execute.js` | `api/circle/config.js` | `api/circle/transactions.js` |
+`api/circle/transfer.js` | `api/circle/wallets/[id].js` | `api/circle/wallets/[id]/balances.js` |
+`api/circle/webhook.js` (new) | `lib/funding/calculateFundingAmount.ts` (new) | `utils/circleApi.js`
+
+---
+
 ## 2026-05-21 — Whole-Platform Reduction Pass: Naming, Routes, Data, and Polish
 
 This was a systematic multi-phase consolidation addressing every dimension identified

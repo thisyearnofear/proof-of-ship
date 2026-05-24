@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { crossChainUSDCService } from '../lib/lifiIntegration';
-import { usdcPaymentService } from '../lib/usdcPayments';
+import { calculateFundingAmount as computeFundingAmount } from '../lib/funding/calculateFundingAmount';
 import { useWallet } from '../contexts/WalletContext';
 import { useCircleWallet } from '../contexts/WalletContext';
 import Button from './common/Button';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';
+
 
 export default function CrossChainFunding({ creditScore, developerAddress, onFundingComplete }) {
   const { account, ethersProvider: provider } = useWallet();
@@ -46,8 +47,8 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
   };
 
   const calculateFundingAmount = () => {
-    // Use the same calculation logic as the USDC payment service for consistency
-    const amount = usdcPaymentService.calculateFundingAmount(creditScore);
+    // Use the standalone pure function — no server-side SDK dependency
+    const amount = computeFundingAmount(creditScore);
     setFundingAmount(amount);
   };
 

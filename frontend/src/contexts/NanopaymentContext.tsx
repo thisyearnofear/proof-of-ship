@@ -65,12 +65,11 @@ export function NanopaymentProvider({ children }: { children: ReactNode }) {
 
   const [nanopaymentDemoMode, setNanopaymentDemoMode] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('nanopayment-demo-mode');
-      return saved !== null
-        ? saved === 'true'
-        : (process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development');
+      const saved = localStorage.getItem('nanopayment-test-mode');
+      // Default: real payments. Test mode only if explicitly saved as 'true'.
+      return saved === 'true';
     }
-    return process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV === 'development';
+    return false;
   });
 
   const addTransaction = useCallback((tx: NanopaymentTransaction) => {
@@ -80,7 +79,7 @@ export function NanopaymentProvider({ children }: { children: ReactNode }) {
   const setDemoMode = useCallback((mode: boolean) => {
     setNanopaymentDemoMode(mode);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('nanopayment-demo-mode', mode.toString());
+      localStorage.setItem('nanopayment-test-mode', mode.toString());
     }
   }, []);
 
@@ -194,7 +193,7 @@ export function NanopaymentProvider({ children }: { children: ReactNode }) {
           ...(isChat ? { method: 'POST' } : {}),
           headers: {
             ...(isChat ? { 'Content-Type': 'application/json' } : {}),
-            'x-demo-key': 'demo',
+            'x-test-mode': 'true',
           },
           ...(isChat ? { body: requestOptions.body } : {}),
         });

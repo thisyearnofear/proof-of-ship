@@ -83,17 +83,14 @@ describe('USDCPaymentService', () => {
   });
 
   describe('processDeveloperFunding', () => {
-    test('processes mock funding when API key not configured', async () => {
-      const result = await service.processDeveloperFunding(
-        '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
-        720,
-        {}
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.mockFunding).toBe(true);
-      expect(result.amount).toBeGreaterThan(0);
-      expect(result.transfer.mock).toBe(true);
+    test('throws when Circle API is not configured', async () => {
+      await expect(
+        service.processDeveloperFunding(
+          '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+          720,
+          {}
+        )
+      ).rejects.toThrow();
     });
 
     test('throws error for low credit scores', async () => {

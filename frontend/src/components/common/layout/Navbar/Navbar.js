@@ -96,7 +96,7 @@ export default function Navbar() {
 
   return (
     <div>
-      <Disclosure as="nav" className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700">
+      <Disclosure as="nav" className="bg-surface shadow-lg border-b border-default">
         {({ open }) => (
           <>
             <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
@@ -112,7 +112,7 @@ export default function Navbar() {
                         className="rounded w-8 h-8 sm:w-10 sm:h-10"
                       />
                       <div className="hidden sm:block">
-                        <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100">Proof of Ship</div>
+                        <div className="text-base sm:text-lg font-bold text-primary">Proof of Ship</div>
                       </div>
                     </Link>
                   </div>
@@ -132,7 +132,7 @@ export default function Navbar() {
                           className={classNames(
                             pathname === item.href
                               ? "bg-blue-50 text-blue-700 border-blue-200"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-transparent",
+                              : "text-secondary hover:text-gray-900 hover:bg-gray-50 border-transparent",
                             "group flex items-center px-3 py-2 text-sm font-medium rounded-md border transition-all duration-200"
                           )}
                           aria-current={
@@ -144,7 +144,7 @@ export default function Navbar() {
                               className={classNames(
                                 pathname === item.href
                                   ? "text-blue-600"
-                                  : "text-gray-400 group-hover:text-gray-600",
+                                  : "text-muted group-hover:text-gray-600",
                                 "mr-2 h-4 w-4"
                               )}
                             />
@@ -191,7 +191,7 @@ export default function Navbar() {
                           </div>
                         )}
                         <div className="hidden md:flex flex-col items-start text-left leading-tight">
-                          <span className="text-xs font-semibold text-gray-900 dark:text-white truncate max-w-[100px]">
+                          <span className="text-xs font-semibold text-primary truncate max-w-[100px]">
                             {currentUser.displayName || (activeWallet ? activeWallet.label : 'User')}
                           </span>
                           <span className={`text-[10px] font-medium ${userRole === 'backer' ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}`}>
@@ -203,9 +203,9 @@ export default function Navbar() {
                       <Transition as={Fragment}
                         enter="transition ease-out duration-200" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100"
                         leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 focus:outline-none border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-xl bg-surface shadow-xl ring-1 ring-black/5 focus:outline-none border border-default overflow-hidden">
                           {/* Identity header */}
-                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/80 border-b border-gray-100 dark:border-gray-700">
+                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/80 border-b border-default">
                             <div className="flex items-center gap-3">
                               {currentUser.photoURL ? (
                                 <img src={currentUser.photoURL} alt="" className="w-10 h-10 rounded-full" />
@@ -215,12 +215,12 @@ export default function Navbar() {
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{currentUser.displayName || 'User'}</p>
+                                <p className="text-sm font-bold text-primary truncate">{currentUser.displayName || 'User'}</p>
                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                   <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${userRole === 'backer' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'}`}>
                                     {userRole === 'backer' ? 'Backer' : 'Builder'}
                                   </span>
-                                  {githubUsername && <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate">gh/{githubUsername}</span>}
+                                  {githubUsername && <span className="text-[10px] text-tertiary truncate">gh/{githubUsername}</span>}
                                   {activeWallet && <span className={`text-[10px] font-mono ${activeWallet.color === 'purple' ? 'text-purple-500' : 'text-orange-500'}`}>{activeWallet.label}</span>}
                                 </div>
                               </div>
@@ -256,21 +256,21 @@ export default function Navbar() {
                             {githubUsername && (
                               <Menu.Item>{({ active }) => (
                                 <Link href={`/u/${githubUsername}`}
-                                  className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200")}>
-                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" /> My Portfolio
+                                  className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-primary")}>
+                                  <GlobeAltIcon className="mr-3 h-4 w-4 text-muted" /> My Portfolio
                                 </Link>
                               )}</Menu.Item>
                             )}
                             <Menu.Item>{({ active }) => (
                               <Link href="/profile"
-                                className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200")}>
-                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" /> Profile &amp; Wallets
+                                className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-primary")}>
+                                <UserCircleIcon className="mr-3 h-4 w-4 text-muted" /> Profile &amp; Wallets
                               </Link>
                             )}</Menu.Item>
                             <Menu.Item>{({ active }) => (
                               <Link href="/build"
-                                className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200")}>
-                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" /> Credit Dashboard
+                                className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2 text-sm text-primary")}>
+                                <CreditCardIcon className="mr-3 h-4 w-4 text-muted" /> Credit Dashboard
                               </Link>
                             )}</Menu.Item>
                             {userRole !== 'backer' && (
@@ -290,7 +290,7 @@ export default function Navbar() {
                               )}</Menu.Item>
                             )}
                           </div>
-                          <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                          <div className="border-t border-default py-1">
                             <Menu.Item>{({ active }) => (
                               <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}
                                 className={classNames(active ? "bg-red-50 dark:bg-red-900/20" : "", "flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400")}>
@@ -318,7 +318,7 @@ export default function Navbar() {
                     /* ── Signed-out: clear CTA buttons ── */
                     <div className="flex items-center gap-2">
                       <Link href="/login"
-                        className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        className="px-3 py-1.5 text-sm font-medium text-primary hover:text-gray-900 dark:hover:text-white border border-default rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                         Sign in
                       </Link>
                       <Link href="/login"
@@ -344,14 +344,14 @@ export default function Navbar() {
                       <Transition as={Fragment}
                         enter="transition ease-out duration-200" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100"
                         leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                        <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-xl bg-white dark:bg-gray-800 shadow-xl ring-1 ring-black/5 focus:outline-none border border-gray-200 dark:border-gray-700 overflow-hidden">
-                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/80 border-b border-gray-100 dark:border-gray-700">
-                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{currentUser.displayName || 'User'}</p>
+                        <Menu.Items className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-xl bg-surface shadow-xl ring-1 ring-black/5 focus:outline-none border border-default overflow-hidden">
+                          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900/80 border-b border-default">
+                            <p className="text-sm font-bold text-primary truncate">{currentUser.displayName || 'User'}</p>
                             <div className="flex gap-1.5 mt-1 flex-wrap">
                               <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${userRole === 'backer' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'}`}>
                                 {userRole === 'backer' ? 'Backer' : 'Builder'}
                               </span>
-                              {githubUsername && <span className="text-[10px] text-gray-500 dark:text-gray-400">gh/{githubUsername}</span>}
+                              {githubUsername && <span className="text-[10px] text-tertiary">gh/{githubUsername}</span>}
                               {activeWallet && <span className={`text-[10px] font-mono ${activeWallet.color === 'purple' ? 'text-purple-500' : 'text-orange-500'}`}>{activeWallet.label}</span>}
                             </div>
                             {/* Identity status */}
@@ -376,17 +376,17 @@ export default function Navbar() {
                           </div>
                           <div className="py-1">
                             <Menu.Item>{({ active }) => (
-                              <Link href="/profile" className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200")}>
-                                <UserCircleIcon className="mr-3 h-4 w-4 text-gray-400" /> Profile &amp; Wallets
+                              <Link href="/profile" className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2.5 text-sm text-primary")}>
+                                <UserCircleIcon className="mr-3 h-4 w-4 text-muted" /> Profile &amp; Wallets
                               </Link>
                             )}</Menu.Item>
                             <Menu.Item>{({ active }) => (
-                              <Link href="/build" className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200")}>
-                                <CreditCardIcon className="mr-3 h-4 w-4 text-gray-400" /> Credit Dashboard
+                              <Link href="/build" className={classNames(active ? "bg-gray-50 dark:bg-gray-700/50" : "", "flex items-center px-4 py-2.5 text-sm text-primary")}>
+                                <CreditCardIcon className="mr-3 h-4 w-4 text-muted" /> Credit Dashboard
                               </Link>
                             )}</Menu.Item>
                           </div>
-                          <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                          <div className="border-t border-default py-1">
                             <Menu.Item>{({ active }) => (
                               <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}
                                 className={classNames(active ? "bg-red-50 dark:bg-red-900/20" : "", "flex items-center px-4 py-2.5 text-sm text-red-600 dark:text-red-400")}>
@@ -406,7 +406,7 @@ export default function Navbar() {
                       Get Started
                     </Link>
                   )}
-                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-touch min-h-touch">
+                  <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-1.5 text-muted hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-touch min-h-touch">
                     <span className="sr-only">Open main menu</span>
                     {open ? (
                       <XMarkIcon className="block h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
@@ -427,7 +427,7 @@ export default function Navbar() {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Disclosure.Panel className="sm:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              <Disclosure.Panel className="sm:hidden bg-surface border-t border-default">
                 <div className="space-y-1 px-2 py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
                   {navigation
                     .filter(
@@ -445,7 +445,7 @@ export default function Navbar() {
                       className={classNames(
                         pathname === item.href
                           ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                          : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800",
+                          : "text-secondary hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800",
                         "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium min-h-touch transition-colors"
                       )}
                       aria-current={pathname === item.href ? "page" : undefined}
@@ -455,7 +455,7 @@ export default function Navbar() {
                           className={classNames(
                             pathname === item.href
                               ? "text-blue-600 dark:text-blue-400"
-                              : "text-gray-400 dark:text-gray-500",
+                              : "text-muted",
                             "mr-3 h-4 w-4 sm:h-5 sm:w-5"
                           )}
                         />
@@ -466,7 +466,7 @@ export default function Navbar() {
 
                   {/* Mobile balance + AI agents button */}
                   {nanopayReady && (
-                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <div className="mt-2 pt-2 border-t border-default">
                       <Link
                         href="/back"
                         className="flex items-center justify-between rounded-md px-3 py-2.5 bg-teal-50 dark:bg-teal-900/20 text-sm font-medium min-h-touch"
@@ -483,7 +483,7 @@ export default function Navbar() {
                   )}
                   
                   {!currentUser && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="mt-4 pt-4 border-t border-default">
                       {activeWallet && (
                         <div className={`flex items-center gap-2 px-3 py-2 mb-2 rounded-md text-xs font-mono ${activeWallet.color === 'purple' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'}`}>
                           <span className={`w-2 h-2 rounded-full animate-pulse ${activeWallet.color === 'purple' ? 'bg-purple-500' : 'bg-orange-500'}`} />
@@ -492,7 +492,7 @@ export default function Navbar() {
                       )}
                       <Link
                         href="/login"
-                        className="block bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
+                        className="block bg-surface-tertiary text-primary px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
                         {activeWallet ? 'Complete setup' : 'Sign in'}
                       </Link>
@@ -504,7 +504,7 @@ export default function Navbar() {
           </>
         )}
       </Disclosure>
-      <div className="bg-white dark:bg-gray-900 shadow-sm hidden sm:block">
+      <div className="bg-surface shadow-sm hidden sm:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2">
           <Breadcrumbs />
         </div>

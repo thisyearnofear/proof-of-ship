@@ -38,7 +38,7 @@ export default function EconomyTab() {
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3 text-sm">
           <div>
             <p className="font-semibold text-gray-900 dark:text-gray-100">1. Set up</p>
-            <p className="text-gray-600 dark:text-gray-300">Choose demo mode to test or live mode to use real USDC.</p>
+            <p className="text-gray-600 dark:text-gray-300">Connect a wallet with USDC on Arc, or use test mode to skip payments.</p>
           </div>
           <div>
             <p className="font-semibold text-gray-900 dark:text-gray-100">2. Run analysis</p>

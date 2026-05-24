@@ -88,12 +88,10 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
   const [resultMessage, setResultMessage] = useState(null);
 
   useEffect(() => {
-    if (!isInitialized && (process.env.NEXT_PUBLIC_DEMO_MODE === "true" || process.env.NODE_ENV === "development")) {
-      initializeWithDemo();
-    }
+    // No longer auto-initialize in test mode. Users must explicitly opt in.
   }, []);
 
-  if (!isInitialized && process.env.NEXT_PUBLIC_DEMO_MODE !== "true" && process.env.NODE_ENV !== "development") {
+  if (!isInitialized) {
     return <UninitializedWidget onInitialize={initializeWithDemo} />;
   }
 
@@ -154,7 +152,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
     }
   };
 
-  if (!isInitialized && process.env.NEXT_PUBLIC_DEMO_MODE !== "true") {
+  if (!isInitialized) {
     return <UninitializedWidget onInitialize={initializeWithDemo} />;
   }
 
@@ -170,7 +168,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
             <div>
               <h3 className="font-bold text-white">AI analysis wallet</h3>
               <p className="text-[11px] text-indigo-100">
-                {nanopaymentDemoMode ? "Demo mode" : "Live mode"} · {formatUSDC(balance.available)} available
+                {nanopaymentDemoMode ? "Test mode" : "Live mode"} · {formatUSDC(balance.available)} available
               </p>
             </div>
           </div>
@@ -190,11 +188,11 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
                 <CogIcon className="w-5 h-5 text-gray-600" />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">
-                    {nanopaymentDemoMode ? "Demo mode" : "Live mode"}
+                    {nanopaymentDemoMode ? "Test mode" : "Live mode"}
                   </p>
                   <p className="text-xs text-gray-500">
                     {nanopaymentDemoMode
-                      ? "Use simulated USDC to test flows end to end."
+                      ? "Payments skipped. Responses marked as test mode."
                       : "Use real USDC for live Arc-backed payments."}
                   </p>
                 </div>
@@ -323,7 +321,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
 
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-2">
         <span className={`w-2 h-2 rounded-full ${nanopaymentDemoMode ? 'bg-amber-400' : 'bg-green-400'} animate-pulse`} />
-        <span className="text-xs text-gray-400">{nanopaymentDemoMode ? 'Demo analysis mode' : 'Arc-backed live payment mode'}</span>
+        <span className="text-xs text-gray-400">{nanopaymentDemoMode ? 'Test mode — payments skipped' : 'Arc-backed live payment mode'}</span>
       </div>
     </div>
   );
@@ -468,22 +466,28 @@ function UninitializedWidget({ onInitialize }) {
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
       <div className="text-center">
         <RocketLaunchIcon className="w-12 h-12 mx-auto text-indigo-500 mb-4" />
-        <h3 className="font-bold text-lg text-gray-900 mb-2">Start with a payment wallet</h3>
+        <h3 className="font-bold text-lg text-gray-900 mb-2">Set up payment wallet</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Use demo mode to test the flow before going live with real USDC-backed analysis.
+          Connect a wallet with USDC on Arc to run AI agents. Payments settle instantly via x402.
         </p>
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <p className="text-xs text-gray-400 mb-2">Common actions:</p>
+          <p className="text-xs text-gray-400 mb-2">Per-request pricing:</p>
           <div className="text-sm space-y-1">
             <p><span className="font-medium">Scout:</span> $0.01 per scan</p>
             <p><span className="font-medium">Underwriter:</span> $0.05 per project</p>
             <p><span className="font-medium">Verifier:</span> $0.001 per 10 lines</p>
-            <p><span className="font-medium">Premium Chat:</span> $0.005 per message</p>
+            <p><span className="font-medium">Chat:</span> $0.005 per message</p>
           </div>
         </div>
-        <Button variant="primary" onClick={onInitialize}>
-          Start in demo mode
+        <Button variant="primary" onClick={onInitialize} className="w-full mb-2">
+          Set up payment wallet
         </Button>
+        <button
+          onClick={onInitialize}
+          className="text-xs text-gray-400 hover:text-gray-600 underline"
+        >
+          Or skip payments with test mode
+        </button>
       </div>
     </div>
   );

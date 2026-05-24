@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/router";
 import localFont from "next/font/local";
 import { sdk } from "@farcaster/miniapp-sdk";
 import AppProviders from "@/providers/AppProviders";
@@ -25,6 +26,34 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+
+function RouteLoadingBar() {
+  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
+
+  React.useEffect(() => {
+    const start = () => setLoading(true);
+    const end = () => setLoading(false);
+
+    router.events.on("routeChangeStart", start);
+    router.events.on("routeChangeComplete", end);
+    router.events.on("routeChangeError", end);
+
+    return () => {
+      router.events.off("routeChangeStart", start);
+      router.events.off("routeChangeComplete", end);
+      router.events.off("routeChangeError", end);
+    };
+  }, [router]);
+
+  if (!loading) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[9999] h-1">
+      <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 animate-pulse" />
+    </div>
+  );
+}
 
 export default function App({ Component, pageProps }) {
   useNoSSR(() => {});
@@ -53,6 +82,7 @@ export default function App({ Component, pageProps }) {
 
   return (
     <AppProviders>
+      <RouteLoadingBar />
       <div
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
       >

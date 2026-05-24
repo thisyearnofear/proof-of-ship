@@ -24,12 +24,15 @@ jobs:
       - run: pnpm install --frozen-lockfile --filter ./frontend
       - name: Lint
         run: pnpm --filter frontend run lint
-        continue-on-error: true
+      - name: TypeScript
+        run: pnpm --filter frontend exec npx tsc --noEmit
       - name: Test
         run: pnpm --filter frontend run test -- --run --reporter=verbose
+      - name: Security Audit
+        run: pnpm audit --audit-level=high || true
       - name: Build
         run: pnpm --filter frontend run build
         env:
-          NEXT_PUBLIC_DEMO_MODE: 'true'
+          ALLOW_DEMO_PAYMENTS: 'true'
           NEXT_PUBLIC_SOLANA_CLUSTER: 'devnet'
           NEXT_PUBLIC_SOLANA_PROGRAM_ID: '14uLETygxjh89fHFwYUaRRhHE9E9XrYcSh6SsF8SEw1K'

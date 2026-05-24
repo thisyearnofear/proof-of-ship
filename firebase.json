@@ -11,9 +11,6 @@
     "public": "frontend/out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
-      // NOTE: API routes are handled by Vercel serverless functions (ƒ routes)
-      // For Firebase-only deployment: move API routes to Cloud Functions
-      // Static assets are served from /out directory
       { "source": "/!(api)**", "destination": "/index.html" }
     ],
     "cleanUrls": true,

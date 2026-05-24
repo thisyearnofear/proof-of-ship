@@ -213,5 +213,29 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // Circle idempotency keys — prevents duplicate transaction submissions.
+    // Read: admin-only (operational debugging).
+    // Write: only server-side via admin SDK (rules bypassed).
+    match /circleIdempotency/{keyId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
+
+    // Transaction statuses — push-based updates from Circle webhooks.
+    // Read: admin-only.
+    // Write: only server-side via admin SDK (rules bypassed — written by webhook handler).
+    match /transactionStatuses/{txId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
+
+    // Webhook logs — audit trail for incoming Circle webhook notifications.
+    // Read: admin-only.
+    // Write: only server-side via admin SDK (rules bypassed — written by webhook handler).
+    match /webhookLogs/{logId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
   }
 }

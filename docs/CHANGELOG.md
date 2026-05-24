@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-05-24 — GCP Secret Manager & Firestore Rules for New Collections
+
+Infrastructure hardening for the Circle API consolidation and demo flow sunset.
+
+### GCP Secret Manager
+- Enabled `secretmanager.googleapis.com` on the `proofofship` GCP project.
+- Created 11 secrets: `circle-api-key`, `circle-entity-secret`, `circle-wallet-set-id`, `circle-webhook-secret`, `circle-platform-wallet-id`, `circle-agent-wallet-id`, `firebase-private-key`, `firebase-client-email`, `github-token`, `agent-api-key`, `featherless-api-key`.
+- Created `scripts/sync-secrets.sh` — pulls secrets from GCP Secret Manager and sets them as Vercel environment variables. Supports `--dry-run`.
+
+### Firestore Rules
+- Added rules for `circleIdempotency` (admin read, server-side write only).
+- Added rules for `transactionStatuses` (admin read, server-side write only).
+- Added rules for `webhookLogs` (admin read, server-side write only).
+- Deployed updated rules to production.
+
+### Firestore Indexes
+- Added composite index for `circleIdempotency` (circleTxId + createdAt).
+- Added composite index for `webhookLogs` (transactionId + receivedAt).
+
+### Environment Variables
+- `.env.example`: Added `CIRCLE_WEBHOOK_SECRET`, replaced `NEXT_PUBLIC_DEMO_MODE=true` with `ALLOW_DEMO_PAYMENTS=false`, added GCP Secret Manager header.
+- CI workflow: Replaced `NEXT_PUBLIC_DEMO_MODE` with `ALLOW_DEMO_PAYMENTS`.
+
+### Files Changed
+`firestore.rules` | `firestore.indexes.json` | `.env.example` | `.github/workflows/ci.yml` |
+`scripts/sync-secrets.sh` (new)
+
+---
+
 ## 2026-05-24 — Demo Flow Sunset: Real Payments First
 
 Replaced the auto-enabled demo mode with an explicit opt-in test mode.

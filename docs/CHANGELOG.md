@@ -35,6 +35,10 @@ Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Fir
 ### Files Changed
 `scripts/sync-secrets.sh` | `firestore.indexes.json` | `docs/CHANGELOG.md`
 
+### Secrets Populated
+- `circle-platform-wallet-id`: `382dfd9c-9ef1-555d-a8f3-c362d71144b0` (from Circle Console → App ID)
+- Remaining: `circle-webhook-secret` (from Circle Console → Webhooks after endpoint verification)
+
 ### Vercel Build Fix
 - Fixed ESLint peer dependency conflict: `eslint-config-next@16.2.6` requires `eslint >=9.0.0`
 - Updated eslint from `^8.57.0` to `^9.0.0`

@@ -35,6 +35,13 @@ Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Fir
 ### Files Changed
 `scripts/sync-secrets.sh` | `firestore.indexes.json` | `docs/CHANGELOG.md`
 
+### Vercel Build Fix
+- Fixed ESLint peer dependency conflict: `eslint-config-next@16.2.6` requires `eslint >=9.0.0`
+- Updated eslint from `^8.57.0` to `^9.0.0`
+- Created `eslint.config.mjs` with flat config for ESLint v9
+- Removed deprecated `.eslintrc.json`
+- Successfully deployed to production: `https://proof-of-ship.vercel.app`
+
 ---
 
 ## 2026-05-24 — GCP Secret Manager & Firestore Rules for New Collections

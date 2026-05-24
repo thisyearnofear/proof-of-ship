@@ -151,7 +151,7 @@ class DataService {
         const controller = new AbortController();
         this.abortControllers.set(`${key}-${attempt}`, controller);
 
-        let timeoutId: ReturnType<typeof setTimeout>;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
         const timeoutPromise = new Promise<never>((_, reject) => {
           timeoutId = setTimeout(() => {
             controller.abort();

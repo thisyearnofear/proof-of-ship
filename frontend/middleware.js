@@ -1,5 +1,5 @@
 /**
- * Next.js Edge Middleware — Subdomain Routing
+ * Next.js Edge Middleware — Subdomain Routing + Security Headers
  *
  * This is the ONLY middleware file for the app. It runs at the edge
  * (Vercel/Next.js) and rewrites subdomain root paths to user profiles.
@@ -17,6 +17,14 @@ const SUBDOMAIN_ALIASES = {
   papa: "thisyearnofear",
 };
 
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+};
+
 function getSubdomain(hostname) {
   if (!hostname) return null;
 
@@ -25,17 +33,21 @@ function getSubdomain(hostname) {
 
   if (parts.length < 2) return null;
 
-  // localhost (username.localhost)
   if (parts[parts.length - 1] === "localhost" && parts.length === 2) {
     return parts[0];
   }
 
-  // user.domain.tld -> first label
   if (parts.length >= 3) {
     return parts[0];
   }
 
   return null;
+}
+
+function applySecurityHeaders(response) {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    response.headers.set(key, value);
+  }
 }
 
 export function middleware(req) {
@@ -45,23 +57,27 @@ export function middleware(req) {
     subdomain = SUBDOMAIN_ALIASES[subdomain];
   }
 
+  let response;
+
   if (!subdomain || RESERVED_SUBDOMAINS.has(subdomain)) {
-    return NextResponse.next();
+    response = NextResponse.next();
+  } else {
+    const url = req.nextUrl.clone();
+
+    if (url.pathname === "/") {
+      url.pathname = `/u/${subdomain}`;
+      response = NextResponse.rewrite(url);
+    } else {
+      response = NextResponse.next();
+    }
   }
 
-  const url = req.nextUrl.clone();
-
-  // Keep app routes working on subdomains; only rewrite the root to the user portfolio.
-  if (url.pathname === "/") {
-    url.pathname = `/u/${subdomain}`;
-    return NextResponse.rewrite(url);
-  }
-
-  return NextResponse.next();
+  applySecurityHeaders(response);
+  return response;
 }
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };

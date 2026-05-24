@@ -29,19 +29,32 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
-  // GET — list pending claims
+  // GET — list pending claims with optional status filter and pagination
   if (req.method === 'GET') {
     try {
-      const snap = await db
+      const statusFilter = req.query.status || 'pending';
+      const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+      let query = db
         .collection('winnerClaims')
-        .where('status', '==', 'pending')
+        .where('status', '==', statusFilter)
         .orderBy('submittedAt', 'asc')
-        .get();
+        .limit(limit);
+
+      if (req.query.startAfter) {
+        const startDoc = await db.collection('winnerClaims').doc(req.query.startAfter).get();
+        if (startDoc.exists) {
+          query = query.startAfter(startDoc);
+        }
+      }
+
+      const snap = await query.get();
 
       const claims = snap.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+
+      const lastVisible = snap.docs[snap.docs.length - 1];
 
       // Also fetch user display info for each claim
       const enriched = await Promise.all(
@@ -63,7 +76,13 @@ export default async function handler(req, res) {
         })
       );
 
-      return res.status(200).json({ claims: enriched });
+      return res.status(200).json({
+        claims: enriched,
+        pagination: {
+          nextCursor: lastVisible ? lastVisible.id : null,
+          hasMore: snap.docs.length === limit,
+        },
+      });
     } catch (err) {
       console.error('Failed to load winner claims:', err);
       return res.status(500).json({ error: 'Failed to load claims' });

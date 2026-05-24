@@ -173,7 +173,7 @@ export function CreditProvider({ children }: { children: ReactNode }) {
     hackathonRegistryContract: null,
     account: wallet.activeChainFamily === 'solana' ? wallet.solanaAddress : wallet.account,
     address: wallet.activeChainFamily === 'solana' ? wallet.solanaAddress : wallet.account,
-    chainId: wallet.chainId,
+    chainId: wallet.chainId ?? undefined,
     signer: wallet.signer,
     ethersProvider: wallet.ethersProvider,
     connected: wallet.activeChainFamily === 'solana' ? wallet.solanaConnected : wallet.connected,

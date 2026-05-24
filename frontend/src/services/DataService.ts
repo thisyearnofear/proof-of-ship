@@ -8,7 +8,7 @@
  * compatibility. Consumers should migrate to the new services.
  */
 
-import { fetchWithCache, clearCache, cancelAllRequests, dataService } from './DataServiceCore';
+import { dataService } from './DataServiceCore';
 
 export type { CacheEntry, FetchOptions } from './DataServiceCore';
 export type { ProjectStats, Project, EcosystemProjects, EcosystemStats } from './DataServiceCore';
@@ -29,5 +29,6 @@ export { loadAllProjects, getProject, searchProjects, getEcosystemStats, clearPr
 // Re-exported submission method (backward compat)
 export { submitProject } from './SubmissionService';
 
-// Re-exported caching utilities
+// Re-exported caching utilities (via dataService singleton)
+const { fetchWithCache, clearCache, cancelAllRequests } = dataService;
 export { fetchWithCache, clearCache, cancelAllRequests };

@@ -107,7 +107,7 @@ interface ScoreResultFull {
   communityScore: number;
   repositoryScore: number;
   consistencyScore: number;
-  overall: number;
+  overall: { totalScore: number; breakdown: Record<string, number> };
   details: Record<string, any>;
 }
 

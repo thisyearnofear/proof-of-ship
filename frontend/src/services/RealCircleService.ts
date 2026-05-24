@@ -314,7 +314,7 @@ class RealCircleService {
     }
 
     try {
-      const response = await this.client!.getWalletTokenBalance({ id: walletId });
+      const response = await this.client!.getWalletTokenBalance({ walletId });
       return { success: true, data: response.data };
     } catch (error: any) {
       throw new Error(`Get wallet balances failed: ${error.message}`);

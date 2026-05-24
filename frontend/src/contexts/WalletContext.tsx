@@ -12,7 +12,8 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { MetaMaskProvider, useSDK } from '@metamask/sdk-react';
+import { createEVMClient } from '@metamask/connect-evm';
+import type { MetamaskConnectEVM } from '@metamask/connect-evm';
 import { useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
@@ -47,11 +48,22 @@ export const useWallet = () => {
 };
 
 // ============================================================================
-// Inner Provider (uses MetaMask SDK)
+// Inner Provider (uses MetaMask Connect/EVM)
 // ============================================================================
 
 const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
-  const { sdk, connected, connecting, provider, chainId, account } = useSDK();
+  const [evmClient, setEvmClient] = useState<MetamaskConnectEVM | null>(null);
+  const [evmAccount, setEvmAccount] = useState<string | undefined>(undefined);
+  const [evmChainId, setEvmChainId] = useState<number | null>(null);
+  const [evmConnected, setEvmConnected] = useState(false);
+  const [evmConnecting, setEvmConnecting] = useState(false);
+
+  const account = evmAccount;
+  const chainId = evmChainId;
+  const connected = evmConnected;
+  const connecting = evmConnecting;
+  const sdk = evmClient;
+  const provider = evmClient?.getProvider?.() ?? null;
   const solanaWallet = useSolanaWallet();
   const { 
     publicKey, 
@@ -80,6 +92,64 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const [solanaBalance, setSolanaBalance] = useState<string | null>(null);
   const [activeChainFamily, setActiveChainFamily] = useState<'evm' | 'solana'>('evm');
 
+  // Initialize EVM client
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    const host = window.location.host;
+
+    createEVMClient({
+      dapp: {
+        name: 'Proof of Ship',
+        url: `https://${host}`,
+      },
+      api: {
+        supportedNetworks: Object.fromEntries(
+          Object.entries(NETWORK_CONFIGS).map(([_, config]) => [
+            config.chainId,
+            config.rpcUrls[0],
+          ])
+        ) as Record<`0x${string}`, string>,
+      },
+      eventHandlers: {
+        connect: ({ accounts, chainId }) => {
+          if (cancelled) return;
+          setEvmAccount(accounts[0]);
+          setEvmChainId(parseInt(chainId, 16));
+          setEvmConnected(true);
+          setEvmConnecting(false);
+        },
+        disconnect: () => {
+          if (cancelled) return;
+          setEvmAccount(undefined);
+          setEvmChainId(null);
+          setEvmConnected(false);
+          setEvmConnecting(false);
+        },
+        accountsChanged: (accounts) => {
+          if (cancelled) return;
+          if (accounts.length > 0) {
+            setEvmAccount(accounts[0]);
+          }
+        },
+        chainChanged: (chainId) => {
+          if (cancelled) return;
+          setEvmChainId(parseInt(chainId, 16));
+        },
+      },
+    }).then((client) => {
+      if (!cancelled) {
+        setEvmClient(client);
+      }
+    }).catch((err) => {
+      console.error('Failed to initialize EVM client:', err);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Sync Solana state from adapter
   useEffect(() => {
     setSolanaAddress(publicKey ? publicKey.toBase58() : null);
@@ -102,16 +172,14 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     }
   }, [publicKey, solanaConnectedReal, solanaConnectingReal]);
 
-  // Sync active provider from SDK
+  // Sync active provider from EVM client
   useEffect(() => {
-    if (sdk?.getProvider()) {
-      setActiveProvider(sdk.getProvider());
-    } else if (provider) {
-      setActiveProvider(provider);
+    if (evmClient?.getProvider()) {
+      setActiveProvider(evmClient.getProvider());
     } else if (typeof window !== 'undefined' && window.ethereum) {
       setActiveProvider(window.ethereum);
     }
-  }, [sdk, provider]);
+  }, [evmClient]);
  
   // Builder Credit methods
   const loadCreditProfile = useCallback(async () => {
@@ -148,7 +216,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     try {
       const creditSvc = (await import('@/services/creditService')).creditService;
       const signer = ethersProvider.getSigner();
-      const numericChainId = typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10);
+      const numericChainId = chainId ?? 0;
       if (isNaN(numericChainId)) throw new Error('Invalid chain ID');
       const contracts = creditSvc.getContracts(numericChainId, signer);
       if (!contracts) throw new Error('Contracts not available');
@@ -192,7 +260,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     if (!ethersProvider || !account) throw new Error('Not connected');
     const creditService = (await import('@/services/creditService')).creditService;
     await creditService.repayLoan(
-      typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10),
+      chainId ?? 0,
       ethersProvider as unknown as import('ethers').Signer,
       amount
     );
@@ -210,7 +278,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       } else {
         if (!signer || !chainId) throw new Error('EVM wallet not connected');
         const { creditService } = await import('@/services/creditService');
-        const numericChainId = typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10);
+      const numericChainId = chainId ?? 0;
         return await creditService.requestFunding(numericChainId, signer, projectData);
       }
     } finally {
@@ -222,30 +290,31 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
   const connect = async () => {
     try {
       setLoading(true);
+      setEvmConnecting(true);
       setError(null);
-      let accounts = await sdk?.connect();
-      const accountList = Array.isArray(accounts) ? accounts : [];
-      if (!accountList.length) {
-        if (activeProvider) {
-          accounts = await activeProvider.request({ method: 'eth_requestAccounts' });
-        }
+      if (!evmClient) throw new Error('EVM client not initialized');
+      const result = await evmClient.connect({ chainIds: ['0x1', '0x89', '0xa4b1', '0xa', '0x2105'] });
+      if (result?.accounts?.length) {
+        setEvmAccount(result.accounts[0]);
+        setEvmChainId(parseInt(result.chainId, 16));
+        setEvmConnected(true);
       }
     } catch (err: unknown) {
       console.error('Failed to connect:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect to MetaMask. Please try again.');
     } finally {
       setLoading(false);
+      setEvmConnecting(false);
     }
   };
   
   const disconnect = () => {
-    if (sdk) sdk.terminate();
-    setCircleWallets([]);
+    if (evmClient) evmClient.disconnect();
     setCreditProfile(null);
   };
 
-  // Sync EIP-6963 direct connects into SDK-compatible state so that `account`,
-  // `connected`, and `provider` from useSDK() stay consistent with what login.js reads.
+  // Sync EIP-6963 direct connects into EVM-compatible state so that `account`,
+  // `connected`, and `provider` stay consistent with what login.js reads.
   const syncEip6963Account = useCallback(async (provider: any) => {
     try {
       const accounts = await provider.request({ method: 'eth_accounts' });
@@ -436,7 +505,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
       }
       const { creditService } = await import('@/services/creditService');
       if (!chainId || !signer) throw new Error('Wallet not connected');
-      const numericChainId = typeof chainId === 'number' ? chainId : parseInt(chainId as string, 10);
+      const numericChainId = chainId ?? 0;
       return creditService.postCheckIn(numericChainId, signer, projectId, metadata);
     },
     // Solana (Phase 1)
@@ -444,7 +513,7 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
     connectSolana, disconnectSolana, activeChainFamily, setActiveChainFamily,
     // EIP-6963 sync
     syncEip6963Account,
-  } as WalletContextType;
+  } as unknown as WalletContextType;
   
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
@@ -457,45 +526,14 @@ const WalletContextProviderInner = ({ children }: { children: ReactNode }) => {
 // WalletContext re-exports it for backward compatibility.
 
 // ============================================================================
-// Main Provider Wrapper (with MetaMask SDK error recovery)
+// Main Provider Wrapper
 // ============================================================================
 
 export const WalletProvider = ({ children, demand = false }: { children: ReactNode; demand?: boolean }) => {
-  // Suppress MetaMask SDK async errors that crash the page
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handler = (event: ErrorEvent) => {
-      const msg = event.message || '';
-      if (msg.includes('SDK state invalid') || msg.includes('mobile provider') || msg.includes('Extension context invalidated')) {
-        event.preventDefault();
-        console.warn('[WalletProvider] Suppressed MetaMask SDK error:', msg);
-      }
-    };
-    window.addEventListener('error', handler);
-    return () => window.removeEventListener('error', handler);
-  }, []);
-
-  const host = typeof window !== 'undefined' ? window.location.host : 'localhost';
-  const sdkOptions = {
-    logging: { developerMode: false },
-    checkInstallationImmediately: false,
-    dappMetadata: {
-      name: 'Proof of Ship',
-      url: `https://${host}`,
-      iconUrl: `https://${host}/favicon.ico`,
-    },
-    enableDebug: false,
-    autoConnect: { enable: true },
-    // extensionOnly removed to enable WalletConnect QR-code + deep-link fallback
-    // for mobile wallets and users without a browser extension installed.
-  };
-  
   return (
-    <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
-      <SolanaWalletProvider>
-        <WalletContextProviderInner>{children}</WalletContextProviderInner>
-      </SolanaWalletProvider>
-    </MetaMaskProvider>
+    <SolanaWalletProvider>
+      <WalletContextProviderInner>{children}</WalletContextProviderInner>
+    </SolanaWalletProvider>
   );
 };
 

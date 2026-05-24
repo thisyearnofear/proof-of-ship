@@ -3,9 +3,17 @@
  * Extracted from WalletContext.tsx for DRY type sharing
  */
 
-import { providers, Signer, ExternalProvider } from 'ethers';
+import { providers, Signer } from 'ethers';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
+
+export interface ExternalProvider {
+  isMetaMask?: boolean;
+  isConnected?: () => boolean;
+  request?: (args: { method: string; params?: any[] }) => Promise<any>;
+  on?: (event: string, handler: (...args: any[]) => void) => void;
+  removeListener?: (event: string, handler: (...args: any[]) => void) => void;
+}
 
 export interface NetworkConfig {
   chainId: string;

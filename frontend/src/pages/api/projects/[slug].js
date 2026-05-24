@@ -179,14 +179,9 @@ async function handler(req, res) {
       }
     }
 
-    const nextDoc = {
-      ...existing,
-      ...updates,
-      ecosystem: newEcosystem,
-      updatedAt: new Date().toISOString(),
-    };
+    updates.updatedAt = new Date().toISOString();
 
-    await projectRef.set(nextDoc, { merge: true });
+    await projectRef.update(updates);
 
     res.status(200).json({ success: true });
   } catch (error) {

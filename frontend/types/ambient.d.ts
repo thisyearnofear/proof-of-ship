@@ -5,11 +5,11 @@ declare module "@circle-fin/developer-controlled-wallets" {
     createWallet(params: any): Promise<any>;
     createWallets(params: any): Promise<any>;
     listWallets(params?: any): Promise<any>;
-    getWallet(params: { id: string }): Promise<any>;
+    getWallet(params: { id: string; walletId?: string }): Promise<any>;
     createTransaction(params: any): Promise<any>;
     createContractExecutionTransaction(params: any): Promise<any>;
     getTransaction(params: { id: string }): Promise<any>;
-    getWalletTokenBalance(params: { walletId: string }): Promise<any>;
+    getWalletTokenBalance(params: { walletId: string; id?: string }): Promise<any>;
   }
   export function initiateDeveloperControlledWalletsClient(
     config: { apiKey: string; entitySecret: string }
@@ -19,11 +19,11 @@ declare module "@circle-fin/developer-controlled-wallets" {
 declare module "@circle-fin/x402-batching/client" {
   export class GatewayClient {
     constructor(config?: any);
-    account: string;
+    account: { address: string } | null;
     getBalance(): Promise<any>;
     deposit(params: any): Promise<any>;
     withdraw(params: any): Promise<any>;
-    pay(params: any): Promise<any>;
+    pay(url: string, options?: any): Promise<any>;
     createPayment(params: any): Promise<any>;
     getPaymentStatus(id: string): Promise<any>;
   }
@@ -33,31 +33,19 @@ declare module "@lifi/sdk" {
   export class LiFi {
     constructor(config: any);
     getRoutes(params: any): Promise<{ routes: any[] }>;
-    executeRoute(params: any): Promise<any>;
+    executeRoute(params: any, ...args: any[]): Promise<any>;
     getQuote(params: any): Promise<any>;
     getStatus(params: any): Promise<any>;
     getChains(): Promise<any[]>;
     getTokens(params?: any): Promise<any>;
+    getTokenBalances(params: any, ...args: any[]): Promise<any>;
+    getApprovalData(params: any, ...args: any[]): Promise<any>;
+    getToken(params: any): Promise<any>;
   }
   export type RouteOptions = any;
   export type StatusResponse = any;
-}
-
-declare module "@metamask/sdk-react" {
-  export function useSDK(): {
-    connect: () => Promise<any>;
-    account: string;
-    chainId: any;
-    isConnected: boolean;
-    provider: any;
-    sdk: {
-      connected: boolean;
-      connecting: boolean;
-      getProvider: () => any;
-      terminate: () => void;
-    };
-  };
-  export const MetaMaskProvider: React.FC<{ children: React.ReactNode; debug?: boolean; sdkOptions?: any }>;
+  export type SwitchChainHookData = any;
+  export type ConfigUpdate = any;
 }
 
 declare module "@cloak.dev/sdk" {
@@ -75,15 +63,41 @@ declare module "@cloak.dev/sdk" {
 
 declare module "@bonfida/spl-name-service" {
   export function getDomainKey(domain: string): Promise<{ pubkey: any }>;
+  export function getDomainKeySync(domain: string): { pubkey: any };
   export function getNameOwner(connection: any, domainKey: any): Promise<any>;
   export function performReverseLookup(connection: any, domainKey: any): Promise<string>;
   export function getHashedName(name: string): Promise<Buffer>;
   export function getNameAccountKey(hashedName: Buffer, parentKey?: any): Promise<any>;
+  export class NameRegistryState {
+    static retrieve(connection: any, nameAccountKey: any): Promise<any>;
+  }
+  export function getDomainKeysWithReverses(connection: any, owner: any): Promise<any[]>;
+  export function getAllDomains(connection: any, owner: any): Promise<any[]>;
 }
 
 declare module "@coral-xyz/anchor" {
-  const _: any;
-  export = _;
+  export class Program<T = any> {
+    constructor(idl: any, programId: any, provider?: any);
+    account: any;
+    methods: any;
+    provider: any;
+    idl: any;
+    programId: any;
+  }
+  export class BN {
+    constructor(value: number | string | number[], base?: number);
+    toString(base?: number): string;
+    toNumber(): number;
+  }
+  export interface Idl {
+    [key: string]: any;
+  }
+  export type Provider = any;
+  export const workspace: any;
+  export const AnchorProvider: any;
+  export const setProvider: (provider: any) => void;
+  export const web3: any;
+  export const utils: any;
 }
 
 declare module "@bagsfm/bags-sdk" {
@@ -92,6 +106,11 @@ declare module "@bagsfm/bags-sdk" {
     getUserScore(address: string): Promise<number>;
     getUserReputation(address: string): Promise<number>;
   }
+  export class BagsSDK {
+    constructor(apiKey: string, connection?: any, ...args: any[]);
+    client: BagsClient;
+  }
+  export const BagsSDKClient: any;
 }
 
 declare module "firebase/firestore" {

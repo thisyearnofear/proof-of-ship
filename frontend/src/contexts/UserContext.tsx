@@ -159,7 +159,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     try {
       const githubUsername = (user as any).reloadUserInfo?.screenName
         || user.providerData.find(
-        (p) => p.providerId === 'github.com'
+        (p: any) => p.providerId === 'github.com'
       )?.displayName?.toLowerCase().replace(/\s/g, '') || null;
       
       if (!githubUsername) return;
@@ -216,7 +216,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   
   // Firebase auth listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       setCurrentUser(user);
       setLoading(true);
       
@@ -461,7 +461,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       
       switch (platform) {
         case 'github': {
-          const githubData = currentUser?.providerData?.find(p => p.providerId === 'github.com');
+          const githubData = currentUser?.providerData?.find((p: any) => p.providerId === 'github.com');
           result = await decentralizedAuth.connectGitHub({
             login: githubData?.uid || currentUser?.displayName,
             name: githubData?.displayName || currentUser?.displayName,

@@ -52,7 +52,7 @@ export async function loadAllProjects(
     const q = query(ref, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
 
-    await Promise.all(snapshot.docs.map(async (docSnap) => {
+    await Promise.all(snapshot.docs.map(async (docSnap: any) => {
       const docData = docSnap.data();
       const projectEcosystem = docData.ecosystem || 'base';
       if (!ecosystems.includes(projectEcosystem)) return;

@@ -13,7 +13,7 @@
 #   ./scripts/sync-secrets.sh --dry-run    # show what would be synced
 #
 # Secrets are mapped: GCP secret name → Vercel env var name
-# New secrets can be added to the SECRETS_MAP below.
+# New secrets can be added to the SECRET_NAMES and SECRET_VARS arrays below.
 
 set -euo pipefail
 
@@ -26,30 +26,56 @@ if [[ "${1:-}" == "--dry-run" ]]; then
 fi
 
 # Map: gcp-secret-name → VERCEL_ENV_VAR_NAME
-declare -A SECRETS_MAP=(
-  ["circle-api-key"]="CIRCLE_API_KEY"
-  ["circle-entity-secret"]="CIRCLE_ENTITY_SECRET"
-  ["circle-wallet-set-id"]="CIRCLE_WALLET_SET_ID"
-  ["circle-webhook-secret"]="CIRCLE_WEBHOOK_SECRET"
-  ["circle-platform-wallet-id"]="CIRCLE_PLATFORM_WALLET_ID"
-  ["circle-agent-wallet-id"]="CIRCLE_AGENT_WALLET_ID"
-  ["firebase-private-key"]="FIREBASE_PRIVATE_KEY"
-  ["firebase-client-email"]="FIREBASE_CLIENT_EMAIL"
-  ["github-token"]="GITHUB_TOKEN"
-  ["agent-api-key"]="AGENT_API_KEY"
-  ["featherless-api-key"]="FEATHERLESS_API_KEY"
+# (using parallel arrays for bash 3.x compatibility)
+SECRET_NAMES=(
+  "circle-api-key"
+  "circle-entity-secret"
+  "circle-wallet-set-id"
+  "circle-webhook-secret"
+  "circle-platform-wallet-id"
+  "circle-agent-wallet-id"
+  "firebase-private-key"
+  "firebase-client-email"
+  "github-token"
+  "agent-api-key"
+  "featherless-api-key"
+)
+
+SECRET_VARS=(
+  "CIRCLE_API_KEY"
+  "CIRCLE_ENTITY_SECRET"
+  "CIRCLE_WALLET_SET_ID"
+  "CIRCLE_WEBHOOK_SECRET"
+  "CIRCLE_PLATFORM_WALLET_ID"
+  "CIRCLE_AGENT_WALLET_ID"
+  "FIREBASE_PRIVATE_KEY"
+  "FIREBASE_CLIENT_EMAIL"
+  "GITHUB_TOKEN"
+  "AGENT_API_KEY"
+  "FEATHERLESS_API_KEY"
 )
 
 # Non-secret env vars that should also be set
-declare -A CONFIG_MAP=(
-  ["FIREBASE_PROJECT_ID"]="proofofship"
-  ["CIRCLE_ENVIRONMENT"]="sandbox"
-  ["NEXT_PUBLIC_FIREBASE_PROJECT_ID"]="proofofship"
-  ["NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"]="proofofship.firebaseapp.com"
-  ["NEXT_PUBLIC_SOLANA_CLUSTER"]="devnet"
-  ["NEXT_PUBLIC_SOLANA_PROGRAM_ID"]="DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st"
-  ["BUILDER_CREDIT_ARC_ADDRESS"]="0x26272b687df2c3607aCa3B6116c24B7400c3fC94"
-  ["ALLOW_DEMO_PAYMENTS"]="false"
+CONFIG_NAMES=(
+  "FIREBASE_PROJECT_ID"
+  "CIRCLE_ENVIRONMENT"
+  "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+  "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+  "NEXT_PUBLIC_SOLANA_CLUSTER"
+  "NEXT_PUBLIC_SOLANA_PROGRAM_ID"
+  "BUILDER_CREDIT_ARC_ADDRESS"
+  "ALLOW_DEMO_PAYMENTS"
+)
+
+CONFIG_VALUES=(
+  "proofofship"
+  "sandbox"
+  "proofofship"
+  "proofofship.firebaseapp.com"
+  "devnet"
+  "DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st"
+  "0x26272b687df2c3607aCa3B6116c24B7400c3fC94"
+  "false"
 )
 
 echo ""
@@ -58,8 +84,9 @@ echo "Project: $GCP_PROJECT"
 echo ""
 
 # Sync secrets
-for gcp_name in "${!SECRETS_MAP[@]}"; do
-  vercel_name="${SECRETS_MAP[$gcp_name]}"
+for i in "${!SECRET_NAMES[@]}"; do
+  gcp_name="${SECRET_NAMES[$i]}"
+  vercel_name="${SECRET_VARS[$i]}"
 
   # Read the latest version from Secret Manager
   value=$(gcloud secrets versions access latest \
@@ -85,8 +112,9 @@ done
 echo ""
 
 # Sync non-secret config
-for var_name in "${!CONFIG_MAP[@]}"; do
-  var_value="${CONFIG_MAP[$var_name]}"
+for i in "${!CONFIG_NAMES[@]}"; do
+  var_name="${CONFIG_NAMES[$i]}"
+  var_value="${CONFIG_VALUES[$i]}"
 
   if $DRY_RUN; then
     echo "  WOULD SET $var_name=$var_value"
@@ -99,3 +127,4 @@ done
 
 echo ""
 echo "Done. Redeploy with: vercel --prod"
+

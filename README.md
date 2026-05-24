@@ -102,6 +102,52 @@ NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
 ```
 
+## Infrastructure
+
+### Secret Management
+
+Secrets are managed via **GCP Secret Manager** and synced to Vercel:
+
+```bash
+GCP Secret Manager → scripts/sync-secrets.sh → Vercel env vars
+```
+
+- **GCP Project:** `proofofship` — 11 secrets stored in Secret Manager
+- **Vercel Project:** `prj_vWDYON8jEftKOX7mcbE1OVCqDZIc` — env vars synced from GCP
+- **Sync script:** `./scripts/sync-secrets.sh` (supports `--dry-run`)
+
+To add or update a secret:
+```bash
+echo -n "your-value" | gcloud secrets versions add <secret-name> --project=proofofship --data-file=-
+./scripts/sync-secrets.sh  # push to Vercel
+vercel --prod              # redeploy
+```
+
+### Circle Integration
+
+- **Payments API:** `LIVE_API_KEY` for transfers and webhooks
+- **W3S Wallets API:** Entity secret + `LIVE_API_KEY` for developer-controlled wallets
+- **Webhook:** `https://proofofship.com/api/circle/webhook` — signed with HMAC-SHA256
+- **Test environment:** Separate `TEST_API_KEY` + test wallet set for sandbox
+
+### Firestore
+
+- 9 composite indexes deployed for performance (projects, webhookLogs, circleIdempotency, etc.)
+- Rules deployed for 3 new collections: `circleIdempotency`, `transactionStatuses`, `webhookLogs`
+
+## Deployment
+
+- **Firebase:** `firebase deploy --only hosting`
+- **Vercel:** `vercel --prod` (auto-deploys from main branch)
+- **Indexes:** `firebase deploy --only firestore:indexes --project=proofofship`
+- **Rules:** `firebase deploy --only firestore:rules --project=proofofship`
+
+After updating secrets:
+```bash
+./scripts/sync-secrets.sh  # GCP → Vercel
+vercel --prod              # redeploy
+```
+
 ## Structure
 
 - `frontend/` — Next.js app (pages, components, contexts, services)

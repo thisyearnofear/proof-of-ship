@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-05-24 — Secrets Population, Vercel Deployment & Webhook Registration
+
+Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Firestore indexes, and registered Circle webhook.
+
+### GCP Secret Manager
+- Populated 9 of 11 secrets with actual values from local `.env` files and circle-recovery documents:
+  - `circle-api-key`, `circle-entity-secret`, `circle-wallet-set-id`, `circle-agent-wallet-id` — from `frontend/.env.local`
+  - `firebase-private-key`, `firebase-client-email` — from Firebase Admin SDK config
+  - `github-token` — fine-grained PAT from `.env`
+  - `featherless-api-key` — from Featherless.ai dashboard
+  - `agent-api-key` — auto-generated via `openssl rand -hex 32`
+- Secrets `circle-platform-wallet-id` and `circle-webhook-secret` remain empty (require Circle Console).
+- Used entity secret from `~/Documents/circle-recovery/` to authenticate W3S API via `@circle-fin/developer-controlled-wallets` SDK.
+
+### Vercel Env Sync
+- `scripts/sync-secrets.sh` fixed for bash 3.x compatibility (macOS default) — replaced associative arrays with parallel arrays.
+- Synced all 9 populated secrets + 8 config vars to Vercel production environment.
+- Config vars synced: `FIREBASE_PROJECT_ID`, `CIRCLE_ENVIRONMENT`, `NEXT_PUBLIC_FIREBASE_*`, `NEXT_PUBLIC_SOLANA_*`, `BUILDER_CREDIT_ARC_ADDRESS`, `ALLOW_DEMO_PAYMENTS`.
+
+### Firestore Indexes
+- Deployed 9 composite indexes to production: `ships_logs`, `follow_events`, `projects` (×3), `payoutAttestations`, `circleIdempotency`, `webhookLogs`, `winnerClaims`.
+- Removed 2 single-field indexes on `projects` (`createdAt`, `submittedAt`) — Firestore auto-creates these.
+
+### Circle Webhook Registration
+- Created webhook subscription via Circle Payments API (`POST /v1/notifications/subscriptions`).
+- Endpoint: `https://proofofship.com/api/circle/webhook`.
+- Status is "pending" — requires endpoint to be live for Circle verification.
+- SDK used: `@circle-fin/circle-sdk` with `LIVE_API_KEY`.
+
+### Environment Variables
+- `.env.example`: No changes needed (already updated in prior pass).
+
+### Files Changed
+`scripts/sync-secrets.sh` | `firestore.indexes.json` | `docs/CHANGELOG.md`
+
+---
+
 ## 2026-05-24 — GCP Secret Manager & Firestore Rules for New Collections
 
 Infrastructure hardening for the Circle API consolidation and demo flow sunset.

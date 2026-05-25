@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
+import { trackEvent } from "@/lib/analytics";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ProofBadgeGroup } from "@/components/common/ProofBadge";
@@ -330,11 +331,22 @@ function ShareButton({ text, url, entryType, entry, rank }) {
   const baseUrl = (typeof window !== 'undefined' ? window.location.origin : 'https://proofofship.app');
   const ogRef = entryType && entry && rank ? `${entryType}-${rank}` : null;
   const shareUrl = url || (ogRef ? `${baseUrl}/leaderboard?ref=${ogRef}` : `${baseUrl}/leaderboard`);
+
+  const handleShare = (platform) => {
+    trackEvent("leaderboard_share_clicked", {
+      platform,
+      entry_type: entryType,
+      rank,
+      entry_name: entry?.name || entry?.title || null,
+    });
+  };
+
   return (
     <div className="flex items-center gap-1">
       <button
         onClick={(e) => {
           e.stopPropagation();
+          handleShare("x");
           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener,noreferrer');
         }}
         className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-blue-500 transition-colors"
@@ -347,6 +359,7 @@ function ShareButton({ text, url, entryType, entry, rank }) {
       <button
         onClick={(e) => {
           e.stopPropagation();
+          handleShare("farcaster");
           const fcText = text.replace(/@proofofship/g, '').trim();
           window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(fcText)}%20${encodeURIComponent(shareUrl)}`, '_blank', 'noopener,noreferrer');
         }}

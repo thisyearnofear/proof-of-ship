@@ -102,6 +102,7 @@ Client-side inference layer that derives achievement badges from existing projec
 lib/badges/computeBadges.js        # Pure computation functions
 components/common/ProofBadge.js     # Presentation components (badge + group)
 hooks/useBadgeNotification.js     # Toast notifications for newly earned badges
+lib/analytics.js                  # trackEvent utility for badge/onboarding/sharing analytics
 ```
 
 **Builder badges:** Verified Winner, Multi-Ecosystem, Prolific, Proof-Backed, Community Trusted, High Velocity.
@@ -109,6 +110,10 @@ hooks/useBadgeNotification.js     # Toast notifications for newly earned badges
 **Leaderboard badges:** Rank-based tiers (gold/silver/bronze) for each leaderboard category.
 
 Rendered on builder dashboard (`/build`), public portfolio (`/u/[username]`), project detail pages, and leaderboard entries.
+
+**Follower count integration:** `BuilderProjectGrowth` fetches live follower count from `/api/follows` and passes it to `computeBuilderBadges`, so the Community Trusted badge tiers accurately reflect social proof.
+
+**Analytics events:** `badge_viewed`, `onboarding_banner_dismissed`, `leaderboard_share_clicked` — tracked via `lib/analytics.js` using `navigator.sendBeacon` in production.
 
 ### Key Frontend Routes
 

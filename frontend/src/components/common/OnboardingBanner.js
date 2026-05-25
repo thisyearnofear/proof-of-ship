@@ -11,6 +11,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
+import { trackEvent } from "@/lib/analytics";
 import {
   MagnifyingGlassIcon,
   SparklesIcon,
@@ -29,6 +30,17 @@ export default function OnboardingBanner() {
   const { currentUser, userRole, onboardingComplete, loading } = useUser();
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  // ── Detect prefers-reduced-motion once on mount ──
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // ── Auth state resolved? Skip during initial loading to avoid flash ──
   const resolved = !loading;
@@ -62,26 +74,56 @@ export default function OnboardingBanner() {
   // Small delay to mount before showing transition
   useEffect(() => {
     if (visible) {
-      const t = setTimeout(() => setMounted(true), 50);
-      return () => clearTimeout(t);
+      if (prefersReducedMotion) {
+        setMounted(true);
+      } else {
+        const t = setTimeout(() => setMounted(true), 50);
+        return () => clearTimeout(t);
+      }
     } else {
       setMounted(false);
     }
-  }, [visible]);
+  }, [visible, prefersReducedMotion]);
 
   if (!resolved || !visible) return null;
 
+  const transitionClass = prefersReducedMotion
+    ? ""
+    : "transition-all duration-500 ease-out";
   const containerClass = mounted
-    ? "opacity-100 translate-y-0 transition-all duration-500 ease-out"
-    : "opacity-0 -translate-y-2 transition-all duration-500 ease-out";
+    ? `opacity-100 translate-y-0 ${transitionClass}`
+    : `opacity-0 -translate-y-2 ${transitionClass}`;
 
   // ── Guest banner — shown to unauthenticated visitors ──
   if (!currentUser) {
-    return <div className={containerClass}><GuestBanner onDismiss={() => { setVisible(false); localStorage.setItem(GUEST_STORAGE_KEY, "1"); }} router={router} /></div>;
+    return (
+      <div className={containerClass}>
+        <GuestBanner
+          onDismiss={() => {
+            setVisible(false);
+            localStorage.setItem(GUEST_STORAGE_KEY, "1");
+            trackEvent("onboarding_banner_dismissed", { mode: "guest" });
+          }}
+          router={router}
+        />
+      </div>
+    );
   }
 
   // ── Authenticated banner — role-based steps ──
-  return <div className={containerClass}><AuthBanner userRole={userRole} onDismiss={() => { setVisible(false); localStorage.setItem(AUTH_STORAGE_KEY, "1"); }} router={router} /></div>;
+  return (
+    <div className={containerClass}>
+      <AuthBanner
+        userRole={userRole}
+        onDismiss={() => {
+          setVisible(false);
+          localStorage.setItem(AUTH_STORAGE_KEY, "1");
+          trackEvent("onboarding_banner_dismissed", { mode: "auth", role: userRole });
+        }}
+        router={router}
+      />
+    </div>
+  );
 }
 
 /* ===================================================================

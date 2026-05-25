@@ -50,6 +50,28 @@ Zero backend changes — badges are derived from existing project and user data.
   - Duplicate error/success alert blocks removed (they already rendered above the conditional)
   - Success path resets stage to `"form"` and clears inputs
 
+### Follower Count Integration
+
+- **`BuilderProjectGrowth.js`** — Fetches live follower count from `/api/follows?targetUserId=` and passes it to `computeBuilderBadges`. The **Community Trusted** badge now tiers correctly (bronze/silver/gold) based on actual follower count instead of hardcoding `0`.
+
+### Accessibility
+
+- **`components/common/OnboardingBanner.js`** — Respects `prefers-reduced-motion: reduce`. When the user has reduced motion enabled, the banner appears immediately without the fade-in/slide-down animation or the 50ms mount delay.
+
+### Analytics Tracking
+
+- **`lib/analytics.js`** (new) — Lightweight `trackEvent(event, properties)` utility. Logs to console in development; uses `navigator.sendBeacon` in production with `fetch` fallback. Never blocks user flow.
+
+**Tracked events:**
+- `onboarding_banner_dismissed` — fired on guest/auth banner dismiss (properties: `mode`, `role`)
+- `badge_viewed` — fired once per mount in BuilderProjectGrowth when builder badges render (properties: `page`, `badge_ids`, `badge_tiers`, `count`)
+- `leaderboard_share_clicked` — fired on X and Farcaster share buttons in leaderboard (properties: `platform`, `entry_type`, `rank`, `entry_name`)
+
+### Mobile Rendering
+
+- **`BuilderProjectGrowth.js`** — Reduced builder badge `max` from 8 to 5 to prevent horizontal overflow on narrow viewports.
+- **`pages/u/[username].js`** — Reduced public portfolio badge `max` from 8 to 5 for consistent mobile experience.
+
 ### Bug Fixes
 
 - **`BuilderProjectGrowth.js`** — Badge computation now derives `verifiedWinner` and `winnerData.totalWins` from the builder's own project hackathon claims (scanning for winner outcomes with payout proof) instead of hardcoding `false`.
@@ -63,11 +85,12 @@ Zero backend changes — badges are derived from existing project and user data.
 `components/common/ProofBadge.js` | `components/common/LeaderboardRankBadge.js` |
 `components/common/LeaderboardStrip.js` | `components/projects/BuilderProjectGrowth.js` |
 `hooks/useBadgeNotification.js` | `lib/badges/computeBadges.js` (new) |
-`pages/leaderboard.js` | `pages/u/[username].js` |
-`pages/index.js` | `pages/projects/[ecosystem]/[slug]/index.js` |
-`pages/api/og.js` | `pages/api/og/leaderboard.js` (new) |
-`pages/api/hackathons/leaderboard.js` | `pages/api/torque/leaderboard.js` |
-`pages/api/portfolio/[username].js` | `styles/globals.css`
+`lib/analytics.js` (new) | `pages/leaderboard.js` |
+`pages/u/[username].js` | `pages/index.js` |
+`pages/projects/[ecosystem]/[slug]/index.js` | `pages/api/og.js` |
+`pages/api/og/leaderboard.js` (new) | `pages/api/hackathons/leaderboard.js` |
+`pages/api/torque/leaderboard.js` | `pages/api/portfolio/[username].js` |
+`styles/globals.css`
 
 ---
 

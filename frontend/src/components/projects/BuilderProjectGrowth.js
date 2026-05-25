@@ -17,6 +17,7 @@ import Link from 'next/link';
 import QuickEditDrawer from '@/components/projects/QuickEditDrawer';
 import { ProofBadgeGroup } from '@/components/common/ProofBadge';
 import { computeBuilderBadges, computeProjectBadges } from '@/lib/badges/computeBadges';
+import { trackEvent } from '@/lib/analytics';
 import {
   SparklesIcon,
   ArrowTopRightOnSquareIcon,
@@ -40,6 +41,7 @@ export default function BuilderProjectGrowth() {
   const [copiedSlug, setCopiedSlug] = useState(null);
   const [quickEditProject, setQuickEditProject] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
 
   useEffect(() => {
     if (!currentUser) {
@@ -96,6 +98,25 @@ export default function BuilderProjectGrowth() {
       }));
   }, [projects]);
 
+  // Fetch follower count for the current builder
+  useEffect(() => {
+    if (!currentUser) return;
+    let cancelled = false;
+    async function loadFollowers() {
+      try {
+        const res = await fetch(`/api/follows?targetUserId=${encodeURIComponent(currentUser.uid)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setFollowerCount(data.followerCount || 0);
+        }
+      } catch {
+        // Silently fail — non-critical UI feature
+      }
+    }
+    loadFollowers();
+    return () => { cancelled = true; };
+  }, [currentUser]);
+
   const missingSummary = aggregateMissing();
   const hasProjects = projects.length > 0;
 
@@ -121,9 +142,23 @@ export default function BuilderProjectGrowth() {
       },
       projects,
       stats: { avgHealth: Math.round(avgHealth) },
-      followerCount: 0,
+      followerCount,
     });
-  }, [currentUser, projects]);
+  }, [currentUser, projects, followerCount]);
+
+  // Track badge views (once per mount)
+  const trackedRef = React.useRef(false);
+  useEffect(() => {
+    if (trackedRef.current) return;
+    if (!builderBadges || builderBadges.length === 0) return;
+    trackedRef.current = true;
+    trackEvent("badge_viewed", {
+      page: "builder-dashboard",
+      badge_ids: builderBadges.map((b) => b.id),
+      badge_tiers: builderBadges.map((b) => b.tier || "default"),
+      count: builderBadges.length,
+    });
+  }, [builderBadges]);
 
   // Compute project-level badges for each project
   const projectBadgesMap = useMemo(() => {
@@ -238,7 +273,7 @@ export default function BuilderProjectGrowth() {
               <ProofBadgeGroup
                 badges={builderBadges}
                 size="md"
-                max={8}
+                max={5}
                 className="gap-2"
               />
             </div>

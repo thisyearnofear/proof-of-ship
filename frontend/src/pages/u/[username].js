@@ -584,7 +584,7 @@ export default function UserPortfolioPage() {
                       Badges
                     </span>
                   </div>
-                  <ProofBadgeGroup badges={builderBadges} size="sm" max={8} />
+                  <ProofBadgeGroup badges={builderBadges} size="sm" max={5} />
                 </div>
               </Card>
             )}

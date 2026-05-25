@@ -11,7 +11,10 @@ const nextConfig = {
     '@solana-mobile/wallet-adapter-mobile',
   ],
   // Enable skew protection (if supported by the deployment platform)
-  deploymentId: process.env.NEXT_PUBLIC_DEPLOYMENT_ID || 'stable',
+  deploymentId:
+    process.env.NEXT_PUBLIC_DEPLOYMENT_ID ||
+    process.env.VERCEL_DEPLOYMENT_ID ||
+    undefined,
   // Redirect old routes to consolidated pages
   async redirects() {
     return [

@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-05-25 — Vercel Build Fix & Circle Webhook Activation
+
+Resolved Vercel production build failures and successfully activated the Circle webhook endpoint.
+
+### Build Fixes
+- **pnpm version**: Bumped `packageManager` from `pnpm@9.12.0` to `pnpm@9.15.9` — fixes `ERR_PNPM_META_FETCH_FAIL` / `ERR_INVALID_THIS` (URLSearchParams incompatibility with Node 22 on Vercel).
+- **Corepack**: Added `ENABLE_EXPERIMENTAL_COREPACK=1` Vercel env var so the build image honors the `packageManager` field.
+- **Deployment ID**: Replaced hardcoded `deploymentId: 'stable'` in `next.config.js` with `process.env.VERCEL_DEPLOYMENT_ID` fallback — each deploy gets a unique skew-protection ID.
+
+### Deployment Protection
+- Changed Vercel SSO protection from `prod_deployment_urls_and_all_previews` to `preview` only — production endpoints must be publicly reachable for webhooks.
+
+### Circle Webhook (`/api/circle/webhook`)
+- Rewrote handler from HMAC-SHA256 (incorrect) to ECDSA-SHA256 with Circle public key fetch (correct scheme for Programmable Wallets/CPN).
+- Public keys fetched via `GET /v2/cpn/notifications/publicKey/{keyId}` using `CIRCLE_API_KEY`, cached in-memory.
+- `webhooks.test` verification pings return 200 immediately (before signature check) — safe since they carry no sensitive data.
+- All real events (transactions, transfers) require valid ECDSA signature.
+- Webhook verified and active in Circle Console — listening to 15 events (gateway, contracts, transactions, challenges, rampSession, modularWallet).
+
+### Files Changed
+`package.json` | `frontend/next.config.js` | `frontend/src/pages/api/circle/webhook.js`
+
+---
+
 ## 2026-05-24 — Secrets Population, Vercel Deployment & Webhook Registration
 
 Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Firestore indexes, and registered Circle webhook.

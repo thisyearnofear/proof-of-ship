@@ -1,49 +1,106 @@
 /**
  * Circle Webhook Endpoint
  *
- * Receives push notifications from Circle when transaction status changes.
- * Verifies the HMAC-SHA256 signature, then updates Firestore records.
+ * Receives push notifications from Circle (Programmable Wallets / CPN).
+ * Circle signs every notification with ECDSA-SHA256 using an asymmetric key.
+ * We fetch the public key from Circle (by key ID) and verify the signature
+ * against the exact raw request body.
  *
  * Setup:
- *   1. Register this URL in the Circle dashboard: https://your-domain.com/api/circle/webhook
- *   2. Set CIRCLE_WEBHOOK_SECRET env var to the signing secret from Circle
+ *   1. Create a webhook subscription in the Circle Console pointing to
+ *      https://your-domain.com/api/circle/webhook
+ *   2. Ensure CIRCLE_API_KEY is set so we can fetch verification public keys
  *
- * Circle sends notifications for: transfer, payout, and smart contract transaction events.
+ * Docs: https://developers.circle.com/cpn/guides/webhooks/verify-webhook-signatures
  */
 
 import crypto from 'crypto';
 import { db } from '@/lib/firebase/serverOnly';
 
-const CIRCLE_WEBHOOK_SECRET = process.env.CIRCLE_WEBHOOK_SECRET;
+const CIRCLE_API_KEY = process.env.CIRCLE_API_KEY;
+const CIRCLE_API_BASE =
+  process.env.CIRCLE_API_BASE || 'https://api.circle.com';
+
+// In-memory cache for public keys (key id -> { publicKey, algorithm })
+const publicKeyCache = new Map();
 
 /**
- * Verify the Circle webhook signature (HMAC-SHA256).
- * Circle sends the signature in the `X-Circle-Signature` header.
+ * Fetch and cache the public key for a given Circle key ID.
  */
-function verifySignature(body, signature) {
-  if (!CIRCLE_WEBHOOK_SECRET) {
-    console.error('CIRCLE_WEBHOOK_SECRET not configured — cannot verify webhook');
+async function getCirclePublicKey(keyId) {
+  if (publicKeyCache.has(keyId)) {
+    return publicKeyCache.get(keyId);
+  }
+
+  if (!CIRCLE_API_KEY) {
+    throw new Error('CIRCLE_API_KEY not configured — cannot fetch public key');
+  }
+
+  const url = `${CIRCLE_API_BASE}/v2/cpn/notifications/publicKey/${keyId}`;
+  const resp = await fetch(url, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${CIRCLE_API_KEY}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to fetch Circle public key ${keyId}: ${resp.status} ${resp.statusText}`
+    );
+  }
+
+  const body = await resp.json();
+  const data = body?.data;
+  if (!data?.publicKey || !data?.algorithm) {
+    throw new Error('Circle public key response missing publicKey/algorithm');
+  }
+
+  // publicKey is base64-encoded SPKI DER. Convert to a KeyObject.
+  const der = Buffer.from(data.publicKey, 'base64');
+  const publicKey = crypto.createPublicKey({
+    key: der,
+    format: 'der',
+    type: 'spki',
+  });
+
+  const entry = { publicKey, algorithm: data.algorithm };
+  publicKeyCache.set(keyId, entry);
+  return entry;
+}
+
+/**
+ * Verify the Circle webhook ECDSA signature over the raw body bytes.
+ */
+async function verifyCircleSignature(rawBody, signatureB64, keyId) {
+  if (!signatureB64 || !keyId) return false;
+
+  let entry;
+  try {
+    entry = await getCirclePublicKey(keyId);
+  } catch (err) {
+    console.error('Public key fetch failed:', err.message);
     return false;
   }
 
-  if (!signature) {
+  // Only ECDSA_SHA_256 is documented today.
+  if (entry.algorithm !== 'ECDSA_SHA_256') {
+    console.error(`Unsupported Circle signature algorithm: ${entry.algorithm}`);
     return false;
   }
 
-  const expectedSignature = crypto
-    .createHmac('sha256', CIRCLE_WEBHOOK_SECRET)
-    .update(body)
-    .digest('hex');
-
-  // Constant-time comparison
-  const sigBuffer = Buffer.from(signature, 'hex');
-  const expectedBuffer = Buffer.from(expectedSignature, 'hex');
-
-  if (sigBuffer.length !== expectedBuffer.length) {
+  try {
+    const verifier = crypto.createVerify('SHA256');
+    verifier.update(rawBody);
+    verifier.end();
+    return verifier.verify(
+      { key: entry.publicKey, dsaEncoding: 'der' },
+      Buffer.from(signatureB64, 'base64')
+    );
+  } catch (err) {
+    console.error('Signature verification threw:', err.message);
     return false;
   }
-
-  return crypto.timingSafeEqual(sigBuffer, expectedBuffer);
 }
 
 /**
@@ -68,10 +125,6 @@ async function handleTransactionUpdate(notification) {
     status,
     txHash,
     blockchain,
-    tokenId,
-    walletId,
-    createDate,
-    updateDate,
   } = notification;
 
   if (!transactionId) {
@@ -138,12 +191,6 @@ async function handleTransactionUpdate(notification) {
 }
 
 /**
- * POST /api/circle/webhook
- *
- * Receives Circle webhook notifications. No auth header required —
- * signature verification is the security mechanism.
- */
-/**
  * Read the raw request body as a Buffer. Required because bodyParser is
  * disabled (signature verification must run over the exact bytes Circle sent).
  */
@@ -168,25 +215,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid request body' });
   }
 
-  const signature =
-    req.headers['x-circle-signature'] || req.headers['X-Circle-Signature'];
+  const signature = req.headers['x-circle-signature'];
+  const keyId = req.headers['x-circle-key-id'];
 
-  // Verify signature against the exact raw bytes
-  if (!verifySignature(rawBody, signature)) {
-    console.warn('Webhook signature verification failed');
-    return res.status(401).json({ error: 'Invalid signature' });
-  }
-
+  // Parse body early so we can identify verification pings before signature check
   let payload;
   try {
     payload = JSON.parse(rawBody.toString('utf8'));
-  } catch (err) {
+  } catch {
     return res.status(400).json({ error: 'Malformed JSON payload' });
   }
 
-  try {
+  // Circle sends a webhooks.test ping during registration — always accept it.
+  // This is safe: the ping carries no sensitive data and just confirms reachability.
+  if (payload?.notificationType === 'webhooks.test') {
+    console.log('[circle-webhook] accepting verification ping');
+    return res.status(200).json({ received: true });
+  }
 
-    // Circle webhook payload structure
+  // For all real events, require valid ECDSA signature
+  if (!signature || !keyId) {
+    console.warn('[circle-webhook] missing signature headers');
+    return res.status(401).json({ error: 'Missing signature headers' });
+  }
+
+  if (!(await verifyCircleSignature(rawBody, signature, keyId))) {
+    console.warn('[circle-webhook] signature verification failed', {
+      keyId,
+      bodyLen: rawBody.length,
+    });
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+
+  try {
     const { notificationType, notification } = payload;
 
     if (!notificationType) {
@@ -196,20 +257,21 @@ export default async function handler(req, res) {
     // Log the webhook for audit trail
     await db.collection('circleWebhookEvents').add({
       type: notificationType,
-      transactionId: notification?.id,
-      status: notification?.status,
+      transactionId: notification?.id || null,
+      status: notification?.status || null,
       receivedAt: new Date().toISOString(),
-      payload: notification,
+      payload: notification || payload,
     });
 
     // Dispatch based on notification type
     switch (notificationType) {
       case 'transactions':
+      case 'transactions.inbound':
+      case 'transactions.outbound':
         await handleTransactionUpdate(notification);
         break;
 
       case 'transfers':
-        // Transfer events have a slightly different structure
         await handleTransactionUpdate({
           ...notification,
           id: notification.id || notification.transferId,

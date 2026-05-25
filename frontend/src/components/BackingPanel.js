@@ -17,7 +17,10 @@ import {
   BanknotesIcon,
   RocketLaunchIcon,
   ShieldCheckIcon,
-  UsersIcon
+  UsersIcon,
+  ExclamationCircleIcon,
+  ArrowLeftIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 import { PrivacyInline, PrivacyBadge } from './common/PrivacyShield';
 
@@ -38,6 +41,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
   const [backerCount, setBackerCount] = useState(0);
   const [maxAllowedMultiplier, setMaxAllowedMultiplier] = useState(300);
   const [privateMode, setPrivateMode] = useState(false);
+  const [stage, setStage] = useState("form"); // "form" | "review"
 
   const loadUserBalance = async () => {
     try {
@@ -163,10 +167,11 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         setSuccess(`Successfully backed project! Transaction: ${txHash.slice(0, 10)}...`);
       }
 
+      setStage('form');
       setAmount('');
       loadUserBalance();
-      // Reload project backing data after successful backing
-      loadProjectBackingData();
+      // Reload project backing data after successful backing (via use effect re-trigger)
+      // loadProjectBackingData() is handled by the parent useEffect re-running
       // Torque event — fire and forget
       import('@/services/TorqueService').then(({ torqueService }) => {
         torqueService.trackProjectBacked(wallet.account, {
@@ -183,10 +188,20 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
   };
 
   const multipliers = [
-    { label: '1.5x', value: 150, risk: 'Low Risk' },
-    { label: '2x', value: 200, risk: 'Medium Risk' },
-    { label: '3x', value: 300, risk: 'High Risk' },
+    { label: '1.5x', value: 150, risk: 'Lower Risk', description: 'Priority repayment — repaid first from prize pool' },
+    { label: '2x', value: 200, risk: 'Balanced', description: 'Standard multiplier — repaid proportionally' },
+    { label: '3x', value: 300, risk: 'Higher Reward', description: 'Largest upside — repaid last, only after others are satisfied' },
   ];
+
+  const getMultiplierDescription = (value) => {
+    return multipliers.find(m => m.value === value)?.description || '';
+  };
+
+  const getRiskLevel = (value) => {
+    if (value <= 150) return 'low';
+    if (value >= 300) return 'high';
+    return 'medium';
+  };
 
   return (
     <Card className="p-6">
@@ -322,20 +337,100 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         <PrivacyInline isPrivate={true} className="mb-4" />
       )}
 
-      <Button
-        onClick={handleBackProject}
-        disabled={loading}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold min-h-touch"
-      >
-        {loading ? (
-          <div className="flex items-center justify-center">
-            <LoadingSpinner size="sm" className="mr-2" />
-            Processing...
+      {/* Review step — confirm before transaction */}
+      {stage === "review" ? (
+        <div className="space-y-4">
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
+            <h4 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
+              <CheckCircleIcon className="w-4 h-4 text-indigo-600" />
+              Review Your Stake
+            </h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-xs text-gray-500 block">Amount</span>
+                <span className="font-bold text-gray-900">{amount} USDC</span>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 block">Multiplier</span>
+                <span className="font-bold text-gray-900">{multiplier / 100}x</span>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 block">Potential Return</span>
+                <span className="font-bold text-emerald-700">
+                  ${(parseFloat(amount || 0) * multiplier / 100).toFixed(2)} USDC
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-gray-500 block">Risk Level</span>
+                <span className={`font-bold ${
+                  getRiskLevel(multiplier) === 'low' ? 'text-emerald-700' :
+                  getRiskLevel(multiplier) === 'high' ? 'text-rose-700' :
+                  'text-amber-700'
+                }`}>
+                  {multipliers.find(m => m.value === multiplier)?.risk || 'Balanced'}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 italic">
+              {getMultiplierDescription(multiplier)}
+            </p>
           </div>
-        ) : (
-          `Stake USDC (${multiplier/100}x Reward)`
-        )}
-      </Button>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={() => { setStage("form"); setError(null); }}
+              disabled={loading}
+              variant="outline"
+              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              <ArrowLeftIcon className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              onClick={handleBackProject}
+              disabled={loading}
+              className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold min-h-touch"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Confirming...
+                </div>
+              ) : (
+                <>
+                  <CheckCircleIcon className="w-4 h-4 mr-1" />
+                  Confirm Stake
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <Button
+            onClick={() => {
+              if (!wallet.account) {
+                setError("Please connect your wallet");
+                return;
+              }
+              if (!amount || parseFloat(amount) <= 0) {
+                setError("Please enter a valid amount");
+                return;
+              }
+              if (!projectId) {
+                setError("Project not available");
+                return;
+              }
+              setStage("review");
+              setError(null);
+            }}
+            disabled={!amount || parseFloat(amount || '0') <= 0}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold min-h-touch"
+          >
+            Review Stake — {multiplier/100}x · {amount || '0'} USDC
+          </Button>
+        </>
+      )}
 
       <div className="mt-6 pt-6 border-t border-gray-100">
         {backingLoading ? (

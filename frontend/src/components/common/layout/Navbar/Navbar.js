@@ -21,9 +21,14 @@ import ThemeToggle from "../../ThemeToggle";
 
 const navigation = [
   { 
-    name: "Explore", 
+    name: "Discover", 
     href: "/explore", 
     icon: GlobeAltIcon,
+  },
+  { 
+    name: "Leaderboards", 
+    href: "/leaderboard", 
+    icon: TrophyIcon,
   },
   { 
     name: "Build", 
@@ -41,11 +46,6 @@ const navigation = [
     name: "Analyze", 
     href: "/analyze", 
     icon: CalculatorIcon,
-  },
-  { 
-    name: "Leaderboard", 
-    href: "/leaderboard", 
-    icon: TrophyIcon,
   },
 ];
 

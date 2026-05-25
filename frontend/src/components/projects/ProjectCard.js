@@ -3,7 +3,7 @@
  * Reusable project display components with different variants
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import VelocityBadge from '../common/VelocityBadge';
@@ -12,6 +12,8 @@ import { getGitHubUrl, calculateScoutingFlags, calculateProjectBoost } from '../
 import ChainBadges from '../showcase/ChainBadges';
 import SectorBadges from '../showcase/SectorBadges';
 import AgentVerifiedBadge from '../common/AgentVerifiedBadge';
+import { ProofBadgeGroup } from "../common/ProofBadge";
+import { computeProjectBadges } from "../../lib/badges/computeBadges";
 import {
   StarIcon,
   CodeBracketIcon,
@@ -123,6 +125,8 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
     window.open(url, '_blank', 'noopener,noreferrer');
   };
   
+  const projectBadges = useMemo(() => computeProjectBadges(project), [project]);
+
   return (
     <BaseProjectCard project={project} onClick={onClick} className={`p-6 relative overflow-hidden ${tier.class}`}>
       {/* Header */}
@@ -218,6 +222,9 @@ SCOUT&apos;S CHOICE
 
       {/* Badges */}
       <div className="mb-4 space-y-2">
+        {projectBadges.length > 0 && (
+          <ProofBadgeGroup badges={projectBadges} size="sm" max={3} className="mb-2" />
+        )}
         {project.chains && project.chains.length > 0 && (
           <div>
             <div className="text-xs font-semibold text-gray-500 mb-1 uppercase">Networks</div>
@@ -478,6 +485,8 @@ export const ProjectGridCard = ({ project, onClick }) => {
   const tier = getEvolutionTier(project.stats?.healthScore || 0);
   const boost = calculateProjectBoost(project, ecosystemConfig);
   
+  const projectBadges = useMemo(() => computeProjectBadges(project), [project]);
+
   return (
     <BaseProjectCard project={project} onClick={onClick} className={`p-5 h-full flex flex-col relative overflow-hidden ${tier.class}`}>
       {/* Boost Badge */}
@@ -537,6 +546,9 @@ export const ProjectGridCard = ({ project, onClick }) => {
 
       {/* Badges */}
       <div className="mb-4 space-y-2">
+        {projectBadges.length > 0 && (
+          <ProofBadgeGroup badges={projectBadges} size="sm" max={2} className="mb-2" />
+        )}
         {project.chains && project.chains.length > 0 && (
           <ChainBadges chains={project.chains} compact={true} />
         )}

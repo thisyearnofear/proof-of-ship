@@ -14,6 +14,9 @@ import { getGitHubUrl } from "@/utils/projectUtils";
 import ethosService from "@/services/EthosService";
 import { EthosScoreBadge } from "@/components/ethos";
 import ShipsLog from "@/components/projects/ShipsLog";
+import LeaderboardRankBadge from "@/components/common/LeaderboardRankBadge";
+import ProofBadge, { ProofBadgeGroup } from "@/components/common/ProofBadge";
+import { computeProjectBadges } from "@/lib/badges/computeBadges";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SkeletonDetailPage } from "@/components/common/LoadingStates";
 import BackerActivity from "@/components/projects/BackerActivity";
@@ -32,6 +35,7 @@ import {
   CurrencyDollarIcon,
   ShieldExclamationIcon,
   CheckBadgeIcon,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 
 export default function ProjectDetailPage() {
@@ -50,6 +54,12 @@ export default function ProjectDetailPage() {
   const [ownerEthosLoading, setOwnerEthosLoading] = useState(false);
   const [verifiedClaims, setVerifiedClaims] = useState(null);
   const [claimsVerifying, setClaimsVerifying] = useState(false);
+
+  // Compute badges from project data
+  const projectBadges = useMemo(() => {
+    if (!project) return [];
+    return computeProjectBadges(project);
+  }, [project]);
 
   useEffect(() => {
     if (!ecosystem || !slug) return;
@@ -223,6 +233,10 @@ export default function ProjectDetailPage() {
             health: String(project.stats?.healthScore || project.stats?.velocity || 0),
             verified: project.verified ? "true" : "false",
           });
+          // Add top badge labels for OG image rendering
+          if (projectBadges.length > 0) {
+            ogParams.set("badges", projectBadges.slice(0, 5).map((b) => b.label).join(","));
+          }
           return (
             <>
               <meta property="og:image" content={`/api/og?${ogParams.toString()}`} />
@@ -327,6 +341,37 @@ export default function ProjectDetailPage() {
 
             <div className="space-y-6">
               <ProjectProofPanel project={project} />
+
+              {project?.slug && (
+                <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-3">
+                    <span className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                      <TrophyIcon className="w-5 h-5 text-amber-600" />
+                    </span>
+                    Leaderboard
+                  </h2>
+                  <LeaderboardRankBadge
+                    type="project"
+                    identifier={project.slug}
+                    ecosystem={project.ecosystem}
+                    showLink
+                  />
+                </Card>
+              )}
+
+              {projectBadges.length > 0 && (
+                <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-8 h-8 bg-amber-200 rounded-xl flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.746 3.746 0 0121 12z" />
+                      </svg>
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700">Badges</span>
+                  </div>
+                  <ProofBadgeGroup badges={projectBadges} size="sm" max={5} />
+                </Card>
+              )}
 
               <ProjectLinksPanel project={project} />
 

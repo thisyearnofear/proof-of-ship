@@ -17,6 +17,21 @@ export default async function handler(req, res) {
   const limit = Math.min(parseInt(req.query.limit) || 50, 200);
 
   try {
+    // Load previous snapshot for rank movement tracking
+    let prevBuilders = null;
+    let prevBackers = null;
+    try {
+      const prevSnap = await db.collection('leaderboardSnapshots').doc('torque').get();
+      if (prevSnap.exists) {
+        const prev = prevSnap.data();
+        prevBuilders = prev.builders || null;
+        prevBackers = prev.backers || null;
+      }
+    } catch (e) {
+      // First run or Firestore not ready — no movement data yet
+      console.warn('Could not load previous torque leaderboard snapshot:', e.message);
+    }
+
     // Fetch all projects to build the builders leaderboard
     const projectsSnap = await db.collection("projects").get();
 
@@ -137,8 +152,40 @@ export default async function handler(req, res) {
       }
     }
 
+    // Compute movement by comparing current rank against previous snapshot
+    function computeMovement(entries, prevMap) {
+      if (!prevMap) return entries;
+      return entries.map((entry, idx) => {
+        const id = entry.address;
+        const prevIdx = prevMap[id];
+        let movement = undefined;
+        if (prevIdx === undefined) {
+          movement = 'new';
+        } else if (idx < prevIdx) {
+          movement = 'up';
+        } else if (idx > prevIdx) {
+          movement = 'down';
+        }
+        return { ...entry, movement };
+      });
+    }
+
+    const buildersWithMovement = computeMovement(builders, prevBuilders);
+    const backersWithMovement = computeMovement(backers, prevBackers);
+
+    // Save current rankings as snapshot for next comparison
+    try {
+      await db.collection('leaderboardSnapshots').doc('torque').set({
+        builders: Object.fromEntries(builders.map((e, i) => [e.address, i])),
+        backers: Object.fromEntries(backers.map((e, i) => [e.address, i])),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('Could not save torque leaderboard snapshot (non-blocking):', e.message);
+    }
+
     res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=300");
-    return res.status(200).json({ builders, backers });
+    return res.status(200).json({ builders: buildersWithMovement, backers: backersWithMovement });
   } catch (err) {
     console.error("Leaderboard error:", err);
     return res.status(500).json({ error: "Failed to load leaderboard" });

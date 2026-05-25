@@ -226,6 +226,7 @@ export default async function handler(req, res) {
         walletAddress: user.walletAddress || null,
         bio: user.bio || null,
         verifiedWinner,
+        followerCount,
         winnerData: winnerData ? {
           totalWins: winnerData.totalWins || 0,
           lastVerifiedAt: winnerData.lastVerifiedAt || null,

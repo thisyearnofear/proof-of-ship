@@ -13,8 +13,8 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-primary mb-3">Discover</h4>
             <ul className="space-y-2">
-              <li><Link href="/explore" className="text-sm text-secondary hover:text-primary transition-colors">Explore Projects</Link></li>
-              <li><Link href="/leaderboard" className="text-sm text-secondary hover:text-primary transition-colors">Leaderboard</Link></li>
+              <li><Link href="/explore" className="text-sm text-secondary hover:text-primary transition-colors">Discover Projects</Link></li>
+              <li><Link href="/leaderboard" className="text-sm text-secondary hover:text-primary transition-colors">Leaderboards</Link></li>
               <li><Link href="/analyze" className="text-sm text-secondary hover:text-primary transition-colors">AI Analysis</Link></li>
               <li><Link href="/compare" className="text-sm text-secondary hover:text-primary transition-colors">Compare</Link></li>
             </ul>
@@ -51,10 +51,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-default text-center">
-          <p className="text-sm text-tertiary">
-            © {new Date().getFullYear()} Proof of Ship — Capital infrastructure for builders.
-          </p>
+        <div className="mt-8 pt-6 border-t border-default text-center">            <p className="text-sm text-tertiary">
+              © {new Date().getFullYear()} Proof of Ship — The reputation layer for crypto builders.
+            </p>
         </div>
       </div>
     </footer>

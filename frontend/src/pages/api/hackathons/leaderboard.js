@@ -18,6 +18,23 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Load previous snapshot for rank movement tracking
+    let prevHackathons = null;
+    let prevBuilders = null;
+    let prevProjects = null;
+    try {
+      const prevSnap = await db.collection('leaderboardSnapshots').doc('hackathons').get();
+      if (prevSnap.exists) {
+        const prev = prevSnap.data();
+        prevHackathons = prev.hackathons || null;
+        prevBuilders = prev.builders || null;
+        prevProjects = prev.projects || null;
+      }
+    } catch (e) {
+      // First run or Firestore not ready — no movement data yet
+      console.warn('Could not load previous leaderboard snapshot:', e.message);
+    }
+
     const projectsSnap = await db.collection("projects").get();
 
     const hackathonMap = new Map();
@@ -269,16 +286,52 @@ export default async function handler(req, res) {
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
 
-    return res.status(200).json({
-      hackathons: hackathons.slice(0, 100),
-      builders: builders.slice(0, 100),
-      projects: projects.slice(0, 100),
+    const topHackathons = hackathons.slice(0, 100);
+    const topBuilders = builders.slice(0, 100);
+    const topProjects = projects.slice(0, 100);
+
+    // Compute movement by comparing current rank against previous snapshot
+    function computeMovement(entries, prevMap) {
+      if (!prevMap) return entries;
+      return entries.map((entry, idx) => {
+        const id = entry.slug || entry.id || entry.name;
+        const prevIdx = prevMap[id];
+        let movement = undefined;
+        if (prevIdx === undefined) {
+          movement = 'new';
+        } else if (idx < prevIdx) {
+          movement = 'up';
+        } else if (idx > prevIdx) {
+          movement = 'down';
+        }
+        return { ...entry, movement };
+      });
+    }
+
+    const result = {
+      hackathons: computeMovement(topHackathons, prevHackathons),
+      builders: computeMovement(topBuilders, prevBuilders),
+      projects: computeMovement(topProjects, prevProjects),
       total: {
         hackathons: hackathons.length,
         builders: builders.length,
         projects: projects.length,
       },
-    });
+    };
+
+    // Save current rankings as snapshot for next comparison
+    try {
+      await db.collection('leaderboardSnapshots').doc('hackathons').set({
+        hackathons: Object.fromEntries(topHackathons.map((e, i) => [e.name, i])),
+        builders: Object.fromEntries(topBuilders.map((e, i) => [e.id || e.name, i])),
+        projects: Object.fromEntries(topProjects.map((e, i) => [e.slug, i])),
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('Could not save leaderboard snapshot (non-blocking):', e.message);
+    }
+
+    return res.status(200).json(result);
   } catch (err) {
     console.error("Hackathon leaderboard error:", err);
     return res.status(500).json({ error: "Failed to load hackathon leaderboard" });

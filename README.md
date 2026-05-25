@@ -12,8 +12,10 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 - **Local-First AI** — QVAC (Tether) on-device inference option keeps project data private; falls back to cloud providers when unavailable
 - **Submit Projects** — GitHub auto-populate, collapsible optional sections, localStorage draft saving
 - **Back Projects** — Nanopayment widget with live transaction feed and balance tracking
-- **Onboarding** — Dismissible 3-step walkthrough for first-time visitors
-- **SEO & Sharing** — Open Graph meta tags, X/Farcaster share buttons on project pages
+- **Badges** — Client-side achievement inference: Verified Winner, Multi-Ecosystem, Prolific, Proof-Backed, etc. Gold/silver/bronze tiers with animated shimmer
+- **Leaderboard Sharing** — Shareable OG images for all 5 leaderboard categories (proof-builder, project, hackathon, builder, backer) with rank, movement, and metrics
+- **Onboarding** — Dual-mode banner: guest value props + authenticated role-based guide. Dismissible per-mode with fade-in animation
+- **SEO & Sharing** — Open Graph meta tags with dynamic badge pills, X/Farcaster share buttons on project pages and leaderboard entries
 
 ## AI Provider Chain
 

@@ -24,7 +24,8 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 │       ├── config/       # Environment config
 │       ├── contexts/     # React context providers
 │       ├── hooks/        # Custom hooks
-│       ├── lib/          # Integrations (LiFi, Dune, GitHub analytics, Arc payment middleware)
+│       ├── lib/          # Integrations (LiFi, Dune, GitHub analytics, Arc payment middleware, badges)
+│       │   └── badges/   # Client-side badge inference (computeBadges.js)
 │       ├── pages/        # Next.js pages + API routes
 │       ├── services/     # Business logic (Circle, Solana credit, Cloak privacy, SNS identity, QVAC local AI)
 │       └── utils/        # Utilities
@@ -93,17 +94,34 @@ Payout speed color coding: ≤7d lightning, ≤30d fast, ≤90d moderate, >90d s
 | Low | Red shield | No verifiable evidence |
 | Loading | Gray pulse | Verification in progress |
 
+### Badge System
+
+Client-side inference layer that derives achievement badges from existing project and user data. No backend changes needed.
+
+```
+lib/badges/computeBadges.js        # Pure computation functions
+components/common/ProofBadge.js     # Presentation components (badge + group)
+hooks/useBadgeNotification.js     # Toast notifications for newly earned badges
+```
+
+**Builder badges:** Verified Winner, Multi-Ecosystem, Prolific, Proof-Backed, Community Trusted, High Velocity.
+**Project badges:** Proof Complete, Verified Win, Multi-Hackathon, High Evidence, Fast Shipper.
+**Leaderboard badges:** Rank-based tiers (gold/silver/bronze) for each leaderboard category.
+
+Rendered on builder dashboard (`/build`), public portfolio (`/u/[username]`), project detail pages, and leaderboard entries.
+
 ### Key Frontend Routes
 
 | Route | Who | What |
 |-------|-----|------|
-| `/` | Everyone | Landing page |
+| `/` | Everyone | Landing page with leaderboard strip |
 | `/explore` | Everyone | Project discovery |
 | `/back` | Backers | Backer workspace: portfolio, AI analysis, discover |
-| `/build` | Builders | Builder dashboard: project submission, credit, milestones |
-| `/leaderboard` | Everyone | Builder / Backer / Hackathon rankings |
+| `/build` | Builders | Builder dashboard: project submission, credit, milestones, badges |
+| `/leaderboard` | Everyone | Builder / Backer / Hackathon rankings with shareable OG images |
 | `/analyze` | Everyone | Standalone AI project analysis |
 | `/profile` | Everyone | User profile with credentials and portfolio |
+| `/u/[username]` | Everyone | Public builder portfolio with badges |
 | `/compare` | Everyone | Side-by-side project comparison |
 | `/login` | Everyone | Role picker + GitHub + wallet auth |
 | `/admin/verification` | Verifiers | Milestone verification dashboard |

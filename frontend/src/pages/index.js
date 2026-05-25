@@ -7,6 +7,7 @@ import { Card } from "@/components/common/Card";
 import ScorePreviewCard from "@/components/common/ScorePreviewCard";
 import LiveActivityFeed from "@/components/common/LiveActivityFeed";
 import LiveAgentTicker from "@/components/common/LiveAgentTicker";
+import LeaderboardStrip from "@/components/common/LeaderboardStrip";
 import UnifiedOnboarding from "@/components/onboarding/UnifiedOnboarding";
 import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import { LANDING_FEATURES, USER_JOURNEYS } from "@/config/landingContent";
@@ -137,6 +138,11 @@ export default function LandingPage() {
                   Explore projects
                 </Button>
               </div>
+            </div>
+
+            {/* Live Leaderboard Metrics Strip */}
+            <div className="mt-8 sm:mt-10 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
+              <LeaderboardStrip />
             </div>
 
             {/* Score Preview & Live Feed */}

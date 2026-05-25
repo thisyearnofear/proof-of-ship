@@ -106,6 +106,8 @@ function renderProfileOG(params, fontRegular, fontBold) {
   const ethosScore = params.get("ethosScore") || "";
   const avgHealth = params.get("avgHealth") || "0";
   const totalStars = params.get("totalStars") || "0";
+  const badgesParam = params.get("badges") || "";
+  const badges = badgesParam ? badgesParam.split(",").filter(Boolean).slice(0, 5) : [];
 
   return new ImageResponse(
     (
@@ -252,6 +254,38 @@ function renderProfileOG(params, fontRegular, fontBold) {
           <StatBlock label="Health" value={`${avgHealth}%`} />
         </div>
 
+        {/* Badge pills row */}
+        {badges.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              marginTop: 20,
+            }}
+          >
+            {badges.map((badge, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "4px 12px",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "rgba(255,255,255,0.9)",
+                }}
+              >
+                <span style={{ fontSize: 14 }}>✦</span>
+                <span>{badge}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Bottom wave decoration */}
         <div
           style={{
@@ -288,6 +322,8 @@ function renderProjectOG(params, fontRegular, fontBold) {
   const ecoColors = ECOSYSTEM_COLORS[ecosystem] || { bg: BRAND.gray100, text: BRAND.gray700 };
   const ecoLabel = ECOSYSTEM_LABELS[ecosystem] || ecosystem;
   const ecoEmoji = ECOSYSTEM_EMOJIS[ecosystem] || "\uD83C\uDF10";
+  const badgesParam = params.get("badges") || "";
+  const badges = badgesParam ? badgesParam.split(",").filter(Boolean).slice(0, 5) : [];
 
   return new ImageResponse(
     (
@@ -390,6 +426,38 @@ function renderProjectOG(params, fontRegular, fontBold) {
           <div style={{ width: 1, background: "rgba(255,255,255,0.15)" }} />
           <StatBlock label="Ecosystem" value={ecoLabel} />
         </div>
+
+        {/* Badge pills row */}
+        {badges.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              marginTop: 20,
+            }}
+          >
+            {badges.map((badge, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "4px 12px",
+                  borderRadius: 20,
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "rgba(255,255,255,0.9)",
+                }}
+              >
+                <span style={{ fontSize: 14 }}>✦</span>
+                <span>{badge}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Bottom decoration */}
         <div

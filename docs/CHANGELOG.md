@@ -1,5 +1,76 @@
 # Changelog
 
+## 2026-05-25 — Badge System, Leaderboard Sharing, Onboarding Rewrite, Backing Panel Review Step
+
+Client-side badge inference, shareable leaderboard OG images, dual-mode onboarding banner, and a safer backing flow with review confirmation.
+
+### Badge System (Client-Side Inference)
+
+Zero backend changes — badges are derived from existing project and user data.
+
+- **`lib/badges/computeBadges.js`** — Pure functions:
+  - `computeBuilderBadges(portfolio)` — Verified Winner, Multi-Ecosystem, Prolific, Proof-Backed, Community Trusted, High Velocity
+  - `computeProjectBadges(project)` — Proof Complete, Verified Win, Multi-Hackathon, High Evidence, Fast Shipper
+  - `computeLeaderboardBadges(entry, type)` — rank-based badges for proof-builder / project / hackathon / builder / backer tabs
+- **`components/common/ProofBadge.js`** — `ProofBadge` (individual) + `ProofBadgeGroup` (collection with overflow, staggered animations, tier-based styling)
+- **`hooks/useBadgeNotification.js`** — Detects newly earned badges by comparing against a `localStorage` cache and fires toast notifications. Deduped by badge ID.
+
+**Where badges appear:**
+- Builder dashboard (`/build`) — builder-level badge card + project-level badges on each project card
+- Public portfolio (`/u/[username]`) — builder badges in the profile sidebar
+- Project detail page — project badges card in the right sidebar
+- Leaderboard entries — inline rank badges with movement indicators
+
+**Tier system:** gold (animated shimmer + glow), silver, bronze, default.
+
+### Leaderboard Sharing & OG Images
+
+- **`pages/api/og/leaderboard.js`** (new) — Edge-runtime OG image generator for all 5 leaderboard types. Renders rank, name, movement indicator, ecosystem badge, and type-specific metrics. Cached at CDN edge.
+- **`pages/leaderboard.js`** — Added `ShareButton` component with X (Twitter) and Farcaster share links. Dynamic OG meta tags per highlighted entry via `?ref=<rank>` query parameter.
+- **`components/common/LeaderboardStrip.js`** (new) — Homepage strip showing "Top Proof Builder", "Fastest Payout", "Most Proven Project" with live data from `/api/hackathons/leaderboard` and `/api/platform/stats`.
+- **`components/common/LeaderboardRankBadge.js`** (new) — Self-contained rank fetcher with in-memory caching (5-min TTL) and movement tracking (up/down/new/stable).
+- **`pages/api/og.js`** — Updated to render badge pills on both profile and project OG images.
+
+### Onboarding Banner Rewrite
+
+- **`components/common/OnboardingBanner.js`** — Complete rewrite to dual-mode:
+  - **Guest banner** (unauthenticated) — Platform value props, CTAs: Sign Up, Explore, Sign In
+  - **Auth banner** (authenticated, onboarding complete) — Role-based step-by-step guide
+  - Dismissible per-mode with separate `localStorage` keys
+  - Skips guest banner on `/login` and `/signup` paths
+  - Fade-in slide-down animation on mount (`mounted` state + `transition-all duration-500`)
+
+### Backing Panel Review Step
+
+- **`components/BackingPanel.js`** — Added a review confirmation stage before transaction submission:
+  - Displays: amount, multiplier, potential return, risk level with color coding
+  - Risk labels: "Lower Risk (priority repayment)", "Balanced", "Higher Reward (repaid last)"
+  - "Edit" button returns to form and clears any error
+  - "Confirm Stake" proceeds to `handleBackProject`
+  - Duplicate error/success alert blocks removed (they already rendered above the conditional)
+  - Success path resets stage to `"form"` and clears inputs
+
+### Bug Fixes
+
+- **`BuilderProjectGrowth.js`** — Badge computation now derives `verifiedWinner` and `winnerData.totalWins` from the builder's own project hackathon claims (scanning for winner outcomes with payout proof) instead of hardcoding `false`.
+- **`BuilderProjectGrowth.js`** — Removed incorrect named import of `ProofBadge` (default export, unused in this file).
+- **`pages/u/[username].js`** — Badges card now renders at `builderBadges.length > 0` (was `> 1`), consistent with the builder dashboard.
+- **`hooks/useBadgeNotification.js`** — Removed array index `${idx}` from toast deduplication keys so badge reordering no longer causes duplicate notifications.
+- **`components/common/LeaderboardRankBadge.js`** — Added 5-minute TTL to the module-level fetch cache so stale rank data refreshes during long sessions.
+
+### Files Changed
+`components/BackingPanel.js` | `components/common/OnboardingBanner.js` |
+`components/common/ProofBadge.js` | `components/common/LeaderboardRankBadge.js` |
+`components/common/LeaderboardStrip.js` | `components/projects/BuilderProjectGrowth.js` |
+`hooks/useBadgeNotification.js` | `lib/badges/computeBadges.js` (new) |
+`pages/leaderboard.js` | `pages/u/[username].js` |
+`pages/index.js` | `pages/projects/[ecosystem]/[slug]/index.js` |
+`pages/api/og.js` | `pages/api/og/leaderboard.js` (new) |
+`pages/api/hackathons/leaderboard.js` | `pages/api/torque/leaderboard.js` |
+`pages/api/portfolio/[username].js` | `styles/globals.css`
+
+---
+
 ## 2026-05-25 — Vercel Build Fix & Circle Webhook Activation
 
 Resolved Vercel production build failures and successfully activated the Circle webhook endpoint.

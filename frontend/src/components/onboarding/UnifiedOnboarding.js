@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useUser } from '@/contexts/UserContext';
 import { Modal } from '../common/Modal';
 import { 
   SparklesIcon, 
@@ -42,15 +44,20 @@ const TOUR_STEPS = [
 ];
 
 export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
+  const router = useRouter();
+  const { currentUser } = useUser();
   const [currentTourStep, setCurrentTourStep] = useState(0);
 
   const handleNextTour = () => {
     if (currentTourStep < TOUR_STEPS.length - 1) {
       setCurrentTourStep(currentTourStep + 1);
     } else {
-      // Last step — close the onboarding tour and let the user explore
+      // Last step — route unauthenticated users to signup, otherwise explore
       localStorage.setItem('hasSeenUnifiedOnboarding', 'true');
       onClose?.();
+      if (!currentUser) {
+        router.push('/login?mode=signup');
+      }
     }
   };
 

@@ -12,6 +12,10 @@ import EcosystemSection from "@/components/dashboard/EcosystemSection";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BuilderActivityFeed from "@/components/projects/BuilderActivityFeed";
 import { useToastActions } from "@/components/common/Toast";
+import LeaderboardRankBadge from "@/components/common/LeaderboardRankBadge";
+import ProofBadge, { ProofBadgeGroup } from "@/components/common/ProofBadge";
+import { computeBuilderBadges } from "@/lib/badges/computeBadges";
+import useBadgeNotification from "@/hooks/useBadgeNotification";
 import ethosService from "@/services/EthosService";
 import { EthosScoreBadge, EthosProfileLink } from "@/components/ethos";
 import useFollow from "@/hooks/useFollow";
@@ -189,6 +193,19 @@ export default function UserPortfolioPage() {
     return portfolio.stats;
   }, [portfolio]);
 
+  // Compute builder badges from portfolio data
+  const builderBadges = useMemo(() => {
+    return computeBuilderBadges(portfolio);
+  }, [portfolio]);
+
+  // Badge notification for newly earned badges
+  useBadgeNotification({
+    computeFn: computeBuilderBadges,
+    data: portfolio,
+    cacheKey: "builder-" + (username || ""),
+    enabled: isOwner,
+  });
+
   // Loading state
   if (loading) {
     return (
@@ -321,6 +338,10 @@ export default function UserPortfolioPage() {
             avgHealth: String(stats?.avgHealth || 0),
             totalStars: String(stats?.totalStars || 0),
           });
+          // Add top badge labels for OG image rendering
+          if (builderBadges.length > 0) {
+            ogParams.set("badges", builderBadges.slice(0, 5).map((b) => b.label).join(","));
+          }
           return (
             <>
               <meta property="og:image" content={`/api/og?${ogParams.toString()}`} />
@@ -357,12 +378,9 @@ export default function UserPortfolioPage() {
                       <h1 className="text-2xl font-extrabold tracking-tight">
                         {displayName}
                       </h1>
-                      {/* Verified Winner Badge */}
-                      {portfolio?.user?.verifiedWinner && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-400/40" title={`Verified hackathon winner${portfolio.user.winnerData?.totalWins ? ` · ${portfolio.user.winnerData.totalWins} win${portfolio.user.winnerData.totalWins !== 1 ? 's' : ''}` : ''}`}>
-                          <TrophyIcon className="w-3.5 h-3.5" />
-                          Verified Winner
-                        </span>
+                      {/* Badges — ProofBadge components */}
+                      {builderBadges.length > 0 && (
+                        <ProofBadgeGroup badges={builderBadges} size="sm" max={3} />
                       )}
                       {/* Ethos Credibility Score Badge */}
                       {portfolio?.user?.walletAddress ? (
@@ -519,6 +537,56 @@ export default function UserPortfolioPage() {
                   color="green"
                 />
               </div>
+            )}
+
+            {/* ── Leaderboard Rankings ── */}
+            {portfolio?.user?.uid && (
+              <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                      <TrophyIcon className="w-5 h-5 text-amber-600" />
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                      Leaderboard rank
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <LeaderboardRankBadge
+                      type="proof-builder"
+                      identifier={portfolio.user.uid}
+                    />
+                    <LeaderboardRankBadge
+                      type="builder"
+                      identifier={portfolio.user.uid}
+                    />
+                  </div>
+                  <Link
+                    href="/leaderboard"
+                    className="ml-auto text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-medium hover:underline flex items-center gap-1"
+                  >
+                    <TrophyIcon className="w-3.5 h-3.5" />
+                    All leaderboards
+                  </Link>
+                </div>
+              </Card>
+            )}
+
+            {/* ── Badges ── */}
+            {builderBadges.length > 0 && (
+              <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
+                <div className="flex flex-wrap items-center gap-y-3">
+                  <div className="flex items-center gap-2 mb-2 w-full sm:mb-0 sm:w-auto sm:mr-6">
+                    <span className="w-8 h-8 bg-amber-200 rounded-xl flex items-center justify-center">
+                      <StarIcon className="w-5 h-5 text-amber-600" />
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                      Badges
+                    </span>
+                  </div>
+                  <ProofBadgeGroup badges={builderBadges} size="sm" max={8} />
+                </div>
+              </Card>
             )}
 
             {/* ── Activity Feed ── */}

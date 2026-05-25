@@ -6,7 +6,7 @@
  * Sits alongside DeveloperDashboard (on-chain projects) on the /build Projects tab.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Card, CardHeader, CardTitle } from '@/components/common/Card';
 import Button from '@/components/common/Button';
@@ -15,6 +15,8 @@ import { getProjectQuality } from '@/lib/projects/projectQuality';
 import { getEcosystemConfig } from '@/config/ecosystems';
 import Link from 'next/link';
 import QuickEditDrawer from '@/components/projects/QuickEditDrawer';
+import { ProofBadgeGroup } from '@/components/common/ProofBadge';
+import { computeBuilderBadges, computeProjectBadges } from '@/lib/badges/computeBadges';
 import {
   SparklesIcon,
   ArrowTopRightOnSquareIcon,
@@ -96,6 +98,41 @@ export default function BuilderProjectGrowth() {
 
   const missingSummary = aggregateMissing();
   const hasProjects = projects.length > 0;
+
+  // Compute builder badges from project data
+  const builderBadges = useMemo(() => {
+    if (!currentUser || projects.length === 0) return [];
+    const avgHealth = projects.reduce((sum, p) => sum + (p.stats?.healthScore || 0), 0) / projects.length;
+
+    // Derive verified wins from hackathon claims on the projects we already have
+    const verifiedWins = projects.reduce((sum, p) => {
+      if (!Array.isArray(p.hackathons)) return sum;
+      return sum + p.hackathons.filter(
+        (h) =>
+          (h.outcome === 'winner' || h.outcome === 'bounty winner') &&
+          (h.payoutVerifiedAt || h.payoutAt || h.payoutTxHash)
+      ).length;
+    }, 0);
+
+    return computeBuilderBadges({
+      user: {
+        verifiedWinner: verifiedWins > 0,
+        winnerData: { totalWins: verifiedWins },
+      },
+      projects,
+      stats: { avgHealth: Math.round(avgHealth) },
+      followerCount: 0,
+    });
+  }, [currentUser, projects]);
+
+  // Compute project-level badges for each project
+  const projectBadgesMap = useMemo(() => {
+    const map = {};
+    for (const p of projects) {
+      map[p.id] = computeProjectBadges(p);
+    }
+    return map;
+  }, [projects]);
 
   const handleShare = async (slug, ecosystem) => {
     const url = `${window.location.origin}/projects/${ecosystem}/${slug}`;
@@ -184,6 +221,30 @@ export default function BuilderProjectGrowth() {
           </Button>
         </Link>
       </div>
+
+      {/* Badge Progression — earned badges and next unlocks */}
+      {builderBadges.length > 0 && (
+        <Card className="p-5 border border-indigo-200 bg-gradient-to-r from-indigo-50/40 to-white">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <SparklesIcon className="w-6 h-6 text-indigo-700" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-indigo-900 text-lg mb-1">Your Badges</h3>
+              <p className="text-indigo-600 text-sm mb-3">
+                {builderBadges.length} badge{builderBadges.length !== 1 ? 's' : ''} earned across your projects.
+                Complete more signals to unlock additional recognition.
+              </p>
+              <ProofBadgeGroup
+                badges={builderBadges}
+                size="md"
+                max={8}
+                className="gap-2"
+              />
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Global Improve Checklist */}
       {missingSummary.length > 0 && (
@@ -337,6 +398,18 @@ export default function BuilderProjectGrowth() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Project badges */}
+                  {projectBadgesMap[project.id]?.length > 0 && (
+                    <div className="mb-3">
+                      <ProofBadgeGroup
+                        badges={projectBadgesMap[project.id]}
+                        size="sm"
+                        max={3}
+                        noAnimation
+                      />
+                    </div>
+                  )}
 
                   {/* Quality bar */}
                   <div className="w-full bg-slate-100 rounded-full h-2 mb-4">

@@ -134,6 +134,28 @@ async function handler(req, res) {
       timestamp: new Date().toISOString()
     };
 
+    // 4.5 Log underwrite run to agent_runs for audit trail
+    try {
+      const runId = `underwrite_${Date.now()}`;
+      await db.collection("agent_runs").doc(runId).set({
+        type: "underwrite",
+        timestamp: result.timestamp,
+        projectId: project.id,
+        project: { id: project.id, name: project.name, ecosystem: project.ecosystem },
+        healthScore: total,
+        breakdown,
+        recommendation: recommendation?.recommendation || "analyze",
+        resultSource,
+        reasoningTrace: aiAnalysis
+          ? [{ project: project.name, trace: aiAnalysis }]
+          : [{ project: project.name, trace: `Rule-based score: ${total}/100. ${strategicAdvice?.[0] || "Analyzed project health."}` }],
+        strategicAdvice: strategicAdvice || null,
+        ecosystemAnalysis: aiAnalysis || null,
+      });
+    } catch (logErr) {
+      console.warn("Failed to log underwrite run:", logErr.message);
+    }
+
     // 5. Cache the result for future requests
     await setCachedResult("underwrite", { projectId }, result);
 

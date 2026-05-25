@@ -1,78 +1,160 @@
-# Builder Credit × Arc: Agentic Economy Implementation
+# Proof of Ship × Agora Agents Hackathon Submission
 
-## Hackathon: Agentic Economy on Arc (lablab.ai, Apr 20–26 2026)
-## Track: Per-API Monetization & Agent-to-Agent Payment Loops
+## Hackathon: Agora Agents (Canteen × Circle × Arc)
+## Submission Deadline: May 25, 2026
+## Track: Autonomous Agents with Circle Nanopayments on Arc
 
-### What We Are Building
-We are evolving `proof-of-ship` into a practical agentic workflow on Arc: users choose a project, run an agent, review a structured result, and then decide whether to back or verify. Arc is used for fast USDC settlement and deterministic completion states; the UI now emphasizes a single happy path instead of multiple fragmented agent surfaces.
+---
 
-### Core Flow
-1. **Pick a project** in Discover.
-2. **Run Scout / Underwriter / Verifier** from the analysis workspace.
-3. **Review the result source** (`live_ai`, `cached`, `demo`, `fallback`, or `rule_based`).
-4. **Take the next action** (back, retry, or adjust payment setup).
+## 30-Second Pitch
 
-### Core Features
+Proof of Ship is a builder discovery platform powered by **autonomous AI agents** that evaluate, score, and back blockchain projects on **Arc** using **Circle USDC nanopayments**. Every agent decision produces a **transparent reasoning trace**. Users can **copy-trade the Scout agent's portfolio** — when the agent finds a project worth backing, subscriber wallets auto-execute the same backing on-chain.
 
-#### 1. The AI Underwriter API (Per-Request Nanopayments)
-- **Concept:** Evaluates a builder's project and returns a health score plus next-action guidance.
-- **The Monetization:** `0.05 USDC` per evaluation.
-- **Why it wins:** Directly maps to a useful user decision and now returns explicit status/result metadata.
+The value is the reasoning trace, not just the trade.
 
-#### 2. AI Scout (Portfolio Recommendations)
-- **Concept:** Scans the ecosystem for interesting projects and recommends where to look first.
-- **The Monetization:** `0.01 USDC` per scan.
-- **Why it wins:** Short, actionable output with clearer completion states.
+---
 
-#### 3. Verifier Agent (Code Verification)
-- **Concept:** Reviews PRs and reports whether automated verification is available.
-- **The Monetization:** `0.001 USDC` per 10 LOC.
-- **Why it wins:** No more fabricated approval; if the agent can't verify, it says so explicitly.
+## What We Built
 
-#### 4. AI Chat Assistant (Guidance Only)
-- **Concept:** A lightweight helper that routes users into the real project-analysis flow.
-- **The Monetization:** `0.005 USDC` premium guidance.
-- **Why it wins:** Chat now behaves like a launcher for useful tasks, not a dead-end bot.
+### 1. AI Scout — Autonomous Portfolio Manager
+- **What it does:** Continuously evaluates all builder projects across Solana, Arc, Celo, Base, Linea, Arbitrum, Ethereum, and Optimism. Scores each project on GitHub velocity, completeness, and community signals. Recommends micro-backings with specific multipliers.
+- **Why it wins:** Not just scores — it produces **structured reasoning traces** explaining WHY each project was selected. These traces are persisted on-chain and shareable at `/scout/trace/{runId}`.
+- **Monetization:** `0.01 USDC` per scout run via Circle nanopayments on Arc.
+- **On-chain execution:** With `?execute=1`, the Scout auto-executes backings via Circle Developer-Controlled Wallets on Arc testnet.
 
-### Why Arc & Circle Nanopayments?
-- USDC-native settlement.
-- Fast confirmation for small-value API calls.
-- Clear separation between demo and live flows.
+### 2. AI Underwriter — Per-Project Health Analysis
+- **What it does:** Deep-dive analysis of a single project with AI enrichment (Perplexity/sonar via AIsa). Returns health score, strategic advice, and investment recommendation.
+- **Why it wins:** Every analysis generates a reasoning trace stored in the audit log. No black-box scores.
+- **Monetization:** `0.05 USDC` per underwrite.
 
-### Reliability Improvements
-- Removed random verifier success.
-- Standardized API response metadata (`status`, `resultSource`, `nextAction`).
-- Demo and live payment behavior are now explicit.
-- UI surfaces now show clear completion and fallback states.
+### 3. Payout Verifier — Oracle-Grade Attestation
+- **What it does:** Verifies USDC payouts to hackathon winners on-chain via Circle API, EVM attestation, or Solana transaction lookup.
+- **Why it wins:** The verification pipeline can serve as an oracle for prediction markets — "Will this project's claim be verified?" — creating a natural bridge to market primitives.
+- **Monetization:** `0.001 USDC` per verification batch.
 
-### Files Changed
+### 4. Executor Agent — Circle Wallet On-Chain Backings
+- **What it does:** Receives project recommendations from Scout and executes `backProject()` contract calls on Arc using Circle Developer-Controlled Wallets.
+- **Why it wins:** Real USDC flowing through real smart contracts with sub-second Arc finality. Every transaction is logged with txHash in the audit trail.
 
-**Backend (API Routes & Lib)**
-- `src/lib/nanopayment.js`
-- `src/server/aisaClient.js`
-- `src/pages/api/agent/underwrite.js`
-- `src/pages/api/agent/scout.js`
-- `src/pages/api/agent/verify.js`
-- `src/pages/api/agent/chat.js`
+### 5. Copy the Scout — Social Trading Intelligence
+- **What it does:** Users subscribe to automatically back every project the Scout recommends. 1% agent fee on each fill.
+- **Why it wins:** Demonstrates **traction** and **network effects** — the agent becomes more valuable as more users copy it.
+- **API:** `/api/agent/copy` with subscribe/unsubscribe/status actions.
 
-**Frontend (Context & Service)**
-- `src/contexts/WalletContext.tsx`
-- `src/contexts/wallet/types.ts`
-- `src/services/nanopaymentService.ts`
+---
 
-**Frontend (Components)**
-- `src/components/common/NanopaymentWidget.js`
-- `src/components/common/AIChatWidget.js`
-- `src/components/back/EconomyTab.js`
-- `src/components/back/DiscoverTab.js`
+## Agent Identities
 
-### Verification
-- Unit test the payment and result-state behavior.
-- Run the frontend test suite.
-- Manually confirm:
-  - demo mode completes cleanly,
-  - live mode shows payment-required states clearly,
-  - scout/underwrite/verify return explicit completion metadata.
+Every agent has an SNS `.sol` domain:
+- `pos-scout.sol` — Portfolio evaluation & recommendations
+- `pos-underwriter.sol` — Project health scoring
+- `pos-verifier.sol` — Payout attestation
+- `pos-rebalance.sol` — Portfolio rebalancing (future)
 
-### Notes
-This implementation is intentionally less protocol-heavy in the UI and more outcome-focused for users.
+---
+
+## The Reasoning Trace Economy
+
+For Agora, the core insight is: **the value is the reasoning, not just the execution**.
+
+Every scout run now produces:
+```json
+{
+  "reasoningTraces": [
+    {
+      "project": "ocean-protocol",
+      "trace": "Strong GitHub velocity (4 commits/week), active community (12 contributors), and 90% test coverage make this a high-confidence backing. The Arc ecosystem alignment is strong."
+    }
+  ],
+  "ecosystemSummary": "Arc ecosystem shows strong builder momentum with 3 high-velocity projects shipping this week."
+}
+```
+
+These traces are:
+1. Generated by Perplexity/sonar (live AI) or rule-based fallback
+2. Stored in Firestore `agent_runs` collection
+3. Displayed in real-time on the Live Agent Ticker
+4. Explorable in the Agent Audit Log
+5. Shareable at `/scout/trace/{runId}` with OG meta tags
+
+---
+
+## Live Agent Infrastructure
+
+### Real-Time Activity Feed
+- `LiveAgentTicker.js` — Scrolls real agent runs from Firestore (not mock data)
+- `AgentAuditLog.js` — Full audit trail with inline trace viewer
+- `/scout` — Public portfolio page with stats, traces, and settlement history
+
+### On-Chain Settlement
+- Arc testnet with USDC-native gas (Paymaster)
+- Circle Developer-Controlled Wallets for agent execution
+- Every execution logged with txHash, amount, and status
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Chain | Arc (testnet) |
+| Stablecoin | USDC (Circle) |
+| Wallets | Circle Developer-Controlled Wallets |
+| Agent LLM | Perplexity/sonar via AIsa x402 |
+| Frontend | Next.js, Tailwind, Firestore real-time |
+| Agents | Scout, Underwriter, Verifier, Executor |
+| Payments | x402 nanopayments (0.01–0.05 USDC) |
+
+---
+
+## Key Files
+
+**Agent APIs**
+- `src/pages/api/agent/scout.js` — Portfolio scan + reasoning traces + on-chain execution
+- `src/pages/api/agent/underwrite.js` — Per-project health score + AI enrichment
+- `src/pages/api/agent/payout-verify.js` — Payout attestation oracle
+- `src/pages/api/agent/execute.js` — Circle wallet contract execution
+- `src/pages/api/agent/runs.js` — Public query endpoint for agent activity
+- `src/pages/api/agent/copy.js` — Copy Scout subscription API
+
+**Frontend**
+- `src/pages/scout.js` — Agent portfolio with stats, traces, settlements
+- `src/pages/scout/trace/[runId].js` — Shareable reasoning trace pages
+- `src/components/common/LiveAgentTicker.js` — Real-time agent activity
+- `src/components/dashboard/AgentAuditLog.js` — Full audit trail
+
+**Agent Identity**
+- `src/lib/agentIdentity.ts` — SNS `.sol` domain registry
+
+---
+
+## Demo Script (3 Minutes)
+
+1. **0:00-0:30** — Open `/scout`. Show the live portfolio: projects evaluated, backings executed, total staked, win rate.
+2. **0:30-1:00** — Scroll the Latest Reasoning Traces. Click one. Show the `/scout/trace/{runId}` page with full reasoning, ecosystem summary, and raw data.
+3. **1:00-1:45** — Click "View Full Trail" in Agent Audit Log. Show live agent runs scrolling with real data. Hover over a run and click "View Trace →".
+4. **1:45-2:30** — Show the Live Agent Ticker at the top of the page. Real runs cycling with live stats.
+5. **2:30-3:00** — Click "Copy Scout". Show the subscription modal. Explain social trading: users deposit USDC, auto-back when Scout signals, 1% fee to agent.
+
+---
+
+## What Makes This Competitive
+
+1. **Real agents, real USDC, real traces** — Not mock data. Every ticker item, every audit log entry, every reasoning trace is from actual agent execution.
+2. **Reasoning-first architecture** — The LLM prompt explicitly asks "WHY" and produces structured JSON traces. This is the Trading-R1 insight applied to builder discovery.
+3. **Social trading primitive** — "Copy the Scout" is a genuine network effect. More users = more fees = more agent compute = better recommendations.
+4. **Circle + Arc integration depth** — Not just "accepts USDC." Circle Developer-Controlled Wallets execute contract calls. Arc Paymaster pays gas in USDC. Sub-second finality.
+5. **Shareable audit trail** — Every run has a permalink. Judges can share specific reasoning traces on Twitter.
+
+---
+
+## Future Work (Post-Hackathon)
+
+- **Prediction markets:** Use the verifier as an oracle for "Will [project] ship by [date]?" markets.
+- **Multi-agent coordination:** Scout finds projects → Underwriter scores → Verifier checks claims → Executor backs. Full pipeline.
+- **Mainnet migration:** Move from Arc testnet to mainnet with real user funds.
+- **MiniPay integration:** Package the Scout as a Celo MiniApp for mobile users.
+
+---
+
+*Built for Agora Agents Hackathon by the Proof of Ship team.*

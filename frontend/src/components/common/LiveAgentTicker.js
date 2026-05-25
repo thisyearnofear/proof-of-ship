@@ -1,32 +1,75 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase/clientApp';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { CpuChipIcon, BoltIcon } from '@heroicons/react/24/solid';
 
-const MOCK_ACTIVITIES = [
-  "Verifier scanning repository 'ocean-protocol'...",
-  "Underwriter approved credit boost for 'ship-it-fast'",
-  "Scout found new alignment in Solana ecosystem",
-  "Nanopayment of 0.005 USDC settled for 'dex-aggregator'",
-  "Verifier validated commit #f2a4b1 on 'proof-of-ship'",
-  "Agent 'Underwriter' updating reputation for Captain-Cook",
-  "Scout identifying high-impact issues in 'web3-starter'",
-  "Nanopayment for 'agent-kit' successfully distributed"
-];
+function formatAgentRun(run) {
+  const type = run.type || 'scout';
+  const agent = type === 'execution' ? 'Executor' : type === 'scout' ? 'Scout' : type === 'underwrite' ? 'Underwriter' : 'Agent';
+  const evaluated = run.projectsEvaluated || run.projects?.length || 0;
+  const backed = run.projectsBacked || run.backed || 0;
+  const totalStake = run.totalStakeRecommended || run.totalStaked || 0;
+
+  if (type === 'execution') {
+    return `${agent} executed ${backed} backing${backed !== 1 ? 's' : ''} — ${totalStake.toFixed(2)} USDC on Arc`;
+  }
+  if (type === 'scout') {
+    return `${agent} evaluated ${evaluated} projects, recommended ${backed} — ${totalStake.toFixed(2)} USDC`;
+  }
+  if (type === 'underwrite') {
+    return `${agent} scored project ${run.project?.name || run.projectId || 'unknown'} — ${run.healthScore || '?'}/100`;
+  }
+  return `${agent} completed run — ${evaluated} evaluated, ${backed} backed`;
+}
 
 export default function LiveAgentTicker() {
+  const [runs, setRuns] = useState([]);
   const [index, setIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
+  // Subscribe to real agent runs
+  useEffect(() => {
+    const q = query(
+      collection(db, 'agent_runs'),
+      orderBy('timestamp', 'desc'),
+      limit(20)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newRuns = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRuns(newRuns);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Rotate through activities
   useEffect(() => {
     const interval = setInterval(() => {
       setIsVisible(false);
       setTimeout(() => {
-        setIndex((prev) => (prev + 1) % MOCK_ACTIVITIES.length);
+        setIndex((prev) => {
+          const len = Math.max(runs.length, 1);
+          return (prev + 1) % len;
+        });
         setIsVisible(true);
       }, 500);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [runs.length]);
+
+  const activeRun = runs[index];
+  const displayText = activeRun ? formatAgentRun(activeRun) : 'Waiting for agent activity...';
+
+  // Compute live stats from real data
+  const totalRuns = runs.length;
+  const successfulRuns = runs.filter((r) =>
+    r.type === 'execution' ? (r.totalBacked || 0) > 0 : (r.projectsBacked || r.backed || 0) > 0
+  ).length;
 
   return (
     <div className="bg-slate-900 text-cyan-400 py-1.5 px-4 overflow-hidden border-b border-slate-800">
@@ -38,24 +81,24 @@ export default function LiveAgentTicker() {
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Agent Network:</span>
         </div>
-        
+
         <div className={`flex items-center gap-2 transition-all duration-500 transform ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
         }`}>
           <BoltIcon className="w-3 h-3 text-amber-400 animate-pulse" />
           <span className="text-[11px] font-mono font-medium truncate">
-            {MOCK_ACTIVITIES[index]}
+            {displayText}
           </span>
         </div>
 
         <div className="ml-auto hidden sm:flex items-center gap-4 text-[10px] font-bold text-slate-600 uppercase tracking-tight">
           <div className="flex items-center gap-1">
             <span className="w-1 h-1 bg-green-500 rounded-full" />
-            Active Verifiers: 124
+            Agent Runs: {totalRuns}
           </div>
           <div className="flex items-center gap-1">
             <span className="w-1 h-1 bg-blue-500 rounded-full" />
-            TPS: 12.4
+            Successful: {successfulRuns}
           </div>
         </div>
       </div>

@@ -137,11 +137,15 @@ async function scoutHandler(req, res) {
     try {
       runId = `scout_${Date.now()}`;
       await db.collection("agent_runs").doc(runId).set({
+        type: "scout",
         timestamp: new Date().toISOString(),
         projectsEvaluated: scored.length,
         projectsBacked: toBack.length,
         totalStakeRecommended: totalStake,
         executed: req.method === "POST" && req.query.execute === "1",
+        reasoningTrace,
+        ecosystemAnalysis,
+        resultSource,
         results: toBack.map((p) => ({
           id: p.id,
           name: p.name,
@@ -181,8 +185,9 @@ async function scoutHandler(req, res) {
       }
     }
 
-    // AIsa-powered ecosystem analysis (optional)
+    // AIsa-powered ecosystem analysis + reasoning traces (optional)
     let ecosystemAnalysis = null;
+    let reasoningTrace = null;
     let aisaPayment = null;
     let resultSource = "rule_based";
     if (isAisaConfigured()) {
@@ -191,10 +196,32 @@ async function scoutHandler(req, res) {
           ? Math.round(scored.reduce((s, p) => s + p.score, 0) / scored.length)
           : 0;
         const topNames = toBack.slice(0, 3).map((p) => `${p.name} (${p.ecosystem || 'unknown'})`).join(", ");
-        const prompt = `Summarize the investment landscape for these ${scored.length} blockchain projects in 2 sentences. 
-        Top projects: ${topNames}. 
-        Overall ecosystem health score: ${avgScore}/100.
-        Consider all ecosystems equally — Solana, Arc, Celo, Base, Linea, Arbitrum, Ethereum, and Optimism projects should all be evaluated on their own merits.`;
+        const topProjectsData = toBack.slice(0, 3).map((p) => ({
+          name: p.name,
+          ecosystem: p.ecosystem || 'unknown',
+          score: p.score,
+          breakdown: p.breakdown,
+          recommendation: p.recommendation,
+        }));
+
+        const prompt = `You are an investment analyst for a blockchain project scouting platform.
+
+SCOUTED PROJECTS: ${scored.length}
+TOP RECOMMENDATIONS: ${topNames}
+AVERAGE ECOSYSTEM SCORE: ${avgScore}/100
+
+For EACH of the top 3 recommended projects, provide a 2-3 sentence reasoning trace explaining WHY the scout should back it. Break down by: GitHub velocity, project completeness, and community signals. Be specific — mention actual project names and what makes them stand out.
+
+Then summarize the overall investment landscape in 1 sentence.
+
+Respond in this exact JSON format:
+{
+  "reasoningTraces": [
+    {"project": "Name", "trace": "Detailed reasoning..."},
+    ...
+  ],
+  "ecosystemSummary": "One sentence landscape summary."
+}`;
 
         const aisaFetch = getAisaFetch();
         const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
@@ -206,12 +233,42 @@ async function scoutHandler(req, res) {
           }),
         });
         const aisaData = await aisaRes.json();
-        ecosystemAnalysis = aisaData.choices?.[0]?.message?.content || null;
+        const aiContent = aisaData.choices?.[0]?.message?.content || null;
+
+        // Try to parse structured JSON from the AI response
+        if (aiContent) {
+          try {
+            const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              reasoningTrace = parsed.reasoningTraces || null;
+              ecosystemAnalysis = parsed.ecosystemSummary || aiContent;
+            } else {
+              ecosystemAnalysis = aiContent;
+            }
+          } catch {
+            ecosystemAnalysis = aiContent;
+          }
+        }
+
         aisaPayment = { provider: "aisa", model: "perplexity/sonar", status: "paid" };
         resultSource = "live_ai";
       } catch (err) {
         console.warn("AIsa ecosystem analysis failed (non-fatal):", err.message);
       }
+    }
+
+    // Fallback: generate rule-based reasoning traces from scoring data
+    if (!reasoningTrace && toBack.length > 0) {
+      reasoningTrace = toBack.slice(0, 3).map((p) => ({
+        project: p.name,
+        trace: `Scored ${p.score}/100. ` +
+          `GitHub velocity: ${p.breakdown?.velocity || '?'}%, ` +
+          `completeness: ${p.breakdown?.completeness || '?'}%, ` +
+          `community: ${p.breakdown?.community || '?'}%. ` +
+          `Recommendation: ${p.recommendation?.recommendation || 'analyze'} ` +
+          `with ${p.recommendation?.multiplier || '?'}x multiplier.`
+      }));
     }
 
     const result = {
@@ -238,6 +295,7 @@ async function scoutHandler(req, res) {
         totalStake: `$${totalStake.toFixed(2)} USDC`,
         executed: shouldExecute,
       },
+      reasoningTrace,
       ecosystemAnalysis,
       execution: executionResult,
       projects: scored,

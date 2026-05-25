@@ -11,6 +11,7 @@ import {
   ShieldCheckIcon,
   BoltIcon,
   TrophyIcon,
+  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
@@ -42,10 +43,15 @@ const navigation = [
     href: "/back", 
     icon: ChartBarIcon,
   },
-  { 
-    name: "Analyze", 
-    href: "/analyze", 
+  {
+    name: "Analyze",
+    href: "/analyze",
     icon: CalculatorIcon,
+  },
+  {
+    name: "Scout",
+    href: "/scout",
+    icon: CpuChipIcon,
   },
 ];
 

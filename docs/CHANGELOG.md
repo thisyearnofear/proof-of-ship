@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-05-25 — Agentic Economy: Live Agent Runs, Reasoning Traces, Scout Portfolio
+
+Real-time agent activity feed, AI reasoning traces, and a public portfolio page for the Proof Scout agent — moving from mock data to live on-chain agent infrastructure.
+
+### Live Agent Activity Feed
+
+- **`components/common/LiveAgentTicker.js`** — Replaced `MOCK_ACTIVITIES` with a live Firestore `onSnapshot` subscription to the `agent_runs` collection. Displays real agent runs (execution, scout, underwrite) with live stats: total runs and successful executions.
+- **`components/dashboard/AgentAuditLog.js`** — Replaced `MOCK_LOGS` with real Firestore data. Added type-aware formatting for each agent run type (execution → emerald, scout → purple, underwrite → blue). Clicking "View Trace →" now opens an inline reasoning trace viewer instead of a no-op hover effect.
+
+### Reasoning Traces (Trading-R1)
+
+- **`pages/api/agent/scout.js`** — Modified the AIsa LLM prompt to request structured JSON output with `reasoningTraces` for each top-3 recommended project + an `ecosystemSummary`. Falls back to rule-based reasoning traces from scoring breakdown data when AIsa is unavailable.
+- **Stored in `agent_runs`** — `reasoningTrace`, `ecosystemAnalysis`, and `resultSource` are now persisted on every scout run, making them available for the audit log and portfolio page.
+
+### Scout Portfolio Page (`/scout`)
+
+- **`pages/scout.js`** (new) — Public portfolio page for the Proof Scout agent:
+  - Live stats: projects evaluated, backings executed, total staked, success rate
+  - Latest reasoning traces from scout runs
+  - Recent Arc on-chain settlements with explorer links
+  - Live agent activity feed
+  - "Copy Scout" CTA with social trading explainer modal
+  - Share to X button with analytics tracking
+  - OG meta tags for social sharing
+- **`pages/api/agent/runs.js`** (new) — Public endpoint returning recent agent runs from Firestore with optional project slug filtering.
+- **`pages/api/agent/copy.js`** (new) — Subscription API for the "Copy Scout" feature. Manages `copy_scout_subscriptions` in Firestore with subscribe/unsubscribe/status actions.
+- **`components/common/layout/Navbar/Navbar.js`** — Added "Scout" to main navigation with `CpuChipIcon`.
+
+---
+
 ## 2026-05-25 — Badge System, Leaderboard Sharing, Onboarding Rewrite, Backing Panel Review Step
 
 Client-side badge inference, shareable leaderboard OG images, dual-mode onboarding banner, and a safer backing flow with review confirmation.

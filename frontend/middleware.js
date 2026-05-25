@@ -25,6 +25,13 @@ const SECURITY_HEADERS = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
+const PLATFORM_DOMAINS = new Set([
+  "vercel.app",
+  "web.app",
+  "firebaseapp.com",
+  "netlify.app",
+]);
+
 function getSubdomain(hostname) {
   if (!hostname) return null;
 
@@ -35,6 +42,12 @@ function getSubdomain(hostname) {
 
   if (parts[parts.length - 1] === "localhost" && parts.length === 2) {
     return parts[0];
+  }
+
+  // Don't treat platform deployment URLs as subdomains
+  const baseDomain = parts.slice(-2).join(".");
+  if (PLATFORM_DOMAINS.has(baseDomain)) {
+    return null;
   }
 
   if (parts.length >= 3) {

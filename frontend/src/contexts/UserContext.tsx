@@ -385,7 +385,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   
   const linkWallet = async (walletAddress: string, signature: string, message: string, chainFamily: 'evm' | 'solana' = 'evm') => {
     if (!currentUser) throw new Error('Must be authenticated to link wallet');
-    
+
+    // Check if this wallet is already claimed by a different user
+    const walletKey = walletAddress.toLowerCase();
+    const indexDoc = await getDoc(doc(db, 'wallet_index', walletKey));
+    if (indexDoc.exists() && indexDoc.data().uid !== currentUser.uid) {
+      throw new Error('This wallet is already linked to another account');
+    }
+
     const entry: LinkedWallet = {
       address: walletAddress,
       chainFamily,
@@ -393,16 +400,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       message,
       linkedAt: new Date().toISOString(),
     };
-    
+
     // Deduplicate: replace if same address exists, otherwise append
     const updated = [...linkedWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase()), entry];
-    
+
     const userDocRef = doc(db, 'users', currentUser.uid);
-    // Write wallets array + legacy walletAddress for backward compat with portfolio/API readers
     await setDoc(userDocRef, { wallets: updated, walletAddress: walletAddress }, { merge: true });
 
-    // Write wallet_index for wallet login lookups
-    await setDoc(doc(db, 'wallet_index', walletAddress.toLowerCase()), {
+    await setDoc(doc(db, 'wallet_index', walletKey), {
       uid: currentUser.uid,
       walletAddress,
       chainFamily,
@@ -414,12 +419,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   
   const unlinkWallet = async (walletAddress: string) => {
     if (!currentUser) throw new Error('Must be authenticated');
-    
+
     const updated = linkedWallets.filter(w => w.address.toLowerCase() !== walletAddress.toLowerCase());
-    
+
     const userDocRef = doc(db, 'users', currentUser.uid);
-    // Update wallets array + legacy walletAddress (use next available or null)
     await setDoc(userDocRef, { wallets: updated, walletAddress: updated[0]?.address || null }, { merge: true });
+
+    // Remove stale wallet_index entry so the address can be claimed by another user
+    await deleteDoc(doc(db, 'wallet_index', walletAddress.toLowerCase()));
+
     setLinkedWallets(updated);
   };
   

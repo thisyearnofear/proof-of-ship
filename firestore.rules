@@ -144,13 +144,13 @@ service cloud.firestore {
 
     // Wallet index — maps wallet addresses to Firebase UIDs.
     // Used by signInWithWallet to look up existing accounts.
-    // Read: any authenticated user can look up their own wallet.
-    // Write: only server-side scripts via admin SDK (rules bypassed).
-    // The firebase-admin SDK bypasses security rules, so `write: if false`
-    // still allows your API routes to write while blocking malicious clients.
+    // Read: any authenticated user can look up wallets.
+    // Write: authenticated users can only write/delete entries where uid == their own.
     match /wallet_index/{walletAddress} {
       allow read: if isAuthenticated();
-      allow write: if false;
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
     }
 
     // Agent cache — cached AI agent analysis results.

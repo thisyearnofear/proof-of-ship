@@ -36,13 +36,28 @@ export default async function handler(req, res) {
       } catch { /* not a valid doc ID */ }
     }
 
-    // Fallback: look up by wallet address (for backer/wallet-only users)
-    if (userSnapshot.empty && /^0x[a-fA-F0-9]{40}$/.test(username)) {
+    // Fallback: look up by wallet address (EVM or Solana) for backer/wallet-only users
+    const isEvmAddress = /^0x[a-fA-F0-9]{40}$/.test(username);
+    const isSolanaAddress = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(username);
+
+    if (userSnapshot.empty && (isEvmAddress || isSolanaAddress)) {
       userSnapshot = await db
         .collection("users")
         .where("walletAddress", "==", username)
         .limit(1)
         .get();
+
+      // Also check wallet_index for linked wallets that aren't the primary
+      if (userSnapshot.empty) {
+        const indexDoc = await db.collection("wallet_index").doc(username.toLowerCase()).get();
+        if (indexDoc.exists) {
+          const ownerUid = indexDoc.data().uid;
+          const ownerDoc = await db.collection("users").doc(ownerUid).get();
+          if (ownerDoc.exists) {
+            userSnapshot = { docs: [ownerDoc], empty: false };
+          }
+        }
+      }
     }
 
     if (userSnapshot.empty) {

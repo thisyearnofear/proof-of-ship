@@ -297,6 +297,32 @@ SCOUT&apos;S CHOICE
         </div>
       )}
 
+      {/* Hackathon proof summary */}
+      {Array.isArray(project.hackathons) && project.hackathons.length > 0 && (
+        <div className="mb-4 p-3 bg-pink-50 rounded-lg border border-pink-100">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-pink-800 uppercase tracking-wider">Proof of Ship</span>
+            <span className="text-xs text-pink-700 font-medium">{project.hackathons.length} claim{project.hackathons.length === 1 ? '' : 's'}</span>
+          </div>
+          <div className="space-y-1.5">
+            {project.hackathons.slice(0, 2).map((hackathon, idx) => {
+              const hasEvidence = Boolean(hackathon?.announcementUrl || hackathon?.submissionUrl || hackathon?.payoutTxHash || hackathon?.payoutWallet || hackathon?.evidenceUrl);
+              return (
+                <div key={idx} className="flex items-center justify-between gap-3 text-xs">
+                  <div className="min-w-0">
+                    <span className="font-medium text-pink-900 truncate">{hackathon?.name || `Hackathon ${idx + 1}`}</span>
+                    {hackathon?.outcome ? <span className="text-pink-700"> · {hackathon.outcome}</span> : null}
+                  </div>
+                  <span className={`shrink-0 px-2 py-0.5 rounded-full ${hasEvidence ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {hasEvidence ? 'Evidence attached' : 'Claim only'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Backer Market Section */}
       <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
         <div className="flex items-center justify-between mb-2">

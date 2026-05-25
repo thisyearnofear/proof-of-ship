@@ -79,7 +79,19 @@ export function cleanHackathons(hackathons) {
         url: String(hackathon?.url || '').trim(),
         outcome: String(hackathon?.outcome || '').trim(),
         payoutAt: String(hackathon?.payoutAt || '').trim(),
-        notes: String(hackathon?.notes || '').trim()
+        notes: String(hackathon?.notes || '').trim(),
+        track: String(hackathon?.track || '').trim(),
+        prizeAmount: String(hackathon?.prizeAmount || '').trim(),
+        payoutWallet: String(hackathon?.payoutWallet || '').trim(),
+        payoutTxHash: String(hackathon?.payoutTxHash || '').trim(),
+        announcementUrl: String(hackathon?.announcementUrl || '').trim(),
+        submissionUrl: String(hackathon?.submissionUrl || '').trim(),
+        evidenceUrl: String(hackathon?.evidenceUrl || '').trim(),
+        judgingNotes: String(hackathon?.judgingNotes || '').trim(),
+        proofType: String(hackathon?.proofType || '').trim(),
+        repoUrl: String(hackathon?.repoUrl || '').trim(),
+        contractAddress: String(hackathon?.contractAddress || '').trim(),
+        verificationStatus: String(hackathon?.verificationStatus || '').trim() || 'self_attested',
       };
 
       // Preserve PayoutVerifier fields when present
@@ -93,11 +105,10 @@ export function cleanHackathons(hackathons) {
       // Optional hackathon date range for payout speed computation
       if (hackathon.hackathonEndDate) cleaned.hackathonEndDate = String(hackathon.hackathonEndDate).trim();
 
-      return cleaned;
+      const hasAnyEvidence = cleaned.name || cleaned.url || cleaned.outcome || cleaned.payoutAt || cleaned.notes || cleaned.track || cleaned.prizeAmount || cleaned.payoutWallet || cleaned.payoutTxHash || cleaned.announcementUrl || cleaned.submissionUrl || cleaned.evidenceUrl || cleaned.judgingNotes || cleaned.proofType || cleaned.repoUrl || cleaned.contractAddress;
+      return hasAnyEvidence ? cleaned : null;
     })
-    .filter((hackathon) =>
-      hackathon.name || hackathon.url || hackathon.outcome || hackathon.payoutAt || hackathon.notes
-    );
+    .filter(Boolean);
 }
 
 export function normalizeProjectInput(input = {}) {

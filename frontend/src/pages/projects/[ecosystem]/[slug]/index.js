@@ -374,8 +374,26 @@ export default function ProjectDetailPage() {
                         <p className="text-sm text-gray-600 mt-2">
                           {h.outcome ? `Outcome: ${h.outcome}` : "Outcome: —"}
                         </p>
+                        {h.track && (
+                          <p className="text-sm text-gray-600 mt-1">Track: {h.track}</p>
+                        )}
+                        {h.prizeAmount && (
+                          <p className="text-sm text-gray-600 mt-1">Prize: {h.prizeAmount}</p>
+                        )}
+                        {h.payoutWallet && (
+                          <p className="text-sm text-gray-600 mt-1 break-all">Payout wallet: {h.payoutWallet}</p>
+                        )}
+                        {h.payoutTxHash && (
+                          <p className="text-sm text-gray-600 mt-1 break-all">Payout tx: {h.payoutTxHash}</p>
+                        )}
+                        {h.contractAddress && (
+                          <p className="text-sm text-gray-600 mt-1 break-all">Contract / deployment: {h.contractAddress}</p>
+                        )}
                         {h.notes && (
                           <p className="text-sm text-gray-600 mt-2">{h.notes}</p>
+                        )}
+                        {h.judgingNotes && (
+                          <p className="text-xs text-gray-500 mt-2">Judge / reviewer context: {h.judgingNotes}</p>
                         )}
                       </div>
                       
@@ -404,6 +422,39 @@ export default function ProjectDetailPage() {
                             rightIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
                           >
                             Link
+                          </Button>
+                        )}
+                        {h.submissionUrl && h.submissionUrl !== h.url && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.open(h.submissionUrl, "_blank", "noopener,noreferrer")
+                            }
+                          >
+                            Submission
+                          </Button>
+                        )}
+                        {h.announcementUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.open(h.announcementUrl, "_blank", "noopener,noreferrer")
+                            }
+                          >
+                            Announcement
+                          </Button>
+                        )}
+                        {h.evidenceUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              window.open(h.evidenceUrl, "_blank", "noopener,noreferrer")
+                            }
+                          >
+                            Evidence
                           </Button>
                         )}
                       </div>

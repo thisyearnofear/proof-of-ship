@@ -303,7 +303,25 @@ export default function ProjectEditor({ projectSlug }) {
       ...prev,
       hackathons: [
         ...(prev.hackathons || []),
-        { name: "", url: "", outcome: "", payoutAt: "", notes: "" },
+        {
+          name: "",
+          url: "",
+          outcome: "",
+          payoutAt: "",
+          notes: "",
+          track: "",
+          prizeAmount: "",
+          payoutWallet: "",
+          payoutTxHash: "",
+          announcementUrl: "",
+          submissionUrl: "",
+          evidenceUrl: "",
+          judgingNotes: "",
+          proofType: "",
+          repoUrl: form.githubUrl || "",
+          contractAddress: form.contractAddress || "",
+          verificationStatus: "self_attested",
+        },
       ],
     }));
   };
@@ -1598,9 +1616,9 @@ export default function ProjectEditor({ projectSlug }) {
       <Card className="p-6 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Hackathons</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Hackathon proof</h3>
             <p className="text-gray-600 text-sm">
-              Track where you’re submitting, outcomes, and time-to-payout.
+              This is a core Proof of Ship signal. Add structured evidence that ties your repo, wallet, and public win/submission history together.
             </p>
           </div>
           <Button
@@ -1609,19 +1627,30 @@ export default function ProjectEditor({ projectSlug }) {
             onClick={addHackathon}
             leftIcon={<PlusIcon className="w-4 h-4" />}
           >
-            Add
+            Add claim
           </Button>
         </div>
 
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="font-medium mb-1">What strong proof looks like</div>
+          <ul className="list-disc pl-5 space-y-1 text-amber-800">
+            <li>Hackathon name + result (winner, finalist, bounty, submitted)</li>
+            <li>Public submission or announcement URL</li>
+            <li>Payout wallet and prize transaction hash when available</li>
+            <li>Repo and contract/deployment references that match the claim</li>
+          </ul>
+        </div>
+
         {form.hackathons.length === 0 ? (
-          <div className="text-gray-600">No hackathons yet.</div>
+          <div className="text-gray-600">No hackathon claims yet. Add one if this project was submitted to or won a hackathon.</div>
         ) : (
           <div className="space-y-4">
             {form.hackathons.map((h, idx) => (
               <Card key={idx} className="p-4 bg-gray-50 border border-gray-200">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="font-medium text-gray-900">
-                    Hackathon {idx + 1}
+                  <div>
+                    <div className="font-medium text-gray-900">Hackathon claim {idx + 1}</div>
+                    <div className="text-xs text-gray-500 mt-1">Attach enough evidence for backers and reviewers to trust the claim.</div>
                   </div>
                   <Button
                     type="button"
@@ -1633,44 +1662,127 @@ export default function ProjectEditor({ projectSlug }) {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <Input
-                    label="Name"
+                    label="Hackathon name"
                     value={h.name}
                     onChange={(e) => updateHackathon(idx, "name", e.target.value)}
-                    placeholder="ETHGlobal…"
+                    placeholder="ETHGlobal Cannes / Celo Camp / Superteam..."
                   />
                   <Input
-                    label="Submission / announcement URL"
-                    value={h.url}
-                    onChange={(e) => updateHackathon(idx, "url", e.target.value)}
-                    placeholder="https://..."
+                    label="Track or bounty"
+                    value={h.track || ""}
+                    onChange={(e) => updateHackathon(idx, "track", e.target.value)}
+                    placeholder="DeFi, Infra, AI x Crypto, Payments..."
                   />
                   <Input
                     label="Outcome"
                     value={h.outcome}
-                    onChange={(e) =>
-                      updateHackathon(idx, "outcome", e.target.value)
-                    }
-                    placeholder="Submitted / finalist / winner / not selected"
+                    onChange={(e) => updateHackathon(idx, "outcome", e.target.value)}
+                    placeholder="Winner / finalist / bounty winner / submitted"
                   />
                   <Input
-                    label="Payout received at (optional)"
+                    label="Prize amount (optional)"
+                    value={h.prizeAmount || ""}
+                    onChange={(e) => updateHackathon(idx, "prizeAmount", e.target.value)}
+                    placeholder="$2,500 USDC"
+                  />
+                  <Input
+                    label="Submission URL"
+                    value={h.submissionUrl || h.url || ""}
+                    onChange={(e) => {
+                      updateHackathon(idx, "submissionUrl", e.target.value);
+                      updateHackathon(idx, "url", e.target.value);
+                    }}
+                    placeholder="Devpost / DoraHacks / hackathon submission page"
+                  />
+                  <Input
+                    label="Announcement URL"
+                    value={h.announcementUrl || ""}
+                    onChange={(e) => updateHackathon(idx, "announcementUrl", e.target.value)}
+                    placeholder="X/Twitter, Farcaster, official winners page"
+                  />
+                  <Input
+                    label="Evidence URL"
+                    value={h.evidenceUrl || ""}
+                    onChange={(e) => updateHackathon(idx, "evidenceUrl", e.target.value)}
+                    placeholder="Demo video, judging page, blog post, screenshot thread"
+                  />
+                  <Input
+                    label="Repo used for submission"
+                    value={h.repoUrl || ""}
+                    onChange={(e) => updateHackathon(idx, "repoUrl", e.target.value)}
+                    placeholder="https://github.com/owner/repo"
+                  />
+                  <Input
+                    label="Payout wallet"
+                    value={h.payoutWallet || ""}
+                    onChange={(e) => updateHackathon(idx, "payoutWallet", e.target.value)}
+                    placeholder="0x... or Solana address that received prize funds"
+                  />
+                  <Input
+                    label="Prize payout tx hash"
+                    value={h.payoutTxHash || ""}
+                    onChange={(e) => updateHackathon(idx, "payoutTxHash", e.target.value)}
+                    placeholder="Onchain payout transaction hash"
+                  />
+                  <Input
+                    label="Payout received at"
                     value={h.payoutAt}
-                    onChange={(e) =>
-                      updateHackathon(idx, "payoutAt", e.target.value)
-                    }
+                    onChange={(e) => updateHackathon(idx, "payoutAt", e.target.value)}
                     placeholder="2025-12-01"
+                  />
+                  <Input
+                    label="Contract or deployment reference"
+                    value={h.contractAddress || ""}
+                    onChange={(e) => updateHackathon(idx, "contractAddress", e.target.value)}
+                    placeholder="0x... or program address tied to this submission"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <Select
+                    label="Primary proof type"
+                    value={h.proofType || ""}
+                    onChange={(e) => updateHackathon(idx, "proofType", e.target.value)}
+                  >
+                    <option value="">Select proof type</option>
+                    <option value="payout_tx">Prize payout transaction</option>
+                    <option value="announcement">Public winner announcement</option>
+                    <option value="submission_page">Submission page</option>
+                    <option value="wallet_signature">Wallet-linked claim</option>
+                    <option value="repo_contract_match">Repo + contract match</option>
+                    <option value="mixed">Mixed evidence</option>
+                  </Select>
+                  <Select
+                    label="Verification status"
+                    value={h.verificationStatus || "self_attested"}
+                    onChange={(e) => updateHackathon(idx, "verificationStatus", e.target.value)}
+                  >
+                    <option value="self_attested">Self-attested</option>
+                    <option value="evidence_attached">Evidence attached</option>
+                    <option value="wallet_linked">Wallet linked</option>
+                    <option value="payout_verified">Payout verified</option>
+                  </Select>
+                </div>
+
+                <div className="mt-4">
+                  <Textarea
+                    label="Why this proves the claim"
+                    value={h.notes}
+                    onChange={(e) => updateHackathon(idx, "notes", e.target.value)}
+                    placeholder="Explain how the payout wallet, repo, submission, and announcement tie back to this project."
+                    rows={3}
                   />
                 </div>
 
                 <div className="mt-4">
                   <Textarea
-                    label="Notes"
-                    value={h.notes}
-                    onChange={(e) => updateHackathon(idx, "notes", e.target.value)}
-                    placeholder="Key improvements, judge feedback, what you’d do differently…"
-                    rows={3}
+                    label="Judge feedback / extra context"
+                    value={h.judgingNotes || ""}
+                    onChange={(e) => updateHackathon(idx, "judgingNotes", e.target.value)}
+                    placeholder="Optional: judge comments, award rationale, context for reviewers."
+                    rows={2}
                   />
                 </div>
               </Card>

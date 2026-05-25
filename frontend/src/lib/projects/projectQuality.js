@@ -44,6 +44,23 @@ const QUALITY_ITEMS = [
     action: 'Add concrete, trackable milestones.'
   },
   {
+    id: 'hackathonProof',
+    label: 'Hackathon proof',
+    weight: 12,
+    isDone: (project) => Array.isArray(project.hackathons) && project.hackathons.some((h) =>
+      Boolean(
+        String(h?.name || '').trim() && (
+          String(h?.announcementUrl || '').trim() ||
+          String(h?.submissionUrl || '').trim() ||
+          String(h?.payoutTxHash || '').trim() ||
+          String(h?.payoutWallet || '').trim() ||
+          String(h?.evidenceUrl || '').trim()
+        )
+      )
+    ),
+    action: 'Add a hackathon result with evidence like payout tx, wallet, submission, or announcement URL.'
+  },
+  {
     id: 'proof',
     label: 'Onchain proof',
     weight: 10,

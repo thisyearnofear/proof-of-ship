@@ -1,4 +1,4 @@
-import { utils } from "ethers";
+import { formatUnits } from 'viem';
 import { LiFi } from "@lifi/sdk";
 
 // Configure LI.FI SDK
@@ -234,7 +234,7 @@ export class CrossChainUSDCService {
               balance: balance.amount || "0",
               symbol: usdcToken.symbol,
               decimals: usdcToken.decimals,
-              formattedBalance: utils.formatUnits(
+              formattedBalance: formatUnits(
                 balance.amount || "0",
                 usdcToken.decimals
               ),

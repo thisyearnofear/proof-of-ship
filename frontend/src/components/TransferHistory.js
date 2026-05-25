@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFinancial } from '../contexts/FinancialContext';
 import { useWallet } from '../contexts/WalletContext';
-import { ethers } from 'ethers';
+import { formatUnits } from 'viem';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';
 import { getExplorerUrl } from '../utils/web3';
@@ -103,7 +103,7 @@ export default function TransferHistory() {
   // Format amount with token symbol
   const formatAmount = (amount, token) => {
     if (!token) return amount;
-    return `${ethers.utils.formatUnits(amount, token.decimals || 6)} ${token.symbol || 'tokens'}`;
+    return `${formatUnits(amount, token.decimals || 6)} ${token.symbol || 'tokens'}`;
   };
 
   // Toggle expanded transfer details
@@ -265,7 +265,7 @@ export default function TransferHistory() {
                                 <div key={`fee-${index}`} className="flex justify-between">
                                   <span className="text-gray-500">{fee.name || `Fee ${index + 1}`}:</span>
                                   <span>
-                                    {ethers.utils.formatUnits(fee.amount, fee.token?.decimals || 18)} {fee.token?.symbol}
+                                    {formatUnits(fee.amount, fee.token?.decimals || 18)} {fee.token?.symbol}
                                   </span>
                                 </div>
                               ))
@@ -281,7 +281,7 @@ export default function TransferHistory() {
                                     <div key={`gas-${index}`} className="flex justify-between">
                                       <span className="text-gray-500">{gas.name || `Gas ${index + 1}`}:</span>
                                       <span>
-                                        {ethers.utils.formatUnits(gas.amount, gas.token?.decimals || 18)} {gas.token?.symbol}
+                                        {formatUnits(gas.amount, gas.token?.decimals || 18)} {gas.token?.symbol}
                                       </span>
                                     </div>
                                   ))}

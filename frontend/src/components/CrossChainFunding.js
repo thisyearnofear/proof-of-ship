@@ -9,7 +9,7 @@ import { LoadingSpinner } from './common/LoadingStates';
 
 
 export default function CrossChainFunding({ creditScore, developerAddress, onFundingComplete }) {
-  const { account, ethersProvider: provider } = useWallet();
+  const { account, publicClient } = useWallet();
   const circleWallet = useCircleWallet();
   const [supportedChains, setSupportedChains] = useState([]);
   const [selectedChains, setSelectedChains] = useState([]);
@@ -84,11 +84,10 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
   };
 
   const executeFunding = async () => {
-    if (!distributionPlan || !provider) return;
+    if (!distributionPlan || !publicClient) return;
 
     setIsLoading(true);
     try {
-      const signer = provider.getSigner();
       const results = [];
 
       for (const distribution of distributionPlan.distribution) {
@@ -100,7 +99,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
 
           const result = await crossChainUSDCService.executeTransfer(
             distribution.quote.route,
-            signer
+            null // signer no longer needed; cross-chain service uses window.ethereum
           );
 
           results.push({

@@ -1,10 +1,16 @@
 /**
- * Credit Service
- * Plain TS module for contract interactions (Phase 3A)
+ * Credit Service — viem-based contract interactions
  */
-import { ethers, Signer, providers } from 'ethers';
+import { getContract, formatUnits, parseUnits, maxUint256 } from 'viem';
+import type { PublicClient, WalletClient } from 'viem';
+
 import { BUILDER_CREDIT_CORE_ABI, ERC20_ABI, HACKATHON_REGISTRY_ABI } from '../constants/abis';
 import { BUILDER_CREDIT_CORE_ADDRESSES, TESTNET_USDC_ADDRESSES, HACKATHON_REGISTRY_ADDRESSES } from '../config/tokens';
+
+// ABIs are in human-readable format; cast for viem (tuple() syntax not supported by parseAbi)
+const coreAbi = BUILDER_CREDIT_CORE_ABI as unknown as readonly any[];
+const erc20Abi = ERC20_ABI as unknown as readonly any[];
+const registryAbi = HACKATHON_REGISTRY_ABI as unknown as readonly any[];
 
 interface ProjectData {
     hackathonIds: number[];
@@ -15,9 +21,10 @@ interface ProjectData {
 }
 
 interface Contracts {
-    core: ethers.Contract;
-    usdc: ethers.Contract;
-    registry: ethers.Contract;
+    core: any;
+    usdc: any;
+    registry: any;
+    coreAddress: `0x${string}`;
 }
 
 interface ProjectBackingData {
@@ -36,139 +43,121 @@ interface ProjectDetails {
 }
 
 class CreditService {
-    getContracts(chainId: number | undefined, signerOrProvider: Signer | providers.Provider): Contracts | null {
-        if (!chainId || !signerOrProvider) return null;
-        const coreAddress = (BUILDER_CREDIT_CORE_ADDRESSES as Record<number, string>)[chainId];
-        const usdcAddress = (TESTNET_USDC_ADDRESSES as Record<number, string>)[chainId];
-        const registryAddress = (HACKATHON_REGISTRY_ADDRESSES as Record<number, string>)[chainId];
+    getContracts(chainId: number | undefined, publicClient: PublicClient, walletClient?: WalletClient): Contracts | null {
+        if (!chainId) return null;
+        const coreAddress = (BUILDER_CREDIT_CORE_ADDRESSES as Record<number, string>)[chainId] as `0x${string}`;
+        const usdcAddress = (TESTNET_USDC_ADDRESSES as Record<number, string>)[chainId] as `0x${string}`;
+        const registryAddress = (HACKATHON_REGISTRY_ADDRESSES as Record<number, string>)[chainId] as `0x${string}`;
         if (!coreAddress || !usdcAddress || !registryAddress) {
             throw new Error(`Platform not supported on network ${chainId}`);
         }
+        const client = walletClient
+            ? { public: publicClient, wallet: walletClient }
+            : { public: publicClient };
         return {
-            core: new ethers.Contract(coreAddress, BUILDER_CREDIT_CORE_ABI, signerOrProvider),
-            usdc: new ethers.Contract(usdcAddress, ERC20_ABI, signerOrProvider),
-            registry: new ethers.Contract(registryAddress, HACKATHON_REGISTRY_ABI, signerOrProvider)
+            core: getContract({ address: coreAddress, abi: coreAbi, client }),
+            usdc: getContract({ address: usdcAddress, abi: erc20Abi, client }),
+            registry: getContract({ address: registryAddress, abi: registryAbi, client }),
+            coreAddress,
         };
     }
 
-    async requestFunding(chainId: number, signer: Signer, projectData: ProjectData) {
-        const contracts = this.getContracts(chainId, signer);
+    async requestFunding(chainId: number, publicClient: PublicClient, walletClient: WalletClient, projectData: ProjectData) {
+        const contracts = this.getContracts(chainId, publicClient, walletClient);
         if (!contracts) throw new Error("Contracts not found");
-        const { core } = contracts;
         const { hackathonIds, githubUrl, projectName, milestoneDescriptions, milestoneAmounts } = projectData;
-        const amounts = milestoneAmounts.map(a => ethers.utils.parseUnits(a.toString(), 6));
-        const tx = await core.requestFunding(hackathonIds, githubUrl, projectName, milestoneDescriptions, amounts);
-        return await tx.wait();
+        const amounts = milestoneAmounts.map(a => parseUnits(a.toString(), 6));
+        const hash = await contracts.core.write.requestFunding([hackathonIds, githubUrl, projectName, milestoneDescriptions, amounts] as any);
+        return await publicClient.waitForTransactionReceipt({ hash });
     }
 
-    async repayLoan(chainId: number, signer: Signer, amount: string | number) {
-        const contracts = this.getContracts(chainId, signer);
+    async repayLoan(chainId: number, publicClient: PublicClient, walletClient: WalletClient, amount: string | number) {
+        const contracts = this.getContracts(chainId, publicClient, walletClient);
         if (!contracts) throw new Error("Contracts not found");
-        const { core, usdc } = contracts;
-        const amountUnits = ethers.utils.parseUnits(amount.toString(), 6);
-        const account = await signer.getAddress();
-        const allowance = await usdc.allowance(account, core.address);
-        if (allowance.lt(amountUnits)) {
-            const tx = await usdc.approve(core.address, ethers.constants.MaxUint256);
-            await tx.wait();
+        const amountUnits = parseUnits(amount.toString(), 6);
+        const account = walletClient.account!.address;
+        const allowance = await contracts.usdc.read.allowance([account, contracts.coreAddress]) as bigint;
+        if (allowance < amountUnits) {
+            const approveTx = await contracts.usdc.write.approve([contracts.coreAddress, maxUint256] as any);
+            await publicClient.waitForTransactionReceipt({ hash: approveTx });
         }
-        const tx = await core.repayLoan(amountUnits);
-        return await tx.wait();
+        const hash = await contracts.core.write.repayLoan([amountUnits] as any);
+        return await publicClient.waitForTransactionReceipt({ hash });
     }
 
-    async postCheckIn(chainId: number, signer: Signer, projectId: number, metadata: string) {
-        const contracts = this.getContracts(chainId, signer);
+    async postCheckIn(chainId: number, publicClient: PublicClient, walletClient: WalletClient, projectId: number, metadata: string) {
+        const contracts = this.getContracts(chainId, publicClient, walletClient);
         if (!contracts) throw new Error("Contracts not found");
-        const tx = await contracts.core.postCheckIn(projectId, metadata);
-        return await tx.wait();
+        const hash = await contracts.core.write.postCheckIn([projectId, metadata] as any);
+        return await publicClient.waitForTransactionReceipt({ hash });
     }
 
-    async getProjectBackingData(chainId: number, signer: Signer, projectId: string | number): Promise<ProjectBackingData> {
-        const contracts = this.getContracts(chainId, signer);
+    async getProjectBackingData(chainId: number, publicClient: PublicClient, projectId: string | number): Promise<ProjectBackingData> {
+        const contracts = this.getContracts(chainId, publicClient);
         if (!contracts) throw new Error("Contracts not found");
-        
+
         const projectIdNum = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
-        
+
         try {
-            // Get total backing from contract
-            const totalBacking = await contracts.core.totalProjectBacking(projectIdNum);
-            
-            // Get project details for credit score and max multiplier
-            const project = await contracts.core.projects(projectIdNum);
-            const creditScore = project.creditScore?.toNumber() || 400;
-            
-            // Get max allowed multiplier based on credit score
+            const totalBacking = await contracts.core.read.totalProjectBacking([projectIdNum] as any) as bigint;
+            const project = await contracts.core.read.projects([projectIdNum] as any) as any;
+            const creditScore = Number(project.creditScore || 400);
             const maxMultiplier = this.calculateMaxMultiplier(creditScore);
-            
-            // Get backing count from projectBackings array
-            const backerCount = await this.getBackerCount(chainId, signer, projectIdNum);
-            
+            const backerCount = await this.getBackerCount(chainId, publicClient, projectIdNum);
+
             return {
-                totalBacking: ethers.utils.formatUnits(totalBacking || 0, 6),
+                totalBacking: formatUnits(totalBacking || 0n, 6),
                 backerCount,
                 maxMultiplier,
                 creditScore
             };
         } catch (err) {
             console.warn('Failed to load project backing data:', err);
-            return {
-                totalBacking: '0',
-                backerCount: 0,
-                maxMultiplier: 300,
-                creditScore: 400
-            };
+            return { totalBacking: '0', backerCount: 0, maxMultiplier: 300, creditScore: 400 };
         }
     }
 
-    async getBackerCount(chainId: number, signer: Signer, projectId: number): Promise<number> {
-        const contracts = this.getContracts(chainId, signer);
+    async getBackerCount(chainId: number, publicClient: PublicClient, projectId: number): Promise<number> {
+        const contracts = this.getContracts(chainId, publicClient);
         if (!contracts) return 0;
-        
         try {
-            const count = await contracts.core.getProjectBackerCount(projectId);
-            return count?.toNumber ? count.toNumber() : 0;
+            const count = await contracts.core.read.getProjectBackerCount([projectId] as any) as bigint;
+            return Number(count);
         } catch {
             return 0;
         }
     }
 
     calculateMaxMultiplier(creditScore: number): number {
-        if (creditScore >= 800) return 150; // 1.5x
-        if (creditScore >= 700) return 200; // 2.0x
-        if (creditScore >= 600) return 250; // 2.5x
-        return 300; // 3.0x
+        if (creditScore >= 800) return 150;
+        if (creditScore >= 700) return 200;
+        if (creditScore >= 600) return 250;
+        return 300;
     }
 
     calculateBaseFunding(creditScore: number): number {
         if (creditScore < 400) return 0;
         if (creditScore >= 800) return 5000;
-        
         const minFunding = 500;
         const maxFunding = 5000;
         const scoreRange = 800 - 400;
         const adjustedScore = creditScore - 400;
-        
         return minFunding + (maxFunding - minFunding) * adjustedScore / scoreRange;
     }
 
-    async getProjectDetails(chainId: number, signer: Signer, projectId: string | number): Promise<ProjectDetails | null> {
-        const contracts = this.getContracts(chainId, signer);
+    async getProjectDetails(chainId: number, publicClient: PublicClient, projectId: string | number): Promise<ProjectDetails | null> {
+        const contracts = this.getContracts(chainId, publicClient);
         if (!contracts) return null;
-        
         try {
             const projectIdNum = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
-            const project = await contracts.core.projects(projectIdNum);
-            
-            if (!project.developer || project.developer === '0x0000000000000000000000000000000000000000') {
-                return null;
-            }
-            
+            const project = await contracts.core.read.projects([projectIdNum] as any) as any;
+            if (!project.developer || project.developer === '0x0000000000000000000000000000000000000000') return null;
             return {
                 isActive: project.isActive,
-                creditScore: project.creditScore?.toNumber() || 400,
-                fundingAmount: ethers.utils.formatUnits(project.fundingAmount || 0, 6),
-                milestonesCompleted: project.milestonesCompleted?.toNumber() || 0,
-                milestonesCount: project.milestonesCount?.toNumber() || 0
+                creditScore: Number(project.creditScore || 400),
+                fundingAmount: formatUnits(project.fundingAmount || 0n, 6),
+                milestonesCompleted: Number(project.milestonesCompleted || 0),
+                milestonesCount: Number(project.milestonesCount || 0)
             };
         } catch (err) {
             console.warn('Failed to load project details:', err);
@@ -176,5 +165,6 @@ class CreditService {
         }
     }
 }
+
 export const creditService = new CreditService();
 export default creditService;

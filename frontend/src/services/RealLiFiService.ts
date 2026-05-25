@@ -4,7 +4,7 @@
  */
 
 import { LiFi, RouteOptions, StatusResponse, SwitchChainHookData, ConfigUpdate } from "@lifi/sdk";
-import { ethers } from "ethers";
+import type { WalletClient } from 'viem';
 import { USDC_ADDRESSES, TESTNET_CHAIN_INFO } from "../config/tokens";
 
 interface LiFiRoute {
@@ -100,7 +100,7 @@ class RealLiFiService {
     return routes.routes?.[0] || null;
   }
 
-  async executeRoute(route: LiFiRoute, signer: ethers.Signer): Promise<TransferResult> {
+  async executeRoute(route: LiFiRoute, signer: WalletClient | any): Promise<TransferResult> {
     if (!this.lifi) throw new Error("LI.FI not initialized");
     try {
       const execution = await this.lifi.executeRoute(signer as any, route, {
@@ -173,7 +173,7 @@ class RealLiFiService {
     return this.getBridgeRoute(fromChain, toChain, usdcAddress, amount, fromAddress, toAddress);
   }
 
-  async executeBridgeRoute(route: LiFiRoute, signer: ethers.Signer): Promise<TransferResult> {
+  async executeBridgeRoute(route: LiFiRoute, signer: WalletClient | any): Promise<TransferResult> {
     return this.executeRoute(route, signer);
   }
 

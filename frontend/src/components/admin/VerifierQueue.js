@@ -1,5 +1,5 @@
 import React from 'react';
-import { ethers } from 'ethers';
+import { formatUnits } from 'viem';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { 
@@ -62,7 +62,7 @@ export default function VerifierQueue({ milestones, onApprove, loadingMilestoneI
               </div>
               <div className="text-right">
                 <div className="text-sm font-bold text-gray-900">
-                  {parseFloat(ethers.utils.formatUnits(milestone.amount, 6)).toFixed(2)} USDC
+                  {parseFloat(formatUnits(milestone.amount, 6)).toFixed(2)} USDC
                 </div>
                 <div className="text-xs text-gray-500">Milestone Reward</div>
               </div>

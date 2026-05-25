@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { parseUnits } from 'viem';
 import { useWallet } from '../contexts/WalletContext';
 import { useBuilderCredit } from '../contexts/CreditContext';
 import { Card } from './common/Card';
@@ -92,7 +93,7 @@ export default function DeveloperDashboard() {
 
       // Call distributePrize function from contract
       if (selectedProjectId && coreContract) {
-        const tx = await coreContract.distributePrize(selectedProjectId, ethers.utils.parseUnits(prizeAmount, 6));
+        const tx = await coreContract.distributePrize(selectedProjectId, parseUnits(prizeAmount, 6));
         await tx.wait();
         
         setSuccess({

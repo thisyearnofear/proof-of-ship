@@ -11,7 +11,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { LiFi } from '@lifi/sdk';
-import { ethers } from 'ethers';
+import { formatUnits, parseUnits } from 'viem';
 import { TESTNET_USDC_ADDRESSES } from '../config/tokens';
 import { creditService } from '../services/creditService';
 
@@ -77,9 +77,9 @@ interface FinancialContextType {
   creditError: string | null;
   
   // Builder Credit Methods
-  loadCreditLine: (signer: ethers.Signer, address: string, chainId: number) => Promise<void>;
-  repayLoan: (signer: ethers.Signer, chainId: number, amount: string | number) => Promise<void>;
-  requestCredit: (signer: ethers.Signer, chainId: number, amount: string | number) => Promise<void>;
+  loadCreditLine: (signer: any, address: string, chainId: number) => Promise<void>;
+  repayLoan: (signer: any, chainId: number, amount: string | number) => Promise<void>;
+  requestCredit: (signer: any, chainId: number, amount: string | number) => Promise<void>;
   
   // Helper methods
   getChainIcon: (chainId: number) => string;
@@ -273,20 +273,15 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const executeTransfer = async (quote: any, signer?: ethers.Signer) => {
+  const executeTransfer = async (quote: any, signer?: any) => {
     if (!lifi) throw new Error('LiFi not initialized');
     
     setLifiLoading(true);
     setLifiError(null);
     
     try {
-      const ethersProvider = signer 
-        ? (signer as any).provider 
-        : new ethers.providers.Web3Provider(window.ethereum as any);
-      const ethSigner = ethersProvider.getSigner();
-      
       const result = await lifi.executeRoute(quote as any, {
-        signer: ethSigner as any,
+        signer: signer || (window as any).ethereum,
         infiniteApproval: false,
       } as any);
       
@@ -417,20 +412,21 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
   }, [lifi, transferHistory]);
   
   // Builder Credit methods
-  const loadCreditLine = useCallback(async (signer: ethers.Signer, address: string, chainId: number) => {
+  const loadCreditLine = useCallback(async (signerOrClient: any, address: string, chainId: number) => {
     setCreditLoading(true);
     setCreditError(null);
-    
+
     try {
       if (!creditService) throw new Error('Credit service not available');
-      const contracts = creditService.getContracts(chainId, signer);
+      const publicClient = signerOrClient?.getAddress ? (signerOrClient as any).provider : signerOrClient;
+      const contracts = creditService.getContracts(chainId, publicClient);
       if (!contracts) throw new Error('Contracts not available for chain ' + chainId);
-      const profile = await contracts.core.creditLines(address);
-      
+      const profile = await contracts.core.read.creditLines([address] as any) as any;
+
       setCreditLine({
-        usedAmount: ethers.utils.formatUnits(profile.usedAmount, 6),
-        reputation: profile.reputation.toNumber(),
-        maxAmount: ethers.utils.formatUnits(profile.maxAmount || 0, 6),
+        usedAmount: formatUnits(profile.usedAmount || 0n, 6),
+        reputation: Number(profile.reputation || 0),
+        maxAmount: formatUnits(profile.maxAmount || 0n, 6),
         lastUpdated: Date.now(),
       });
     } catch (err: any) {
@@ -441,16 +437,16 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
   
-  const repayLoan = useCallback(async (signer: ethers.Signer, chainId: number, amount: string | number) => {
+  const repayLoan = useCallback(async (signerOrClient: any, chainId: number, amount: string | number) => {
     setCreditLoading(true);
     setCreditError(null);
-    
+
     try {
-      await creditService.repayLoan(chainId, signer, amount);
-      
-      // Reload credit line
-      const address = await signer.getAddress();
-      await loadCreditLine(signer, address, chainId);
+      const publicClient = signerOrClient?.getAddress ? (signerOrClient as any).provider : signerOrClient;
+      await creditService.repayLoan(chainId, publicClient, signerOrClient, amount);
+
+      const address = signerOrClient?.account?.address || signerOrClient?.getAddress ? await signerOrClient.getAddress() : '';
+      await loadCreditLine(signerOrClient, address, chainId);
     } catch (err: any) {
       setCreditError(err.message);
       throw err;
@@ -459,20 +455,20 @@ export const FinancialProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [loadCreditLine]);
   
-  const requestCredit = useCallback(async (signer: ethers.Signer, chainId: number, amount: string | number) => {
+  const requestCredit = useCallback(async (signerOrClient: any, chainId: number, amount: string | number) => {
     setCreditLoading(true);
     setCreditError(null);
-    
+
     try {
-      // Request credit via credit service
-      const contracts = creditService.getContracts(chainId, signer);
+      const publicClient = signerOrClient?.getAddress ? (signerOrClient as any).provider : signerOrClient;
+      const contracts = creditService.getContracts(chainId, publicClient, signerOrClient);
       if (!contracts) throw new Error('Contracts not available');
-      const amountInWei = ethers.utils.parseUnits(amount.toString(), 6);
-      await contracts.core.requestCredit(amountInWei, { value: 0 });
-      
-      // Reload credit line
-      const address = await signer.getAddress();
-      await loadCreditLine(signer, address, chainId);
+      const amountInWei = parseUnits(amount.toString(), 6);
+      const hash = await contracts.core.write.requestCredit([amountInWei] as any);
+      await publicClient.waitForTransactionReceipt?.({ hash });
+
+      const address = signerOrClient?.account?.address || signerOrClient?.getAddress ? await signerOrClient.getAddress() : '';
+      await loadCreditLine(signerOrClient, address, chainId);
     } catch (err: any) {
       setCreditError(err.message);
       throw err;

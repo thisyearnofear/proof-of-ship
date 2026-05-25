@@ -3,7 +3,7 @@
  * Wallet-first approach with minimal centralized dependencies
  */
 
-import { ethers } from 'ethers';
+import { verifyMessage } from 'viem';
 import { farcasterService } from '../farcasterIntegration';
 
 export class DecentralizedAuthService {
@@ -63,11 +63,10 @@ export class DecentralizedAuthService {
         params: [message, address]
       });
 
-      // Verify signature locally
-      const { verifyMessage } = await import('ethers');
-      const recoveredAddress = verifyMessage(message, signature);
-      
-      if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+      // Verify signature locally using viem
+      const valid = await verifyMessage({ address, message, signature });
+
+      if (!valid) {
         throw new Error('Signature verification failed');
       }
 

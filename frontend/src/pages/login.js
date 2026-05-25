@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { useWallet } from "@/contexts/WalletContext";
+import { useSignMessage } from "wagmi";
 import Head from "next/head";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import { snsService } from "@/services/SnsService";
@@ -15,15 +16,14 @@ export default function LoginPage() {
     connect: connectEvm,
     connecting: evmConnecting,
     disconnect: disconnectEvm,
-    provider,
     solanaConnected,
     solanaAddress,
     connectSolana,
     solanaConnecting,
     solanaWallet,
     disconnectSolana,
-    syncEip6963Account,
   } = useWallet();
+  const { signMessageAsync } = useSignMessage();
 
   const router = useRouter();
   const { redirect } = router.query;
@@ -32,46 +32,29 @@ export default function LoginPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const [linked, setLinked] = useState(false);
-  const [walletFamily, setWalletFamily] = useState(() => {
-    // Auto-detect wallet family from already-connected wallet
-    if (typeof window !== 'undefined') {
-      // Will be properly set once mounted and wallet state syncs
-    }
-    return null;
-  });
+  const [walletFamily, setWalletFamily] = useState(null);
   const [role, setRole] = useState(null);
   const [mounted, setMounted] = useState(false);
-  const [evmProviders, setEvmProviders] = useState([]);
-  const [evmPickerOpen, setEvmPickerOpen] = useState(false);
   const [connectedSnsName, setConnectedSnsName] = useState(null);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Computed wallet state — must be above useEffects that reference these
   const anyWalletConnected = evmConnected || solanaConnected;
   const activeWalletAddress = walletFamily === 'solana' ? solanaAddress : evmAddress;
   const alreadyLinked = activeWalletAddress && linkedWallets.some(w => w.address.toLowerCase() === activeWalletAddress.toLowerCase());
   const isFullyAuthed = !!currentUser && anyWalletConnected && linked;
 
-  // Auto-detect walletFamily when wallet is already connected (nav showed it)
   useEffect(() => {
     if (!walletFamily) {
-      if (solanaConnected && solanaAddress) {
-        setWalletFamily('solana');
-      } else if (evmConnected && evmAddress) {
-        setWalletFamily('evm');
-      }
+      if (solanaConnected && solanaAddress) setWalletFamily('solana');
+      else if (evmConnected && evmAddress) setWalletFamily('evm');
     }
   }, [solanaConnected, solanaAddress, evmConnected, evmAddress, walletFamily]);
 
-  // If wallet is already linked (returning user), mark as linked so redirect works
   useEffect(() => {
-    if (alreadyLinked && currentUser && !linked) {
-      setLinked(true);
-    }
+    if (alreadyLinked && currentUser && !linked) setLinked(true);
   }, [alreadyLinked, currentUser, linked]);
 
-  // Resolve .sol name when a Solana wallet connects
   useEffect(() => {
     if (walletFamily === 'solana' && solanaAddress) {
       snsService.resolveAddressToName(solanaAddress).then(setConnectedSnsName).catch(() => {});
@@ -80,28 +63,10 @@ export default function LoginPage() {
     }
   }, [walletFamily, solanaAddress]);
 
-  // EIP-6963 multi-wallet discovery for EVM. Many users have Rabby/Coinbase/Brave/etc.
-  // alongside MetaMask; relying on `window.ethereum` alone is unreliable.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const onAnnounce = (event) => {
-      const detail = event.detail;
-      if (!detail?.info?.uuid) return;
-      setEvmProviders((prev) => {
-        if (prev.find((p) => p.info.uuid === detail.info.uuid)) return prev;
-        return [...prev, detail];
-      });
-    };
-    window.addEventListener('eip6963:announceProvider', onAnnounce);
-    window.dispatchEvent(new Event('eip6963:requestProvider'));
-    return () => window.removeEventListener('eip6963:announceProvider', onAnnounce);
-  }, []);
-
   useEffect(() => {
     if (userRole && !role) setRole(userRole);
   }, [userRole, role]);
 
-  // Redirect returning users or fully-authed users to their dashboard
   useEffect(() => {
     if (isFullyAuthed || (alreadyLinked && currentUser)) {
       const dest = redirect || (role === 'backer' ? '/back' : '/build');
@@ -109,13 +74,6 @@ export default function LoginPage() {
       return () => clearTimeout(timer);
     }
   }, [isFullyAuthed, alreadyLinked, currentUser, redirect, router, role]);
-
-  // Determine active address/provider for sign flows. When connected via EIP-6963
-  // directly, the provider is not wrapped by the SDK, so we read from window.ethereum.
-  const getEip6963Provider = () => {
-    if (walletFamily !== 'evm') return null;
-    return window.ethereum;
-  };
 
   const signWalletMessage = useCallback(async () => {
     if (!anyWalletConnected || !activeWalletAddress) throw new Error('No wallet connected');
@@ -129,12 +87,10 @@ export default function LoginPage() {
       const sigBytes = await solanaWallet.signMessage(encoded);
       signature = Buffer.from(sigBytes).toString('base64');
     } else {
-      const signProvider = getEip6963Provider() || provider;
-      if (!signProvider) throw new Error('Wallet provider not available. Try refreshing.');
-      signature = await signProvider.request({ method: 'personal_sign', params: [message, activeWalletAddress] });
+      signature = await signMessageAsync({ message });
     }
     return { signature, message };
-  }, [anyWalletConnected, activeWalletAddress, currentUser, walletFamily, solanaWallet, provider]);
+  }, [anyWalletConnected, activeWalletAddress, currentUser, walletFamily, solanaWallet, signMessageAsync]);
 
   const handleStartOver = async () => {
     try {
@@ -148,102 +104,21 @@ export default function LoginPage() {
     setConnectedSnsName(null);
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-  if (evmPickerOpen) return (
-    <>
-      <Head><title>Choose Wallet - Proof of Ship</title></Head>
-      {renderEvmPicker()}
-    </>
-  );
+  const handleConnectEvm = () => {
+    setError(null);
+    connectEvm();
+    setWalletFamily('evm');
+  };
 
-  // ─── Helpers used in render ────────────────────────────────────────────────
-  const hasInjectedEvm = mounted && typeof window !== 'undefined' && !!window.ethereum;
-  const evmWalletCount = Math.max(evmProviders.length, hasInjectedEvm ? 1 : 0);
+  const handleConnectSolana = async () => {
+    try { setError(null); await connectSolana(); setWalletFamily('solana'); }
+    catch { setError("Could not open the Solana wallet picker. Try refreshing the page."); }
+  };
 
   const handleGithubLogin = async () => {
     try { setError(null); setIsSigningIn(true); await signInWithGithub(); }
     catch { setError("GitHub sign-in was cancelled or failed."); }
     finally { setIsSigningIn(false); }
-  };
-
-  const handleConnectEvm = async () => {
-    // If EIP-6963 detected multiple wallets, show picker instead of SDK
-    if (evmProviders.length > 1) {
-      setEvmPickerOpen(true);
-      return;
-    }
-    try {
-      setError(null);
-      await connectEvm();
-      setWalletFamily('evm');
-    } catch {
-      if (!hasInjectedEvm && evmProviders.length === 0) {
-        setError("No EVM wallet detected. Install MetaMask, Rabby, or Coinbase Wallet to continue.");
-      } else {
-        setError("Could not connect. Make sure your wallet is unlocked and try again.");
-      }
-    }
-  };
-
-  const handleEip6963Connect = async (providerInfo) => {
-    setEvmPickerOpen(false);
-    try {
-      setError(null);
-      await providerInfo.provider.request({ method: 'eth_requestAccounts' });
-      // Sync into WalletContext so `account`/`connected`/`provider` stay consistent
-      await syncEip6963Account(providerInfo.provider);
-      setWalletFamily('evm');
-    } catch (err) {
-      if (err.code === 4001) {
-        setError("Connection was rejected. Open your wallet and try again.");
-      } else {
-        setError(err.message || "Could not connect to wallet. Try again.");
-      }
-    }
-  };
-
-  // ─── EIP-6963 wallet picker modal ─────────────────────────────────────────
-  const renderEvmPicker = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-primary">Choose EVM Wallet</h3>
-          <button onClick={() => setEvmPickerOpen(false)}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <p className="text-sm text-secondary mb-4">Multiple EVM wallets detected. Pick one:</p>
-        <div className="space-y-2">
-          {evmProviders.map((provider) => (
-            <button
-              key={provider.info.uuid}
-              onClick={() => handleEip6963Connect(provider)}
-              className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-orange-400 hover:bg-orange-50 transition-all text-left group"
-            >
-              {provider.info.icon && (
-                <img src={provider.info.icon} alt={provider.info.name} className="w-8 h-8 rounded-full" />
-              )}
-              <div>
-                <p className="text-sm font-bold text-primary">{provider.info.name}</p>
-                <p className="text-xs text-secondary">{provider.info.shortName || provider.info.name}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-        <button onClick={() => { setEvmPickerOpen(false); handleConnectEvm(); }}
-          className="mt-4 w-full py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-          Use any wallet (SDK fallback)
-        </button>
-      </div>
-    </div>
-  );
-
-  const handleConnectSolana = async () => {
-    try { setError(null); await connectSolana(); setWalletFamily('solana'); }
-    catch { setError("Could not open the Solana wallet picker. Try refreshing the page."); }
   };
 
   const handleLinkIdentity = async () => {
@@ -262,22 +137,16 @@ export default function LoginPage() {
 
   const renderWalletButtons = () => {
     if (!mounted) return <div className="text-sm text-gray-400">Loading wallets...</div>;
-    // Always show both options. Wallet detection is unreliable (extensions inject
-    // asynchronously, multiple-wallet conflicts, Wallet-Standard / EIP-6963 quirks).
-    // The wallet's own connect flow handles missing-extension cases gracefully:
-    //   - MetaMask SDK falls through to any injected EVM provider, or shows install prompt.
-    //   - Solana wallet-adapter opens a modal that auto-discovers Phantom/Solflare/Backpack
-    //     and any Wallet-Standard wallet currently installed.
     return (
       <div className="flex flex-col items-stretch gap-2 w-full sm:w-auto sm:min-w-[260px]">
         <div className="flex gap-2">
           <button
             onClick={handleConnectEvm}
             disabled={evmConnecting}
-            title="MetaMask, Rabby, Coinbase Wallet, Brave, Frame, etc."
+            title="MetaMask, Rabby, Coinbase Wallet, WalletConnect, and more"
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-all"
           >
-            {evmConnecting ? <span className="animate-spin">{'\u23F3'}</span> : <>{'\u{1F98A}'} EVM Wallet</>}
+            {evmConnecting ? <span className="animate-spin">{'⏳'}</span> : <>{'\u{1F98A}'} EVM Wallet</>}
           </button>
           <button
             onClick={handleConnectSolana}
@@ -285,17 +154,11 @@ export default function LoginPage() {
             title="Phantom, Solflare, Backpack, etc."
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-all"
           >
-            {solanaConnecting ? <span className="animate-spin">{'\u23F3'}</span> : <>{'\u{1F47B}'} Solana Wallet</>}
+            {solanaConnecting ? <span className="animate-spin">{'⏳'}</span> : <>{'\u{1F47B}'} Solana Wallet</>}
           </button>
         </div>
         <p className="text-[11px] text-gray-400 text-center leading-snug">
-          {evmWalletCount > 0
-            ? `${evmWalletCount} EVM wallet${evmWalletCount === 1 ? '' : 's'} detected · `
-            : 'No EVM wallet detected · '}
-          Solana wallets are picked from a list.{' '}
-          <a href="https://metamask.io" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Install MetaMask</a>
-          {' · '}
-          <a href="https://phantom.app" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">Install Phantom</a>
+          EVM supports MetaMask, Rabby, Coinbase, WalletConnect &amp; more.
         </p>
       </div>
     );
@@ -390,7 +253,7 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'\u2190'} Back</button>
+                <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'←'} Back</button>
                 <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600">Start over</button>
               </div>
             </div>
@@ -472,7 +335,7 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'\u2190'} Back</button>
+              <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'←'} Back</button>
               <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600">Start over</button>
             </div>
           </div>

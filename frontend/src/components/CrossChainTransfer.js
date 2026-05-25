@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "../contexts/WalletContext";
 import { useBuilderCredit } from "../contexts/CreditContext";
 import { useFinancial } from "../contexts/FinancialContext";
-import { ethers } from "ethers";
+import { formatUnits } from 'viem';
 import { Card } from "./common/Card";
 import Button from "./common/Button";
 import { LoadingSpinner } from "./common/LoadingStates";
@@ -24,7 +24,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function CrossChainTransfer() {
-  const { address: account, chainId, provider, switchNetwork } = useWallet();
+  const { address: account, chainId, switchNetwork } = useWallet();
   const { usdcBalance } = useBuilderCredit();
   const {
     availableChains,
@@ -96,9 +96,7 @@ export default function CrossChainTransfer() {
       }
 
       // Convert amount to the smallest unit (USDC has 6 decimals)
-      const amountInSmallestUnit = ethers.utils
-        .parseUnits(amount, 6)
-        .toString();
+      const amountInSmallestUnit = parseUnits(amount, 6).toString();
 
       // Get quote from LiFi with options
       const quoteResult = await getQuote(
@@ -295,7 +293,7 @@ export default function CrossChainTransfer() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <div className="text-gray-600">You Send:</div>
               <div className="font-medium text-gray-900">
-                {ethers.utils.formatUnits(
+                {formatUnits(
                   quote.action.fromAmount,
                   quote.action.fromToken?.decimals || 6
                 )}{" "}
@@ -304,7 +302,7 @@ export default function CrossChainTransfer() {
 
               <div className="text-gray-600">You Receive:</div>
               <div className="font-medium text-gray-900">
-                {ethers.utils.formatUnits(
+                {formatUnits(
                   quote.estimate.toAmount,
                   quote.action.toToken?.decimals || 6
                 )}{" "}
@@ -319,7 +317,7 @@ export default function CrossChainTransfer() {
                         {fee.name || `Fee ${index + 1}`}:
                       </div>
                       <div className="font-medium text-gray-900">
-                        {ethers.utils.formatUnits(
+                        {formatUnits(
                           fee.amount,
                           fee.token?.decimals || 18
                         )}{" "}
@@ -338,7 +336,7 @@ export default function CrossChainTransfer() {
                         {gas.name || `Gas ${index + 1}`}:
                       </div>
                       <div className="font-medium text-gray-900">
-                        {ethers.utils.formatUnits(
+                        {formatUnits(
                           gas.amount,
                           gas.token?.decimals || 18
                         )}{" "}

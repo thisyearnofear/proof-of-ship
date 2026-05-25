@@ -3,7 +3,8 @@
  * Wraps BuilderCreditScoring contract reads and GitHub scoring logic.
  */
 
-import { ethers } from 'ethers';
+import { createPublicClient, http } from 'viem';
+import { sepolia } from 'viem/chains';
 import { withApiMiddleware } from '@/utils/apiMiddleware';
 import { BUILDER_CREDIT_SCORING_ABI } from '@/constants/abis';
 import { BUILDER_CREDIT_CORE_ADDRESSES } from '@/config/tokens';
@@ -22,9 +23,8 @@ async function handler(req, res) {
   }
 
   try {
-    // In a real implementation, we'd use a provider for the specific chain
     const rpcUrl = process.env.ETHEREUM_SEPOLIA_RPC || 'https://rpc.ankr.com/eth_sepolia';
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const client = createPublicClient({ chain: sepolia, transport: http(rpcUrl) });
     
     const scoringAddress = SCORING_ADDRESSES[chainId];
     if (!scoringAddress) {

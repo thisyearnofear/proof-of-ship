@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ethers } from "ethers";
+import { formatUnits } from 'viem';
 import { useWallet } from "@/contexts/WalletContext";
 import { useBuilderCredit } from "@/contexts/CreditContext";
 import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
@@ -77,7 +77,7 @@ export default function PortfolioTab({ setTab }) {
               (b) => b.backer.toLowerCase() === wallet.account?.toLowerCase()
             );
             const stakeAmount = myBacking
-              ? parseFloat(ethers.utils.formatUnits(myBacking.amount, 6))
+              ? parseFloat(formatUnits(myBacking.amount, 6))
               : 0;
             const multiplier = myBacking
               ? myBacking.multiplier.toNumber() / 100
@@ -90,7 +90,7 @@ export default function PortfolioTab({ setTab }) {
               isActive: project.isActive,
               milestonesCompleted: project.milestonesCompleted.toNumber(),
               milestonesCount: project.milestonesCount.toNumber(),
-              fundingAmount: ethers.utils.formatUnits(project.fundingAmount, 6),
+              fundingAmount: formatUnits(project.fundingAmount, 6),
               myStake: stakeAmount.toFixed(2),
               myMultiplier: multiplier.toFixed(1),
               potentialReturn: (stakeAmount * multiplier).toFixed(2),

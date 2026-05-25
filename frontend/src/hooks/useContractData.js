@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { isAddress, formatUnits } from 'ethers';
+import { isAddress, formatUnits } from 'viem';
 import { getProvider, getContract, getContractInfo, getTransactionCount } from '@/utils/web3';
 import { ERC20_ABI, ERC721_ABI, DETECTION_ABI } from '@/constants/abis';
 

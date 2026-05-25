@@ -1,19 +1,10 @@
 /**
  * Wallet Context Types
- * Extracted from WalletContext.tsx for DRY type sharing
  */
 
-import { providers, Signer } from 'ethers';
+import type { PublicClient, WalletClient } from 'viem';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-
-export interface ExternalProvider {
-  isMetaMask?: boolean;
-  isConnected?: () => boolean;
-  request?: (args: { method: string; params?: any[] }) => Promise<any>;
-  on?: (event: string, handler: (...args: any[]) => void) => void;
-  removeListener?: (event: string, handler: (...args: any[]) => void) => void;
-}
 
 export interface NetworkConfig {
   chainId: string;
@@ -88,55 +79,24 @@ export interface PayForAgentParams {
 }
 
 export interface WalletContextType {
-  connect: () => Promise<void>;
+  connect: () => void;
   disconnect: () => void;
   account: string | undefined;
-  chainId: number | string | null;
+  chainId: number | undefined;
   balance: string | null;
   networkName: string;
-  ethersProvider: providers.Web3Provider | null;
-  signer: Signer | null;
+  publicClient: PublicClient | null;
+  walletClient: WalletClient | null;
   connected: boolean;
   connecting: boolean;
   loading: boolean;
   error: string | null;
-  activeProvider: ExternalProvider | null;
-  provider: ExternalProvider | null;
   getBalance: (showLoading?: boolean) => Promise<string | null>;
   getTokenBalance: (tokenAddress: string, decimals?: number) => Promise<string>;
   switchNetwork: (chainId: number) => Promise<void>;
-  addToken: (tokenAddress: string, symbol: string, decimals?: number) => Promise<void>;
   getUSDCBalance: () => Promise<string>;
-  addUSDCToken: () => Promise<boolean>;
-  networkConfigs: Record<number, NetworkConfig>;
   getCurrentUSDCAddress: () => string | null;
-
-  circleWallets: CircleWallet[];
-  circleConfig: CircleConfig | null;
-  createCircleWallet: (config?: CircleWalletCreateParams) => Promise<CircleWallet>;
-  refreshCircleWallets: () => Promise<void>;
-  transferUSDC: (amount: number, destinationAddress: string, walletId: string, reason?: string) => Promise<{ txHash: string }>;
-
-  nanopaymentInitialized: boolean;
-  nanopaymentBalance: { available: string; locked: string };
-  nanopaymentAddress: string | null;
-  nanopaymentTransactions: NanopaymentTransaction[];
-  nanopaymentDemoMode: boolean;
-  setNanopaymentDemoMode: (mode: boolean) => void;
-  initializeNanopayment: (privateKey: string | `0x${string}`) => Promise<void>;
-  initializeNanopaymentDemo: () => void;
-  depositNanopayment: (amountUSDC: number) => Promise<{ txHash: string }>;
-  payForAgent: (agentType: string, params?: PayForAgentParams) => Promise<NanopaymentPaymentResult>;
-  payForHealthScore: (projectId: string, baseUrl?: string, projectName?: string) => Promise<NanopaymentPaymentResult>;
-  payForScout: (baseUrl?: string) => Promise<NanopaymentPaymentResult>;
-  payForVerification: (prId: string, lines: number, baseUrl?: string) => Promise<NanopaymentPaymentResult>;
-  payForRebalance: (baseUrl?: string) => Promise<NanopaymentPaymentResult>;
-
-  creditProfile: CreditProfile | null;
-  repayLoan: (amount: string | number, projectPda?: PublicKey) => Promise<void>;
-  postCheckIn: (projectId: number, metadata: string) => Promise<CheckInResult>;
-  loadCreditProfile: () => Promise<void>;
-  requestFunding: (projectData: FundingRequestData) => Promise<{ success: boolean; txHash?: string }>;
+  networkConfigs: Record<number, NetworkConfig>;
 
   solanaAddress: string | null;
   solanaConnected: boolean;
@@ -147,6 +107,4 @@ export interface WalletContextType {
   disconnectSolana: () => void;
   activeChainFamily: 'evm' | 'solana';
   setActiveChainFamily: (family: 'evm' | 'solana') => void;
-
-  syncEip6963Account: (provider: ExternalProvider) => Promise<void>;
 }

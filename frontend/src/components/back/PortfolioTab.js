@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
-import { useWallet, useBuilderCredit } from "@/contexts/WalletContext";
+import { useWallet } from "@/contexts/WalletContext";
+import { useBuilderCredit } from "@/contexts/CreditContext";
 import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";

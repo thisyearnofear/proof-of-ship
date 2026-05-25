@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useWallet } from "@/contexts/WalletContext";
-import { useBuilderCredit } from "@/contexts/WalletContext";
+import { useBuilderCredit } from "@/contexts/CreditContext";
 import { useNanopayment } from "@/contexts/WalletContext";
 import { useProjectData } from "@/hooks/useProjectData";
 import ProjectCard from "@/components/backer/ProjectCard";

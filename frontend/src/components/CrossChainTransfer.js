@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useWallet, useBuilderCredit } from "../contexts/WalletContext";
+import { useWallet } from "../contexts/WalletContext";
+import { useBuilderCredit } from "../contexts/CreditContext";
 import { useFinancial } from "../contexts/FinancialContext";
 import { ethers } from "ethers";
 import { Card } from "./common/Card";

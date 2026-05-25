@@ -30,7 +30,8 @@ import { NETWORK_CONFIGS, getSolanaEndpoint, getSolanaConnection } from './walle
 // Re-exports for backward compatibility.
 export { useCircleWallet } from './CircleContext';
 export { useNanopayment } from './NanopaymentContext';
-export { useBuilderCredit } from './CreditContext';
+// useBuilderCredit is NOT re-exported here to avoid a circular dependency
+// (CreditContext imports useWallet from this file). Import from '@/contexts/CreditContext' directly.
 
 // ============================================================================
 // Context

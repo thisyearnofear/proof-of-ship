@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { useWallet } from "@/contexts/WalletContext";
-import { useBuilderCredit } from "@/contexts/WalletContext";
+import { useBuilderCredit } from "@/contexts/CreditContext";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter } from "next/router";
 import { FinancialProvider } from "@/contexts/FinancialContext";

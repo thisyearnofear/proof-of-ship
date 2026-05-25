@@ -1,22 +1,16 @@
 /**
- * Hackathon Leaderboard API
+ * Hackathon / proof leaderboard API
  *
- * Ranks hackathons by verifiable on-chain metrics:
- * - Total projects submitted
- * - Number of winners
- * - Average payout time (days from hackathon end to payout — lower is better)
- * - Payout completion rate (% of winners who recorded payout)
- * - Total prize pool distributed
- * - Builder participation volume
+ * Returns proof-backed rankings for:
+ * - Hackathons
+ * - Builders
+ * - Projects
  *
- * Payout speed requires both `hackathonEndDate` and `payoutAt`/`payoutVerifiedAt`
- * on individual hackathon claims. The PayoutVerifier agent sets `payoutVerifiedAt`
- * when it confirms an on-chain USDC transfer.
- *
- * GET /api/hackathons/leaderboard
+ * All three are derived from structured hackathon proof attached to projects.
  */
 
 import { db } from "../../../lib/firebase/serverOnly";
+import { summarizeClaimProof } from "@/lib/leaderboard/proofScoring";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -24,20 +18,57 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Fetch all projects
     const projectsSnap = await db.collection("projects").get();
 
-    // Aggregate hackathon claims across all projects
     const hackathonMap = new Map();
+    const builderMap = new Map();
+    const projectMap = new Map();
 
     for (const doc of projectsSnap.docs) {
       const project = doc.data();
+      const projectId = project.slug || doc.id;
       const hackathons = Array.isArray(project.hackathons) ? project.hackathons : [];
       if (hackathons.length === 0) continue;
+
+      const projectEntry = projectMap.get(projectId) || {
+        slug: project.slug || doc.id,
+        name: project.name || project.slug || doc.id,
+        ecosystem: project.ecosystem || null,
+        githubUrl: project.githubUrl || null,
+        imageUrl: project.imageUrl || null,
+        ownerName: project.owner || null,
+        totalClaims: 0,
+        evidenceBackedClaims: 0,
+        verifiedWins: 0,
+        totalProofScore: 0,
+        bestProofScore: 0,
+        createdAt: project.createdAt || null,
+      };
+
+      const builderKey = project.submittedBy || project.owner || project.slug || doc.id;
+      const builderEntry = builderMap.get(builderKey) || {
+        id: builderKey,
+        name: project.builderName || project.owner || project.submittedBy || "Builder",
+        ecosystems: new Set(),
+        projectCount: 0,
+        proofBackedProjects: new Set(),
+        verifiedWins: 0,
+        evidenceBackedClaims: 0,
+        totalClaims: 0,
+        totalProofScore: 0,
+        bestProofScore: 0,
+        lastActivity: null,
+      };
+      builderEntry.ecosystems.add(project.ecosystem || 'unknown');
+      builderEntry.projectCount += 1;
+      if (project.createdAt && (!builderEntry.lastActivity || project.createdAt > builderEntry.lastActivity)) {
+        builderEntry.lastActivity = project.createdAt;
+      }
 
       for (const claim of hackathons) {
         if (!claim.name) continue;
 
+        const proof = summarizeClaimProof(claim);
         const key = claim.name.trim().toLowerCase();
 
         if (!hackathonMap.has(key)) {
@@ -48,54 +79,52 @@ export default async function handler(req, res) {
             winners: 0,
             finalists: 0,
             payoutsRecorded: 0,
-            payoutSpeedCount: 0,       // claims with both endDate + payout date
-            totalPayoutDays: 0,         // sum of payout days for speed computation
+            payoutSpeedCount: 0,
+            totalPayoutDays: 0,
             totalPrizeAmount: 0,
-            projects: [],
             uniqueBuilders: new Set(),
             lastActivity: null,
+            totalProofScore: 0,
+            evidenceBackedClaims: 0,
+            verifiedWins: 0,
+            strongProofClaims: 0,
+            totalClaims: 0,
           });
         }
 
         const entry = hackathonMap.get(key);
         entry.totalProjects++;
-        entry.projects.push({
-          slug: project.slug,
-          name: project.name,
-          ecosystem: project.ecosystem,
-        });
+        entry.totalClaims++;
+        entry.totalProofScore += proof.proofScore;
+        if (proof.evidenceCount > 0) entry.evidenceBackedClaims++;
+        if (proof.hasStrongProof) entry.strongProofClaims++;
+        if (proof.isVerifiedWin) entry.verifiedWins++;
 
         if (project.submittedBy) {
           entry.uniqueBuilders.add(project.submittedBy);
         }
 
-        if (claim.outcome === 'winner') {
+        if (claim.outcome === 'winner' || claim.outcome === 'bounty winner') {
           entry.winners++;
         } else if (claim.outcome === 'finalist') {
           entry.finalists++;
         }
 
-        // Payout completion tracking
         const hasPayout = claim.payoutVerifiedAt || claim.payoutAt;
         if (hasPayout) {
           entry.payoutsRecorded++;
-          // Prize amount tracking if available
-          const amount = Number(claim.payoutActualAmount) || 0;
+          const amount = Number(claim.payoutActualAmount) || Number(claim.prizeAmount) || 0;
           if (amount > 0) entry.totalPrizeAmount += amount;
         }
 
-        // Payout speed: days from hackathonEndDate to payout
         const payoutDateStr = claim.payoutVerifiedAt || claim.payoutAt;
         const endDateStr = claim.hackathonEndDate;
-
         if (payoutDateStr && endDateStr) {
           const payoutDate = new Date(payoutDateStr);
           const endDate = new Date(endDateStr);
-
           if (!isNaN(payoutDate.getTime()) && !isNaN(endDate.getTime())) {
             const diffMs = payoutDate.getTime() - endDate.getTime();
             const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-            // Only count positive or zero delays (ignore payouts before hackathon ended)
             if (diffDays >= 0) {
               entry.payoutSpeedCount++;
               entry.totalPayoutDays += diffDays;
@@ -103,58 +132,62 @@ export default async function handler(req, res) {
           }
         }
 
-        // Track most recent activity
-        if (project.createdAt) {
-          if (!entry.lastActivity || project.createdAt > entry.lastActivity) {
-            entry.lastActivity = project.createdAt;
-          }
+        if (project.createdAt && (!entry.lastActivity || project.createdAt > entry.lastActivity)) {
+          entry.lastActivity = project.createdAt;
         }
+
+        projectEntry.totalClaims++;
+        projectEntry.totalProofScore += proof.proofScore;
+        projectEntry.bestProofScore = Math.max(projectEntry.bestProofScore, proof.proofScore);
+        if (proof.evidenceCount > 0) projectEntry.evidenceBackedClaims++;
+        if (proof.isVerifiedWin) projectEntry.verifiedWins++;
+
+        builderEntry.totalClaims++;
+        builderEntry.totalProofScore += proof.proofScore;
+        builderEntry.bestProofScore = Math.max(builderEntry.bestProofScore, proof.proofScore);
+        if (proof.evidenceCount > 0) builderEntry.evidenceBackedClaims++;
+        if (proof.isVerifiedWin) builderEntry.verifiedWins++;
+        if (proof.evidenceCount > 0) builderEntry.proofBackedProjects.add(projectId);
       }
+
+      projectMap.set(projectId, projectEntry);
+      builderMap.set(builderKey, builderEntry);
     }
 
-    // Format and compute derived metrics
     const hackathons = Array.from(hackathonMap.values()).map((entry) => {
       const payoutCompletionRate = entry.winners > 0
         ? Math.round((entry.payoutsRecorded / entry.winners) * 100)
         : 0;
-
-      // Average payout days — only computed from claims where both dates exist
       const avgPayoutDays = entry.payoutSpeedCount > 0
         ? Math.round(entry.totalPayoutDays / entry.payoutSpeedCount)
         : null;
-
       const builderCount = entry.uniqueBuilders.size;
-
-      // ── Composite score (higher is better) ───────────────────────
-      // Payout speed (weight 35): lower avg days = higher score
-      // Formula: 100 - min(avgDays / 365 * 100, 100) — linearly decays to 0 over a year
-      // Payout completion (weight 30): % of winners paid
-      // Builder count (weight 20): more unique builders = healthier ecosystem
-      // Project volume (weight 15): more projects = more signal
-      const hasPayoutTimeline = avgPayoutDays !== null && avgPayoutDays >= 0;
-
-      const payoutSpeedScore = hasPayoutTimeline
+      const avgProofScore = entry.totalClaims > 0 ? Math.round(entry.totalProofScore / entry.totalClaims) : 0;
+      const evidenceCoverage = entry.totalClaims > 0 ? Math.round((entry.evidenceBackedClaims / entry.totalClaims) * 100) : 0;
+      const strongProofRate = entry.totalClaims > 0 ? Math.round((entry.strongProofClaims / entry.totalClaims) * 100) : 0;
+      const payoutSpeedScore = avgPayoutDays !== null
         ? Math.max(0, 100 - Math.round((avgPayoutDays / 365) * 100))
         : null;
-
-      const completionScore = payoutCompletionRate;
       const builderScore = Math.min(100, builderCount * 20);
       const volumeScore = Math.min(100, entry.totalProjects * 15);
 
       let score;
       if (payoutSpeedScore !== null) {
         score = Math.round(
-          payoutSpeedScore * 0.35 +
-          completionScore * 0.30 +
-          builderScore * 0.20 +
-          volumeScore * 0.15
+          payoutSpeedScore * 0.25 +
+          payoutCompletionRate * 0.20 +
+          avgProofScore * 0.25 +
+          evidenceCoverage * 0.15 +
+          builderScore * 0.10 +
+          volumeScore * 0.05
         );
       } else {
-        // Redistribute payout speed weight when timeline data is unavailable
         score = Math.round(
-          completionScore * 0.40 +
-          builderScore * 0.35 +
-          volumeScore * 0.25
+          avgProofScore * 0.35 +
+          evidenceCoverage * 0.25 +
+          payoutCompletionRate * 0.20 +
+          builderScore * 0.12 +
+          volumeScore * 0.08
         );
       }
 
@@ -168,20 +201,83 @@ export default async function handler(req, res) {
         payoutCompletionRate,
         avgPayoutDays,
         totalPrizeAmount: Math.round(entry.totalPrizeAmount),
-        builderCount: Array.from(entry.uniqueBuilders).length,
+        builderCount,
+        verifiedWins: entry.verifiedWins,
+        avgProofScore,
+        evidenceCoverage,
+        strongProofRate,
         lastActivity: entry.lastActivity || null,
         score,
       };
-    });
+    }).sort((a, b) => b.score - a.score);
 
-    // Sort by composite score descending
-    hackathons.sort((a, b) => b.score - a.score);
+    const builders = Array.from(builderMap.values()).map((entry) => {
+      const avgProofScore = entry.totalClaims > 0 ? Math.round(entry.totalProofScore / entry.totalClaims) : 0;
+      const evidenceCoverage = entry.totalClaims > 0 ? Math.round((entry.evidenceBackedClaims / entry.totalClaims) * 100) : 0;
+      const proofBackedProjectCount = entry.proofBackedProjects.size;
+      const score = Math.round(
+        avgProofScore * 0.35 +
+        Math.min(100, proofBackedProjectCount * 20) * 0.25 +
+        Math.min(100, entry.verifiedWins * 30) * 0.25 +
+        evidenceCoverage * 0.15
+      );
+
+      return {
+        id: entry.id,
+        name: entry.name,
+        ecosystem: Array.from(entry.ecosystems).filter(Boolean).join(', '),
+        projectCount: entry.projectCount,
+        proofBackedProjectCount,
+        totalClaims: entry.totalClaims,
+        evidenceBackedClaims: entry.evidenceBackedClaims,
+        verifiedWins: entry.verifiedWins,
+        avgProofScore,
+        bestProofScore: entry.bestProofScore,
+        evidenceCoverage,
+        lastActivity: entry.lastActivity,
+        score,
+      };
+    }).sort((a, b) => b.score - a.score);
+
+    const projects = Array.from(projectMap.values()).map((entry) => {
+      const avgProofScore = entry.totalClaims > 0 ? Math.round(entry.totalProofScore / entry.totalClaims) : 0;
+      const evidenceCoverage = entry.totalClaims > 0 ? Math.round((entry.evidenceBackedClaims / entry.totalClaims) * 100) : 0;
+      const score = Math.round(
+        avgProofScore * 0.45 +
+        Math.min(100, entry.verifiedWins * 35) * 0.30 +
+        evidenceCoverage * 0.15 +
+        Math.min(100, entry.totalClaims * 15) * 0.10
+      );
+
+      return {
+        slug: entry.slug,
+        name: entry.name,
+        ecosystem: entry.ecosystem,
+        githubUrl: entry.githubUrl,
+        imageUrl: entry.imageUrl,
+        ownerName: entry.ownerName,
+        totalClaims: entry.totalClaims,
+        evidenceBackedClaims: entry.evidenceBackedClaims,
+        verifiedWins: entry.verifiedWins,
+        avgProofScore,
+        bestProofScore: entry.bestProofScore,
+        evidenceCoverage,
+        createdAt: entry.createdAt,
+        score,
+      };
+    }).sort((a, b) => b.score - a.score);
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
 
     return res.status(200).json({
       hackathons: hackathons.slice(0, 100),
-      total: hackathons.length,
+      builders: builders.slice(0, 100),
+      projects: projects.slice(0, 100),
+      total: {
+        hackathons: hackathons.length,
+        builders: builders.length,
+        projects: projects.length,
+      },
     });
   } catch (err) {
     console.error("Hackathon leaderboard error:", err);

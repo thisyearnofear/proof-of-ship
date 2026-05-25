@@ -25,6 +25,8 @@ import { BoltIcon } from "@heroicons/react/24/solid";
 
 const TABS = [
   { id: "builders", label: "Top Builders", icon: RocketLaunchIcon },
+  { id: "proof-builders", label: "Proof Builders", icon: TrophyIcon },
+  { id: "projects", label: "Proven Projects", icon: FireIcon },
   { id: "backers", label: "Top Backers", icon: BanknotesIcon },
   { id: "hackathons", label: "Hackathons", icon: TrophyIcon },
 ];
@@ -32,7 +34,7 @@ const TABS = [
 export default function LeaderboardPage() {
   const [tab, setTab] = useState("builders");
   const [loading, setLoading] = useState(true);
-  const [entries, setEntries] = useState({ builders: [], backers: [], hackathons: [] });
+  const [entries, setEntries] = useState({ builders: [], proofBuilders: [], projects: [], backers: [], hackathons: [] });
 
   useEffect(() => {
     let cancelled = false;
@@ -43,15 +45,16 @@ export default function LeaderboardPage() {
         if (!res.ok) throw new Error("Failed to load leaderboard");
         const data = await res.json();
         if (!cancelled) {
-          setEntries({
+          setEntries((prev) => ({
+            ...prev,
             builders: (data.builders || []).map((b) => ({ ...b, source: b.source || "firestore" })),
             backers: (data.backers || []).map((b) => ({ ...b, source: b.source || "firestore" })),
-          });
+          }));
         }
       } catch (err) {
         console.warn("Leaderboard fetch failed:", err);
         if (!cancelled) {
-          setEntries({ builders: [], backers: [], hackathons: [] });
+          setEntries({ builders: [], proofBuilders: [], projects: [], backers: [], hackathons: [] });
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -68,6 +71,8 @@ export default function LeaderboardPage() {
           setEntries((prev) => ({
             ...prev,
             hackathons: data.hackathons || [],
+            proofBuilders: data.builders || [],
+            projects: data.projects || [],
           }));
         }
       } catch (err) {
@@ -79,7 +84,12 @@ export default function LeaderboardPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const currentList = tab === "builders" ? entries.builders : tab === "backers" ? entries.backers : entries.hackathons;
+  const currentList =
+    tab === "builders" ? entries.builders :
+    tab === "proof-builders" ? entries.proofBuilders :
+    tab === "projects" ? entries.projects :
+    tab === "backers" ? entries.backers :
+    entries.hackathons;
 
   return (
     <ErrorBoundary name="LeaderboardPage" errorMessage="Failed to load leaderboard.">
@@ -96,7 +106,7 @@ export default function LeaderboardPage() {
               <h1 className="text-3xl font-bold text-text-primary">Leaderboard</h1>
             </div>
             <p className="text-text-secondary">
-              Top contributors in the Proof of Ship ecosystem, ranked by shipping velocity.
+              Discover the most credible builders, projects, and hackathons by proof strength, payout behavior, and shipping velocity.
             </p>
           </div>
 
@@ -133,6 +143,10 @@ export default function LeaderboardPage() {
               <FastestPayoutHero entries={currentList} />
               <HackathonLeaderboardList entries={currentList} />
             </>
+          ) : tab === "proof-builders" ? (
+            <ProofBuildersList entries={currentList} />
+          ) : tab === "projects" ? (
+            <ProvenProjectsList entries={currentList} />
           ) : (
             <LeaderboardList entries={currentList} type={tab} />
           )}
@@ -229,6 +243,18 @@ function EmptyState({ tab }) {
       link: "/build",
       cta: "Submit a project",
     },
+    "proof-builders": {
+      label: "proof builders",
+      message: "No proof-backed builders yet. Add hackathon evidence to your project and become discoverable.",
+      link: "/build",
+      cta: "Add proof to a project",
+    },
+    projects: {
+      label: "proven projects",
+      message: "No proven projects yet. Submit a project with evidence-backed hackathon claims to attract backers.",
+      link: "/build",
+      cta: "Submit a proven project",
+    },
     backers: {
       label: "backers",
       message: "Be the first to back a project and earn your spot.",
@@ -264,6 +290,87 @@ function EmptyState({ tab }) {
 function truncateAddress(addr) {
   if (!addr) return "Unknown";
   return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+}
+
+function ProofBuildersList({ entries }) {
+  return (
+    <div className="space-y-3">
+      {entries.map((entry, idx) => (
+        <div key={entry.id || idx} className="flex items-center gap-4 p-4 rounded-xl border bg-surface-primary border-border-primary hover:shadow-md transition-all">
+          <div className="w-12 text-center text-lg font-bold">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-text-primary truncate">{entry.name || 'Builder'}</span>
+              {entry.ecosystem ? (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-gray-600 dark:text-gray-400 uppercase">{entry.ecosystem}</span>
+              ) : null}
+            </div>
+            <p className="text-xs text-text-tertiary mt-0.5">
+              {entry.proofBackedProjectCount || 0} proof-backed project{entry.proofBackedProjectCount === 1 ? '' : 's'} · {entry.verifiedWins || 0} verified win{entry.verifiedWins === 1 ? '' : 's'} · {entry.totalClaims || 0} claims
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-right text-sm min-w-[260px]">
+            <div>
+              <div className="font-bold text-text-primary">{entry.avgProofScore || 0}</div>
+              <div className="text-xs text-text-tertiary">avg proof</div>
+            </div>
+            <div>
+              <div className="font-bold text-emerald-600">{entry.evidenceCoverage || 0}%</div>
+              <div className="text-xs text-text-tertiary">evidence</div>
+            </div>
+            <div>
+              <div className="font-bold text-amber-600">{entry.score || 0}</div>
+              <div className="text-xs text-text-tertiary">proof score</div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProvenProjectsList({ entries }) {
+  return (
+    <div className="space-y-3">
+      {entries.map((entry, idx) => (
+        <div key={entry.slug || idx} className="flex items-center gap-4 p-4 rounded-xl border bg-surface-primary border-border-primary hover:shadow-md transition-all">
+          <div className="w-12 text-center text-lg font-bold">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-text-primary truncate">{entry.name}</span>
+              {entry.ecosystem ? (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-gray-600 dark:text-gray-400 uppercase">{entry.ecosystem}</span>
+              ) : null}
+            </div>
+            <p className="text-xs text-text-tertiary mt-0.5">
+              {entry.verifiedWins || 0} verified win{entry.verifiedWins === 1 ? '' : 's'} · {entry.evidenceBackedClaims || 0}/{entry.totalClaims || 0} evidence-backed claims
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-right text-sm min-w-[260px]">
+            <div>
+              <div className="font-bold text-text-primary">{entry.avgProofScore || 0}</div>
+              <div className="text-xs text-text-tertiary">avg proof</div>
+            </div>
+            <div>
+              <div className="font-bold text-emerald-600">{entry.evidenceCoverage || 0}%</div>
+              <div className="text-xs text-text-tertiary">evidence</div>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <div>
+                <div className="font-bold text-amber-600">{entry.score || 0}</div>
+                <div className="text-xs text-text-tertiary">credibility</div>
+              </div>
+              {entry.slug ? (
+                <Link href={`/projects/${entry.ecosystem}/${entry.slug}`} className="text-text-tertiary hover:text-text-secondary">
+                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function FastestPayoutHero({ entries }) {

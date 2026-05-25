@@ -12,6 +12,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import { db } from "@/lib/firebase/clientApp";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 import { useUser } from "@/contexts/UserContext";
@@ -77,8 +78,50 @@ export default function ScoutPortfolioPage() {
   const { currentUser } = useUser();
   const { runs, loading } = useAgentRuns();
   const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [subStatus, setSubStatus] = useState(null);
+  const [subLoading, setSubLoading] = useState(false);
 
   const stats = useMemo(() => computePortfolioStats(runs), [runs]);
+
+  // Fetch subscription status
+  useEffect(() => {
+    if (!currentUser) return;
+    fetch("/api/agent/copy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "status", userId: currentUser.uid }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setSubStatus(data);
+      })
+      .catch(() => {});
+  }, [currentUser]);
+
+  const handleSubscribe = async () => {
+    if (!currentUser) {
+      alert("Please sign in to copy the Scout.");
+      return;
+    }
+    setSubLoading(true);
+    try {
+      const res = await fetch("/api/agent/copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "subscribe", userId: currentUser.uid }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubStatus({ subscribed: true, status: "active" });
+        trackEvent("copy_scout_subscribed", { user: currentUser.uid });
+      }
+    } catch (e) {
+      console.error("Subscribe failed:", e);
+    } finally {
+      setSubLoading(false);
+      setCopyModalOpen(false);
+    }
+  };
 
   // Recent reasoning traces from scout runs
   const reasoningTraces = useMemo(() => {
@@ -172,13 +215,23 @@ export default function ScoutPortfolioPage() {
                   <ShareIcon className="w-3.5 h-3.5 mr-1" />
                   Share
                 </Button>
-                <Button
-                  onClick={handleCopyScout}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs"
-                >
-                  <BoltIcon className="w-3.5 h-3.5 mr-1" />
-                  Copy Scout
-                </Button>
+                {subStatus?.subscribed ? (
+                  <Button
+                    disabled
+                    className="bg-emerald-600 text-white text-xs opacity-80 cursor-default"
+                  >
+                    <CheckCircleIcon className="w-3.5 h-3.5 mr-1" />
+                    Copying Scout
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCopyScout}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs"
+                  >
+                    <BoltIcon className="w-3.5 h-3.5 mr-1" />
+                    Copy Scout
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -220,17 +273,20 @@ export default function ScoutPortfolioPage() {
                   </h2>
                   <div className="space-y-3">
                     {reasoningTraces.map((t, idx) => (
-                      <Card key={`${t.runId}-${idx}`} className="bg-slate-900 border-slate-800 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-400">
-                            {t.project}
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            {t.timestamp ? new Date(t.timestamp).toLocaleString() : ""}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-300 leading-relaxed">{t.trace}</p>
-                      </Card>
+                      <Link key={`${t.runId}-${idx}`} href={`/scout/trace/${t.runId}`} className="block">
+                        <Card className="bg-slate-900 border-slate-800 p-4 hover:border-cyan-500/30 transition-colors cursor-pointer">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-400">
+                              {t.project}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {t.timestamp ? new Date(t.timestamp).toLocaleString() : ""}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-300 leading-relaxed line-clamp-3">{t.trace}</p>
+                          <div className="mt-2 text-[10px] text-cyan-400 hover:underline">View full trace →</div>
+                        </Card>
+                      </Link>
                     ))}
                   </div>
                 </section>
@@ -342,14 +398,11 @@ export default function ScoutPortfolioPage() {
                 Close
               </Button>
               <Button
-                onClick={() => {
-                  trackEvent("copy_scout_subscribed", { user: currentUser?.uid || "anonymous" });
-                  setCopyModalOpen(false);
-                  alert("Copy Scout feature coming soon! Deposit and auto-backing will be enabled in the next release.");
-                }}
+                onClick={handleSubscribe}
+                disabled={subLoading}
                 className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white text-xs"
               >
-                Join Waitlist
+                {subLoading ? "Subscribing..." : "Start Copying"}
               </Button>
             </div>
           </Card>

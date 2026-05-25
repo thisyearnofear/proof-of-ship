@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { db } from '@/lib/firebase/clientApp';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { Card } from '@/components/common/Card';
@@ -63,7 +64,6 @@ function formatRunDetails(run) {
 export default function AgentAuditLog({ projectSlug }) {
   const [logs, setLogs] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedTrace, setSelectedTrace] = useState(null);
 
   useEffect(() => {
     const q = query(
@@ -105,69 +105,50 @@ export default function AgentAuditLog({ projectSlug }) {
           <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-cyan-400 font-mono">{filteredLogs.length} RUNS</span>
         </div>
 
-        {selectedTrace ? (
-          <div className="p-4">
-            <button
-              onClick={() => setSelectedTrace(null)}
-              className="text-[10px] text-cyan-400 hover:underline mb-2"
-            >
-              ← Back to logs
-            </button>
-            <div className="bg-slate-800 rounded p-3 text-[11px] font-mono text-slate-300 whitespace-pre-wrap">
-              {selectedTrace.reasoningTrace || selectedTrace.ecosystemAnalysis || 'No reasoning trace available for this run.'}
+        <div className="divide-y divide-slate-800">
+          {filteredLogs.length === 0 && (
+            <div className="p-8 text-center">
+              <ArrowPathIcon className="w-5 h-5 text-slate-600 mx-auto mb-2 animate-spin" />
+              <p className="text-slate-500 text-xs">Waiting for agent runs...</p>
             </div>
-            {selectedTrace.runId && (
-              <div className="mt-2 text-[9px] text-slate-500 font-mono">Run ID: {selectedTrace.runId}</div>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="divide-y divide-slate-800">
-              {filteredLogs.length === 0 && (
-                <div className="p-8 text-center">
-                  <ArrowPathIcon className="w-5 h-5 text-slate-600 mx-auto mb-2 animate-spin" />
-                  <p className="text-slate-500 text-xs">Waiting for agent runs...</p>
+          )}
+          {filteredLogs.slice(0, isExpanded ? 20 : 5).map((log) => (
+            <div key={log.id} className="p-4 hover:bg-slate-800/50 transition-colors group">
+              <div className="flex items-start justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${getAgentBadgeColor(log.type)}`}>
+                    {getAgentLabel(log.type)}
+                  </span>
+                  <span className="text-xs font-medium text-slate-100">
+                    {log.type === 'execution' ? 'On-Chain Backing' : log.type === 'scout' ? 'Portfolio Scan' : log.type === 'underwrite' ? 'Project Analysis' : 'Agent Run'}
+                  </span>
                 </div>
-              )}
-              {filteredLogs.slice(0, isExpanded ? 20 : 5).map((log) => (
-                <div key={log.id} className="p-4 hover:bg-slate-800/50 transition-colors group">
-                  <div className="flex items-start justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${getAgentBadgeColor(log.type)}`}>
-                        {getAgentLabel(log.type)}
-                      </span>
-                      <span className="text-xs font-medium text-slate-100">
-                        {log.type === 'execution' ? 'On-Chain Backing' : log.type === 'scout' ? 'Portfolio Scan' : log.type === 'underwrite' ? 'Project Analysis' : 'Agent Run'}
-                      </span>
-                    </div>
-                    {getStatusIcon(log.status, log.type)}
-                  </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-1 group-hover:line-clamp-none transition-all">
-                    {formatRunDetails(log)}
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[9px] text-slate-500 font-mono">
-                      {log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}
-                    </span>
-                    <button
-                      onClick={() => setSelectedTrace(log)}
-                      className="text-[9px] text-cyan-400 hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      View Trace →
-                    </button>
-                  </div>
-                </div>
-              ))}
+                {getStatusIcon(log.status, log.type)}
+              </div>
+              <p className="text-[11px] text-slate-400 line-clamp-1 group-hover:line-clamp-none transition-all">
+                {formatRunDetails(log)}
+              </p>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[9px] text-slate-500 font-mono">
+                  {log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}
+                </span>
+                <Link
+                  href={`/scout/trace/${log.id}`}
+                  className="text-[9px] text-cyan-400 hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  View Trace →
+                </Link>
+              </div>
             </div>
+          ))}
+        </div>
 
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full py-2 text-[10px] font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest border-t border-slate-800"
-            >
-              {isExpanded ? 'Collapse Logs' : 'View Full Trail'}
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full py-2 text-[10px] font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest border-t border-slate-800"
+        >
+          {isExpanded ? 'Collapse Logs' : 'View Full Trail'}
+        </button>
       </Card>
     </section>
   );

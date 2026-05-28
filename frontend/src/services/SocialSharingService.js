@@ -5,7 +5,7 @@
 
 class SocialSharingService {
   constructor() {
-    this.snapServerUrl = process.env.NEXT_PUBLIC_SNAP_SERVER_URL || 'https://snap-server.proofofship.xyz';
+    this.snapServerUrl = process.env.NEXT_PUBLIC_SNAP_SERVER_URL || 'https://proof-of-ship.vercel.app';
     this.neynarApiKey = process.env.NEYNAR_API_KEY;
   }
 

@@ -7,12 +7,10 @@
   "frame": {
     "version": "1",
     "name": "Proof of Ship",
-    "iconUrl": "https://proofofship.xyz/icon.png",
-    "homeUrl": "https://proofofship.xyz",
-    "imageUrl": "https://proofofship.xyz/og-image.png",
-    "buttonTitle": "Open Proof of Ship",
-    "splashImageUrl": "https://proofofship.xyz/splash.png",
-    "splashBackgroundColor": "#000000",
-    "webhookUrl": "https://proofofship.xyz/api/webhook"
+    "iconUrl": "https://proof-of-ship.vercel.app/icon.png",
+    "homeUrl": "https://proof-of-ship.vercel.app",
+    "imageUrl": "https://proof-of-ship.vercel.app/og-image.png",
+    "splashImageUrl": "https://proof-of-ship.vercel.app/splash.png",
+    "webhookUrl": "https://proof-of-ship.vercel.app/api/webhook"
   }
 }

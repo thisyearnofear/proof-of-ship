@@ -91,7 +91,7 @@ export default async function handler(req) {
             fontSize: '20px',
             color: '#475569'
           }}>
-            proofofship.xyz/fleet
+            proof-of-ship.vercel.app/fleet
           </div>
         </div>
       ),

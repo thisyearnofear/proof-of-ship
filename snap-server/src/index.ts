@@ -30,7 +30,7 @@ export const db = admin.firestore();
 
 // Manifest route for Farcaster Snap — includes SNS agent identities
 app.get('/.well-known/farcaster.json', (c) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proofofship.xyz';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-ship.vercel.app';
   return c.json({
     accountAssociation: {
       header: "eyJmaWQiOiA4ODcyLCAidHlwZSI6ICJjdXN0b2RpYWwiLCAia2V5IjogIjB4N0U0M0Y0RDVFNjU0OEY0RTZFNDVFNjU0OEY0RTZFNDUifQ",

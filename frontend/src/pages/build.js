@@ -22,6 +22,7 @@ import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
+import Card from "@/components/common/Card";
 import CreditTab from "@/components/build/CreditTab";
 
 export default function BuildPage() {

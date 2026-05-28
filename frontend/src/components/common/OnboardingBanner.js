@@ -1,11 +1,11 @@
 /**
- * Onboarding Banner — first-run experience for all visitors
+ * Onboarding Banner — role-based guide for authenticated users only.
  *
- * Dual-mode:
- *   - Unauthenticated visitors: platform value prop + sign-up/explore CTAs
- *   - Authenticated users: role-based (builder/backer) step-by-step guide
+ * Shows a quick three-step guide (builder or backer) after completing onboarding.
+ * Dismissible via localStorage.
  *
- * Both modes are dismissible via separate localStorage keys.
+ * Guest/unauthenticated visitors see the landing page hero — this banner
+ * would only duplicate that content, so we skip it entirely.
  */
 
 import React, { useState, useEffect } from "react";
@@ -17,13 +17,10 @@ import {
   SparklesIcon,
   RocketLaunchIcon,
   BanknotesIcon,
-  ShieldCheckIcon,
-  UserGroupIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 const AUTH_STORAGE_KEY = "pos_onboarding_dismissed";
-const GUEST_STORAGE_KEY = "pos_guest_banner_dismissed";
 
 export default function OnboardingBanner() {
   const router = useRouter();
@@ -32,7 +29,6 @@ export default function OnboardingBanner() {
   const [mounted, setMounted] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-  // ── Detect prefers-reduced-motion once on mount ──
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -42,36 +38,21 @@ export default function OnboardingBanner() {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // ── Auth state resolved? Skip during initial loading to avoid flash ──
   const resolved = !loading;
 
   useEffect(() => {
     if (!resolved) return;
 
-    // Skip guest banner on auth pages — the user is already in the sign-up flow
-    const authPaths = ["/login", "/signup"];
-
-    if (!currentUser) {
-      // Unauthenticated visitor — show guest banner unless dismissed
-      if (authPaths.includes(router.pathname)) return;
-      const dismissed = localStorage.getItem(GUEST_STORAGE_KEY);
-      if (!dismissed) {
-        setVisible(true);
-      }
-    } else if (onboardingComplete) {
-      // Authenticated user with completed onboarding — show role steps
+    if (currentUser && onboardingComplete) {
       const dismissed = localStorage.getItem(AUTH_STORAGE_KEY);
       if (!dismissed) {
         setVisible(true);
       }
     } else {
-      // Authenticated but onboarding not complete — don't show this banner
-      // (the page-level onboarding flow handles this)
       setVisible(false);
     }
   }, [resolved, currentUser, onboardingComplete, router.pathname]);
 
-  // Small delay to mount before showing transition
   useEffect(() => {
     if (visible) {
       if (prefersReducedMotion) {
@@ -94,23 +75,6 @@ export default function OnboardingBanner() {
     ? `opacity-100 translate-y-0 ${transitionClass}`
     : `opacity-0 -translate-y-2 ${transitionClass}`;
 
-  // ── Guest banner — shown to unauthenticated visitors ──
-  if (!currentUser) {
-    return (
-      <div className={containerClass}>
-        <GuestBanner
-          onDismiss={() => {
-            setVisible(false);
-            localStorage.setItem(GUEST_STORAGE_KEY, "1");
-            trackEvent("onboarding_banner_dismissed", { mode: "guest" });
-          }}
-          router={router}
-        />
-      </div>
-    );
-  }
-
-  // ── Authenticated banner — role-based steps ──
   return (
     <div className={containerClass}>
       <AuthBanner
@@ -122,98 +86,6 @@ export default function OnboardingBanner() {
         }}
         router={router}
       />
-    </div>
-  );
-}
-
-/* ===================================================================
- * Guest Banner — platform value prop for unauthenticated visitors
- * =================================================================== */
-function GuestBanner({ onDismiss, router }) {
-  const features = [
-    {
-      icon: ShieldCheckIcon,
-      title: "Proof-Backed Reputation",
-      desc: "Connect GitHub to verify your shipping history. Every claim backed by evidence builds trust.",
-    },
-    {
-      icon: BanknotesIcon,
-      title: "Get Backed with USDC",
-      desc: "Backers stake on your projects. Win hackathon prizes and your backers are repaid automatically.",
-    },
-    {
-      icon: UserGroupIcon,
-      title: "Community Testing",
-      desc: "Open your project for tester feedback. Increase your proof score and attract more backers.",
-    },
-  ];
-
-  return (
-    <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <span className="text-2xl">🚢</span>
-              <span className="text-lg font-bold text-white">Proof of Ship</span>
-              <span className="px-2 py-0.5 text-[11px] font-semibold bg-white/20 text-white/90 rounded-full">
-                Turn your code into credit
-              </span>
-            </div>
-
-            <p className="text-sm text-indigo-100 max-w-2xl mb-4">
-              Submit your open-source projects, attach proof from hackathons you&apos;ve won,
-              and let backers stake USDC on your success. No more asking &mdash; just ship.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              {features.map((f) => (
-                <div
-                  key={f.title}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 transition-colors"
-                >
-                  <f.icon className="w-5 h-5 text-indigo-200 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-white">{f.title}</p>
-                    <p className="text-[11px] text-indigo-200 mt-0.5 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-3 flex-wrap">
-              <button
-                onClick={() => router.push("/login?mode=signup")}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white text-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-indigo-900/20"
-              >
-                <RocketLaunchIcon className="w-4 h-4" />
-                Start Shipping — Sign Up
-              </button>
-              <button
-                onClick={() => router.push("/explore")}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-colors border border-white/20"
-              >
-                <MagnifyingGlassIcon className="w-4 h-4" />
-                Explore Projects
-              </button>
-              <button
-                onClick={() => router.push("/login")}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-indigo-200 rounded-lg text-sm font-medium hover:text-white transition-colors"
-              >
-                Sign In
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={onDismiss}
-            className="p-1.5 text-indigo-200 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg flex-shrink-0 transition-colors"
-            aria-label="Dismiss"
-          >
-            <XMarkIcon className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

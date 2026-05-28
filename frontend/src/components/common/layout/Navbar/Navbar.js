@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/router";
 import { useUser } from "@/contexts/UserContext";
 import { useNanopayment, useWallet } from "@/contexts/WalletContext";
-import { Fragment } from "react";
+import { Fragment, useState, useEffect } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
 
@@ -62,7 +62,8 @@ function classNames(...classes) {
 export default function Navbar() {
   const router = useRouter();
   const pathname = router.asPath;
-  const { currentUser, logout, userRole, linkedWallets } = useUser();
+  const [mounted, setMounted] = useState(false);
+  const { currentUser, logout, userRole, linkedWallets, loading: authLoading } = useUser();
   const { isInitialized: nanopayReady, balance } = useNanopayment();
   const wallet = useWallet();
   const { disconnect: disconnectEvm, disconnectSolana, solanaAddress, account } = wallet;
@@ -75,6 +76,12 @@ export default function Navbar() {
     : account
       ? { label: `${account.slice(0, 6)}...${account.slice(-4)}`, color: 'orange' }
       : null;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const authReady = mounted && !authLoading;
 
   const handleLogout = async () => {
     disconnectEvm();
@@ -178,7 +185,11 @@ export default function Navbar() {
 
                   <ThemeToggle />
 
-                  {currentUser ? (
+                  {!authReady ? (
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                    </div>
+                  ) : currentUser ? (
                     /* ── Logged-in: wallet indicator + avatar + name/role, dropdown with identity ── */
                     <div className="flex items-center gap-2">
                       {activeWallet && (
@@ -336,7 +347,9 @@ export default function Navbar() {
                 </div>
 
                 <div className="flex sm:hidden items-center gap-1">
-                  {currentUser ? (
+                  {!authReady ? (
+                    <div className="h-7 w-7 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                  ) : currentUser ? (
                     <Menu as="div" className="relative">
                       <Menu.Button className="flex items-center">
                         {currentUser.photoURL ? (
@@ -488,7 +501,7 @@ export default function Navbar() {
                     </div>
                   )}
                   
-                  {!currentUser && (
+                  {authReady && !currentUser && (
                     <div className="mt-4 pt-4 border-t border-default">
                       {activeWallet && (
                         <div className={`flex items-center gap-2 px-3 py-2 mb-2 rounded-md text-xs font-mono ${activeWallet.color === 'purple' ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' : 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'}`}>

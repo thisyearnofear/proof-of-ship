@@ -59,6 +59,9 @@ export default function ShipsLog({ projectSlug, canEdit }) {
       }));
       setLogs(newLogs);
       setLoading(false);
+    }, (error) => {
+      console.warn('Ships log unavailable:', error.message);
+      setLoading(false);
     });
 
     return () => unsubscribe();

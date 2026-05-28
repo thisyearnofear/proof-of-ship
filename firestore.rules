@@ -164,10 +164,10 @@ service cloud.firestore {
     }
 
     // Agent runs — execution logs for agent operations (scout, execute, etc.).
-    // Read: admin-only for operational visibility.
+    // Read: publicly visible so the landing page LiveAgentTicker can show recent activity.
     // Write: only server-side scripts via admin SDK (rules bypassed).
     match /agent_runs/{runId} {
-      allow read: if isAdminUser();
+      allow read: if true;
       allow write: if false;
     }
 

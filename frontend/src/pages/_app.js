@@ -88,11 +88,17 @@ export default function App({ Component, pageProps }) {
       >
         <Navbar />
         <OnboardingBanner />
-        <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
+        {Component.fullWidth ? (
           <ErrorBoundary name="Page Component">
             <Component {...pageProps} />
           </ErrorBoundary>
-        </main>
+        ) : (
+          <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-grow">
+            <ErrorBoundary name="Page Component">
+              <Component {...pageProps} />
+            </ErrorBoundary>
+          </main>
+        )}
         <Footer />
         <AIAnalysisModal />
         <AIChatWidget />

@@ -37,6 +37,8 @@ const UserJourneySection = lazy(() =>
   })).catch(() => ({ default: () => null }))
 );
 
+LandingPage.fullWidth = true;
+
 export default function LandingPage() {
   const router = useRouter();
   const { currentUser, onboardingComplete } = useUser();

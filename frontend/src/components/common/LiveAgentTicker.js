@@ -41,6 +41,8 @@ export default function LiveAgentTicker() {
         ...doc.data(),
       }));
       setRuns(newRuns);
+    }, (error) => {
+      console.warn('Agent runs feed unavailable:', error.message);
     });
 
     return () => unsubscribe();

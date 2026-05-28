@@ -6,7 +6,7 @@ export const wagmiConfig = createConfig(
   getDefaultConfig({
     chains: [mainnet, polygon, optimism, arbitrum, base, celo],
     transports: {
-      [mainnet.id]: http(),
+      [mainnet.id]: http('https://cloudflare-eth.com'),
       [polygon.id]: http('https://polygon-rpc.com/'),
       [optimism.id]: http('https://mainnet.optimism.io'),
       [arbitrum.id]: http('https://arb1.arbitrum.io/rpc'),

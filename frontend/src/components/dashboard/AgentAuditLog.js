@@ -78,6 +78,8 @@ export default function AgentAuditLog({ projectSlug }) {
         ...doc.data(),
       }));
       setLogs(newLogs);
+    }, (error) => {
+      console.warn('Agent audit log unavailable:', error.message);
     });
 
     return () => unsubscribe();

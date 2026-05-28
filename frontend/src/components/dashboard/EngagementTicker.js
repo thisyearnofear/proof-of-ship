@@ -20,6 +20,8 @@ const EngagementTicker = () => {
         ...doc.data()
       }));
       setActivities(newActivities);
+    }, (error) => {
+      console.warn('Activity feed unavailable:', error.message);
     });
 
     return () => unsubscribe();

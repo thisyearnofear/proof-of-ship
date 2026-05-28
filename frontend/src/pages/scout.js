@@ -51,6 +51,9 @@ function useAgentRuns() {
       }));
       setRuns(newRuns);
       setLoading(false);
+    }, (error) => {
+      console.warn('Agent runs feed unavailable:', error.message);
+      setLoading(false);
     });
 
     return () => unsubscribe();

@@ -67,13 +67,24 @@ export default function LoginPage() {
     if (userRole && !role) setRole(userRole);
   }, [userRole, role]);
 
+  // On revisit: if Firebase auth persists, skip the full login flow.
+  // Redirect immediately if we have wallet-linked data from Firestore,
+  // even without a fresh wallet connection.
   useEffect(() => {
     if (isFullyAuthed || (alreadyLinked && currentUser)) {
       const dest = redirect || (role === 'backer' ? '/back' : '/build');
       const timer = setTimeout(() => router.push(dest), 1500);
       return () => clearTimeout(timer);
     }
-  }, [isFullyAuthed, alreadyLinked, currentUser, redirect, router, role]);
+    if (currentUser && linkedWallets.length > 0 && !role) {
+      setRole('builder');
+    }
+    if (currentUser && linkedWallets.length > 0 && role) {
+      const dest = redirect || (role === 'backer' ? '/back' : '/build');
+      const timer = setTimeout(() => router.push(dest), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isFullyAuthed, alreadyLinked, currentUser, linkedWallets, redirect, router, role]);
 
   const signWalletMessage = useCallback(async () => {
     if (!anyWalletConnected || !activeWalletAddress) throw new Error('No wallet connected');

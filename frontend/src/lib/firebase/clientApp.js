@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import config from "@/config/publicConfig";
@@ -18,6 +18,14 @@ if (!getApps().length) {
 
 // Auth export
 export const auth = getAuth(firebaseApp);
+
+// Explicitly set persistence to localStorage (more reliable than IndexedDB default
+// across browser sessions, especially on Vercel preview domains)
+if (typeof window !== "undefined") {
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.warn("Failed to set auth persistence:", err);
+  });
+}
 
 // Initialize Firestore with standard configuration
 export const db = getFirestore(firebaseApp);

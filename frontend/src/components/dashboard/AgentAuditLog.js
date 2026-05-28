@@ -94,7 +94,7 @@ export default function AgentAuditLog({ projectSlug }) {
 
   return (
     <section>
-      <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+      <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
         <span className="w-2 h-2 bg-cyan-500 rounded-full"></span>
         Agent Audit Trail
       </h2>

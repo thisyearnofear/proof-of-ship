@@ -278,7 +278,7 @@ export default function DeveloperDashboard() {
 
       <div className="grid grid-cols-12 gap-6">
         {/* Left Column: Engine Status (Credit Profile) */}
-        <div className="col-span-12 lg:col-span-8 space-y-6">
+        <div className="col-span-12 lg:col-span-8 space-y-6 self-start">
           <section>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
@@ -360,12 +360,12 @@ export default function DeveloperDashboard() {
                 </Card>
               </div>
             ) : (
-              <Card className="p-10 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <ShieldCheckIcon className="w-8 h-8 text-slate-400" />
+              <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <ShieldCheckIcon className="w-6 h-6 text-slate-400" />
                   </div>
-                  <p className="text-slate-600 font-medium text-lg">
+                  <p className="text-slate-600 font-medium">
                     No credit profile found. Initialize engine by requesting funding.
                   </p>
                 </div>
@@ -455,21 +455,25 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
             ) : (
-              <Card className="p-12 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300 text-center">
-                <div className="w-20 h-20 bg-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                  <DocumentTextIcon className="w-10 h-10 text-slate-400" />
+              <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <DocumentTextIcon className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800">Fleet Empty</h3>
+                    <p className="text-sm text-slate-600">
+                      You haven&apos;t commissioned any vessels yet. Start your journey by requesting funding for your first project.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">Fleet Empty</h3>
-                <p className="text-slate-600 max-w-lg mx-auto">
-                  You haven&apos;t commissioned any vessels yet. Start your journey by requesting funding for your first project.
-                </p>
               </Card>
             )}
           </section>
         </div>
 
         {/* Right Column: Telemetry & Actions */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
+        <div className="col-span-12 lg:col-span-4 space-y-6 self-start">
           {/* Velocity Gauge */}
           <Card className="p-7 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none overflow-hidden relative">
             <div className="absolute top-0 right-0 p-6 opacity-10">
@@ -496,11 +500,11 @@ export default function DeveloperDashboard() {
 
           {/* Voyage Log / Check-ins */}
           <section>
-            <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
               Voyage Log
             </h2>
-            <Card className="p-6 bg-white border border-slate-200 shadow-sm">
+            <Card className="p-6 bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
                 <h3 className="font-bold text-slate-800 text-lg">Post Heartbeat</h3>
@@ -530,7 +534,7 @@ export default function DeveloperDashboard() {
 
           {/* Quick Actions */}
           <section>
-            <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
               Quick Commands
             </h2>
@@ -576,9 +580,9 @@ export default function DeveloperDashboard() {
           </section>
 
           {/* System Logs / Status */}
-          <Card className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-slate-400 rounded-full"></span>
+          <Card className="p-5 bg-white border border-slate-200 shadow-sm">
+            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-slate-500 rounded-full"></span>
               System Logs
             </h3>
             <div className="space-y-3 font-mono text-sm">

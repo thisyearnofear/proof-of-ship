@@ -31,6 +31,271 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
+/* -----------------------------------------------------------------------------
+ * Sub-sections — extracted so the same JSX can be composed in two layouts
+ * (sidebar rail when there's a fleet, responsive grid when sparse).
+ * All theming includes explicit dark-mode classes since the project uses
+ * Tailwind's class-based dark mode (`darkMode: 'class'`).
+ * --------------------------------------------------------------------------- */
+
+function FleetOperationsSection({
+  developerProjects,
+  projectDetails,
+  selectedProjectId,
+  setSelectedProjectId,
+  setShowStakeModal,
+  handleProjectSelect,
+  handleMilestoneComplete,
+  formatUSDC,
+}) {
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
+          <div className="w-10 h-10 bg-cyan-100 dark:bg-cyan-900/40 rounded-lg flex items-center justify-center">
+            <GlobeAltIcon className="w-6 h-6 text-cyan-600 dark:text-cyan-300" />
+          </div>
+          FLEET OPERATIONS
+        </h2>
+      </div>
+
+      {developerProjects && developerProjects.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Project List */}
+          <div className="lg:col-span-1 space-y-3 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
+            {developerProjects.map((projectId) => {
+              const project = projectDetails[projectId];
+              if (!project) return null;
+              const tier = getEvolutionTier(project.creditScore || 0);
+
+              return (
+                <Card
+                  key={projectId}
+                  className={`p-5 cursor-pointer transition-all duration-300 border-2 ${
+                    selectedProjectId === projectId
+                      ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 shadow-lg'
+                      : 'border-transparent bg-white dark:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-md'
+                  } ${tier.class}`}
+                  onClick={() => handleProjectSelect(projectId)}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">{tier.icon}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-slate-900 dark:text-slate-100 text-lg truncate">{project.name}</div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">${formatUSDC(project.fundingAmount)}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProjectId(projectId);
+                              setShowStakeModal(true);
+                            }}
+                            className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/40 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 px-3 py-1 rounded-full transition-colors"
+                          >
+                            BOOST
+                          </button>
+                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">{tier.name}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Project Details */}
+          <div className="lg:col-span-2">
+            {selectedProjectId ? (
+              <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <ProjectDetails projectId={selectedProjectId} onMilestoneComplete={handleMilestoneComplete} />
+              </div>
+            ) : (
+              <Card className="p-12 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/60 border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-center">
+                <div className="w-20 h-20 bg-slate-200 dark:bg-slate-700 rounded-2xl flex items-center justify-center mb-5">
+                  <DocumentTextIcon className="w-10 h-10 text-slate-400 dark:text-slate-300" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">No Vessel Selected</h3>
+                <p className="text-slate-600 dark:text-slate-300 max-w-sm">
+                  Select a project from your fleet to view live telemetry and manage milestones.
+                </p>
+              </Card>
+            )}
+          </div>
+        </div>
+      ) : (
+        <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-800/60 border-2 border-dashed border-slate-300 dark:border-slate-600">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center flex-shrink-0">
+              <DocumentTextIcon className="w-6 h-6 text-slate-400 dark:text-slate-300" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Fleet Empty</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                You haven&apos;t commissioned any vessels yet. Start your journey by requesting funding for your first project.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+    </section>
+  );
+}
+
+function VelocityCard({ githubStreak }) {
+  // Dark surface card — already legible in both themes.
+  return (
+    <Card className="p-7 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none overflow-hidden relative h-full">
+      <div className="absolute top-0 right-0 p-6 opacity-10">
+        <CpuChipIcon className="w-32 h-32" />
+      </div>
+      <h3 className="text-sm font-black tracking-widest uppercase text-cyan-400 mb-6 flex items-center gap-3">
+        <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
+        Live Telemetry
+      </h3>
+      <div className="flex justify-center py-6">
+        <VelocityGauge value={githubStreak} />
+      </div>
+      <div className="grid grid-cols-2 gap-5 mt-6">
+        <div className="bg-white/10 p-4 rounded-xl border border-white/15 backdrop-blur-sm">
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Uptime</div>
+          <div className="text-2xl font-black text-white">99.9%</div>
+        </div>
+        <div className="bg-white/10 p-4 rounded-xl border border-white/15 backdrop-blur-sm">
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Latency</div>
+          <div className="text-2xl font-black text-white">24ms</div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function VoyageLogCard({ checkInText, setCheckInText, handlePostCheckIn, loading, selectedProjectId }) {
+  return (
+    <section>
+      <h2 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+        Voyage Log
+      </h2>
+      <Card className="p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">Post Heartbeat</h3>
+        </div>
+        <textarea
+          value={checkInText}
+          onChange={(e) => setCheckInText(e.target.value)}
+          placeholder="What did you ship today? (e.g., 'Fixed auth bug', 'Deployed V1')"
+          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-base text-slate-700 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none h-24 mb-4 resize-none transition-all"
+        />
+        <Button
+          onClick={handlePostCheckIn}
+          disabled={loading || !selectedProjectId || !checkInText}
+          className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-3 rounded-xl text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900/40 transition-all"
+        >
+          <SignalIcon className="w-5 h-5" />
+          Broadcast Activity
+        </Button>
+        {!selectedProjectId && (
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 text-center italic">Select a vessel to log activity</p>
+        )}
+      </Card>
+    </section>
+  );
+}
+
+function QuickCommandsSection({
+  creditProfile,
+  setShowRepayModal,
+  prizeAmount,
+  setPrizeAmount,
+  handleSimulatePrize,
+  loading,
+  selectedProjectId,
+}) {
+  return (
+    <section>
+      <h2 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+        Quick Commands
+      </h2>
+      <div className="space-y-4">
+        {creditProfile && parseFloat(creditProfile.activeLoanAmount) > 0 && (
+          <Button
+            onClick={() => setShowRepayModal(true)}
+            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/40 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2"
+          >
+            <ArrowPathIcon className="w-7 h-7" />
+            Repay Loan
+          </Button>
+        )}
+
+        <Card className="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white border-none shadow-lg">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="font-bold text-xl">Prize Loop Sim</h3>
+            <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">DEMO</div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <input
+                type="number"
+                value={prizeAmount}
+                onChange={(e) => setPrizeAmount(e.target.value)}
+                className="flex-1 bg-white/15 border border-white/25 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:ring-2 focus:ring-white/50 outline-none transition-all"
+                placeholder="Amount"
+              />
+              <Button
+                onClick={handleSimulatePrize}
+                disabled={loading || !selectedProjectId}
+                className="bg-white text-indigo-700 hover:bg-white/90 font-bold px-5 rounded-xl shadow-md"
+              >
+                Fire
+              </Button>
+            </div>
+            {!selectedProjectId && (
+              <p className="text-xs text-indigo-200 italic">Select a vessel to simulate prize payout</p>
+            )}
+          </div>
+        </Card>
+      </div>
+    </section>
+  );
+}
+
+function SystemLogsCard({ success, error }) {
+  return (
+    <Card className="p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+      <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="w-2 h-2 bg-slate-500 rounded-full"></span>
+        System Logs
+      </h3>
+      <div className="space-y-3 font-mono text-sm">
+        <div className="flex gap-3 text-slate-600 dark:text-slate-300">
+          <span className="text-blue-600 dark:text-blue-400 font-bold">[SYS]</span>
+          <span>Fleet initialized...</span>
+        </div>
+        <div className="flex gap-3 text-slate-600 dark:text-slate-300">
+          <span className="text-blue-600 dark:text-blue-400 font-bold">[SYS]</span>
+          <span>Telemetry link active</span>
+        </div>
+        {success && (
+          <div className="flex gap-3 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 p-2 rounded-lg">
+            <span className="font-bold">[SUCCESS]</span>
+            <span>{success.message}</span>
+          </div>
+        )}
+        {error && (
+          <div className="flex gap-3 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/30 p-2 rounded-lg">
+            <span className="font-bold">[ERROR]</span>
+            <span>{error}</span>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export default function DeveloperDashboard() {
   const wallet = useWallet();
   const {
@@ -276,340 +541,180 @@ export default function DeveloperDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Left Column: Engine Status (Credit Profile) */}
-        <div className="col-span-12 lg:col-span-8 space-y-6 self-start">
-          <section>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <SignalIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                ENGINE STATUS
-              </h2>
+      {/* ENGINE STATUS — always full width at top */}
+      <section>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+              <SignalIcon className="w-6 h-6 text-blue-600 dark:text-blue-300" />
             </div>
-            
-            {creditProfile ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Credit Score</div>
-                      <div className={`text-4xl font-black ${
-                        creditProfile.creditScore >= 700 ? 'text-emerald-600' :
-                        creditProfile.creditScore >= 500 ? 'text-amber-600' :
-                        'text-rose-600'
-                      }`}>
-                        {creditProfile.creditScore}
-                      </div>
-                    </div>
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                      creditProfile.creditScore >= 700 ? 'bg-emerald-100' :
-                      creditProfile.creditScore >= 500 ? 'bg-amber-100' :
-                      'bg-rose-100'
-                    }`}>
-                      <StarIcon className={`w-8 h-8 ${
-                        creditProfile.creditScore >= 700 ? 'text-emerald-600' :
-                        creditProfile.creditScore >= 500 ? 'text-amber-600' :
-                        'text-rose-600'
-                      }`} />
-                    </div>
-                  </div>
-                </Card>
-                
-                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total Funded</div>
-                      <div className="text-4xl font-black text-blue-600">
-                        ${formatUSDC(creditProfile.totalFunded)}
-                      </div>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <CurrencyDollarIcon className="w-8 h-8 text-blue-600" />
-                    </div>
-                  </div>
-                </Card>
-                
-                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Active Loan</div>
-                      <div className="text-4xl font-black text-purple-600">
-                        ${formatUSDC(creditProfile.activeLoanAmount)}
-                      </div>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center flex-shrink-0">
-                      <ClockIcon className="w-8 h-8 text-purple-600" />
-                    </div>
-                  </div>
-                </Card>
-                
-                <Card className="p-6 border border-slate-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Reputation</div>
-                      <div className="text-4xl font-black text-indigo-600">
-                        {creditProfile.reputation}
-                      </div>
-                    </div>
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                      <ShieldCheckIcon className="w-8 h-8 text-indigo-600" />
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            ) : (
-              <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <ShieldCheckIcon className="w-6 h-6 text-slate-400" />
-                  </div>
-                  <p className="text-slate-600 font-medium">
-                    No credit profile found. Initialize engine by requesting funding.
-                  </p>
-                </div>
-              </Card>
-            )}
-          </section>
-
-          {/* Fleet Operations Section */}
-          <section>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
-                  <GlobeAltIcon className="w-6 h-6 text-cyan-600" />
-                </div>
-                FLEET OPERATIONS
-              </h2>
-            </div>
-            
-            {developerProjects && developerProjects.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Project List */}
-                <div className="lg:col-span-1 space-y-3 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
-                  {developerProjects.map((projectId) => {
-                    const project = projectDetails[projectId];
-                    if (!project) return null;
-                    const tier = getEvolutionTier(project.creditScore || 0);
-                    
-                    return (
-                      <Card 
-                        key={projectId}
-                        className={`p-5 cursor-pointer transition-all duration-300 border-2 ${
-                          selectedProjectId === projectId 
-                            ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg' 
-                            : 'border-transparent bg-white hover:border-slate-200 hover:shadow-md'
-                        } ${tier.class}`}
-                        onClick={() => handleProjectSelect(projectId)}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="flex-shrink-0 mt-1">
-                            {tier.icon}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-bold text-slate-900 text-lg truncate">{project.name}</div>
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="text-sm font-bold text-blue-600">${formatUSDC(project.fundingAmount)}</span>
-                              <div className="flex gap-2">
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedProjectId(projectId);
-                                    setShowStakeModal(true);
-                                  }}
-                                  className="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1 rounded-full transition-colors"
-                                >
-                                  BOOST
-                                </button>
-                                <span className="text-xs font-bold text-slate-500 uppercase bg-slate-100 px-2 py-1 rounded-full">{tier.name}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-                
-                {/* Project Details */}
-                <div className="lg:col-span-2">
-                  {selectedProjectId ? (
-                    <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
-                      <ProjectDetails 
-                        projectId={selectedProjectId}
-                        onMilestoneComplete={handleMilestoneComplete}
-                      />
-                    </div>
-                  ) : (
-                    <Card className="p-12 bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-center">
-                      <div className="w-20 h-20 bg-slate-200 rounded-2xl flex items-center justify-center mb-5">
-                        <DocumentTextIcon className="w-10 h-10 text-slate-400" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-slate-800 mb-2">No Vessel Selected</h3>
-                      <p className="text-slate-600 max-w-sm">
-                        Select a project from your fleet to view live telemetry and manage milestones.
-                      </p>
-                    </Card>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 border-2 border-dashed border-slate-300">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <DocumentTextIcon className="w-6 h-6 text-slate-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-800">Fleet Empty</h3>
-                    <p className="text-sm text-slate-600">
-                      You haven&apos;t commissioned any vessels yet. Start your journey by requesting funding for your first project.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </section>
+            ENGINE STATUS
+          </h2>
         </div>
 
-        {/* Right Column: Telemetry & Actions */}
-        <div className="col-span-12 lg:col-span-4 space-y-6 self-start">
-          {/* Velocity Gauge */}
-          <Card className="p-7 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-none overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-              <CpuChipIcon className="w-32 h-32" />
-            </div>
-            <h3 className="text-sm font-black tracking-widest uppercase text-cyan-400 mb-6 flex items-center gap-3">
-              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
-              Live Telemetry
-            </h3>
-            <div className="flex justify-center py-6">
-              <VelocityGauge value={githubStreak} />
-            </div>
-            <div className="grid grid-cols-2 gap-5 mt-6">
-              <div className="bg-white/10 p-4 rounded-xl border border-white/15 backdrop-blur-sm">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Uptime</div>
-                <div className="text-2xl font-black text-white">99.9%</div>
+        {creditProfile ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <Card className="p-6 border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Credit Score</div>
+                  <div className={`text-4xl font-black ${
+                    creditProfile.creditScore >= 700 ? 'text-emerald-600 dark:text-emerald-400' :
+                    creditProfile.creditScore >= 500 ? 'text-amber-600 dark:text-amber-400' :
+                    'text-rose-600 dark:text-rose-400'
+                  }`}>
+                    {creditProfile.creditScore}
+                  </div>
+                </div>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                  creditProfile.creditScore >= 700 ? 'bg-emerald-100 dark:bg-emerald-900/40' :
+                  creditProfile.creditScore >= 500 ? 'bg-amber-100 dark:bg-amber-900/40' :
+                  'bg-rose-100 dark:bg-rose-900/40'
+                }`}>
+                  <StarIcon className={`w-8 h-8 ${
+                    creditProfile.creditScore >= 700 ? 'text-emerald-600 dark:text-emerald-300' :
+                    creditProfile.creditScore >= 500 ? 'text-amber-600 dark:text-amber-300' :
+                    'text-rose-600 dark:text-rose-300'
+                  }`} />
+                </div>
               </div>
-              <div className="bg-white/10 p-4 rounded-xl border border-white/15 backdrop-blur-sm">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Latency</div>
-                <div className="text-2xl font-black text-white">24ms</div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Voyage Log / Check-ins */}
-          <section>
-            <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              Voyage Log
-            </h2>
-            <Card className="p-6 bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                <h3 className="font-bold text-slate-800 text-lg">Post Heartbeat</h3>
-              </div>
-              <textarea
-                value={checkInText}
-                onChange={(e) => setCheckInText(e.target.value)}
-                placeholder="What did you ship today? (e.g., 'Fixed auth bug', 'Deployed V1')"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none h-24 mb-4 resize-none transition-all"
-              />
-              <Button
-                onClick={handlePostCheckIn}
-                disabled={loading || !selectedProjectId || !checkInText}
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-3 rounded-xl text-base flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition-all"
-              >
-                <SignalIcon className="w-5 h-5" />
-                Broadcast Activity
-              </Button>
-              {!selectedProjectId && (
-                <p className="text-xs text-slate-500 mt-3 text-center italic">Select a vessel to log activity</p>
-              )}
             </Card>
-          </section>
 
-          {/* Agent Audit Log */}
-          <AgentAuditLog projectSlug={selectedProjectId} />
-
-          {/* Quick Actions */}
-          <section>
-            <h2 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              Quick Commands
-            </h2>
-            <div className="space-y-4">
-              {creditProfile && parseFloat(creditProfile.activeLoanAmount) > 0 && (
-                <Button
-                  onClick={() => setShowRepayModal(true)}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-200 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2"
-                >
-                  <ArrowPathIcon className="w-7 h-7" />
-                  Repay Loan
-                </Button>
-              )}
-              
-              <Card className="p-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white border-none shadow-lg">
-                <div className="flex items-center justify-between mb-5">
-                  <h3 className="font-bold text-xl">Prize Loop Sim</h3>
-                  <div className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">DEMO</div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <input
-                      type="number"
-                      value={prizeAmount}
-                      onChange={(e) => setPrizeAmount(e.target.value)}
-                      className="flex-1 bg-white/15 border border-white/25 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:ring-2 focus:ring-white/50 outline-none transition-all"
-                      placeholder="Amount"
-                    />
-                    <Button
-                      onClick={handleSimulatePrize}
-                      disabled={loading || !selectedProjectId}
-                      className="bg-white text-indigo-700 hover:bg-white/90 font-bold px-5 rounded-xl shadow-md"
-                    >
-                      Fire
-                    </Button>
+            <Card className="p-6 border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Total Funded</div>
+                  <div className="text-4xl font-black text-blue-600 dark:text-blue-400">
+                    ${formatUSDC(creditProfile.totalFunded)}
                   </div>
-                  {!selectedProjectId && (
-                    <p className="text-xs text-indigo-200 italic">Select a vessel to simulate prize payout</p>
-                  )}
                 </div>
-              </Card>
-            </div>
-          </section>
+                <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
+                  <CurrencyDollarIcon className="w-8 h-8 text-blue-600 dark:text-blue-300" />
+                </div>
+              </div>
+            </Card>
 
-          {/* System Logs / Status */}
-          <Card className="p-5 bg-white border border-slate-200 shadow-sm">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-slate-500 rounded-full"></span>
-              System Logs
-            </h3>
-            <div className="space-y-3 font-mono text-sm">
-              <div className="flex gap-3 text-slate-600">
-                <span className="text-blue-600 font-bold">[SYS]</span>
-                <span>Fleet initialized...</span>
-              </div>
-              <div className="flex gap-3 text-slate-600">
-                <span className="text-blue-600 font-bold">[SYS]</span>
-                <span>Telemetry link active</span>
-              </div>
-              {success && (
-                <div className="flex gap-3 text-emerald-700 bg-emerald-50 p-2 rounded-lg">
-                  <span className="font-bold">[SUCCESS]</span>
-                  <span>{success.message}</span>
+            <Card className="p-6 border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Active Loan</div>
+                  <div className="text-4xl font-black text-purple-600 dark:text-purple-400">
+                    ${formatUSDC(creditProfile.activeLoanAmount)}
+                  </div>
                 </div>
-              )}
-              {error && (
-                <div className="flex gap-3 text-rose-700 bg-rose-50 p-2 rounded-lg">
-                  <span className="font-bold">[ERROR]</span>
-                  <span>{error}</span>
+                <div className="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center flex-shrink-0">
+                  <ClockIcon className="w-8 h-8 text-purple-600 dark:text-purple-300" />
                 </div>
-              )}
+              </div>
+            </Card>
+
+            <Card className="p-6 border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Reputation</div>
+                  <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400">
+                    {creditProfile.reputation}
+                  </div>
+                </div>
+                <div className="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheckIcon className="w-8 h-8 text-indigo-600 dark:text-indigo-300" />
+                </div>
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <Card className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-800/60 border-2 border-dashed border-slate-300 dark:border-slate-600">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center flex-shrink-0">
+                <ShieldCheckIcon className="w-6 h-6 text-slate-400 dark:text-slate-300" />
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 font-medium">
+                No credit profile found. Initialize engine by requesting funding.
+              </p>
             </div>
           </Card>
+        )}
+      </section>
+
+      {/*
+        Adaptive layout:
+        - When the builder has a fleet, use the classic 8/4 split so project details get room.
+        - When sparse (no projects), drop the rigid sidebar and let widgets pack into a
+          responsive grid so blocks wrap cohesively under the empty state.
+      */}
+      {developerProjects && developerProjects.length > 0 ? (
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 lg:col-span-8 space-y-6 self-start">
+            <FleetOperationsSection
+              developerProjects={developerProjects}
+              projectDetails={projectDetails}
+              selectedProjectId={selectedProjectId}
+              setSelectedProjectId={setSelectedProjectId}
+              setShowStakeModal={setShowStakeModal}
+              handleProjectSelect={handleProjectSelect}
+              handleMilestoneComplete={handleMilestoneComplete}
+              formatUSDC={formatUSDC}
+            />
+          </div>
+          <div className="col-span-12 lg:col-span-4 space-y-6 self-start">
+            <VelocityCard githubStreak={githubStreak} />
+            <VoyageLogCard
+              checkInText={checkInText}
+              setCheckInText={setCheckInText}
+              handlePostCheckIn={handlePostCheckIn}
+              loading={loading}
+              selectedProjectId={selectedProjectId}
+            />
+            <AgentAuditLog projectSlug={selectedProjectId} />
+            <QuickCommandsSection
+              creditProfile={creditProfile}
+              setShowRepayModal={setShowRepayModal}
+              prizeAmount={prizeAmount}
+              setPrizeAmount={setPrizeAmount}
+              handleSimulatePrize={handleSimulatePrize}
+              loading={loading}
+              selectedProjectId={selectedProjectId}
+            />
+            <SystemLogsCard success={success} error={error} />
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <FleetOperationsSection
+            developerProjects={developerProjects}
+            projectDetails={projectDetails}
+            selectedProjectId={selectedProjectId}
+            setSelectedProjectId={setSelectedProjectId}
+            setShowStakeModal={setShowStakeModal}
+            handleProjectSelect={handleProjectSelect}
+            handleMilestoneComplete={handleMilestoneComplete}
+            formatUSDC={formatUSDC}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
+            <VelocityCard githubStreak={githubStreak} />
+            <VoyageLogCard
+              checkInText={checkInText}
+              setCheckInText={setCheckInText}
+              handlePostCheckIn={handlePostCheckIn}
+              loading={loading}
+              selectedProjectId={selectedProjectId}
+            />
+            <div className="md:col-span-2 xl:col-span-1">
+              <AgentAuditLog projectSlug={selectedProjectId} />
+            </div>
+            <QuickCommandsSection
+              creditProfile={creditProfile}
+              setShowRepayModal={setShowRepayModal}
+              prizeAmount={prizeAmount}
+              setPrizeAmount={setPrizeAmount}
+              handleSimulatePrize={handleSimulatePrize}
+              loading={loading}
+              selectedProjectId={selectedProjectId}
+            />
+            <SystemLogsCard success={success} error={error} />
+          </div>
+        </>
+      )}
 
       {/* Repay Loan Modal */}
       {showRepayModal && (

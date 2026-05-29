@@ -271,7 +271,7 @@ export default function ScoutPortfolioPage() {
               {/* Reasoning Traces */}
               {reasoningTraces.length > 0 && (
                 <section>
-                  <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <LightBulbIcon className="w-4 h-4 text-amber-400" />
                     Latest Reasoning Traces
                   </h2>
@@ -299,7 +299,7 @@ export default function ScoutPortfolioPage() {
               {/* Recent On-Chain Executions */}
               {recentExecutions.length > 0 && (
                 <section>
-                  <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <BanknotesIcon className="w-4 h-4 text-emerald-400" />
                     Recent Arc Settlements
                   </h2>
@@ -337,7 +337,7 @@ export default function ScoutPortfolioPage() {
 
               {/* Prediction Market Preview */}
               <section>
-                <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <GlobeAltIcon className="w-4 h-4 text-pink-400" />
                   Prediction Market Preview
                 </h2>
@@ -368,20 +368,20 @@ export default function ScoutPortfolioPage() {
                       </div>
                     ))}
                     {reasoningTraces.length === 0 && (
-                      <div className="text-sm text-slate-500 italic">
+                      <div className="text-sm text-slate-400 italic">
                         Run the Scout to generate prediction markets for top projects.
                       </div>
                     )}
                   </div>
-                  <div className="mt-3 text-[10px] text-pink-400/60 text-center">
-                    Coming soon — USDC markets on Arc with verifier oracle resolution
-                  </div>
+                    <div className="mt-3 text-[10px] text-pink-300/80 text-center">
+                      Coming soon — USDC markets on Arc with verifier oracle resolution
+                    </div>
                 </Card>
               </section>
 
               {/* Live Activity */}
               <section>
-                <h2 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <ChartBarIcon className="w-4 h-4 text-cyan-400" />
                   Agent Activity Feed
                 </h2>

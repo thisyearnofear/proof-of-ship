@@ -82,7 +82,7 @@ export default function VerificationDashboardPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-500 font-medium">Loading verification dashboard...</p>
+          <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium">Loading verification dashboard...</p>
         </div>
       </div>
     );
@@ -104,7 +104,7 @@ export default function VerificationDashboardPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight">VERIFICATION WAR ROOM</h1>
-                <p className="text-slate-400 text-sm font-medium flex items-center gap-2">
+                <p className="text-slate-400 dark:text-slate-500 text-sm font-medium flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                   Active Session: Verifier {account?.substring(0, 6)}...{account?.substring(account.length - 4)}
                 </p>
@@ -113,18 +113,18 @@ export default function VerificationDashboardPage() {
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-                <div className="text-[10px] uppercase font-bold text-slate-500 mb-1">Assigned Hackathons</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">Assigned Hackathons</div>
                 <div className="text-xl font-black">{assignedHackathons.length}</div>
               </div>
               <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-                <div className="text-[10px] uppercase font-bold text-slate-500 mb-1">Pending Approvals</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">Pending Approvals</div>
                 <div className="text-xl font-black text-blue-400">{pendingMilestones.length}</div>
               </div>
               <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
-                <div className="text-[10px] uppercase font-bold text-slate-500 mb-1">Committee Rank</div>
-                <div className="text-xl font-black text-yellow-500">Lead</div>
+                <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">Committee Rank</div>
+                <div className="text-xl font-black text-yellow-500 dark:text-yellow-400">Lead</div>
               </div>
-              <Button onClick={refresh} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+              <Button onClick={refresh} variant="outline" className="border-slate-700 text-slate-300 dark:text-slate-500 hover:bg-slate-800">
                 Sync Real-time
               </Button>
             </div>
@@ -138,16 +138,16 @@ export default function VerificationDashboardPage() {
           {/* Left Sidebar: Filters & Expeditions */}
           <div className="lg:col-span-3 space-y-8">
             <section>
-              <div className="flex items-center gap-2 mb-4 text-slate-900">
+              <div className="flex items-center gap-2 mb-4 text-slate-900 dark:text-slate-100">
                 <FunnelIcon className="w-5 h-5 font-bold" />
                 <h2 className="font-black text-sm uppercase tracking-wider">Filters</h2>
               </div>
               <Card className="p-4">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase text-gray-400 mb-1.5 block">Search Projects</label>
+                    <label className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 mb-1.5 block">Search Projects</label>
                     <div className="relative">
-                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                       <input 
                         type="text" 
                         placeholder="Search..."
@@ -158,7 +158,7 @@ export default function VerificationDashboardPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-gray-400 mb-1.5 block">Hackathon Filter</label>
+                    <label className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 mb-1.5 block">Hackathon Filter</label>
                     <select 
                       className="w-full p-2 text-sm rounded-lg border-gray-200"
                       value={selectedHackathon}
@@ -175,7 +175,7 @@ export default function VerificationDashboardPage() {
             </section>
 
             <section>
-              <div className="flex items-center gap-2 mb-4 text-slate-900">
+              <div className="flex items-center gap-2 mb-4 text-slate-900 dark:text-slate-100">
                 <PresentationChartLineIcon className="w-5 h-5 font-bold" />
                 <h2 className="font-black text-sm uppercase tracking-wider">Cross-Committee View</h2>
               </div>
@@ -186,18 +186,18 @@ export default function VerificationDashboardPage() {
           {/* Main Area: The Queue */}
           <div className="lg:col-span-6 space-y-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-900">
-                <QueueListIcon className="w-6 h-6 font-bold text-blue-600" />
+              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                <QueueListIcon className="w-6 h-6 font-bold text-blue-600 dark:text-blue-400" />
                 <h2 className="font-black text-lg uppercase tracking-tight">The Queue</h2>
-                <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-xs font-black">
+                <span className="bg-blue-100 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full text-xs font-black">
                   {filteredMilestones.length}
                 </span>
               </div>
             </div>
 
             {actionSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded-xl text-sm font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                <ShieldCheckIcon className="w-5 h-5 text-green-500" />
+              <div className="bg-green-50 border border-green-200 text-green-800 dark:text-green-300 p-4 rounded-xl text-sm font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                <ShieldCheckIcon className="w-5 h-5 text-green-500 dark:text-green-400" />
                 {actionSuccess}
               </div>
             )}
@@ -217,7 +217,7 @@ export default function VerificationDashboardPage() {
 
           {/* Right Sidebar: Evidence Feed */}
           <div className="lg:col-span-3 space-y-6">
-            <div className="flex items-center gap-2 text-slate-900">
+            <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
               <RssIcon className="w-5 h-5 font-bold" />
               <h2 className="font-black text-sm uppercase tracking-wider">Evidence Feed</h2>
             </div>

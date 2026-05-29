@@ -30,15 +30,15 @@ const EngagementTicker = () => {
   const getIcon = (type) => {
     switch (type) {
       case 'project_submitted':
-        return <RocketLaunchIcon className="w-5 h-5 text-blue-500" />;
+        return <RocketLaunchIcon className="w-5 h-5 text-blue-500 dark:text-blue-400" />;
       case 'milestone_verified':
-        return <CheckBadgeIcon className="w-5 h-5 text-green-500" />;
+        return <CheckBadgeIcon className="w-5 h-5 text-green-500 dark:text-green-400" />;
       case 'payout_processed':
-        return <BanknotesIcon className="w-5 h-5 text-yellow-500" />;
+        return <BanknotesIcon className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />;
       case 'ships_log_update':
-        return <ChartBarIcon className="w-5 h-5 text-indigo-500" />;
+        return <ChartBarIcon className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />;
       default:
-        return <ChartBarIcon className="w-5 h-5 text-gray-500" />;
+        return <ChartBarIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />;
     }
   };
 
@@ -52,13 +52,13 @@ const EngagementTicker = () => {
           </span>
           Live Proof of Ship
         </h3>
-        <span className="text-[10px] text-slate-400 font-mono">STREAMS_ACTIVE</span>
+        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">STREAMS_ACTIVE</span>
       </div>
       <div className="h-[400px] overflow-y-auto p-4 space-y-4 scrollbar-hide bg-slate-900/50">
         {activities.length === 0 ? (
           <div className="text-center py-20">
             <div className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-slate-700 border-t-blue-500 mb-2"></div>
-            <p className="text-slate-500 text-xs italic">Waiting for activity signals...</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs italic">Waiting for activity signals...</p>
           </div>
         ) : (
           activities.map((activity) => (
@@ -71,14 +71,14 @@ const EngagementTicker = () => {
                   {activity.description}
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-[10px] text-slate-500 font-mono">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                     {new Date(activity.timestamp).toLocaleTimeString()}
                   </span>
                   {activity.ecosystem && (
                     <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-tight ${
                       activity.ecosystem === 'base' ? 'bg-blue-900/30 text-blue-400 border border-blue-800/50' :
                       activity.ecosystem === 'celo' ? 'bg-green-900/30 text-green-400 border border-green-800/50' :
-                      'bg-slate-800 text-slate-400 border border-slate-700'
+                      'bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-700'
                     }`}>
                       {activity.ecosystem}
                     </span>
@@ -95,7 +95,7 @@ const EngagementTicker = () => {
         )}
       </div>
       <div className="bg-slate-800/50 px-4 py-1.5 border-t border-slate-700 flex justify-center">
-        <div className="text-[9px] text-slate-500 font-medium">SCANNING GLOBAL ARMADA</div>
+        <div className="text-[9px] text-slate-500 dark:text-slate-400 font-medium">SCANNING GLOBAL ARMADA</div>
       </div>
     </Card>
   );

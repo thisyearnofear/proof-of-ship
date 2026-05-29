@@ -132,7 +132,7 @@ function ActiveFilterChips({ filters, onRemove, onClearAll }) {
           {f.label}
           <button
             onClick={() => onRemove(f.key)}
-            className="hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+            className="hover:text-blue-900 dark:text-blue-200 dark:hover:text-blue-100 transition-colors"
           >
             <XMarkIcon className="w-3 h-3" />
           </button>
@@ -141,7 +141,7 @@ function ActiveFilterChips({ filters, onRemove, onClearAll }) {
       {filters.length > 0 && (
         <button
           onClick={onClearAll}
-          className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium ml-1"
+className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium ml-1"
         >
           Clear all
         </button>
@@ -358,7 +358,7 @@ function ProjectsTab() {
   if (Object.keys(errors).length > 0) {
     return (
       <Card className="p-8 text-center">
-        <p className="text-red-600">Failed to load projects. Please refresh.</p>
+        <p className="text-red-600 dark:text-red-400">Failed to load projects. Please refresh.</p>
       </Card>
     );
   }
@@ -395,7 +395,7 @@ function ProjectsTab() {
       {/* ── Search & Controls Bar ── */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div className="relative flex-1">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search projects by name, description, or owner..."
@@ -406,7 +406,7 @@ function ProjectsTab() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
@@ -431,7 +431,7 @@ function ProjectsTab() {
           <div className="flex rounded-xl border border-secondary overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
-              className={`p-2.5 ${viewMode === "grid" ? "bg-blue-600 text-white" : "bg-surface text-gray-500 hover:text-gray-700 dark:text-gray-400"}`}
+className={`p-2.5 ${viewMode === "grid" ? "bg-blue-600 text-white" : "bg-surface text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-400"}`}
               title="Grid view"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -440,7 +440,7 @@ function ProjectsTab() {
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`p-2.5 ${viewMode === "list" ? "bg-blue-600 text-white" : "bg-surface text-gray-500 hover:text-gray-700 dark:text-gray-400"}`}
+className={`p-2.5 ${viewMode === "list" ? "bg-blue-600 text-white" : "bg-surface text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-400"}`}
               title="List view"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -454,8 +454,8 @@ function ProjectsTab() {
             onClick={() => setShowFilters(!showFilters)}
             className={`p-2.5 rounded-xl border transition-colors ${
               showFilters || hasActiveFilters
-                ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300"
-                : "border-secondary text-gray-500 hover:text-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300"
+: "border-secondary text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
             }`}
             title="Filters"
           >
@@ -482,7 +482,7 @@ function ProjectsTab() {
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
-                className="text-xs text-red-600 hover:text-red-800 font-medium"
+                className="text-xs text-red-600 dark:text-red-400 hover:text-red-800 font-medium"
               >
                 Clear all
               </button>
@@ -503,7 +503,7 @@ function ProjectsTab() {
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       selectedEcosystems.includes(eco.id)
                         ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-surface text-gray-600 dark:text-gray-300 border border-default hover:border-blue-300"
+                        : "bg-surface text-gray-600 dark:text-gray-400 dark:text-gray-300 border border-default hover:border-blue-300"
                     }`}
                   >
                     {eco.label}
@@ -525,7 +525,7 @@ function ProjectsTab() {
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       selectedCategories.includes(cat.id)
                         ? "bg-purple-600 text-white shadow-sm"
-                        : "bg-surface text-gray-600 dark:text-gray-300 border border-default hover:border-purple-300"
+                        : "bg-surface text-gray-600 dark:text-gray-400 dark:text-gray-300 border border-default hover:border-purple-300"
                     }`}
                   >
                     {cat.label}
@@ -548,7 +548,7 @@ function ProjectsTab() {
                 onChange={(e) => { setMinQualityScore(Number(e.target.value)); setPage(1); }}
                 className="w-full accent-blue-600"
               />
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
                 <span>Any</span>
                 <span>100</span>
               </div>
@@ -561,7 +561,7 @@ function ProjectsTab() {
                   type="checkbox"
                   checked={fundingOnly}
                   onChange={(e) => { setFundingOnly(e.target.checked); setPage(1); }}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">Seeking funding</span>
               </label>
@@ -571,7 +571,7 @@ function ProjectsTab() {
                     type="checkbox"
                     checked={bookmarksOnly}
                     onChange={(e) => { setBookmarksOnly(e.target.checked); setPage(1); }}
-                    className="rounded border-gray-300 text-amber-500 focus:ring-amber-400"
+                    className="rounded border-gray-300 text-amber-500 dark:text-amber-400 focus:ring-amber-400"
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">Bookmarked only</span>
                 </label>
@@ -600,7 +600,7 @@ function ProjectsTab() {
         {bookmarksLoaded && bookmarks.length > 0 && !bookmarksOnly && (
           <button
             onClick={() => { setBookmarksOnly(true); setPage(1); }}
-            className="text-xs text-amber-600 hover:text-amber-800 font-medium flex items-center gap-1"
+            className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 font-medium flex items-center gap-1"
           >
             <BookmarkSolid className="w-3.5 h-3.5" />
             {bookmarks.length} bookmarked
@@ -612,7 +612,7 @@ function ProjectsTab() {
       {pagedProjects.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
-            <MagnifyingGlassIcon className="w-8 h-8 text-gray-400" />
+            <MagnifyingGlassIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
           </div>
           <h3 className="text-lg font-semibold text-primary mb-2">No projects found</h3>
           <p className="text-sm text-secondary max-w-md mx-auto mb-6">
@@ -814,7 +814,7 @@ function BuildersTab() {
   if (error) {
     return (
       <Card className="p-8 text-center">
-        <p className="text-red-600">⚠️ {error}</p>
+        <p className="text-red-600 dark:text-red-400">⚠️ {error}</p>
       </Card>
     );
   }
@@ -824,7 +824,7 @@ function BuildersTab() {
       {/* ── Search & Controls Bar ── */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
         <div className="relative flex-1">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search builders by name, bio, or GitHub handle..."
@@ -835,7 +835,7 @@ function BuildersTab() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400"
             >
               <XMarkIcon className="w-5 h-5" />
             </button>
@@ -896,7 +896,7 @@ function BuildersTab() {
       {pagedBuilders.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
-            <UsersIcon className="w-8 h-8 text-gray-400" />
+            <UsersIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
           </div>
           <h3 className="text-lg font-semibold text-primary mb-2">No builders found</h3>
           <p className="text-sm text-secondary max-w-md mx-auto mb-6">
@@ -1019,7 +1019,7 @@ function ExploreBuilderFollowButton({ builder, currentUserId }) {
         disabled={loading}
         className={`ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
           following
-            ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+            ? "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-red-50 hover:text-red-600 dark:text-red-400 hover:border-red-200 dark:hover:bg-red-900/20 dark:hover:text-red-400"
             : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow"
         }`}
       >
@@ -1058,10 +1058,10 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
     builder.averageHealth >= 40 ? "fair" : "low";
 
   const tierColors = {
-    top: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+top: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
     good: "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
-    fair: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
-    low: "bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700",
+fair: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
+low: "bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700",
   };
 
   return (
@@ -1130,7 +1130,7 @@ function ExploreBuilderCard({ builder, onClick, currentUserId }) {
         {/* Ecosystem badges + Follow button */}
         <div className="flex flex-wrap items-center gap-1.5">
           {primaryEco && ECOSYSTEM_CONFIGS[primaryEco] && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-[10px] font-medium">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-300 rounded text-[10px] font-medium">
               {ECOSYSTEM_CONFIGS[primaryEco].icon} {ECOSYSTEM_CONFIGS[primaryEco].shortName}
             </span>
           )}
@@ -1167,7 +1167,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
               <div>
                 <h2 className="text-lg font-bold text-primary dark:text-white flex items-center gap-2">
                   Trending Now
-                  <SparklesIcon className="w-4 h-4 text-orange-500" />
+                  <SparklesIcon className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                 </h2>
                 <p className="text-xs text-secondary">
                   Most active and highest quality projects right now
@@ -1176,7 +1176,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
             </div>
             <button
               onClick={onDismiss}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 dark:text-gray-500 transition-colors"
               title="Dismiss"
             >
               <XMarkIcon className="w-5 h-5" />
@@ -1212,7 +1212,7 @@ function TrendingSection({ projects, onDismiss, onProjectClick, isBookmarked, on
                       onClick={(e) => { e.stopPropagation(); onToggleBookmark(project.slug); }}
                       className={`p-1 rounded-md transition-colors ${
                         isBookmarked(project.slug)
-                          ? "text-amber-500 hover:text-amber-600"
+? "text-amber-500 hover:text-amber-600 dark:text-amber-400"
                           : "text-muted hover:text-amber-400 opacity-0 group-hover:opacity-100"
                       }`}
                     >
@@ -1300,7 +1300,7 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
             onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
             className={`p-1.5 rounded-lg transition-all flex-shrink-0 ${
               isBookmarked
-                ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
+                ? "text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20"
                 : "text-muted opacity-0 group-hover:opacity-100 hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
             }`}
             title={isBookmarked ? "Remove bookmark" : "Bookmark project"}
@@ -1326,13 +1326,13 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
             {project.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-[10px] font-medium"
+                className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 dark:text-gray-300 rounded text-[10px] font-medium"
               >
                 {tag}
               </span>
             ))}
             {project.tags.length > 3 && (
-              <span className="text-[10px] text-gray-400">+{project.tags.length - 3}</span>
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">+{project.tags.length - 3}</span>
             )}
           </div>
         )}
@@ -1368,7 +1368,7 @@ function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }
                 ? "text-green-600 dark:text-green-400"
                 : quality.score >= 60
                 ? "text-yellow-600 dark:text-yellow-400"
-                : "text-gray-400"
+                : "text-gray-400 dark:text-gray-500"
             }`}>
               {quality.score}%
             </span>
@@ -1436,7 +1436,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
                 ? "text-green-600 dark:text-green-400"
                 : quality.score >= 60
                 ? "text-yellow-600 dark:text-yellow-400"
-                : "text-gray-400"
+                : "text-gray-400 dark:text-gray-500"
             }`}>
               {quality.score}% quality
             </span>
@@ -1450,7 +1450,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
             onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
             className={`p-1.5 rounded-lg transition-all ${
               isBookmarked
-                ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20"
+                ? "text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20"
                 : "text-muted opacity-0 group-hover:opacity-100 hover:text-amber-400"
             }`}
             title={isBookmarked ? "Remove bookmark" : "Bookmark project"}
@@ -1461,7 +1461,7 @@ function ExploreProjectListItem({ project, isBookmarked, onToggleBookmark, onCli
               <BookmarkOutline className="w-4 h-4" />
             )}
           </button>
-          <ChevronRightIcon className="w-4 h-4 text-muted group-hover:text-gray-500 transition-colors" />
+          <ChevronRightIcon className="w-4 h-4 text-muted group-hover:text-gray-500 dark:text-gray-400 transition-colors" />
         </div>
       </div>
     </div>
@@ -1504,7 +1504,7 @@ function HackathonsTab() {
   );
 
   if (loading) return <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>;
-  if (error) return <Card className="p-8 text-center"><p className="text-red-600">⚠️ {error}</p></Card>;
+  if (error) return <Card className="p-8 text-center"><p className="text-red-600 dark:text-red-400">⚠️ {error}</p></Card>;
 
   const empty = !grouped.upcoming.length && !grouped.active.length && !grouped.completed.length;
 
@@ -1516,7 +1516,7 @@ function HackathonsTab() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              filter === f ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+              filter === f ? "bg-blue-600 text-white" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100"
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -1526,9 +1526,9 @@ function HackathonsTab() {
 
       {empty ? (
         <div className="text-center py-16">
-          <TrophyIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <TrophyIcon className="w-12 h-12 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-primary mb-2">No hackathons found</h3>
-          <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-md mx-auto">
             Hackathon data is loaded from the platform database. Check back soon or submit your hackathon
             project!
           </p>
@@ -1540,9 +1540,9 @@ function HackathonsTab() {
       ) : (
         <div className="space-y-8">
           {[
-            { key: "active", title: "Active", icon: <UsersIcon className="h-5 w-5 text-green-600" />, bg: "bg-green-50" },
-            { key: "upcoming", title: "Upcoming", icon: <CalendarIcon className="h-5 w-5 text-blue-600" />, bg: "bg-blue-50" },
-            { key: "completed", title: "Completed", icon: <TrophyIcon className="h-5 w-5 text-yellow-600" />, bg: "bg-yellow-50" },
+            { key: "active", title: "Active", icon: <UsersIcon className="h-5 w-5 text-green-600 dark:text-green-400" />, bg: "bg-green-50" },
+            { key: "upcoming", title: "Upcoming", icon: <CalendarIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />, bg: "bg-blue-50" },
+            { key: "completed", title: "Completed", icon: <TrophyIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />, bg: "bg-yellow-50" },
           ].map(
             ({ key, title, icon, bg }) =>
               grouped[key].length > 0 && (
@@ -1550,17 +1550,17 @@ function HackathonsTab() {
                   <div className="flex items-center gap-2">
                     <div className={`p-1.5 rounded-lg ${bg}`}>{icon}</div>
                     <h2 className="text-lg font-semibold text-primary">{title}</h2>
-                    <span className="text-gray-400 text-sm">({grouped[key].length})</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-sm">({grouped[key].length})</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {grouped[key].map((h) => (
                       <Card key={h.id} className="hover:shadow-md transition-shadow">
                         <Link href={`/hackathons/${h.id}`} className="block p-5">
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">
                             {h.ecosystem?.toUpperCase()}
                           </span>
                           <h3 className="text-lg font-semibold text-primary mt-2">{h.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                             {new Date(h.startDate).toLocaleDateString()} –{" "}
                             {new Date(h.endDate).toLocaleDateString()}
                           </p>

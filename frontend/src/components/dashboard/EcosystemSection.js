@@ -80,15 +80,15 @@ export default function EcosystemSection({
             </div>
             
             <div>
-              <h3 className="text-xl font-bold text-gray-900">{ecosystemConfig.name}</h3>
-              <p className="text-gray-600">{ecosystemConfig.description}</p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{ecosystemConfig.name}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{ecosystemConfig.description}</p>
               
               {/* Features */}
               <div className="flex items-center space-x-2 mt-2">
                 {ecosystemConfig.features.slice(0, 3).map((feature, index) => (
                   <span 
                     key={index}
-                    className="px-2 py-1 bg-white bg-opacity-70 text-xs text-gray-700 rounded-full"
+                    className="px-2 py-1 bg-white bg-opacity-70 text-xs text-gray-700 dark:text-gray-300 rounded-full"
                   >
                     {feature}
                   </span>
@@ -101,13 +101,13 @@ export default function EcosystemSection({
           <div className="flex items-center space-x-4">
             {/* Stats */}
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {isExpanded ? projects.length : totalProjects}
                 {!isExpanded && totalProjects > projects.length && (
-                  <span className="text-lg text-gray-600">/{totalProjects}</span>
+                  <span className="text-lg text-gray-600 dark:text-gray-400">/{totalProjects}</span>
                 )}
               </div>
-              <div className="text-sm text-gray-600">projects</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">projects</div>
             </div>
             
             {/* Explore Button */}
@@ -124,9 +124,9 @@ export default function EcosystemSection({
             {onToggle && (
               <div className="p-2">
                 {isExpanded ? (
-                  <ChevronDownIcon className="w-6 h-6 text-gray-600" />
+                  <ChevronDownIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 ) : (
-                  <ChevronRightIcon className="w-6 h-6 text-gray-600" />
+                  <ChevronRightIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 )}
               </div>
             )}
@@ -147,8 +147,8 @@ export default function EcosystemSection({
                     onClick={() => setLocalViewMode(mode)}
                     className={`p-2 rounded-md transition-colors ${
                       localViewMode === mode
-                        ? 'bg-blue-100 text-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'bg-blue-100 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100'
                     }`}
                     title={`${mode} view`}
                   >
@@ -177,7 +177,7 @@ export default function EcosystemSection({
           {/* Filters Panel */}
           {showFilters && (
             <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 Filters for {ecosystemConfig.name} projects would go here
               </div>
             </div>
@@ -234,10 +234,10 @@ function EmptyState({ ecosystem }) {
   return (
     <div className="text-center py-10">
       <div className="text-5xl mb-3">{ecosystem.icon}</div>
-      <h3 className="text-lg font-medium text-gray-900 mb-1">
+      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
         No {ecosystem.shortName} projects yet
       </h3>
-      <p className="text-gray-500 mb-5 text-sm max-w-md mx-auto">
+      <p className="text-gray-500 dark:text-gray-400 mb-5 text-sm max-w-md mx-auto">
         {ecosystem.dataSource === 'dynamic' 
           ? `Submit a project to the ${ecosystem.shortName} ecosystem, or try our AI agents to analyze any GitHub repo.`
           : `Projects will appear here once they're added. In the meantime, try our AI agents!`
@@ -281,20 +281,20 @@ export function EcosystemStats({ projects = [], className = '' }) {
   return (
     <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 ${className}`}>
       <div className="text-center">
-        <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-        <div className="text-sm text-gray-600">Total</div>
+        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Total</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-        <div className="text-sm text-gray-600">Active</div>
+        <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Active</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-blue-600">{stats.avgHealth}%</div>
-        <div className="text-sm text-gray-600">Avg Health</div>
+        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.avgHealth}%</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Avg Health</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-purple-600">{stats.totalCommits}</div>
-        <div className="text-sm text-gray-600">Commits</div>
+        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalCommits}</div>
+        <div className="text-sm text-gray-600 dark:text-gray-400">Commits</div>
       </div>
     </div>
   );

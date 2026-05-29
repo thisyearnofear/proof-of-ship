@@ -117,7 +117,7 @@ export default function HackathonDetailPage() {
   if (!hackathon) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Hackathon not found</p>
+        <p className="text-gray-500 dark:text-gray-400">Hackathon not found</p>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export default function HackathonDetailPage() {
             <div className="flex items-center gap-4 mb-4">
               <Link
                 href="/hackathons"
-                className="text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 flex items-center gap-1"
               >
                 <ArrowTopRightOnSquareIcon className="h-4 w-4 transform rotate-180" />
                 All Hackathons
@@ -160,20 +160,20 @@ export default function HackathonDetailPage() {
                 <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
                   {hackathon.name}
                   {isCompleted && (
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                    <span className="px-3 py-1 bg-green-100 text-green-800 dark:text-green-300 text-sm font-medium rounded-full">
                       Completed
                     </span>
                   )}
                 </h1>
                 <div className="flex items-center gap-4 mt-2">
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-full">
                     {hackathon.ecosystem.toUpperCase()}
                   </span>
                   {hackathon.sponsors && hackathon.sponsors.length > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600 text-sm">Sponsored by:</span>
+                      <span className="text-gray-600 dark:text-gray-400 text-sm">Sponsored by:</span>
                       {hackathon.sponsors.slice(0, 3).map(sponsor => (
-                        <span key={sponsor} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                        <span key={sponsor} className="px-2 py-1 bg-blue-100 text-blue-800 dark:text-blue-300 text-xs rounded">
                           {sponsor}
                         </span>
                       ))}
@@ -186,7 +186,7 @@ export default function HackathonDetailPage() {
                 {/* Participation status */}
                 {participationStatus && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
-                    <CheckBadgeIcon className="h-5 w-5 text-green-600" />
+                    <CheckBadgeIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                     <span className="font-medium text-primary">
                       {participationStatus.charAt(0).toUpperCase() + participationStatus.slice(1)}
                     </span>
@@ -210,13 +210,13 @@ export default function HackathonDetailPage() {
 
             {/* Dates and status */}
             <div className="mt-6 flex flex-col md:flex-row gap-4">
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <CalendarIcon className="h-5 w-5" />
                 <span>{formatDateRange(hackathon.startDate, hackathon.endDate)}</span>
               </div>
 
               {isUpcoming && (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                   <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded">
                     Starts in {daysRemaining} days
                   </span>
@@ -224,8 +224,8 @@ export default function HackathonDetailPage() {
               )}
 
               {isActive && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:text-blue-300 text-sm font-medium rounded">
                     Ends in {daysRemaining} days
                   </span>
                 </div>
@@ -243,7 +243,7 @@ export default function HackathonDetailPage() {
               <Card>
                 <div className="p-6">
                   <h2 className="text-xl font-semibold text-primary mb-4">Overview</h2>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
                     {hackathon.description || 'No description provided for this hackathon.'}
                   </p>
 
@@ -255,7 +255,7 @@ export default function HackathonDetailPage() {
                         <span className="text-3xl font-bold text-primary">
                           ${hackathon.prizePool.toLocaleString()}
                         </span>
-                        <span className="text-gray-600">in prizes</span>
+                        <span className="text-gray-600 dark:text-gray-400">in prizes</span>
                       </div>
                     </div>
                   )}
@@ -268,7 +268,7 @@ export default function HackathonDetailPage() {
                         {hackathon.tracks.map(track => (
                           <span
                             key={track}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                            className="px-3 py-1 bg-gray-100 text-gray-700 dark:text-gray-300 text-sm rounded-full"
                           >
                             {track}
                           </span>
@@ -282,7 +282,7 @@ export default function HackathonDetailPage() {
                     <div className="mb-6">
                       <h3 className="font-medium text-primary mb-2">Verification</h3>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600 break-all">
+                        <span className="text-sm text-gray-600 dark:text-gray-400 break-all">
                           {hackathon.verificationContract}
                         </span>
                         <Button variant="secondary" size="xs">
@@ -308,7 +308,7 @@ export default function HackathonDetailPage() {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold text-primary">Participants</h2>
-                    <span className="text-gray-500">
+                    <span className="text-gray-500 dark:text-gray-400">
                       {hackathon.participants.length} {hackathon.participants.length === 1 ? 'participant' : 'participants'}
                     </span>
                   </div>
@@ -317,7 +317,7 @@ export default function HackathonDetailPage() {
                   {hackathon.participants.filter(p => p.participationStatus === 'winner').length > 0 && (
                     <div className="mb-6">
                       <h3 className="font-medium text-primary mb-3 flex items-center gap-2">
-                        <TrophyIcon className="h-5 w-5 text-yellow-600" />
+                        <TrophyIcon className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                         Winners
                       </h3>
                       <div className="space-y-3">
@@ -338,7 +338,7 @@ export default function HackathonDetailPage() {
                   {hackathon.participants.filter(p => p.participationStatus !== 'winner').length > 0 && (
                     <div>
                       <h3 className="font-medium text-primary mb-3 flex items-center gap-2">
-                        <UsersIcon className="h-5 w-5 text-gray-600" />
+                        <UsersIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                         Participants
                       </h3>
                       <div className="space-y-3">
@@ -423,7 +423,7 @@ function ParticipantCard({ participant, hackathon }) {
           <div className="font-medium text-primary">
             {participant.user?.displayName || participant.user?.githubUsername || 'Unknown User'}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {participant.participationStatus}
             {participant.prizeCategory && ` • ${participant.prizeCategory}`}
           </div>
@@ -448,11 +448,11 @@ function ParticipantCard({ participant, hackathon }) {
 function InfoItem({ icon, label, value }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="text-gray-400">
+      <div className="text-gray-400 dark:text-gray-500">
         {React.cloneElement(icon, { className: 'h-4 w-4' })}
       </div>
       <div>
-        <div className="text-gray-500 text-xs">{label}</div>
+        <div className="text-gray-500 dark:text-gray-400 text-xs">{label}</div>
         <div className="text-primary font-medium">{value}</div>
       </div>
     </div>

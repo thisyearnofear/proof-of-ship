@@ -169,7 +169,7 @@ export default function DiscoverTab() {
   };
 
   if (loading) return <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>;
-  if (error) return <Card className="p-8 text-center"><p className="text-red-600">⚠️ {error}</p><Button onClick={refresh} className="mt-4">Retry</Button></Card>;
+  if (error) return <Card className="p-8 text-center"><p className="text-red-600 dark:text-red-400">⚠️ {error}</p><Button onClick={refresh} className="mt-4">Retry</Button></Card>;
 
   return (
     <>
@@ -180,7 +180,7 @@ export default function DiscoverTab() {
               <span className="text-2xl">🔭</span>
               <span className="font-medium text-indigo-900">Scout your next project</span>
               {scoutData?.summary && (
-                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 dark:text-green-300 rounded-full">
                   {scoutData.summary.recommended} recommended
                 </span>
               )}
@@ -188,7 +188,7 @@ export default function DiscoverTab() {
             <p className="text-sm text-indigo-700 max-w-2xl">
               Run one paid scan, review the strongest candidates, then open a project card to decide whether to back it.
             </p>
-            <p className="text-xs text-indigo-600 mt-1">
+            <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">
               {scoutData?.summary
                 ? `Last scan: ${scoutData.summary.evaluated} projects evaluated · ${scoutData.summary.totalStake}`
                 : `Cost: 0.01 USDC per scan · Mode: ${nanopaymentDemoMode ? 'test' : 'live'}`}
@@ -218,7 +218,7 @@ export default function DiscoverTab() {
         {scoutMessage && (
           <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${
             scoutMessage.tone === 'success'
-              ? 'border-green-200 bg-green-50 text-green-800'
+              ? 'border-green-200 bg-green-50 text-green-800 dark:text-green-300'
               : scoutMessage.tone === 'warning'
                 ? 'border-amber-200 bg-amber-50 text-amber-800'
                 : 'border-red-200 bg-red-50 text-red-800'
@@ -231,13 +231,13 @@ export default function DiscoverTab() {
 
       <div className="flex flex-col md:flex-row gap-3 mb-6 items-start md:items-center">
         <div className="relative w-full md:max-w-sm">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
           <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-blue-500" />
         </div>
 
         <div className="flex items-center gap-2 text-sm">
-          <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+          <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
           <select value={filterEcosystem} onChange={(e) => setFilterEcosystem(e.target.value)}
             className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
             {ECOSYSTEM_OPTIONS.map(opt => (
@@ -247,7 +247,7 @@ export default function DiscoverTab() {
         </div>
 
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-gray-500">Min:</span>
+          <span className="text-gray-500 dark:text-gray-400">Min:</span>
           <select value={filterMultiplier} onChange={(e) => setFilterMultiplier(e.target.value)}
             className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
             <option value="all">Any multiplier</option>
@@ -258,7 +258,7 @@ export default function DiscoverTab() {
         </div>
 
         <div className="flex items-center gap-2 text-sm md:ml-auto">
-          <span className="text-gray-500">Sort:</span>
+          <span className="text-gray-500 dark:text-gray-400">Sort:</span>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
             className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
             {SORT_OPTIONS.map(opt => (
@@ -269,7 +269,7 @@ export default function DiscoverTab() {
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
           {filterEcosystem !== 'all' ? ` in ${filterEcosystem}` : ''}
         </p>
@@ -277,15 +277,15 @@ export default function DiscoverTab() {
       </div>
 
       {filteredProjects.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
+        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
           <p className="text-lg mb-1">No projects match your filters.</p>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
             {projects.length === 0
               ? "Projects need a description, GitHub link, and ecosystem to appear here."
               : "Try broadening your search."}
           </p>
           {projects.length === 0 && (
-            <div className="inline-flex items-center gap-2 text-xs text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200 mb-4">
+            <div className="inline-flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200 mb-4">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
@@ -293,7 +293,7 @@ export default function DiscoverTab() {
             </div>
           )}
           <button onClick={() => { setSearchQuery(""); setFilterMultiplier("all"); setFilterEcosystem("all"); }}
-            className="text-blue-600 hover:underline text-sm">Clear filters</button>
+            className="text-blue-600 dark:text-blue-400 hover:underline text-sm">Clear filters</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -309,15 +309,15 @@ export default function DiscoverTab() {
             {backingStatus === "success" ? (
               <div className="text-center py-4">
                 <p className="text-2xl mb-2">✅</p>
-                <p className="font-bold text-green-700">Backed successfully!</p>
-                <p className="text-sm text-gray-500 mt-1">{backingAmount} USDC at {parseInt(backingMultiplier) / 100}x on {backingProject.name}</p>
-                <button onClick={() => setBackingProject(null)} className="mt-4 text-sm text-blue-600 hover:underline">Close</button>
+                <p className="font-bold text-green-700 dark:text-green-300">Backed successfully!</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{backingAmount} USDC at {parseInt(backingMultiplier) / 100}x on {backingProject.name}</p>
+                <button onClick={() => setBackingProject(null)} className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:underline">Close</button>
               </div>
             ) : (
               <>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Back {backingProject.name}</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Back {backingProject.name}</h3>
                 {backingProjectShowsSolName && (
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     You&apos;re backing{" "}
                     <SnsIdentityBadge
                       address={backingProject.developer}
@@ -334,27 +334,27 @@ export default function DiscoverTab() {
                   <div className="flex items-center gap-2 mb-4 p-2 bg-green-50 border border-green-100 rounded-lg">
                     <span className="text-lg">💎</span>
                     <div>
-                      <p className="text-xs font-bold text-green-800 uppercase">Self-Staking Mode</p>
-                      <p className="text-[10px] text-green-600 italic">Your stake provides a reputation boost + 2x credit limit boost.</p>
+                      <p className="text-xs font-bold text-green-800 dark:text-green-300 uppercase">Self-Staking Mode</p>
+                      <p className="text-[10px] text-green-600 dark:text-green-400 italic">Your stake provides a reputation boost + 2x credit limit boost.</p>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 mb-4">Stake USDC with a multiplier. Returns paid when the builder wins prizes.</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Stake USDC with a multiplier. Returns paid when the builder wins prizes.</p>
                 )}
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount (USDC)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount (USDC)</label>
                     <input type="number" min="1" step="1" value={backingAmount} onChange={(e) => setBackingAmount(e.target.value)}
                       placeholder="100" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Multiplier</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Multiplier</label>
                     <div className="flex gap-2">
                       {[{ v: "150", l: "1.5x" }, { v: "200", l: "2x" }, { v: "300", l: "3x" }].map(({ v, l }) => (
                         <button key={v} onClick={() => setBackingMultiplier(v)}
                           className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${
-                            backingMultiplier === v ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            backingMultiplier === v ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
                           }`}>{l}</button>
                       ))}
                     </div>
@@ -362,16 +362,16 @@ export default function DiscoverTab() {
 
                   {backingAmount && parseFloat(backingAmount) > 0 && (
                     <div className="bg-green-50 rounded-lg p-3 text-sm">
-                      <span className="text-gray-600">Potential return: </span>
-                      <span className="font-bold text-green-700">
+                      <span className="text-gray-600 dark:text-gray-400">Potential return: </span>
+                      <span className="font-bold text-green-700 dark:text-green-300">
                         ${(parseFloat(backingAmount) * parseInt(backingMultiplier) / 100).toFixed(2)} USDC
                       </span>
                     </div>
                   )}
 
-                  {backingError && <p className="text-sm text-red-600">{backingError}</p>}
+                  {backingError && <p className="text-sm text-red-600 dark:text-red-400">{backingError}</p>}
 
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 text-xs text-purple-800">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 border border-purple-200 text-xs text-purple-800 dark:text-purple-300">
                     <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>

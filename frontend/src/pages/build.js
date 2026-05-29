@@ -90,8 +90,8 @@ export default function BuildPage() {
                   onClick={() => setActiveChainFamily('evm')}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                     activeChainFamily === 'evm' 
-                      ? 'bg-surface text-blue-600 shadow-sm' 
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-sm' 
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   EVM (Metamask)
@@ -100,8 +100,8 @@ export default function BuildPage() {
                   onClick={() => setActiveChainFamily('solana')}
                   className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                     activeChainFamily === 'solana' 
-                      ? 'bg-surface text-purple-600 shadow-sm' 
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-surface text-purple-600 dark:text-purple-400 shadow-sm' 
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   Solana
@@ -109,7 +109,7 @@ export default function BuildPage() {
               </div>
             </div>
 
-            <ShieldCheckIcon className={`w-16 h-16 mx-auto ${activeChainFamily === 'solana' ? 'text-purple-500' : 'text-blue-500'}`} />
+            <ShieldCheckIcon className={`w-16 h-16 mx-auto ${activeChainFamily === 'solana' ? 'text-purple-500 dark:text-purple-400' : 'text-blue-500 dark:text-blue-400'}`} />
             <h1 className="mt-4 text-2xl font-bold text-primary">Builder Hub</h1>
             <p className="mt-2 text-secondary">
               Connect your {activeChainFamily === 'solana' ? 'Solana' : 'EVM'} wallet to view your credit score, request funding, and manage projects.
@@ -154,23 +154,23 @@ export default function BuildPage() {
         <div className="mb-6">
           <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100 rounded-xl">
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium">
-              <span className={`px-2 py-1 rounded-full ${!hasBagsToken ? 'bg-purple-200 text-purple-800' : 'bg-purple-100 text-purple-600'}`}>
+              <span className={`px-2 py-1 rounded-full ${!hasBagsToken ? 'bg-purple-200 text-purple-800 dark:text-purple-300' : 'bg-purple-100 text-purple-600 dark:text-purple-400'}`}>
                 🎒 Rail 1: Bags
               </span>
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className={`px-2 py-1 rounded-full ${doesHaveProjects && !hasBagsToken ? 'bg-blue-200 text-blue-800' : !doesHaveProjects ? 'bg-gray-100 text-gray-500' : 'bg-blue-100 text-blue-600'}`}>
+              <span className={`px-2 py-1 rounded-full ${doesHaveProjects && !hasBagsToken ? 'bg-blue-200 text-blue-800 dark:text-blue-300' : !doesHaveProjects ? 'bg-gray-100 text-gray-500 dark:text-gray-400' : 'bg-blue-100 text-blue-600 dark:text-blue-400'}`}>
                 💳 Rail 2: Credit
               </span>
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <span className={`px-2 py-1 rounded-full ${hasHackathonWins ? 'bg-green-200 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+              <span className={`px-2 py-1 rounded-full ${hasHackathonWins ? 'bg-green-200 text-green-800 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:text-gray-400'}`}>
                 🏆 Rail 3: Prize Routing
               </span>
             </div>
-            <div className="flex-1 text-xs sm:text-sm text-gray-700">
+            <div className="flex-1 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
               {!doesHaveProjects && !hasBagsToken && !hasHackathonWins && (
                 <span>Start on <strong>Rail 1</strong> — launch a project token on Bags, or submit a project to unlock <strong>Rail 2</strong> credit.</span>
               )}
@@ -188,7 +188,7 @@ export default function BuildPage() {
         </div>
 
         {activeChainFamily === 'solana' && solanaConnected && solanaAddress && (
-          <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900">
+          <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900 dark:text-purple-200">
             Connected builder identity:{" "}
             <SnsIdentityBadge
               address={solanaAddress}
@@ -230,8 +230,8 @@ export default function BuildPage() {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-purple-600">Rail 1</span>
-                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 rounded-full">Pre-prize</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Rail 1</span>
+                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 dark:text-purple-300 rounded-full">Pre-prize</span>
                       </div>
                       <h3 className="text-lg font-bold text-primary">Launch a Bags Token</h3>
                       <p className="text-sm text-secondary mt-1 max-w-xl">
@@ -241,7 +241,7 @@ export default function BuildPage() {
                     </div>
                     <Button
                       variant="outline"
-                      className="flex-shrink-0 border-purple-300 text-purple-700 hover:bg-purple-600 hover:text-white"
+                      className="flex-shrink-0 border-purple-300 text-purple-700 dark:text-purple-300 hover:bg-purple-600 hover:text-white"
                       onClick={() => window.open('https://bags.gg', '_blank')}
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -108,10 +108,10 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
       {/* Header & Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Project Dashboard
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             {getTotalCount()} projects across {activeFilters.ecosystems.length} ecosystems
           </p>
         </div>
@@ -124,8 +124,8 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
               onClick={() => setViewMode(mode)}
               className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 viewMode === mode
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-gray-900 dark:text-gray-100 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100'
               }`}
             >
               <config.icon className="w-4 h-4" />
@@ -141,7 +141,7 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
           {/* Search */}
           <div className="flex-1 min-w-64">
             <div className="relative">
-              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Search projects..."
@@ -154,7 +154,7 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
 
           {/* Ecosystem Filters */}
           <div className="flex items-center space-x-2">
-            <FunnelIcon className="w-5 h-5 text-gray-400" />
+            <FunnelIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
             {Object.entries(ECOSYSTEM_CONFIGS).map(([key, config]) => (
               <button
                 key={key}
@@ -162,7 +162,7 @@ export default function UnifiedDashboard({ projects, loading, onProjectSelect })
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeFilters.ecosystems.includes(key)
                     ? `${config.bgColor} ${config.textColor} ${config.borderColor} border`
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
                 }`}
               >
                 <span>{config.icon}</span>
@@ -238,7 +238,7 @@ function SeparatedView({ projects, onProjectSelect }) {
                     <h3 className={`text-lg font-semibold ${config.textColor}`}>
                       {config.name} Ecosystem
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {projectList.length} projects
                     </p>
                   </div>
@@ -297,12 +297,12 @@ function EcosystemStats({ projects }) {
   return (
     <div className="flex items-center space-x-4 text-sm">
       <div className="text-center">
-        <div className="font-semibold text-gray-900">{stats.active}</div>
-        <div className="text-gray-600">Active</div>
+        <div className="font-semibold text-gray-900 dark:text-gray-100">{stats.active}</div>
+        <div className="text-gray-600 dark:text-gray-400">Active</div>
       </div>
       <div className="text-center">
-        <div className="font-semibold text-gray-900">{stats.avgHealth}%</div>
-        <div className="text-gray-600">Health</div>
+        <div className="font-semibold text-gray-900 dark:text-gray-100">{stats.avgHealth}%</div>
+        <div className="text-gray-600 dark:text-gray-400">Health</div>
       </div>
     </div>
   );
@@ -318,7 +318,7 @@ function ProjectCard({ project, ecosystem, onClick, showEcosystem = false }) {
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h4 className="font-semibold text-gray-900 mb-1">
+          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
             {project.name || project.slug}
           </h4>
           {showEcosystem && (
@@ -333,18 +333,18 @@ function ProjectCard({ project, ecosystem, onClick, showEcosystem = false }) {
         )}
       </div>
 
-      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
         {project.description || `${project.owner}/${project.repo}`}
       </p>
 
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
         <div className="flex items-center space-x-3">
           <span>{project.stats?.commits || 0} commits</span>
           <span>{project.stats?.stars || 0} stars</span>
         </div>
         {project.stats?.healthScore && (
           <div className={`px-2 py-1 rounded-full ${
-            project.stats.healthScore >= 80 ? 'bg-green-100 text-green-800' :
+            project.stats.healthScore >= 80 ? 'bg-green-100 text-green-800 dark:text-green-300' :
             project.stats.healthScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
             'bg-red-100 text-red-800'
           }`}>

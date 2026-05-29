@@ -148,8 +148,8 @@ export default function ShipsLog({ projectSlug, canEdit }) {
   return (
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
-        <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-600" />
-        <h2 className="text-xl font-bold text-gray-900">The Ship's Log</h2>
+        <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">The Ship's Log</h2>
         {highSignal.length > 0 && (
           <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
             {highSignal.length} high signal
@@ -206,7 +206,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
           <div className="space-y-2">
             {Object.entries(metrics).map(([key, val]) => (
               <div key={key} className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 w-20 text-right">{key}:</span>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 w-20 text-right">{key}:</span>
                 <input
                   type={key === 'revenue' || key === 'mrr' || key === 'arr' ? 'number' : 'text'}
                   value={val}
@@ -221,7 +221,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
                 <button
                   type="button"
                   onClick={() => removeMetric(key)}
-                  className="p-1 text-gray-400 hover:text-red-500"
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:text-red-400"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
@@ -230,14 +230,14 @@ export default function ShipsLog({ projectSlug, canEdit }) {
             <button
               type="button"
               onClick={addMetricField}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300 flex items-center gap-1"
             >
               <PlusIcon className="w-3.5 h-3.5" />
               Add metric
             </button>
           </div>
 
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             High-signal updates (milestones, revenue, users, launches) appear
             prominently and notify backers. Low-signal updates are collapsed by default.
           </p>
@@ -247,7 +247,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
       {/* Filter pills */}
       {logs.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 mb-4 overflow-x-auto">
-          <FunnelIcon className="w-3.5 h-3.5 text-gray-400 mr-1" />
+          <FunnelIcon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 mr-1" />
           {FILTERS.map((f) => (
             <button
               key={f.id}
@@ -255,7 +255,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
               className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors whitespace-nowrap ${
                 activeFilter === f.id
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
               }`}
             >
               {f.label}
@@ -271,7 +271,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
             <LoadingSpinner size="lg" />
           </div>
         ) : filteredLogs.length === 0 && !showLowSignal ? (
-          <p className="text-center text-gray-500 py-8 italic">
+          <p className="text-center text-gray-500 dark:text-gray-400 py-8 italic">
             {activeFilter !== 'all'
               ? `No ${activeFilter} updates yet.`
               : 'No updates yet. Post the first one!'}
@@ -298,7 +298,7 @@ export default function ShipsLog({ projectSlug, canEdit }) {
               <div className="pt-2">
                 <button
                   onClick={() => setShowLowSignal(!showLowSignal)}
-                  className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                  className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors w-full"
                 >
                   <div className="flex-1 h-px bg-gray-200" />
                   {showLowSignal ? 'Hide' : `Show ${lowSignalCount}`} development & bug fix updates

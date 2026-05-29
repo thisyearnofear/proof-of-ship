@@ -262,7 +262,7 @@ export default function FundingInterface({
       {!isConfigured() && (
         <Card className="p-4 bg-yellow-50 border-yellow-200">
           <div className="flex items-center space-x-2">
-            <InformationCircleIcon className="w-5 h-5 text-yellow-600" />
+            <InformationCircleIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
             <span className="text-yellow-800 text-sm">
               Funding unavailable — Circle API credentials not configured. Set CIRCLE_API_KEY, CIRCLE_ENTITY_SECRET, and CIRCLE_WALLET_SET_ID to enable.
             </span>
@@ -274,8 +274,8 @@ export default function FundingInterface({
       {activeChainFamily === 'solana' ? (
         <Card className="p-4 bg-purple-50 border-purple-200">
           <div className="flex items-start space-x-2">
-            <InformationCircleIcon className="w-5 h-5 text-purple-600 mt-0.5" />
-            <div className="text-purple-800 text-sm">
+            <InformationCircleIcon className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5" />
+            <div className="text-purple-800 dark:text-purple-300 text-sm">
               <div>Running on Solana Devnet. Cross-chain funding enabled.</div>
               {wallet.solanaAddress && (
                 <div className="mt-1">
@@ -295,8 +295,8 @@ export default function FundingInterface({
       ) : environment === 'sandbox' && (
         <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex items-center space-x-2">
-            <InformationCircleIcon className="w-5 h-5 text-blue-600" />
-            <span className="text-blue-800 text-sm">
+            <InformationCircleIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span className="text-blue-800 dark:text-blue-300 text-sm">
               Running in sandbox mode. No real USDC will be transferred.
             </span>
           </div>
@@ -310,16 +310,16 @@ export default function FundingInterface({
             isEligible ? 'bg-green-100' : 'bg-red-100'
           }`}>
             {isEligible ? (
-              <CheckCircleIcon className="w-6 h-6 text-green-600" />
+              <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
             ) : (
-              <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+              <ExclamationTriangleIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
             )}
           </div>
           <div>
             <h3 className="text-lg font-semibold text-primary">
               Reputation-Backed Funding
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               {isEligible 
                 ? `Your reputation grants you access to $${fundingAmount.toLocaleString()} USDC`
                 : 'A credit score of 400+ is required to unlock initial funding'
@@ -331,11 +331,11 @@ export default function FundingInterface({
         {/* Credit Score Display */}
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600">Current Credit Score</span>
+            <span className="text-gray-600 dark:text-gray-400">Current Credit Score</span>
             <span className={`text-2xl font-bold ${
-              creditScore >= 700 ? 'text-green-600' :
-              creditScore >= 500 ? 'text-yellow-600' :
-              'text-red-600'
+              creditScore >= 700 ? 'text-green-600 dark:text-green-400' :
+              creditScore >= 500 ? 'text-yellow-600 dark:text-yellow-400' :
+              'text-red-600 dark:text-red-400'
             }`}>
               {creditScore}
             </span>
@@ -356,14 +356,14 @@ export default function FundingInterface({
         {isEligible && (
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 ${fundingAmount.toLocaleString()}
               </div>
-              <div className="text-sm text-blue-800">Base Funding Capacity</div>
+              <div className="text-sm text-blue-800 dark:text-blue-300">Base Funding Capacity</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">USDC</div>
-              <div className="text-sm text-green-800">Stable Currency</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">USDC</div>
+              <div className="text-sm text-green-800 dark:text-green-300">Stable Currency</div>
             </div>
           </div>
         )}
@@ -375,7 +375,7 @@ export default function FundingInterface({
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Select Hackathons (Expedition Mode)
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -387,20 +387,20 @@ export default function FundingInterface({
                       className={`px-3 py-2 text-xs font-medium rounded-md border ${
                         selectedHackathons.includes(h.id)
                           ? 'bg-indigo-100 border-indigo-500 text-indigo-700'
-                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                          : 'bg-white border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       {h.name}
                     </button>
                   ))}
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   Select up to 5 hackathons. Verifiers from any of these can approve your milestones.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   GitHub URL
                 </label>
                 <input
@@ -413,7 +413,7 @@ export default function FundingInterface({
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Project Name
                 </label>
                 <input
@@ -427,7 +427,7 @@ export default function FundingInterface({
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Milestones
                   </label>
                   <button
@@ -475,7 +475,7 @@ export default function FundingInterface({
                   ))}
                 </div>
                 
-                <div className="mt-2 text-sm text-gray-600">
+                <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   Total milestone rewards: ${milestones.reduce((sum, m) => sum + (Number(m.reward) || 0), 0)} / ${fundingAmount}
                 </div>
               </div>
@@ -483,7 +483,7 @@ export default function FundingInterface({
               {/* Fleet Management (Team Members) */}
               <div className="border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Fleet Management (Team Shares)
                   </label>
                   <button
@@ -499,7 +499,7 @@ export default function FundingInterface({
                   {teamMembers.map((member, index) => (
                     <div key={index} className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
                       <div className="flex-1">
-                        <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Wallet Address</label>
+                        <label className="block text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-1">Wallet Address</label>
                         <input
                           type="text"
                           value={member.address}
@@ -509,7 +509,7 @@ export default function FundingInterface({
                         />
                       </div>
                       <div className="w-1/4">
-                        <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Share %</label>
+                        <label className="block text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 mb-1">Share %</label>
                         <input
                           type="number"
                           value={member.share}
@@ -522,7 +522,7 @@ export default function FundingInterface({
                         <button
                           type="button"
                           onClick={() => removeTeamMember(index)}
-                          className="mt-5 inline-flex items-center p-1 text-red-500 hover:bg-red-50 rounded-full"
+                          className="mt-5 inline-flex items-center p-1 text-red-500 dark:text-red-400 hover:bg-red-50 rounded-full"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -534,10 +534,10 @@ export default function FundingInterface({
                 </div>
                 
                 <div className="mt-2 flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Milestone payouts will be split automatically.</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Milestone payouts will be split automatically.</span>
                   <div className={`text-xs font-bold ${
                     teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0) === 100 
-                    ? 'text-green-600' : 'text-orange-600'
+                    ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
                   }`}>
                     Total: {teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0)}%
                   </div>
@@ -554,7 +554,7 @@ export default function FundingInterface({
           className={`w-full ${
             isEligible
               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'
           }`}
         >
           {loading || circleLoading || contractLoading ? (
@@ -575,20 +575,20 @@ export default function FundingInterface({
       {success && (
         <Card className="p-6 bg-green-50 border-green-200">
           <div className="flex items-start space-x-3">
-            <CheckCircleIcon className="w-6 h-6 text-green-600 mt-0.5" />
+            <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400 mt-0.5" />
             <div className="flex-1">
-              <h4 className="font-semibold text-green-900 mb-2">
+              <h4 className="font-semibold text-green-900 dark:text-green-200 mb-2">
                 Funding Request Successful!
               </h4>
-              <p className="text-green-800 mb-3">
+              <p className="text-green-800 dark:text-green-300 mb-3">
                 ${success.amount.toLocaleString()} USDC has been {environment === 'sandbox' ? 'simulated for transfer' : 'transferred'} to your wallet.
               </p>
               
               {success.projectId && (
                 <div className="bg-white bg-opacity-50 rounded-lg p-3 mb-2">
                   <div className="text-sm">
-                    <div className="font-medium text-green-900">Project ID:</div>
-                    <div className="font-mono text-xs text-green-700 break-all">
+                    <div className="font-medium text-green-900 dark:text-green-200">Project ID:</div>
+                    <div className="font-mono text-xs text-green-700 dark:text-green-300 break-all">
                       {success.projectId}
                     </div>
                   </div>
@@ -598,8 +598,8 @@ export default function FundingInterface({
               {success.transactionHash && (
                 <div className="bg-white bg-opacity-50 rounded-lg p-3">
                   <div className="text-sm">
-                    <div className="font-medium text-green-900">Transaction Hash:</div>
-                    <div className="font-mono text-xs text-green-700 break-all">
+                    <div className="font-medium text-green-900 dark:text-green-200">Transaction Hash:</div>
+                    <div className="font-mono text-xs text-green-700 dark:text-green-300 break-all">
                       {success.transactionHash}
                     </div>
                   </div>
@@ -614,7 +614,7 @@ export default function FundingInterface({
       {error && (
         <Card className="p-6 bg-red-50 border-red-200">
           <div className="flex items-start space-x-3">
-            <ExclamationTriangleIcon className="w-6 h-6 text-red-600 mt-0.5" />
+            <ExclamationTriangleIcon className="w-6 h-6 text-red-600 dark:text-red-400 mt-0.5" />
             <div>
               <h4 className="font-semibold text-red-900 mb-1">
                 Funding Request Failed
@@ -636,12 +636,12 @@ export default function FundingInterface({
               <div key={funding.projectId || index} className="p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-3">
-                    <WalletIcon className="w-5 h-5 text-gray-400" />
+                    <WalletIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                     <div>
                       <div className="font-medium text-primary">
                         {funding.name || `Project #${funding.projectId}`}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         {funding.timestamp ? new Date(funding.timestamp).toLocaleDateString() : 'N/A'}
                       </div>
                     </div>
@@ -649,12 +649,12 @@ export default function FundingInterface({
                   <div className="flex items-center space-x-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       funding.status === 'completed' || funding.status === 'complete'
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-green-100 text-green-800 dark:text-green-300'
                         : 'bg-yellow-100 text-yellow-800'
                     }`}>
                       {funding.status}
                     </span>
-                    <span className="text-sm font-medium text-blue-600">
+                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                       ${funding.amount} USDC
                     </span>
                   </div>
@@ -664,10 +664,10 @@ export default function FundingInterface({
                 {funding.projectId && (
                   <div className="mt-2 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Project ID: {funding.projectId}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Project ID: {funding.projectId}</span>
                       <a
                         href={`#view-project-${funding.projectId}`}
-                        className="inline-flex items-center text-xs text-indigo-600 hover:text-indigo-900"
+                        className="inline-flex items-center text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-900"
                         onClick={(e) => {
                           e.preventDefault();
                           // Logic to view project details could be added here
@@ -689,15 +689,15 @@ export default function FundingInterface({
       <Card className="p-4 bg-gray-50">
         <div className="flex flex-wrap gap-2">
           <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-            activeChainFamily === 'solana' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+            activeChainFamily === 'solana' ? 'bg-purple-100 text-purple-800 dark:text-purple-300' : 'bg-blue-100 text-blue-800 dark:text-blue-300'
           }`}>
             {activeChainFamily === 'solana' ? 'Solana Integration' : 'Circle USDC Integration'}
           </span>
-          <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-green-100 text-green-800 dark:text-green-300 text-xs font-medium rounded-full">
             {activeChainFamily === 'solana' ? 'Devnet Mode' : (environment === 'sandbox' ? 'Testnet Mode' : 'Mainnet Mode')}
           </span>
           {isConfigured() && activeChainFamily !== 'solana' && (
-            <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+            <span className="px-3 py-1 bg-purple-100 text-purple-800 dark:text-purple-300 text-xs font-medium rounded-full">
               API Configured
             </span>
           )}

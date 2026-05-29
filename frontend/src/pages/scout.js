@@ -200,13 +200,13 @@ export default function ScoutPortfolioPage() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="relative">
-                    <CpuChipIcon className="w-8 h-8 text-cyan-400" />
+                    <CpuChipIcon className="w-8 h-8 text-cyan-400 dark:text-cyan-500" />
                     <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse border-2 border-slate-900" />
                   </div>
-                  <span className="text-xs font-black uppercase tracking-widest text-cyan-400">Autonomous Agent</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-cyan-400 dark:text-cyan-500">Autonomous Agent</span>
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-2">Proof Scout</h1>
-                <p className="text-slate-400 max-w-xl">
+                <p className="text-slate-400 dark:text-slate-500 max-w-xl">
                   An AI agent that continuously evaluates builder projects, generates reasoning traces, and executes backings on Arc with USDC. Every decision is transparent and on-chain.
                 </p>
               </div>
@@ -251,19 +251,19 @@ export default function ScoutPortfolioPage() {
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card className="bg-slate-900 border-slate-800 p-4">
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Projects Evaluated</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Projects Evaluated</div>
                   <div className="text-2xl font-bold text-white">{stats.totalEvaluated}</div>
                 </Card>
                 <Card className="bg-slate-900 border-slate-800 p-4">
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Backings Executed</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Backings Executed</div>
                   <div className="text-2xl font-bold text-emerald-400">{stats.totalBacked}</div>
                 </Card>
                 <Card className="bg-slate-900 border-slate-800 p-4">
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Total Staked</div>
-                  <div className="text-2xl font-bold text-cyan-400">${stats.totalStaked.toFixed(2)}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Total Staked</div>
+                  <div className="text-2xl font-bold text-cyan-400 dark:text-cyan-500">${stats.totalStaked.toFixed(2)}</div>
                 </Card>
                 <Card className="bg-slate-900 border-slate-800 p-4">
-                  <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Success Rate</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Success Rate</div>
                   <div className="text-2xl font-bold text-amber-400">{stats.winRate}%</div>
                 </Card>
               </div>
@@ -271,7 +271,7 @@ export default function ScoutPortfolioPage() {
               {/* Reasoning Traces */}
               {reasoningTraces.length > 0 && (
                 <section>
-                  <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h2 className="text-sm font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <LightBulbIcon className="w-4 h-4 text-amber-400" />
                     Latest Reasoning Traces
                   </h2>
@@ -283,12 +283,12 @@ export default function ScoutPortfolioPage() {
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-400">
                               {t.project}
                             </span>
-                            <span className="text-[10px] text-slate-500 font-mono">
+                            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                               {t.timestamp ? new Date(t.timestamp).toLocaleString() : ""}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-300 leading-relaxed line-clamp-3">{t.trace}</p>
-                          <div className="mt-2 text-[10px] text-cyan-400 hover:underline">View full trace →</div>
+                          <p className="text-sm text-slate-300 dark:text-slate-500 leading-relaxed line-clamp-3">{t.trace}</p>
+                          <div className="mt-2 text-[10px] text-cyan-400 dark:text-cyan-500 hover:underline">View full trace →</div>
                         </Card>
                       </Link>
                     ))}
@@ -299,7 +299,7 @@ export default function ScoutPortfolioPage() {
               {/* Recent On-Chain Executions */}
               {recentExecutions.length > 0 && (
                 <section>
-                  <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h2 className="text-sm font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <BanknotesIcon className="w-4 h-4 text-emerald-400" />
                     Recent Arc Settlements
                   </h2>
@@ -314,7 +314,7 @@ export default function ScoutPortfolioPage() {
                             <div className="text-sm font-medium text-slate-200">
                               {exec.backed} backing{exec.backed !== 1 ? "s" : ""} · ${exec.staked.toFixed(2)} USDC
                             </div>
-                            <div className="text-[10px] text-slate-500 font-mono">
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                               {exec.timestamp ? new Date(exec.timestamp).toLocaleString() : ""}
                             </div>
                           </div>
@@ -324,7 +324,7 @@ export default function ScoutPortfolioPage() {
                             href={`https://explorer.arc.network/tx/${exec.txHashes[0]}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1"
+                            className="text-[10px] text-cyan-400 dark:text-cyan-500 hover:underline flex items-center gap-1"
                           >
                             View <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                           </a>
@@ -337,12 +337,12 @@ export default function ScoutPortfolioPage() {
 
               {/* Prediction Market Preview */}
               <section>
-                <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <GlobeAltIcon className="w-4 h-4 text-pink-400" />
+                <h2 className="text-sm font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <GlobeAltIcon className="w-4 h-4 text-pink-400 dark:text-pink-500" />
                   Prediction Market Preview
                 </h2>
                 <Card className="bg-gradient-to-br from-pink-900/20 to-slate-900 border-pink-500/20 p-5">
-                  <p className="text-sm text-slate-300 mb-4">
+                  <p className="text-sm text-slate-300 dark:text-slate-500 mb-4">
                     The Payout Verifier agent can serve as an oracle for prediction markets. When the verifier attests a project shipped, the market resolves automatically.
                   </p>
                   <div className="space-y-3">
@@ -352,7 +352,7 @@ export default function ScoutPortfolioPage() {
                           <div className="text-xs font-medium text-slate-200 truncate">
                             Will {t.project} ship by June 1?
                           </div>
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">
                             Resolved by Verifier agent on Arc
                           </div>
                         </div>
@@ -368,7 +368,7 @@ export default function ScoutPortfolioPage() {
                       </div>
                     ))}
                     {reasoningTraces.length === 0 && (
-                      <div className="text-sm text-slate-400 italic">
+                      <div className="text-sm text-slate-400 dark:text-slate-500 italic">
                         Run the Scout to generate prediction markets for top projects.
                       </div>
                     )}
@@ -381,8 +381,8 @@ export default function ScoutPortfolioPage() {
 
               {/* Live Activity */}
               <section>
-                <h2 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <ChartBarIcon className="w-4 h-4 text-cyan-400" />
+                <h2 className="text-sm font-black text-slate-300 dark:text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <ChartBarIcon className="w-4 h-4 text-cyan-400 dark:text-cyan-500" />
                   Agent Activity Feed
                 </h2>
                 <div className="space-y-2">
@@ -395,17 +395,17 @@ export default function ScoutPortfolioPage() {
                         "bg-slate-500"
                       }`} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-slate-300 truncate">
+                        <div className="text-xs text-slate-300 dark:text-slate-500 truncate">
                           {run.type === "execution" ? `Executed ${run.totalBacked || 0} backings` :
                            run.type === "scout" ? `Evaluated ${run.projectsEvaluated || 0} projects, recommended ${run.projectsBacked || 0}` :
                            run.type === "underwrite" ? `Analyzed ${run.project?.name || "project"}` :
                            "Agent run"}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-mono">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                           {run.timestamp ? new Date(run.timestamp).toLocaleString() : ""}
                         </div>
                       </div>
-                      <span className="text-[10px] font-mono text-slate-600 hidden sm:inline">{run.id}</span>
+                      <span className="text-[10px] font-mono text-slate-600 dark:text-slate-400 hidden sm:inline">{run.id}</span>
                     </Card>
                   ))}
                 </div>
@@ -420,19 +420,19 @@ export default function ScoutPortfolioPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="bg-slate-900 border-slate-700 max-w-md w-full p-6">
             <h3 className="text-lg font-bold text-white mb-2">Copy the Scout</h3>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
               When you copy the Scout, your wallet automatically backs the same projects the agent recommends. You keep full custody — the agent just signals, your wallet executes.
             </p>
             <div className="space-y-3 mb-4">
-              <div className="flex items-center gap-2 text-sm text-slate-300">
+              <div className="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-500">
                 <CheckCircleIcon className="w-4 h-4 text-emerald-400" />
                 <span>Deposit USDC into your copy-trade balance</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-300">
+              <div className="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-500">
                 <CheckCircleIcon className="w-4 h-4 text-emerald-400" />
                 <span>Auto-back every project the scout recommends</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-300">
+              <div className="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-500">
                 <CheckCircleIcon className="w-4 h-4 text-emerald-400" />
                 <span>1% agent fee on each fill (paid to Scout)</span>
               </div>

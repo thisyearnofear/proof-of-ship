@@ -125,8 +125,8 @@ function DashboardHeader({ complexityLevel, onComplexityChange, projects, userPr
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Project Dashboard</h1>
-        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Project Dashboard</h1>
+        <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
           <span>{totalProjects} total projects</span>
           {complexityLevel !== 'simple' && (
             <>
@@ -167,7 +167,7 @@ function DashboardHeader({ complexityLevel, onComplexityChange, projects, userPr
       {/* Advanced Settings Panel */}
       {showSettings && complexityLevel === 'advanced' && (
         <Card className="absolute top-full right-0 mt-2 p-4 w-64 shadow-lg z-10">
-          <h3 className="font-semibold text-gray-900 mb-3">Dashboard Settings</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Dashboard Settings</h3>
           
           <div className="space-y-3">
             <label className="flex items-center space-x-2 text-sm">
@@ -184,7 +184,7 @@ function DashboardHeader({ complexityLevel, onComplexityChange, projects, userPr
             </label>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Sort by
               </label>
               <select
@@ -224,9 +224,9 @@ function EcosystemSection({
 
   const config = ecosystemConfig[ecosystem];
   const colorClasses = {
-    green: 'bg-green-50 border-green-200 text-green-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800', 
-    purple: 'bg-purple-50 border-purple-200 text-purple-800'
+    green: 'bg-green-50 border-green-200 text-green-800 dark:text-green-300',
+    blue: 'bg-blue-50 border-blue-200 text-blue-800 dark:text-blue-300', 
+    purple: 'bg-purple-50 border-purple-200 text-purple-800 dark:text-purple-300'
   };
 
   return (
@@ -269,7 +269,7 @@ function EcosystemSection({
       {isExpanded && (
         <div className="p-4">
           {projects.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               No projects to display
             </div>
           ) : (
@@ -311,7 +311,7 @@ function ProjectCard({ project, complexityLevel }) {
   return (
     <Card className={`p-4 hover:shadow-md transition-shadow ${isSimple ? 'cursor-pointer' : ''}`}>
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-semibold text-gray-900 flex-1">
+        <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex-1">
           {project.name || project.slug}
         </h4>
         {!isSimple && project.stats?.isActive && (
@@ -320,13 +320,13 @@ function ProjectCard({ project, complexityLevel }) {
       </div>
 
       {!isSimple && project.description && (
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
           {project.description}
         </p>
       )}
 
       <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center space-x-3 text-gray-500">
+        <div className="flex items-center space-x-3 text-gray-500 dark:text-gray-400">
           {isSimple ? (
             <span>{project.stats?.commits || 0} commits</span>
           ) : (
@@ -342,7 +342,7 @@ function ProjectCard({ project, complexityLevel }) {
 
         {isDetailed && project.stats?.healthScore && (
           <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-            project.stats.healthScore >= 80 ? 'bg-green-100 text-green-800' :
+            project.stats.healthScore >= 80 ? 'bg-green-100 text-green-800 dark:text-green-300' :
             project.stats.healthScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
             'bg-red-100 text-red-800'
           }`}>
@@ -359,8 +359,8 @@ function UpgradeHint({ onUpgrade }) {
     <Card className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-medium text-blue-900">Want to see more details?</h3>
-          <p className="text-blue-700 text-sm">
+          <h3 className="font-medium text-blue-900 dark:text-blue-200">Want to see more details?</h3>
+          <p className="text-blue-700 dark:text-blue-300 text-sm">
             Upgrade to detailed view for project descriptions, health scores, and filtering options.
           </p>
         </div>

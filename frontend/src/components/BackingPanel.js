@@ -206,11 +206,11 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
   return (
     <Card className="p-6">
       <div className="flex items-center mb-4">
-        <RocketLaunchIcon className="w-6 h-6 text-indigo-600 mr-2" />
+        <RocketLaunchIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mr-2" />
         <div className="flex-1">
           <h3 className="text-lg font-bold text-primary">Stake on This Builder</h3>
           {showBuilderIdentity && (
-            <div className="text-sm text-gray-600 mt-1">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Backing{" "}
               <SnsIdentityBadge
                 address={developerAddress}
@@ -225,7 +225,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         </div>
       </div>
 
-      <p className="text-sm text-gray-600 mb-4">
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
         Boost this builder&apos;s credit limit and earn rewards. Your stake is repaid with interest when the builder wins prizes. Position amounts are shielded via Cloak.
       </p>
 
@@ -243,7 +243,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
             </span>
           </div>
           {incentives.slice(0, 2).map((inc) => (
-            <div key={inc.id || inc.name} className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-200 mb-1 last:mb-0">
+            <div key={inc.id || inc.name} className="flex items-center gap-2 text-sm text-emerald-800 dark:text-emerald-300 dark:text-emerald-200 mb-1 last:mb-0">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
               <span className="font-medium">{inc.name || inc.title || "Active incentive"}</span>
               {inc.rewardToken && (
@@ -257,7 +257,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
       )}
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Select Your Reward Multiplier
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -272,8 +272,8 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
                   multiplier === m.value
                     ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600'
                     : isDisabled
-                      ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                      : 'border-gray-200 hover:border-indigo-300 text-gray-600'
+                      ? 'border-gray-100 bg-gray-50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                      : 'border-gray-200 hover:border-indigo-300 text-gray-600 dark:text-gray-400'
                 }`}
               >
                 <span className="text-lg font-bold">{m.label}</span>
@@ -283,7 +283,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
           })}
         </div>
         {maxAllowedMultiplier < 300 && (
-          <p className="mt-2 text-xs text-amber-600">
+          <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
             Higher multipliers are restricted based on this builder&apos;s current reputation.
           </p>
         )}
@@ -291,16 +291,16 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
 
       <div className="mb-6">
         <div className="flex justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Amount to Stake (USDC)
           </label>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             Balance: {parseFloat(userBalance).toFixed(2)} USDC
           </span>
         </div>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <BanknotesIcon className="h-5 w-5 text-gray-400" />
+            <BanknotesIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           </div>
           <input
             type="number"
@@ -312,7 +312,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
             <button
               onClick={() => setAmount(userBalance)}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-500"
+              className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:text-indigo-400"
             >
               MAX
             </button>
@@ -321,13 +321,13 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
+        <div className="mb-4 p-3 bg-red-50 text-red-700 dark:text-red-300 text-sm rounded-lg border border-red-100">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100">
+        <div className="mb-4 p-3 bg-green-50 text-green-700 dark:text-green-300 text-sm rounded-lg border border-green-100">
           {success}
         </div>
       )}
@@ -342,36 +342,36 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         <div className="space-y-4">
           <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
             <h4 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
-              <CheckCircleIcon className="w-4 h-4 text-indigo-600" />
+              <CheckCircleIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               Review Your Stake
             </h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-xs text-gray-500 block">Amount</span>
-                <span className="font-bold text-gray-900">{amount} USDC</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 block">Amount</span>
+                <span className="font-bold text-gray-900 dark:text-gray-100">{amount} USDC</span>
               </div>
               <div>
-                <span className="text-xs text-gray-500 block">Multiplier</span>
-                <span className="font-bold text-gray-900">{multiplier / 100}x</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 block">Multiplier</span>
+                <span className="font-bold text-gray-900 dark:text-gray-100">{multiplier / 100}x</span>
               </div>
               <div>
-                <span className="text-xs text-gray-500 block">Potential Return</span>
-                <span className="font-bold text-emerald-700">
+                <span className="text-xs text-gray-500 dark:text-gray-400 block">Potential Return</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300">
                   ${(parseFloat(amount || 0) * multiplier / 100).toFixed(2)} USDC
                 </span>
               </div>
               <div>
-                <span className="text-xs text-gray-500 block">Risk Level</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 block">Risk Level</span>
                 <span className={`font-bold ${
-                  getRiskLevel(multiplier) === 'low' ? 'text-emerald-700' :
-                  getRiskLevel(multiplier) === 'high' ? 'text-rose-700' :
+                  getRiskLevel(multiplier) === 'low' ? 'text-emerald-700 dark:text-emerald-300' :
+                  getRiskLevel(multiplier) === 'high' ? 'text-rose-700 dark:text-rose-300' :
                   'text-amber-700'
                 }`}>
                   {multipliers.find(m => m.value === multiplier)?.risk || 'Balanced'}
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-500 italic">
+            <p className="text-xs text-gray-500 dark:text-gray-400 italic">
               {getMultiplierDescription(multiplier)}
             </p>
           </div>
@@ -381,7 +381,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
               onClick={() => { setStage("form"); setError(null); }}
               disabled={loading}
               variant="outline"
-              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="flex-1 border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50"
             >
               <ArrowLeftIcon className="w-4 h-4 mr-1" />
               Edit
@@ -438,8 +438,8 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         ) : (
           <>
             <div className="flex justify-between items-center">
-              <div className="flex items-center text-sm text-gray-500">
-                <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500" />
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500 dark:text-green-400" />
                 Backer Confidence
               </div>
               <div className="text-sm font-bold text-primary">
@@ -453,7 +453,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
               ></div>
             </div>
             {backerCount > 0 && (
-              <div className="mt-3 flex items-center text-xs text-gray-500">
+              <div className="mt-3 flex items-center text-xs text-gray-500 dark:text-gray-400">
                 <UsersIcon className="w-3 h-3 mr-1" />
                 {backerCount} backer{backerCount !== 1 ? 's' : ''} supporting this project
               </div>

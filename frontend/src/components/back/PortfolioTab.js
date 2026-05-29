@@ -181,9 +181,9 @@ export default function PortfolioTab({ setTab }) {
   if (!wallet.account) {
     return (
       <Card className="p-8 text-center">
-        <ShieldCheckIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">Connect Wallet</h3>
-        <p className="text-gray-500 mt-2">Connect your wallet to view your backed positions.</p>
+        <ShieldCheckIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Connect Wallet</h3>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">Connect your wallet to view your backed positions.</p>
         <Button onClick={() => wallet.connect()} className="mt-4">Connect Wallet</Button>
       </Card>
     );
@@ -192,9 +192,9 @@ export default function PortfolioTab({ setTab }) {
   if (backedDetails.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <RocketLaunchIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">No Positions Yet</h3>
-        <p className="text-gray-500 mt-2">You haven&apos;t backed any projects yet.</p>
+        <RocketLaunchIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No Positions Yet</h3>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">You haven&apos;t backed any projects yet.</p>
         <Button onClick={() => setTab('discover')} variant="primary" className="mt-4">
           Discover Projects to Back
         </Button>
@@ -209,25 +209,25 @@ export default function PortfolioTab({ setTab }) {
           <div className="flex items-center gap-3">
             <span className="text-2xl">{compassTier.icon}</span>
             <div>
-              <p className="text-xs font-bold text-indigo-600 uppercase">Compass Score</p>
+              <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Compass Score</p>
               <p className="text-2xl font-black text-indigo-900">{compassScore}</p>
               <p className={`text-xs font-bold ${compassTier.color}`}>{compassTier.name}</p>
             </div>
           </div>
         </Card>
         <Card className="p-5">
-          <BanknotesIcon className="w-5 h-5 text-blue-600 mb-1" />
-          <p className="text-xs text-gray-500 uppercase">Total Staked</p>
+          <BanknotesIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 mb-1" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Total Staked</p>
           <p className="text-xl font-bold">${backedDetails.reduce((s, p) => s + parseFloat(p.myStake), 0).toFixed(2)}</p>
         </Card>
         <Card className="p-5">
-          <TrophyIcon className="w-5 h-5 text-green-600 mb-1" />
-          <p className="text-xs text-gray-500 uppercase">Potential Returns</p>
+          <TrophyIcon className="w-5 h-5 text-green-600 dark:text-green-400 mb-1" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Potential Returns</p>
           <p className="text-xl font-bold">${backedDetails.reduce((s, p) => s + parseFloat(p.potentialReturn), 0).toFixed(2)}</p>
         </Card>
         <Card className="p-5">
-          <RocketLaunchIcon className="w-5 h-5 text-purple-600 mb-1" />
-          <p className="text-xs text-gray-500 uppercase">Active Stakes</p>
+          <RocketLaunchIcon className="w-5 h-5 text-purple-600 dark:text-purple-400 mb-1" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Active Stakes</p>
           <p className="text-xl font-bold">{backedDetails.length}</p>
         </Card>
 
@@ -235,11 +235,11 @@ export default function PortfolioTab({ setTab }) {
         {wallet.solanaConnected && (
           <Card className={`p-5 ${claimableTotal > 0 ? 'bg-amber-50 border-amber-200' : ''}`}>
             <div className="flex items-center justify-between mb-1">
-              <ReceiptPercentIcon className={`w-5 h-5 ${claimableTotal > 0 ? 'text-amber-600' : 'text-gray-400'}`} />
+              <ReceiptPercentIcon className={`w-5 h-5 ${claimableTotal > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400 dark:text-gray-500'}`} />
               {claimingFees && <LoadingSpinner size="sm" />}
             </div>
-            <p className="text-xs text-gray-500 uppercase">Claimable Fees</p>
-            <p className={`text-xl font-bold ${claimableTotal > 0 ? 'text-amber-700' : 'text-gray-400'}`}>
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Claimable Fees</p>
+            <p className={`text-xl font-bold ${claimableTotal > 0 ? 'text-amber-700' : 'text-gray-400 dark:text-gray-500'}`}>
               {claimableTotal > 0 ? `${claimableTotal.toFixed(4)} SOL` : '—'}
             </p>
             {claimableTotal > 0 && (
@@ -252,8 +252,8 @@ export default function PortfolioTab({ setTab }) {
                 {claimingFees ? 'Claiming...' : 'Claim All'}
               </Button>
             )}
-            {claimError && <p className="text-xs text-red-600 mt-1">{claimError}</p>}
-            {claimSuccess && <p className="text-xs text-green-600 mt-1">{claimSuccess}</p>}
+            {claimError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{claimError}</p>}
+            {claimSuccess && <p className="text-xs text-green-600 dark:text-green-400 mt-1">{claimSuccess}</p>}
           </Card>
         )}
       </div>
@@ -266,8 +266,8 @@ export default function PortfolioTab({ setTab }) {
               <div className="p-5">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="font-bold text-gray-900">{project.name}</h3>
-                    <div className="text-xs text-gray-500 max-w-[220px]">
+                    <h3 className="font-bold text-gray-900 dark:text-gray-100">{project.name}</h3>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 max-w-[220px]">
                       {isValidSolanaAddress(project.developer) ? (
                         <SnsIdentityBadge
                           address={project.developer}
@@ -282,22 +282,22 @@ export default function PortfolioTab({ setTab }) {
                       )}
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${project.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${project.isActive ? "bg-green-100 text-green-800 dark:text-green-300" : "bg-gray-100 text-gray-800 dark:text-gray-200"}`}>
                     {project.isActive ? "Active" : "Done"}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="p-2 bg-blue-50 rounded-lg">
-                    <p className="text-[10px] text-blue-600 font-bold uppercase">Stake</p>
-                    <p className="text-lg font-bold text-blue-900">${project.myStake}</p>
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase">Stake</p>
+                    <p className="text-lg font-bold text-blue-900 dark:text-blue-200">${project.myStake}</p>
                   </div>
                   <div className="p-2 bg-indigo-50 rounded-lg">
-                    <p className="text-[10px] text-indigo-600 font-bold uppercase">Return (est.)</p>
+                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase">Return (est.)</p>
                     <p className="text-lg font-bold text-indigo-900">${project.potentialReturn}</p>
                   </div>
                 </div>
                 <div className="mb-3">
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                     <span>Progress</span>
                     <span>{project.milestonesCompleted}/{project.milestonesCount}</span>
                   </div>
@@ -305,11 +305,11 @@ export default function PortfolioTab({ setTab }) {
                     <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span className={`font-medium ${project.claimed ? "text-green-600" : "text-gray-500"}`}>
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <span className={`font-medium ${project.claimed ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400"}`}>
                     {project.claimed ? "✓ Claimed" : "Pending"}
                   </span>
-                  <span className="font-medium text-indigo-600">{project.myMultiplier}x</span>
+                  <span className="font-medium text-indigo-600 dark:text-indigo-400">{project.myMultiplier}x</span>
                 </div>
               </div>
             </Card>

@@ -222,7 +222,7 @@ export default function LeaderboardPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <TrophyIcon className="w-8 h-8 text-yellow-500" />
+              <TrophyIcon className="w-8 h-8 text-yellow-500 dark:text-yellow-400" />
               <h1 className="text-3xl font-bold text-text-primary">Leaderboard</h1>
             </div>
             <p className="text-text-secondary">
@@ -349,7 +349,7 @@ function ShareButton({ text, url, entryType, entry, rank }) {
           handleShare("x");
           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank', 'noopener,noreferrer');
         }}
-        className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-blue-500 transition-colors"
+        className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-blue-500 dark:text-blue-400 transition-colors"
         title="Share on X"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -363,7 +363,7 @@ function ShareButton({ text, url, entryType, entry, rank }) {
           const fcText = text.replace(/@proofofship/g, '').trim();
           window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(fcText)}%20${encodeURIComponent(shareUrl)}`, '_blank', 'noopener,noreferrer');
         }}
-        className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-purple-500 transition-colors"
+        className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-purple-500 dark:text-purple-400 transition-colors"
         title="Share on Farcaster"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -434,7 +434,7 @@ function LeaderboardRow({ entry, rank, type }) {
       {/* Score */}
       <div className="text-right">
         <div className="text-lg font-bold text-text-primary flex items-center gap-1 justify-end">
-          <FireIcon className="w-4 h-4 text-orange-500" />
+          <FireIcon className="w-4 h-4 text-orange-500 dark:text-orange-400" />
           {entry.velocity || entry.score || 0}
         </div>
         <p className="text-xs text-text-tertiary">
@@ -561,11 +561,11 @@ function ProofBuildersList({ entries }) {
                 <div className="text-xs text-text-tertiary">avg proof</div>
               </div>
               <div>
-                <div className="font-bold text-emerald-600">{entry.evidenceCoverage || 0}%</div>
+                <div className="font-bold text-emerald-600 dark:text-emerald-400">{entry.evidenceCoverage || 0}%</div>
                 <div className="text-xs text-text-tertiary">evidence</div>
               </div>
               <div>
-                <div className="font-bold text-amber-600">{entry.score || 0}</div>
+                <div className="font-bold text-amber-600 dark:text-amber-400">{entry.score || 0}</div>
                 <div className="text-xs text-text-tertiary">proof score</div>
               </div>
             </div>
@@ -615,12 +615,12 @@ function ProvenProjectsList({ entries }) {
                 <div className="text-xs text-text-tertiary">avg proof</div>
               </div>
               <div>
-                <div className="font-bold text-emerald-600">{entry.evidenceCoverage || 0}%</div>
+                <div className="font-bold text-emerald-600 dark:text-emerald-400">{entry.evidenceCoverage || 0}%</div>
                 <div className="text-xs text-text-tertiary">evidence</div>
               </div>
               <div className="flex items-center justify-end gap-2">
                 <div>
-                  <div className="font-bold text-amber-600">{entry.score || 0}</div>
+                  <div className="font-bold text-amber-600 dark:text-amber-400">{entry.score || 0}</div>
                   <div className="text-xs text-text-tertiary">credibility</div>
                 </div>
                 {entry.slug ? (
@@ -666,13 +666,13 @@ function FastestPayoutHero({ entries }) {
             <span className="inline-block text-xs font-bold tracking-wider text-yellow-700 dark:text-yellow-400 uppercase bg-yellow-200/60 dark:bg-yellow-800/40 px-2.5 py-0.5 rounded-full">
               Fastest Paying
             </span>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 dark:text-white mt-0.5">
               {fastest.name}
             </h2>
           </div>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-300 ml-[52px]">
-          Pays winners in <span className="font-semibold text-emerald-700 dark:text-emerald-400">{fastest.avgPayoutDays} days</span> on average
+        <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-300 ml-[52px]">
+          Pays winners in <span className="font-semibold text-emerald-700 dark:text-emerald-300 dark:text-emerald-400">{fastest.avgPayoutDays} days</span> on average
           {fastest.payoutCompletionRate > 0 && ` with a ${fastest.payoutCompletionRate}% payout rate`}
         </p>
       </div>
@@ -680,22 +680,22 @@ function FastestPayoutHero({ entries }) {
       {/* Metric cards */}
       <div className="px-6 pb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-yellow-200/60 p-3.5 text-center">
-          <div className="flex items-center justify-center gap-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+          <div className="flex items-center justify-center gap-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300 dark:text-emerald-400">
             {fastest.avgPayoutDays}
-            <span className="text-sm font-normal text-gray-500">days</span>
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">days</span>
           </div>
           <p className="text-xs text-secondary mt-1">Average payout time</p>
         </div>
 
         <div className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-yellow-200/60 p-3.5 text-center">
-          <div className={`text-2xl font-bold ${fastest.payoutCompletionRate >= 80 ? 'text-green-700 dark:text-green-400' : fastest.payoutCompletionRate >= 50 ? 'text-amber-700 dark:text-amber-400' : 'text-red-700 dark:text-red-400'}`}>
+          <div className={`text-2xl font-bold ${fastest.payoutCompletionRate >= 80 ? 'text-green-700 dark:text-green-300 dark:text-green-400' : fastest.payoutCompletionRate >= 50 ? 'text-amber-700 dark:text-amber-400' : 'text-red-700 dark:text-red-300 dark:text-red-400'}`}>
             {fastest.payoutCompletionRate}%
           </div>
           <p className="text-xs text-secondary mt-1">Winners paid</p>
         </div>
 
         <div className="rounded-xl bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-yellow-200/60 p-3.5 text-center">
-          <div className="text-2xl font-bold text-gray-800 dark:text-white">
+          <div className="text-2xl font-bold text-gray-800 dark:text-gray-200 dark:text-white">
             {fastest.builderCount || 0}
           </div>
           <p className="text-xs text-secondary mt-1">Active builders</p>
@@ -714,7 +714,7 @@ function FastestPayoutHero({ entries }) {
         <div className="border-t border-yellow-200/50 px-6 py-3 flex items-center justify-between bg-white/40 dark:bg-white/5">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              <BoltIcon className="w-4 h-4 text-yellow-500" />
+              <BoltIcon className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
               {runnerUp.name}
             </span>
             <span className="text-xs text-secondary">
@@ -723,7 +723,7 @@ function FastestPayoutHero({ entries }) {
           </div>
           <div className="flex items-center gap-4 text-sm">
             <span className="font-semibold text-emerald-600 dark:text-emerald-400">{runnerUp.avgPayoutDays}d avg</span>
-            <span className={`font-semibold ${runnerUp.payoutCompletionRate >= 80 ? 'text-green-600' : 'text-amber-600'}`}>
+            <span className={`font-semibold ${runnerUp.payoutCompletionRate >= 80 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {runnerUp.payoutCompletionRate}%
             </span>
           </div>
@@ -756,12 +756,12 @@ function HackathonLeaderboardRow({ entry, rank }) {
   // Payout speed color coding (lower days = faster = greener)
   const payoutSpeedColor = entry.avgPayoutDays !== null
     ? entry.avgPayoutDays <= 7
-      ? 'text-emerald-600'
+      ? 'text-emerald-600 dark:text-emerald-400'
       : entry.avgPayoutDays <= 30
-        ? 'text-green-600'
+        ? 'text-green-600 dark:text-green-400'
         : entry.avgPayoutDays <= 90
-          ? 'text-amber-600'
-          : 'text-red-600'
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-red-600 dark:text-red-400'
     : 'text-text-tertiary';
 
   const payoutSpeedLabel = entry.avgPayoutDays !== null
@@ -827,7 +827,7 @@ function HackathonLeaderboardRow({ entry, rank }) {
         )}
 
         <div className="text-right">
-          <div className={`text-lg font-bold ${entry.payoutCompletionRate >= 80 ? 'text-green-600' : entry.payoutCompletionRate >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+          <div className={`text-lg font-bold ${entry.payoutCompletionRate >= 80 ? 'text-green-600 dark:text-green-400' : entry.payoutCompletionRate >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
             {entry.payoutCompletionRate}%
           </div>
           <p className="text-xs text-text-tertiary">paid</p>
@@ -837,7 +837,7 @@ function HackathonLeaderboardRow({ entry, rank }) {
       {/* Score */}
       <div className="text-right min-w-[80px]">
         <div className="text-lg font-bold text-text-primary flex items-center gap-1 justify-end">
-          <TrophyIcon className="w-4 h-4 text-yellow-500" />
+          <TrophyIcon className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
           {entry.score}
         </div>
         <p className="text-xs text-text-tertiary">reputation</p>

@@ -147,7 +147,7 @@ export default function LoginPage() {
   };
 
   const renderWalletButtons = () => {
-    if (!mounted) return <div className="text-sm text-gray-400">Loading wallets...</div>;
+    if (!mounted) return <div className="text-sm text-gray-400 dark:text-gray-500">Loading wallets...</div>;
     return (
       <div className="flex flex-col items-stretch gap-2 w-full sm:w-auto sm:min-w-[260px]">
         <div className="flex gap-2">
@@ -168,7 +168,7 @@ export default function LoginPage() {
             {solanaConnecting ? <span className="animate-spin">{'⏳'}</span> : <>{'\u{1F47B}'} Solana Wallet</>}
           </button>
         </div>
-        <p className="text-[11px] text-gray-400 text-center leading-snug">
+        <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center leading-snug">
           EVM supports MetaMask, Rabby, Coinbase, WalletConnect &amp; more.
         </p>
       </div>
@@ -189,19 +189,19 @@ export default function LoginPage() {
             <button onClick={() => setRole('builder')}
               className="p-6 bg-surface rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left group">
               <div className="text-2xl mb-2">{'\u{1F680}'}</div>
-              <h3 className="text-lg font-bold text-primary group-hover:text-blue-700">I&apos;m Building</h3>
+              <h3 className="text-lg font-bold text-primary group-hover:text-blue-700 dark:text-blue-300">I&apos;m Building</h3>
               <p className="text-sm text-secondary mt-1">Ship projects and get funded based on your track record.</p>
-              <p className="text-xs text-gray-400 mt-3">Connects GitHub + Wallet</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Connects GitHub + Wallet</p>
             </button>
             <button onClick={() => setRole('backer')}
               className="p-6 bg-surface rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-left group">
               <div className="text-2xl mb-2">{'\u{1F4B0}'}</div>
-              <h3 className="text-lg font-bold text-primary group-hover:text-purple-700">I&apos;m Staking</h3>
+              <h3 className="text-lg font-bold text-primary group-hover:text-purple-700 dark:text-purple-300">I&apos;m Staking</h3>
               <p className="text-sm text-secondary mt-1">Fund builders and track your portfolio.</p>
-              <p className="text-xs text-gray-400 mt-3">Wallet only — no GitHub needed</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Wallet only — no GitHub needed</p>
             </button>
           </div>
-          <p className="mt-6 text-center text-xs text-gray-400">You can always add more later in your profile.</p>
+          <p className="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">You can always add more later in your profile.</p>
         </div>
       </div>
     );
@@ -218,19 +218,19 @@ export default function LoginPage() {
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
           <div className="bg-surface py-8 px-4 shadow-xl border border-gray-100 sm:rounded-xl sm:px-10">
-            {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">{error}</div>}
+            {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 dark:text-red-300">{error}</div>}
             <div className="space-y-6">
               <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 dark:border-green-600 bg-green-100 dark:bg-green-900/40' : 'border-gray-200 dark:border-gray-700'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center">
-                    <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-600 dark:bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-600 dark:bg-green-500 text-white' : 'bg-gray-100 text-gray-400 dark:text-gray-500'}`}>
                       {anyWalletConnected ? (
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       ) : <span className="text-xs font-bold">1</span>}
                     </div>
                     <div className="ml-3">
                       <p className="text-sm font-bold text-primary">Your Wallet</p>
-                      <p className={`text-xs ${anyWalletConnected ? 'text-green-800 dark:text-green-200 font-medium' : 'text-secondary'}`}>
+                      <p className={`text-xs ${anyWalletConnected ? 'text-green-800 dark:text-green-300 dark:text-green-200 font-medium' : 'text-secondary'}`}>
                         {anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funds'}
                       </p>
                     </div>
@@ -242,13 +242,13 @@ export default function LoginPage() {
               <div className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${isFullyAuthed ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
                 {isFullyAuthed ? (
                   <div className="space-y-2">
-                    <p className="text-sm font-bold text-green-700">You&apos;re in!</p>
-                    <p className="text-xs text-green-600">Taking you to your dashboard...</p>
+                    <p className="text-sm font-bold text-green-700 dark:text-green-300">You&apos;re in!</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">Taking you to your dashboard...</p>
                   </div>
                 ) : alreadyLinked ? (
                   <div className="space-y-2">
-                    <p className="text-sm font-bold text-green-700">This wallet is already linked to your account.</p>
-                    <Link href="/profile" className="text-xs text-blue-600 underline">Manage your wallets</Link>
+                    <p className="text-sm font-bold text-green-700 dark:text-green-300">This wallet is already linked to your account.</p>
+                    <Link href="/profile" className="text-xs text-blue-600 dark:text-blue-400 underline">Manage your wallets</Link>
                   </div>
                 ) : anyWalletConnected ? (
                   <div className="space-y-3">
@@ -264,8 +264,8 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'←'} Back</button>
-                <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600">Start over</button>
+                <button onClick={() => setRole(null)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300">{'←'} Back</button>
+                <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600 dark:text-red-400">Start over</button>
               </div>
             </div>
           </div>
@@ -284,12 +284,12 @@ export default function LoginPage() {
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
         <div className="bg-surface py-8 px-4 shadow-xl border border-gray-100 sm:rounded-xl sm:px-10">
-          {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">{error}</div>}
+          {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 dark:text-red-300">{error}</div>}
           <div className="space-y-6">
             <div className={`p-4 rounded-lg border-2 transition-all ${currentUser ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className={`p-2 rounded-full ${currentUser ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                  <div className={`p-2 rounded-full ${currentUser ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400 dark:text-gray-500'}`}>
                     {currentUser ? <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> : <span className="text-xs font-bold">1</span>}
                   </div>
                   <div className="ml-3">
@@ -309,12 +309,12 @@ export default function LoginPage() {
             <div className={`p-4 rounded-lg border-2 transition-all ${anyWalletConnected ? 'border-green-500 dark:border-green-600 bg-green-100 dark:bg-green-900/40' : 'border-gray-200 dark:border-gray-700'}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center">
-                  <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-600 dark:bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                  <div className={`p-2 rounded-full ${anyWalletConnected ? 'bg-green-600 dark:bg-green-500 text-white' : 'bg-gray-100 text-gray-400 dark:text-gray-500'}`}>
                     {anyWalletConnected ? <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> : <span className="text-xs font-bold">2</span>}
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-bold text-primary">Wallet</p>
-                    <p className={`text-xs ${anyWalletConnected ? 'text-green-800 dark:text-green-200 font-medium' : 'text-secondary'}`}>{anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funding payouts.'}</p>
+                    <p className={`text-xs ${anyWalletConnected ? 'text-green-800 dark:text-green-300 dark:text-green-200 font-medium' : 'text-secondary'}`}>{anyWalletConnected && activeWalletAddress ? `Connected: ${connectedSnsName || `${activeWalletAddress.slice(0,6)}...${activeWalletAddress.slice(-4)}`}` : 'Where you receive funding payouts.'}</p>
                   </div>
                 </div>
                 {!anyWalletConnected && renderWalletButtons()}
@@ -324,13 +324,13 @@ export default function LoginPage() {
             <div className={`p-6 rounded-lg border-2 border-dashed transition-all text-center ${isFullyAuthed || alreadyLinked ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
               {isFullyAuthed ? (
                 <div className="space-y-2">
-                  <p className="text-sm font-bold text-green-700">All set!</p>
-                  <p className="text-xs text-green-600">Taking you to your dashboard...</p>
+                  <p className="text-sm font-bold text-green-700 dark:text-green-300">All set!</p>
+                  <p className="text-xs text-green-600 dark:text-green-400">Taking you to your dashboard...</p>
                 </div>
               ) : alreadyLinked ? (
                 <div className="space-y-2">
-                  <p className="text-sm font-bold text-green-700">This wallet is already linked to your account.</p>
-                  <Link href="/profile" className="text-xs text-blue-600 underline">Manage your wallets</Link>
+                  <p className="text-sm font-bold text-green-700 dark:text-green-300">This wallet is already linked to your account.</p>
+                  <Link href="/profile" className="text-xs text-blue-600 dark:text-blue-400 underline">Manage your wallets</Link>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -339,15 +339,15 @@ export default function LoginPage() {
                     className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg shadow-md hover:from-blue-700 hover:to-purple-700 disabled:opacity-30 disabled:grayscale transition-all">
                     {isLinking ? 'Waiting for wallet...' : 'Confirm & Continue'}
                   </button>
-                  {!currentUser && <p className="text-xs text-gray-400">Connect GitHub first (step 1)</p>}
-                  {currentUser && !anyWalletConnected && <p className="text-xs text-gray-400">Connect a wallet (step 2)</p>}
+                  {!currentUser && <p className="text-xs text-gray-400 dark:text-gray-500">Connect GitHub first (step 1)</p>}
+                  {currentUser && !anyWalletConnected && <p className="text-xs text-gray-400 dark:text-gray-500">Connect a wallet (step 2)</p>}
                 </div>
               )}
             </div>
 
             <div className="flex items-center justify-between">
-              <button onClick={() => setRole(null)} className="text-sm text-gray-500 hover:text-gray-700">{'←'} Back</button>
-              <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600">Start over</button>
+              <button onClick={() => setRole(null)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300">{'←'} Back</button>
+              <button onClick={handleStartOver} className="text-sm text-red-400 hover:text-red-600 dark:text-red-400">Start over</button>
             </div>
           </div>
         </div>

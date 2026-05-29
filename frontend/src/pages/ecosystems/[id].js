@@ -64,13 +64,13 @@ export default function EcosystemPage() {
     return (
       <div className="flex items-center justify-center py-16">
         <LoadingSpinner size="lg" />
-        <span className="ml-3 text-lg text-gray-600">Loading {id || ''} projects...</span>
+        <span className="ml-3 text-lg text-gray-600 dark:text-gray-400">Loading {id || ''} projects...</span>
       </div>
     );
   }
 
   if (!ecosystemConfig) {
-    return <div className="py-16 text-center text-gray-600">Ecosystem not found.</div>;
+    return <div className="py-16 text-center text-gray-600 dark:text-gray-400">Ecosystem not found.</div>;
   }
 
   const ViewComponent = VIEW_MODES[viewMode].component;
@@ -91,7 +91,7 @@ export default function EcosystemPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-primary">{ecosystemConfig.name}</h1>
-              <p className="text-lg text-gray-600">{ecosystemConfig.longDescription}</p>
+              <p className="text-lg text-gray-600 dark:text-gray-400">{ecosystemConfig.longDescription}</p>
             </div>
           </div>
         </div>
@@ -106,11 +106,11 @@ export default function EcosystemPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <Card className="p-4 text-center"><div className="text-2xl font-bold text-primary">{stats.total}</div><div className="text-sm text-gray-600">Total</div></Card>
-        <Card className="p-4 text-center"><div className="text-2xl font-bold text-green-600">{stats.active}</div><div className="text-sm text-gray-600">Active</div></Card>
-        <Card className="p-4 text-center"><div className="text-2xl font-bold text-blue-600">{stats.totalCommits}</div><div className="text-sm text-gray-600">Commits</div></Card>
-        <Card className="p-4 text-center"><div className="text-2xl font-bold text-purple-600">{stats.averageHealth}%</div><div className="text-sm text-gray-600">Avg Health</div></Card>
-        <Card className="p-4 text-center"><div className="text-2xl font-bold text-orange-600">{stats.totalStars}</div><div className="text-sm text-gray-600">Stars</div></Card>
+        <Card className="p-4 text-center"><div className="text-2xl font-bold text-primary">{stats.total}</div><div className="text-sm text-gray-600 dark:text-gray-400">Total</div></Card>
+        <Card className="p-4 text-center"><div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</div><div className="text-sm text-gray-600 dark:text-gray-400">Active</div></Card>
+        <Card className="p-4 text-center"><div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalCommits}</div><div className="text-sm text-gray-600 dark:text-gray-400">Commits</div></Card>
+        <Card className="p-4 text-center"><div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.averageHealth}%</div><div className="text-sm text-gray-600 dark:text-gray-400">Avg Health</div></Card>
+        <Card className="p-4 text-center"><div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.totalStars}</div><div className="text-sm text-gray-600 dark:text-gray-400">Stars</div></Card>
       </div>
 
       {/* Port Details & Leaderboard */}
@@ -124,17 +124,17 @@ export default function EcosystemPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ul className="space-y-3">
                 {ecosystemConfig.submissionRequirements?.map((req, i) => (
-                  <li key={i} className="flex items-start text-sm text-gray-600">
-                    <span className="text-blue-500 mr-2 mt-0.5">•</span>
+                  <li key={i} className="flex items-start text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-blue-500 dark:text-blue-400 mr-2 mt-0.5">•</span>
                     {req}
                   </li>
                 ))}
               </ul>
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2">Ecosystem Benefits</h4>
+                <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-2">Ecosystem Benefits</h4>
                 <ul className="space-y-2">
                   {ecosystemConfig.features?.map((f, i) => (
-                    <li key={i} className="text-xs text-blue-600 flex items-center">
+                    <li key={i} className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
                       <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2"></span>
                       {f}
                     </li>
@@ -155,17 +155,17 @@ export default function EcosystemPage() {
                   <div key={i} className="bg-surface p-4 rounded-lg border-default border-orange-100 shadow-sm flex items-center justify-between">
                     <div>
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 uppercase tracking-wider">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700 dark:text-orange-300 uppercase tracking-wider">
                           {boost.label}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600">{boost.description}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{boost.description}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-orange-600">
+                      <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                         {boost.boost}x
                       </div>
-                      <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-tighter">Boost</div>
+                      <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-tighter">Boost</div>
                     </div>
                   </div>
                 ))}
@@ -184,7 +184,7 @@ export default function EcosystemPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex flex-col sm:flex-row gap-4 flex-1">
             <div className="relative flex-1">
-              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
               <input type="text" placeholder={`Search ${ecosystemConfig.name} projects...`}
                 value={filters.search} onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
@@ -206,7 +206,7 @@ export default function EcosystemPage() {
             <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg">
               {Object.entries(VIEW_MODES).map(([mode, config]) => (
                 <button key={mode} onClick={() => setViewMode(mode)} title={config.name}
-                  className={`p-2 rounded-md transition-colors ${viewMode === mode ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-primary'}`}>
+                  className={`p-2 rounded-md transition-colors ${viewMode === mode ? 'bg-white text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-primary'}`}>
                   <config.icon className="w-4 h-4" />
                 </button>
               ))}
@@ -246,7 +246,7 @@ export default function EcosystemPage() {
         <Card className="p-12 text-center">
           <div className="text-6xl mb-4">{ecosystemConfig.icon}</div>
           <h3 className="text-lg font-medium text-primary mb-2">No projects found</h3>
-          <p className="text-gray-600">Try adjusting your filters to see more projects.</p>
+          <p className="text-gray-600 dark:text-gray-400">Try adjusting your filters to see more projects.</p>
         </Card>
       ) : (
         <div className={`grid gap-6 ${gridCols}`}>
@@ -262,7 +262,7 @@ export default function EcosystemPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-primary mb-2">Inspired by these projects?</h3>
-              <p className="text-gray-600">Get your developer credit score and unlock funding.</p>
+              <p className="text-gray-600 dark:text-gray-400">Get your developer credit score and unlock funding.</p>
             </div>
             <Button onClick={() => router.push('/credit')} className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white whitespace-nowrap">
               Get Funded

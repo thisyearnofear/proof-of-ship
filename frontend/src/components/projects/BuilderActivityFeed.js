@@ -18,11 +18,11 @@ const ACTIVITY_ICONS = {
 };
 
 const ACTIVITY_COLORS = {
-  micro_update: "bg-blue-50 border-blue-200 text-blue-600",
-  milestone: "bg-green-50 border-green-200 text-green-600",
-  verification: "bg-purple-50 border-purple-200 text-purple-600",
-  deployment: "bg-amber-50 border-amber-200 text-amber-600",
-  follow: "bg-pink-50 border-pink-200 text-pink-600",
+  micro_update: "bg-blue-50 border-blue-200 text-blue-600 dark:text-blue-400",
+  milestone: "bg-green-50 border-green-200 text-green-600 dark:text-green-400",
+  verification: "bg-purple-50 border-purple-200 text-purple-600 dark:text-purple-400",
+  deployment: "bg-amber-50 border-amber-200 text-amber-600 dark:text-amber-400",
+  follow: "bg-pink-50 border-pink-200 text-pink-600 dark:text-pink-400",
 };
 
 const ACTIVITY_LABELS = {
@@ -84,10 +84,10 @@ export default function BuilderActivityFeed({
       <Card className="p-8">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-            <ChatBubbleLeftRightIcon className="w-6 h-6 text-gray-400" />
+            <ChatBubbleLeftRightIcon className="w-6 h-6 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-1">No recent activity</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">No recent activity</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Ships Log updates from this builder&apos;s projects will appear here.
           </p>
         </div>
@@ -99,10 +99,10 @@ export default function BuilderActivityFeed({
     <Card className="p-6">
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-          <RocketLaunchIcon className="w-4 h-4 text-blue-600" />
+          <RocketLaunchIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
         </div>
-        <h2 className="text-lg font-bold text-gray-900">Recent Activity</h2>
-        <span className="text-xs text-gray-500 ml-auto">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Recent Activity</h2>
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
           {sorted.length} update{sorted.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -138,7 +138,7 @@ export default function BuilderActivityFeed({
                           {ecoConfig.icon}
                         </span>
                       )}
-                      <span className="text-xs font-semibold text-gray-900 truncate">
+                      <span className="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {projectName}
                       </span>
                       <span
@@ -147,13 +147,13 @@ export default function BuilderActivityFeed({
                         {label}
                       </span>
                     </div>
-                    <span className="text-[10px] text-gray-400 flex-shrink-0">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0">
                       {formatTimeAgo(activity.timestamp)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700">{activity.message}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{activity.message}</p>
                   {activity.userHandle && (
-                    <p className="text-[10px] text-gray-400 mt-1">by {activity.userHandle}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">by {activity.userHandle}</p>
                   )}
                 </div>
               </div>

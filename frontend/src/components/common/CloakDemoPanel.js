@@ -85,22 +85,22 @@ export default function CloakDemoPanel({ className = '' }) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            <h3 className="text-lg font-bold text-purple-900">Cloak Private Payments</h3>
+            <h3 className="text-lg font-bold text-purple-900 dark:text-purple-200">Cloak Private Payments</h3>
           </div>
-          <p className="text-sm text-purple-700">
+          <p className="text-sm text-purple-700 dark:text-purple-300">
             Interactive demo of shielded USDC transfers on Solana.
             {running ? ' Watch each step below.' : ' Click "Run Demo" to see the flow.'}
           </p>
         </div>
-        <label className="flex items-center gap-1.5 text-xs text-purple-600 cursor-pointer">
+        <label className="flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 cursor-pointer">
           <input
             type="checkbox"
             checked={showTechnical}
             onChange={(e) => setShowTechnical(e.target.checked)}
-            className="rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+            className="rounded border-purple-300 text-purple-600 dark:text-purple-400 focus:ring-purple-500"
           />
           Technical
         </label>
@@ -126,7 +126,7 @@ export default function CloakDemoPanel({ className = '' }) {
               <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                 isComplete ? 'bg-green-500 text-white' :
                 isActive ? 'bg-purple-600 text-white animate-pulse' :
-                'bg-gray-200 text-gray-500'
+                'bg-gray-200 text-gray-500 dark:text-gray-400'
               }`}>
                 {isComplete ? '✓' : i + 1}
               </div>
@@ -135,18 +135,18 @@ export default function CloakDemoPanel({ className = '' }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span>{step.icon}</span>
-                  <span className={`text-sm font-semibold ${isActive ? 'text-purple-900' : isComplete ? 'text-gray-900' : 'text-gray-500'}`}>
+                  <span className={`text-sm font-semibold ${isActive ? 'text-purple-900 dark:text-purple-200' : isComplete ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}`}>
                     {step.title}
                   </span>
                   {isActive && (
-                    <span className="text-xs text-purple-600 animate-pulse">Processing...</span>
+                    <span className="text-xs text-purple-600 dark:text-purple-400 animate-pulse">Processing...</span>
                   )}
                 </div>
-                <p className={`text-xs mt-1 ${isActive || isComplete ? 'text-gray-700' : 'text-gray-400'}`}>
+                <p className={`text-xs mt-1 ${isActive || isComplete ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'}`}>
                   {step.description}
                 </p>
                 {showTechnical && (isActive || isComplete) && (
-                  <p className="text-[11px] mt-1 font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                  <p className="text-[11px] mt-1 font-mono text-purple-600 dark:text-purple-400 bg-purple-50 px-2 py-1 rounded">
                     {step.technical}
                   </p>
                 )}
@@ -179,18 +179,18 @@ export default function CloakDemoPanel({ className = '' }) {
           )}
         </Button>
         {completedSteps.length > 0 && !running && (
-          <button onClick={reset} className="text-sm text-purple-600 hover:text-purple-800">
+          <button onClick={reset} className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:text-purple-300">
             Reset
           </button>
         )}
         {completedSteps.length === STEP_DETAILS.length && !running && (
-          <span className="text-sm text-green-700 font-medium">Demo complete — this is how Cloak works on mainnet</span>
+          <span className="text-sm text-green-700 dark:text-green-300 font-medium">Demo complete — this is how Cloak works on mainnet</span>
         )}
       </div>
 
       {/* Info footer */}
       <div className="mt-4 pt-3 border-t border-purple-200">
-        <p className="text-[11px] text-purple-600">
+        <p className="text-[11px] text-purple-600 dark:text-purple-400">
           <strong>How it works:</strong> Cloak is a UTXO shielded pool on Solana using Groth16 proofs.
           On mainnet, the Cloak program is deployed and this flow executes real on-chain transactions.
           On devnet, we demonstrate the exact same SDK calls with simulated timing.

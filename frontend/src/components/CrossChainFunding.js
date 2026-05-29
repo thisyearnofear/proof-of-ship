@@ -171,10 +171,10 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
     return (
       <Card className="p-6">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-red-600 mb-2">
+          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
             Funding Not Available
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Credit score must be at least 400 to qualify for funding.
           </p>
         </div>
@@ -189,18 +189,18 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
         <h3 className="text-xl font-semibold mb-4">USDC Funding Options</h3>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <p className="text-sm text-gray-600">Credit Score</p>
-            <p className="text-2xl font-bold text-green-600">{creditScore}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Credit Score</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{creditScore}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Eligible Amount</p>
-            <p className="text-2xl font-bold text-blue-600">${fundingAmount} USDC</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Eligible Amount</p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">${fundingAmount} USDC</p>
           </div>
         </div>
 
         {/* Funding Mode Selection */}
         <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Funding Method</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Funding Method</p>
           <div className="flex space-x-4">
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
@@ -209,7 +209,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
                 value="direct"
                 checked={fundingMode === 'direct'}
                 onChange={(e) => setFundingMode(e.target.value)}
-                className="text-blue-600"
+                className="text-blue-600 dark:text-blue-400"
               />
               <span className="text-sm">
                 Direct Transfer (Circle API)
@@ -222,7 +222,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
                 value="cross-chain"
                 checked={fundingMode === 'cross-chain'}
                 onChange={(e) => setFundingMode(e.target.value)}
-                className="text-blue-600"
+                className="text-blue-600 dark:text-blue-400"
               />
               <span className="text-sm">Cross-Chain Distribution (LI.FI)</span>
             </label>
@@ -233,7 +233,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
         {apiConfig && (
           <div className={`p-3 rounded-lg text-sm ${
             apiConfig.configured 
-              ? 'bg-green-50 text-green-800 border border-green-200' 
+              ? 'bg-green-50 text-green-800 dark:text-green-300 border border-green-200' 
               : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
           }`}>
             {apiConfig.message}
@@ -245,7 +245,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
       {fundingMode === 'direct' && (
         <Card className="p-6">
           <h4 className="text-lg font-semibold mb-4">Direct USDC Transfer</h4>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Receive funding directly to your wallet using Circle&apos;s infrastructure.
           </p>
           
@@ -305,7 +305,7 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
               <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium">{getChainName(dist.chainId)}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {dist.type === 'direct' ? 'Direct Transfer' : 'Cross-Chain via LI.FI'}
                   </p>
                 </div>
@@ -313,9 +313,9 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
                   <p className="font-semibold">${dist.amount} USDC</p>
                   {transferStatus[dist.chainId] && (
                     <p className={`text-xs ${
-                      transferStatus[dist.chainId] === 'completed' ? 'text-green-600' :
-                      transferStatus[dist.chainId] === 'failed' ? 'text-red-600' :
-                      'text-yellow-600'
+                      transferStatus[dist.chainId] === 'completed' ? 'text-green-600 dark:text-green-400' :
+                      transferStatus[dist.chainId] === 'failed' ? 'text-red-600 dark:text-red-400' :
+                      'text-yellow-600 dark:text-yellow-400'
                     }`}>
                       {transferStatus[dist.chainId]}
                     </p>
@@ -347,13 +347,13 @@ export default function CrossChainFunding({ creditScore, developerAddress, onFun
       {/* Integration Badges */}
       <Card className="p-4">
         <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-blue-100 text-blue-800 dark:text-blue-300 text-xs font-medium rounded-full">
             MetaMask SDK
           </span>
-          <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-green-100 text-green-800 dark:text-green-300 text-xs font-medium rounded-full">
             Circle USDC
           </span>
-          <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-purple-100 text-purple-800 dark:text-purple-300 text-xs font-medium rounded-full">
             LI.FI Cross-Chain
           </span>
         </div>

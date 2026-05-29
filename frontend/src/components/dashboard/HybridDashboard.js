@@ -280,17 +280,17 @@ function DashboardHeader({
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Projects
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {totalStats.total} across {totalStats.ecosystems} ecosystems
         </p>
       </div>
 
       <div className="flex items-center gap-2">
         <div className="relative">
-          <MagnifyingGlassIcon className="w-4 h-4 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlassIcon className="w-4 h-4 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Search..."
@@ -314,7 +314,7 @@ function DashboardHeader({
           onClick={onToggleSettings}
           className={`p-1.5 rounded-lg border transition-colors ${showSettings ? 'bg-blue-50 border-blue-300' : 'border-gray-300 hover:bg-gray-50'}`}
         >
-          <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-600" />
+          <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
         </button>
       </div>
     </div>
@@ -328,7 +328,7 @@ function SettingsPanel({ filters, onFilterChange, onClose }) {
   return (
     <Card className="p-6 bg-gray-50 border-2 border-gray-200">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Filter & Sort Options</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filter & Sort Options</h3>
         <Button onClick={onClose} variant="ghost" size="sm">
           ✕
         </Button>
@@ -344,13 +344,13 @@ function SettingsPanel({ filters, onFilterChange, onClose }) {
               onChange={(e) => onFilterChange('activeOnly', e.target.checked)}
               className="rounded border-gray-300"
             />
-            <span className="text-sm font-medium text-gray-700">Active projects only</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active projects only</span>
           </label>
         </div>
 
         {/* Min Health Score */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Min Health Score: {filters.minHealthScore}%
           </label>
           <input
@@ -366,7 +366,7 @@ function SettingsPanel({ filters, onFilterChange, onClose }) {
 
         {/* Sort By */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Sort by
           </label>
           <select
@@ -384,7 +384,7 @@ function SettingsPanel({ filters, onFilterChange, onClose }) {
 
         {/* Sort Order */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Order
           </label>
           <select
@@ -434,10 +434,10 @@ function QuickStats({ stats }) {
   ];
 
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    yellow: 'bg-yellow-50 text-yellow-600'
+    blue: 'bg-blue-50 text-blue-600 dark:text-blue-400',
+    green: 'bg-green-50 text-green-600 dark:text-green-400',
+    purple: 'bg-purple-50 text-purple-600 dark:text-purple-400',
+    yellow: 'bg-yellow-50 text-yellow-600 dark:text-yellow-400'
   };
 
   return (
@@ -449,10 +449,10 @@ function QuickStats({ stats }) {
               <item.icon className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-900">{item.value}</div>
-              <div className="text-sm text-gray-600">{item.title}</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{item.value}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{item.title}</div>
               {item.subtitle && (
-                <div className="text-xs text-gray-500">{item.subtitle}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{item.subtitle}</div>
               )}
             </div>
           </div>
@@ -472,11 +472,11 @@ function CallToAction({ userProfile }) {
     <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-            <SparklesIcon className="w-5 h-5 mr-2 text-blue-600" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
+            <SparklesIcon className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
             Ready to get funded?
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Complete your developer profile to unlock funding opportunities up to $5,000 USDC.
           </p>
         </div>

@@ -22,10 +22,10 @@ export default function OnChainStats({ contract, prs, releases }) {
   if (!contract?.address) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">
+        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 dark:text-gray-100 border-b pb-2">
           Contract Analytics
         </h2>
-        <p className="text-gray-500 text-sm">No contract address provided</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">No contract address provided</p>
       </div>
     );
   }
@@ -33,7 +33,7 @@ export default function OnChainStats({ contract, prs, releases }) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">
+        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 dark:text-gray-100 border-b pb-2">
           Contract Analytics
         </h2>
         <div className="animate-pulse flex flex-col space-y-2">
@@ -49,10 +49,10 @@ export default function OnChainStats({ contract, prs, releases }) {
   if (isError || !contractData) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
-        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 border-b pb-2">
+        <h2 className="text-2xl font-bold mb-6 tracking-tight text-gray-900 dark:text-gray-100 border-b pb-2">
           Contract Analytics
         </h2>
-        <p className="text-red-500 text-sm">Error loading contract data</p>
+        <p className="text-red-500 dark:text-red-400 text-sm">Error loading contract data</p>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function OnChainStats({ contract, prs, releases }) {
             className={`px-4 py-3 text-sm font-medium ${
               activeTab === "overview"
                 ? "border-b-2 border-primary-500 text-primary-600"
-                : "text-gray-500 hover:text-gray-700"
+                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300"
             }`}
             onClick={() => setActiveTab("overview")}
           >
@@ -77,7 +77,7 @@ export default function OnChainStats({ contract, prs, releases }) {
               className={`px-4 py-3 text-sm font-medium ${
                 activeTab === "github"
                   ? "border-b-2 border-primary-500 text-primary-600"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300"
               }`}
               onClick={() => setActiveTab("github")}
             >
@@ -91,7 +91,7 @@ export default function OnChainStats({ contract, prs, releases }) {
         {activeTab === "overview" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Contract Overview
               </h2>
               <a
@@ -101,7 +101,7 @@ export default function OnChainStats({ contract, prs, releases }) {
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-amber-600 hover:text-amber-700 text-sm flex items-center"
+                className="text-amber-600 dark:text-amber-400 hover:text-amber-700 text-sm flex items-center"
               >
                 <LinkIcon className="w-4 h-4 mr-1" />
                 View on Explorer
@@ -110,14 +110,14 @@ export default function OnChainStats({ contract, prs, releases }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Contract Address</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Contract Address</p>
                 <p className="font-mono text-sm">
                   {formatAddress(contractData.address, 10, 8)}
                 </p>
               </div>
 
               <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Contract Type</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Contract Type</p>
                 <p className="font-medium">
                   {contractData.type === "ERC20"
                     ? "Token (ERC20)"
@@ -133,22 +133,22 @@ export default function OnChainStats({ contract, prs, releases }) {
             {/* Token-specific information */}
             {contractData.type === "ERC20" && contractData.details && (
               <div className="border rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
                   Token Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Token Name</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Token Name</p>
                     <p className="font-medium">{contractData.details.name}</p>
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-500">Symbol</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Symbol</p>
                     <p className="font-medium">{contractData.details.symbol}</p>
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-500">Total Supply</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Supply</p>
                     <p className="font-medium">
                       {parseFloat(
                         contractData.details.totalSupply
@@ -163,17 +163,17 @@ export default function OnChainStats({ contract, prs, releases }) {
             {/* NFT-specific information */}
             {contractData.type === "ERC721" && contractData.details && (
               <div className="border rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
                   NFT Collection Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Collection Name</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Collection Name</p>
                     <p className="font-medium">{contractData.details.name}</p>
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-500">Symbol</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Symbol</p>
                     <p className="font-medium">{contractData.details.symbol}</p>
                   </div>
                 </div>
@@ -203,23 +203,23 @@ export default function OnChainStats({ contract, prs, releases }) {
             {/* GitHub Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">All Time Downloads</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">All Time Downloads</p>
                 <p className="font-medium">0</p>
               </div>
               <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Open Issues</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Open Issues</p>
                 <p className="font-medium">
                   {prs?.filter((pr) => !pr.pull_request)?.length || 0}
                 </p>
               </div>
               <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Open PRs</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Open PRs</p>
                 <p className="font-medium">
                   {prs?.filter((pr) => pr.state === "open")?.length || 0}
                 </p>
               </div>
               <div className="border rounded-lg p-3">
-                <p className="text-sm text-gray-500">Latest Version</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Latest Version</p>
                 <p className="font-medium">
                   {releases?.[0]?.tag_name || "v0.0.0"}
                 </p>
@@ -246,19 +246,19 @@ export default function OnChainStats({ contract, prs, releases }) {
                           href={pr.html_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 truncate block"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-300 truncate block"
                         >
                           {pr.title}
                         </a>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           #{pr.number} by {pr.user.login}
                         </span>
                       </div>
                       <span
                         className={`text-xs px-2 py-1 rounded-full ${
                           pr.state === "open"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-purple-100 text-purple-800"
+                            ? "bg-green-100 text-green-800 dark:text-green-300"
+                            : "bg-purple-100 text-purple-800 dark:text-purple-300"
                         }`}
                       >
                         {pr.state}
@@ -267,7 +267,7 @@ export default function OnChainStats({ contract, prs, releases }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">No pull requests found</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No pull requests found</p>
               )}
             </div>
 
@@ -282,25 +282,25 @@ export default function OnChainStats({ contract, prs, releases }) {
                         href={releases[0].html_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-300 font-medium"
                       >
                         {releases[0].name || releases[0].tag_name}
                       </a>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Released on{" "}
                         {new Date(
                           releases[0].published_at
                         ).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-blue-100 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full">
                       {releases[0].tag_name}
                     </span>
                   </div>
 
                   {releases[0].assets && releases[0].assets.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs text-gray-500 mb-1">Downloads</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Downloads</p>
                       {releases[0].assets.map((asset) => (
                         <div
                           key={asset.id}
@@ -316,7 +316,7 @@ export default function OnChainStats({ contract, prs, releases }) {
                   )}
                 </div>
               ) : (
-                <p className="text-gray-500 text-sm">No releases found</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No releases found</p>
               )}
             </div>
           </div>

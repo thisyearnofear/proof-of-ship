@@ -185,12 +185,12 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
           <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CogIcon className="w-5 h-5 text-gray-600" />
+                <CogIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {nanopaymentDemoMode ? "Test mode" : "Live mode"}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {nanopaymentDemoMode
                       ? "Payments skipped. Responses marked as test mode."
                       : "Use real USDC for live Arc-backed payments."}
@@ -221,7 +221,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
           {resultMessage && (
             <div className={`rounded-lg border px-3 py-2 text-sm ${
               resultMessage.tone === 'success'
-                ? 'border-green-200 bg-green-50 text-green-800'
+                ? 'border-green-200 bg-green-50 text-green-800 dark:text-green-300'
                 : resultMessage.tone === 'warning'
                   ? 'border-amber-200 bg-amber-50 text-amber-800'
                   : 'border-red-200 bg-red-50 text-red-800'
@@ -259,9 +259,9 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
             <div className="space-y-2">
               {transactions.length === 0 ? (
                 <div className="text-center py-8">
-                  <CurrencyDollarIcon className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500">No activity yet</p>
-                  <p className="text-xs text-gray-400">Run an agent and its payment state will appear here</p>
+                  <CurrencyDollarIcon className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-500 mb-2" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No activity yet</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Run an agent and its payment state will appear here</p>
                 </div>
               ) : (
                 transactions.slice(0, 10).map((tx) => (
@@ -280,8 +280,8 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
 
               {walletAddress && (
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Wallet</p>
-                  <p className="text-xs font-mono text-gray-700 truncate">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Wallet</p>
+                  <p className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate">
                     {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                   </p>
                 </div>
@@ -321,7 +321,7 @@ export default function NanopaymentWidget({ compact = false, onPaymentComplete }
 
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-2">
         <span className={`w-2 h-2 rounded-full ${nanopaymentDemoMode ? 'bg-amber-400' : 'bg-green-400'} animate-pulse`} />
-        <span className="text-xs text-gray-400">{nanopaymentDemoMode ? 'Test mode — payments skipped' : 'Arc-backed live payment mode'}</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500">{nanopaymentDemoMode ? 'Test mode — payments skipped' : 'Arc-backed live payment mode'}</span>
       </div>
     </div>
   );
@@ -333,8 +333,8 @@ function TabButton({ active, onClick, children }) {
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
         active
-          ? "border-indigo-500 text-indigo-600"
-          : "border-transparent text-gray-500 hover:text-gray-700"
+          ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+          : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300"
       }`}
     >
       {children}
@@ -349,10 +349,10 @@ function StrategicAdvisorPanel({ advice, onDismiss }) {
     <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <RocketLaunchIcon className="w-5 h-5 text-indigo-600" />
+          <RocketLaunchIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h4 className="font-bold text-indigo-900">Strategic advice</h4>
         </div>
-        <button onClick={onDismiss} className="text-indigo-400 hover:text-indigo-600">
+        <button onClick={onDismiss} className="text-indigo-400 hover:text-indigo-600 dark:text-indigo-400">
           <ChevronUpIcon className="w-4 h-4" />
         </button>
       </div>
@@ -370,14 +370,14 @@ function StrategicAdvisorPanel({ advice, onDismiss }) {
           <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Solana / Bags</p>
           <div className="flex items-end justify-between">
             <span className="text-lg font-black text-indigo-700">{advice.tradeOffMatrix.solanaBags.suitability}%</span>
-            <span className="text-[10px] text-indigo-500">Fit score</span>
+            <span className="text-[10px] text-indigo-500 dark:text-indigo-400">Fit score</span>
           </div>
         </div>
         <div className="bg-white p-3 rounded-lg border border-indigo-50">
           <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Circle / Arc</p>
           <div className="flex items-end justify-between">
             <span className="text-lg font-black text-indigo-700">{advice.tradeOffMatrix.circleArc.suitability}%</span>
-            <span className="text-[10px] text-indigo-500">Fit score</span>
+            <span className="text-[10px] text-indigo-500 dark:text-indigo-400">Fit score</span>
           </div>
         </div>
       </div>
@@ -385,10 +385,10 @@ function StrategicAdvisorPanel({ advice, onDismiss }) {
       {advice.bagsRecommendation && (
         <div className="bg-white p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <ArrowTrendingUpIcon className="w-4 h-4 text-emerald-600" />
-            <span className="text-xs font-bold text-emerald-900">Suggested direction</span>
+            <ArrowTrendingUpIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Suggested direction</span>
           </div>
-          <p className="text-xs text-gray-600 mb-3">{advice.bagsRecommendation.reason}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">{advice.bagsRecommendation.reason}</p>
         </div>
       )}
     </div>
@@ -412,15 +412,15 @@ function ServiceCard({ service, loading, onClick, disabled, price }) {
         <div className="flex items-center gap-3">
           <span className="text-xl">{service.icon}</span>
           <div>
-            <p className="text-sm font-medium text-gray-900">{service.name}</p>
-            <p className="text-xs text-gray-500">{service.description}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{service.name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{service.description}</p>
           </div>
         </div>
         <div className="text-right">
           {isPending ? (
             <LoadingSpinner size="sm" />
           ) : (
-            <span className="text-sm font-bold text-indigo-600">{formatUSDC(price)}</span>
+            <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{formatUSDC(price)}</span>
           )}
         </div>
       </div>
@@ -435,12 +435,12 @@ function TransactionRow({ transaction }) {
       <div className="flex items-center gap-2">
         <span className="text-sm">{transaction.agentName || transaction.type}</span>
         {isSuccess ? (
-          <CheckCircleIcon className="w-4 h-4 text-green-500" />
+          <CheckCircleIcon className="w-4 h-4 text-green-500 dark:text-green-400" />
         ) : (
-          <ExclamationTriangleIcon className="w-4 h-4 text-red-500" />
+          <ExclamationTriangleIcon className="w-4 h-4 text-red-500 dark:text-red-400" />
         )}
       </div>
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
         -{formatUSDC(transaction.amount)}
       </span>
     </div>
@@ -449,8 +449,8 @@ function TransactionRow({ transaction }) {
 
 function WalletCard({ label, amount, color }) {
   const colorClasses = {
-    green: "bg-green-50 text-green-700",
-    gray: "bg-gray-50 text-gray-700",
+    green: "bg-green-50 text-green-700 dark:text-green-300",
+    gray: "bg-gray-50 text-gray-700 dark:text-gray-300",
   };
 
   return (
@@ -465,13 +465,13 @@ function UninitializedWidget({ onInitialize }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
       <div className="text-center">
-        <RocketLaunchIcon className="w-12 h-12 mx-auto text-indigo-500 mb-4" />
-        <h3 className="font-bold text-lg text-gray-900 mb-2">Set up payment wallet</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <RocketLaunchIcon className="w-12 h-12 mx-auto text-indigo-500 dark:text-indigo-400 mb-4" />
+        <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-2">Set up payment wallet</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Connect a wallet with USDC on Arc to run AI agents. Payments settle instantly via x402.
         </p>
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <p className="text-xs text-gray-400 mb-2">Per-request pricing:</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Per-request pricing:</p>
           <div className="text-sm space-y-1">
             <p><span className="font-medium">Scout:</span> $0.01 per scan</p>
             <p><span className="font-medium">Underwriter:</span> $0.05 per project</p>
@@ -484,7 +484,7 @@ function UninitializedWidget({ onInitialize }) {
         </Button>
         <button
           onClick={onInitialize}
-          className="text-xs text-gray-400 hover:text-gray-600 underline"
+          className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400 underline"
         >
           Or skip payments with test mode
         </button>

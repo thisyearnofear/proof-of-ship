@@ -175,18 +175,18 @@ export default function CrossChainTransfer() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Cross-Chain Transfer
         </h2>
 
         {/* Information Notice */}
         <div className="bg-blue-50 p-4 rounded-lg flex items-start space-x-3 mb-6">
-          <InformationCircleIcon className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" />
+          <InformationCircleIcon className="w-6 h-6 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-medium text-blue-800">
+            <h3 className="font-medium text-blue-800 dark:text-blue-300">
               About Cross-Chain Transfers
             </h3>
-            <p className="text-blue-700 text-sm mt-1">
+            <p className="text-blue-700 dark:text-blue-300 text-sm mt-1">
               Transfer your USDC between different blockchains using LI.FI, a
               cross-chain bridge aggregator. This enables you to use your
               funding across multiple ecosystems.
@@ -198,7 +198,7 @@ export default function CrossChainTransfer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           {/* From Chain */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               From Chain
             </label>
             <select
@@ -226,13 +226,13 @@ export default function CrossChainTransfer() {
               className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
               onClick={swapChains}
             >
-              <ArrowsRightLeftIcon className="w-5 h-5 text-gray-600" />
+              <ArrowsRightLeftIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
 
           {/* To Chain */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               To Chain
             </label>
             <select
@@ -257,7 +257,7 @@ export default function CrossChainTransfer() {
 
         {/* Amount */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Amount (USDC)
           </label>
           <div className="relative">
@@ -274,13 +274,13 @@ export default function CrossChainTransfer() {
               step="0.01"
             />
             <button
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 font-medium"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 dark:text-blue-400 font-medium"
               onClick={() => setAmount(usdcBalance || "0")}
             >
               MAX
             </button>
           </div>
-          <div className="mt-1 text-sm text-gray-500">
+          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Available: {parseFloat(usdcBalance || 0).toFixed(2)} USDC
           </div>
         </div>
@@ -288,11 +288,11 @@ export default function CrossChainTransfer() {
         {/* Quote Result */}
         {quote && (
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium text-gray-900 mb-2">Transfer Quote</h3>
+            <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Transfer Quote</h3>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <div className="text-gray-600">You Send:</div>
-              <div className="font-medium text-gray-900">
+              <div className="text-gray-600 dark:text-gray-400">You Send:</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
                 {formatUnits(
                   quote.action.fromAmount,
                   quote.action.fromToken?.decimals || 6
@@ -300,8 +300,8 @@ export default function CrossChainTransfer() {
                 {quote.action.fromToken?.symbol} on {fromChain.name}
               </div>
 
-              <div className="text-gray-600">You Receive:</div>
-              <div className="font-medium text-gray-900">
+              <div className="text-gray-600 dark:text-gray-400">You Receive:</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
                 {formatUnits(
                   quote.estimate.toAmount,
                   quote.action.toToken?.decimals || 6
@@ -313,10 +313,10 @@ export default function CrossChainTransfer() {
                 <>
                   {quote.estimate.feeCosts.map((fee, index) => (
                     <React.Fragment key={`fee-${index}`}>
-                      <div className="text-gray-600">
+                      <div className="text-gray-600 dark:text-gray-400">
                         {fee.name || `Fee ${index + 1}`}:
                       </div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
                         {formatUnits(
                           fee.amount,
                           fee.token?.decimals || 18
@@ -332,10 +332,10 @@ export default function CrossChainTransfer() {
                 <>
                   {quote.estimate.gasCosts.map((gas, index) => (
                     <React.Fragment key={`gas-${index}`}>
-                      <div className="text-gray-600">
+                      <div className="text-gray-600 dark:text-gray-400">
                         {gas.name || `Gas ${index + 1}`}:
                       </div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
                         {formatUnits(
                           gas.amount,
                           gas.token?.decimals || 18
@@ -347,13 +347,13 @@ export default function CrossChainTransfer() {
                 </>
               )}
 
-              <div className="text-gray-600">Route:</div>
-              <div className="font-medium text-gray-900">
+              <div className="text-gray-600 dark:text-gray-400">Route:</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
                 {quote.tool || quote.includedSteps?.[0]?.tool || "Direct"}
               </div>
 
-              <div className="text-gray-600">Est. Time:</div>
-              <div className="font-medium text-gray-900">
+              <div className="text-gray-600 dark:text-gray-400">Est. Time:</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
                 {Math.floor((quote.estimate.executionDuration || 180) / 60)} min
               </div>
             </div>
@@ -403,7 +403,7 @@ export default function CrossChainTransfer() {
         <div className="mt-4">
           <button
             type="button"
-            className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 flex items-center"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
             <span className="mr-2">{showAdvanced ? "▼" : "►"}</span>
@@ -414,7 +414,7 @@ export default function CrossChainTransfer() {
             <div className="mt-4 p-4 border border-gray-200 rounded-lg">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Slippage Tolerance
                   </label>
                   <select
@@ -430,7 +430,7 @@ export default function CrossChainTransfer() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Gas Price (Gwei)
                   </label>
                   <input
@@ -444,11 +444,11 @@ export default function CrossChainTransfer() {
                   <input
                     type="checkbox"
                     id="infinite-approval"
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 dark:text-blue-400 border-gray-300 rounded"
                   />
                   <label
                     htmlFor="infinite-approval"
-                    className="ml-2 text-sm text-gray-700"
+                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
                   >
                     Infinite token approval (not recommended)
                   </label>
@@ -463,7 +463,7 @@ export default function CrossChainTransfer() {
       {error && (
         <Card className="p-6 bg-red-50 border-red-200">
           <div className="flex items-start space-x-3">
-            <ExclamationTriangleIcon className="w-6 h-6 text-red-600 mt-0.5" />
+            <ExclamationTriangleIcon className="w-6 h-6 text-red-600 dark:text-red-400 mt-0.5" />
             <div>
               <h4 className="font-semibold text-red-900 mb-1">Error</h4>
               <p className="text-red-800">{error}</p>
@@ -476,12 +476,12 @@ export default function CrossChainTransfer() {
       {success && (
         <Card className="p-6 bg-green-50 border-green-200">
           <div className="flex items-start space-x-3">
-            <CheckCircleIcon className="w-6 h-6 text-green-600 mt-0.5" />
+            <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400 mt-0.5" />
             <div className="flex-1">
-              <h4 className="font-semibold text-green-900 mb-2">
+              <h4 className="font-semibold text-green-900 dark:text-green-200 mb-2">
                 Transfer Initiated Successfully!
               </h4>
-              <p className="text-green-800 mb-3">
+              <p className="text-green-800 dark:text-green-300 mb-3">
                 Your transfer of {success.amount} USDC from {success.fromChain}{" "}
                 to {success.toChain} is in progress. You can track its status in
                 the transfer history below.
@@ -490,17 +490,17 @@ export default function CrossChainTransfer() {
               {success.txHash && (
                 <div className="bg-white bg-opacity-50 rounded-lg p-3">
                   <div className="text-sm">
-                    <div className="font-medium text-green-900">
+                    <div className="font-medium text-green-900 dark:text-green-200">
                       Transaction Hash:
                     </div>
-                    <div className="font-mono text-xs text-green-700 break-all">
+                    <div className="font-mono text-xs text-green-700 dark:text-green-300 break-all">
                       {success.txHash}
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="mt-4 text-sm text-green-800">
+              <div className="mt-4 text-sm text-green-800 dark:text-green-300">
                 <div className="flex flex-col space-y-2">
                   <p>
                     The transfer typically takes 5-20 minutes to complete,
@@ -512,7 +512,7 @@ export default function CrossChainTransfer() {
                         .getElementById("transfer-history-section")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="text-left flex items-center text-blue-600 hover:text-blue-800"
+                    className="text-left flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-300"
                   >
                     <ChevronRightIcon className="w-4 h-4 mr-1" />
                     View in transfer history
@@ -529,11 +529,11 @@ export default function CrossChainTransfer() {
         <Card className="p-4">
           <div className="flex items-start space-x-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <GlobeAltIcon className="w-6 h-6 text-blue-600" />
+              <GlobeAltIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Multi-Chain Support</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Multi-Chain Support</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Transfer USDC across 15+ blockchains with the best rates and
                 lowest fees.
               </p>
@@ -544,11 +544,11 @@ export default function CrossChainTransfer() {
         <Card className="p-4">
           <div className="flex items-start space-x-3">
             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
+              <CurrencyDollarIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Optimized Routes</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Optimized Routes</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 LI.FI automatically finds the best route with lowest fees and
                 fastest confirmation times.
               </p>
@@ -559,11 +559,11 @@ export default function CrossChainTransfer() {
         <Card className="p-4">
           <div className="flex items-start space-x-3">
             <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-              <ArrowsRightLeftIcon className="w-6 h-6 text-purple-600" />
+              <ArrowsRightLeftIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Secure Transfers</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">Secure Transfers</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 All transfers are non-custodial and secure, using trusted
                 cross-chain bridges.
               </p>

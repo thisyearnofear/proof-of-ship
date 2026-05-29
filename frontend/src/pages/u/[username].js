@@ -276,12 +276,12 @@ export default function UserPortfolioPage() {
         <div className="max-w-3xl mx-auto py-20 px-4">
           <Card className="p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <XMarkIcon className="w-8 h-8 text-red-500" />
+              <XMarkIcon className="w-8 h-8 text-red-500 dark:text-red-400" />
             </div>
             <h1 className="text-2xl font-bold text-primary mb-2">
               Builder not found
             </h1>
-            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
               {error}
             </p>
             <div className="flex items-center justify-center gap-3">
@@ -464,7 +464,7 @@ export default function UserPortfolioPage() {
                         className={`border transition-colors ${
                           following
                             ? "bg-white/10 border-white/30 text-white hover:bg-white/20"
-                            : "bg-white text-indigo-600 border-white hover:bg-indigo-50"
+                            : "bg-white text-indigo-600 dark:text-indigo-400 border-white hover:bg-indigo-50"
                         }`}
                       >
                         {following ? "Following" : "Follow"}
@@ -545,9 +545,9 @@ export default function UserPortfolioPage() {
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                   <div className="flex items-center gap-2">
                     <span className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
-                      <TrophyIcon className="w-5 h-5 text-amber-600" />
+                      <TrophyIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </span>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-200">
                       Leaderboard rank
                     </span>
                   </div>
@@ -578,9 +578,9 @@ export default function UserPortfolioPage() {
                 <div className="flex flex-wrap items-center gap-y-3">
                   <div className="flex items-center gap-2 mb-2 w-full sm:mb-0 sm:w-auto sm:mr-6">
                     <span className="w-8 h-8 bg-amber-200 rounded-xl flex items-center justify-center">
-                      <StarIcon className="w-5 h-5 text-amber-600" />
+                      <StarIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </span>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-200">
                       Badges
                     </span>
                   </div>
@@ -605,7 +605,7 @@ export default function UserPortfolioPage() {
                 <h2 className="text-xl font-bold text-primary">
                   Projects
                   {hasAnyFilter && (
-                    <span className="text-sm font-normal text-gray-500 ml-2">
+                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
                       ({filteredProjects.length} of {portfolio?.projects?.length || 0})
                     </span>
                   )}
@@ -614,7 +614,7 @@ export default function UserPortfolioPage() {
                 <div className="flex items-center gap-2">
                   {/* Search */}
                   <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
                       value={searchQuery}
@@ -627,7 +627,7 @@ export default function UserPortfolioPage() {
                         onClick={() => setSearchQuery("")}
                         className="absolute right-2 top-1/2 -translate-y-1/2"
                       >
-                        <XMarkIcon className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                        <XMarkIcon className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400" />
                       </button>
                     )}
                   </div>
@@ -640,7 +640,7 @@ export default function UserPortfolioPage() {
                         className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors ${
                           showFilters || selectedEcosystem
                             ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                            : "border-gray-200 text-gray-600 dark:text-gray-400 hover:border-gray-300"
                         }`}
                       >
                         <AdjustmentsHorizontalIcon className="w-4 h-4" />
@@ -654,7 +654,7 @@ export default function UserPortfolioPage() {
                             onClick={() => setShowFilters(false)}
                           />
                           <div className="absolute right-0 top-full mt-2 z-20 bg-white border border-gray-200 rounded-xl shadow-xl p-3 min-w-[200px]">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
                               Ecosystem
                             </p>
                             <div className="space-y-1">
@@ -666,7 +666,7 @@ export default function UserPortfolioPage() {
                                 className={`w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors ${
                                   !selectedEcosystem
                                     ? "bg-indigo-50 text-indigo-700 font-medium"
-                                    : "text-gray-600 hover:bg-gray-50"
+                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50"
                                 }`}
                               >
                                 All ecosystems
@@ -681,7 +681,7 @@ export default function UserPortfolioPage() {
                                   className={`w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${
                                     selectedEcosystem === eco
                                       ? "bg-indigo-50 text-indigo-700 font-medium"
-                                      : "text-gray-600 hover:bg-gray-50"
+                                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50"
                                   }`}
                                 >
                                   <span>{ECOSYSTEM_ICONS[eco] || "🌐"}</span>
@@ -692,7 +692,7 @@ export default function UserPortfolioPage() {
                             {hasAnyFilter && (
                               <button
                                 onClick={clearFilters}
-                                className="mt-3 w-full text-center text-xs text-indigo-600 hover:text-indigo-800 font-medium py-2 border-t border-gray-100"
+                                className="mt-3 w-full text-center text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium py-2 border-t border-gray-100"
                               >
                                 Clear all filters
                               </button>
@@ -722,7 +722,7 @@ export default function UserPortfolioPage() {
                   )}
                   <button
                     onClick={clearFilters}
-                    className="text-xs text-gray-500 hover:text-gray-700 font-medium"
+                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 font-medium"
                   >
                     Clear all
                   </button>
@@ -733,12 +733,12 @@ export default function UserPortfolioPage() {
               {Object.keys(projectsByEcosystem).length === 0 ? (
                 <Card className="p-12 text-center">
                   <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <CodeBracketIcon className="w-8 h-8 text-gray-400" />
+                    <CodeBracketIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                   </div>
                   <h2 className="text-xl font-semibold text-primary mb-2">
                     {hasAnyFilter ? "No matching projects" : "No projects yet"}
                   </h2>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                     {hasAnyFilter
                       ? "Try adjusting your search or clearing filters."
                       : isOwner
@@ -787,10 +787,10 @@ export default function UserPortfolioPage() {
 /** ── Stat Card ── */
 function StatCard({ icon, label, value, color = "indigo" }) {
   const colorMap = {
-    indigo: "from-indigo-50 to-indigo-100/50 text-indigo-600 border-indigo-200",
-    amber: "from-amber-50 to-amber-100/50 text-amber-600 border-amber-200",
-    blue: "from-blue-50 to-blue-100/50 text-blue-600 border-blue-200",
-    green: "from-green-50 to-green-100/50 text-green-600 border-green-200",
+    indigo: "from-indigo-50 to-indigo-100/50 text-indigo-600 dark:text-indigo-400 border-indigo-200",
+    amber: "from-amber-50 to-amber-100/50 text-amber-600 dark:text-amber-400 border-amber-200",
+    blue: "from-blue-50 to-blue-100/50 text-blue-600 dark:text-blue-400 border-blue-200",
+    green: "from-green-50 to-green-100/50 text-green-600 dark:text-green-400 border-green-200",
   };
 
   return (
@@ -802,7 +802,7 @@ function StatCard({ icon, label, value, color = "indigo" }) {
           {icon}
         </div>
         <div>
-          <p className="text-xs text-gray-500 font-medium">{label}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{label}</p>
           <p className="text-xl font-bold text-primary">{value}</p>
         </div>
       </div>

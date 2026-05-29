@@ -77,10 +77,10 @@ export default function PayoutSimulationPage() {
         <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
-              <CalculatorIcon className="w-8 h-8 text-blue-600" />
+              <CalculatorIcon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               Payout Waterfall Simulator
             </h1>
-            <p className="text-gray-600 mt-2">Model prize distribution across backer tiers and builder rewards.</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">Model prize distribution across backer tiers and builder rewards.</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" className="bg-white min-h-touch min-w-touch" onClick={resetModel}>
@@ -99,12 +99,12 @@ export default function PayoutSimulationPage() {
           <div className="space-y-6">
             <Card className="p-6">
               <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
-                <BanknotesIcon className="w-5 h-5 text-gray-500" />
+                <BanknotesIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 Prize Pool Input
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total USDC Pool</label>
+                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total USDC Pool</label>
                   <input 
                     type="number" 
                     value={prizePool}
@@ -117,18 +117,18 @@ export default function PayoutSimulationPage() {
 
             <Card className="p-6">
               <h3 className="font-bold text-primary mb-4 flex items-center gap-2">
-                <UserGroupIcon className="w-5 h-5 text-gray-500" />
+                <UserGroupIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 Backer Tiers
               </h3>
               <div className="space-y-6">
                 {Object.entries(tiers).map(([key, data]) => (
                   <div key={key} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="font-bold text-gray-700 capitalize">{key.replace('tier', 'Tier ')} ({data.multiplier}x)</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-300 capitalize">{key.replace('tier', 'Tier ')} ({data.multiplier}x)</span>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Backers</label>
+                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">Backers</label>
                         <input 
                           type="number" 
                           value={data.backers}
@@ -137,7 +137,7 @@ export default function PayoutSimulationPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Avg Stake</label>
+                        <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">Avg Stake</label>
                         <input 
                           type="number" 
                           value={data.stakePerBacker}
@@ -156,7 +156,7 @@ export default function PayoutSimulationPage() {
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-8">
               <h3 className="font-bold text-primary mb-8 flex items-center gap-2">
-                <BeakerIcon className="w-5 h-5 text-gray-500" />
+                <BeakerIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                 Waterfall Distribution Model
               </h3>
 
@@ -165,12 +165,12 @@ export default function PayoutSimulationPage() {
                 <div className="relative pt-1">
                   <div className="flex mb-2 items-center justify-between">
                     <div>
-                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
+                      <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 dark:text-blue-400 bg-blue-200">
                         Pool Utilization
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-semibold inline-block text-blue-600">
+                      <span className="text-xs font-semibold inline-block text-blue-600 dark:text-blue-400">
                         {Math.round(((prizePool - (prizePool > (simulationResults.tier1.fulfilled + simulationResults.tier2.fulfilled + simulationResults.tier3.fulfilled) ? (prizePool - (simulationResults.tier1.fulfilled + simulationResults.tier2.fulfilled + simulationResults.tier3.fulfilled)) : 0)) / prizePool) * 100)}%
                       </span>
                     </div>
@@ -189,34 +189,34 @@ export default function PayoutSimulationPage() {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="pb-3 text-xs font-bold text-gray-400 uppercase">Recipient Group</th>
-                        <th className="pb-3 text-xs font-bold text-gray-400 uppercase text-right">Requested</th>
-                        <th className="pb-3 text-xs font-bold text-gray-400 uppercase text-right">Fulfilled</th>
-                        <th className="pb-3 text-xs font-bold text-gray-400 uppercase text-right">Coverage</th>
+                        <th className="pb-3 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Recipient Group</th>
+                        <th className="pb-3 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase text-right">Requested</th>
+                        <th className="pb-3 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase text-right">Fulfilled</th>
+                        <th className="pb-3 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase text-right">Coverage</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {['tier1', 'tier2', 'tier3'].map(t => (
                         <tr key={t}>
-                          <td className="py-4 font-medium text-gray-700 capitalize">{t.replace('tier', 'Tier ')} Backers</td>
-                          <td className="py-4 text-right text-gray-600">${simulationResults[t].totalRequested.toLocaleString()}</td>
-                          <td className="py-4 text-right font-bold text-blue-600">${simulationResults[t].fulfilled.toLocaleString()}</td>
+                          <td className="py-4 font-medium text-gray-700 dark:text-gray-300 capitalize">{t.replace('tier', 'Tier ')} Backers</td>
+                          <td className="py-4 text-right text-gray-600 dark:text-gray-400">${simulationResults[t].totalRequested.toLocaleString()}</td>
+                          <td className="py-4 text-right font-bold text-blue-600 dark:text-blue-400">${simulationResults[t].fulfilled.toLocaleString()}</td>
                           <td className="py-4 text-right text-xs">
                             {Math.round((simulationResults[t].fulfilled / (simulationResults[t].totalRequested || 1)) * 100)}%
                           </td>
                         </tr>
                       ))}
                       <tr className="bg-green-50/50">
-                        <td className="py-4 font-bold text-green-700">Project Builder Reward</td>
-                        <td className="py-4 text-right text-gray-400">-</td>
-                        <td className="py-4 text-right font-bold text-green-600">${simulationResults.builder.toLocaleString()}</td>
-                        <td className="py-4 text-right text-xs text-green-600">70% Remainder</td>
+                        <td className="py-4 font-bold text-green-700 dark:text-green-300">Project Builder Reward</td>
+                        <td className="py-4 text-right text-gray-400 dark:text-gray-500">-</td>
+                        <td className="py-4 text-right font-bold text-green-600 dark:text-green-400">${simulationResults.builder.toLocaleString()}</td>
+                        <td className="py-4 text-right text-xs text-green-600 dark:text-green-400">70% Remainder</td>
                       </tr>
                       <tr>
-                        <td className="py-4 font-medium text-gray-500">Platform Treasury</td>
-                        <td className="py-4 text-right text-gray-400">-</td>
-                        <td className="py-4 text-right font-bold text-gray-600">${simulationResults.treasury.toLocaleString()}</td>
-                        <td className="py-4 text-right text-xs text-gray-500">30% Remainder</td>
+                        <td className="py-4 font-medium text-gray-500 dark:text-gray-400">Platform Treasury</td>
+                        <td className="py-4 text-right text-gray-400 dark:text-gray-500">-</td>
+                        <td className="py-4 text-right font-bold text-gray-600 dark:text-gray-400">${simulationResults.treasury.toLocaleString()}</td>
+                        <td className="py-4 text-right text-xs text-gray-500 dark:text-gray-400">30% Remainder</td>
                       </tr>
                     </tbody>
                     <tfoot>
@@ -235,15 +235,15 @@ export default function PayoutSimulationPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="p-6 border-l-4 border-yellow-500">
-                <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">Simulation Warning</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Simulation Warning</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   Tier 3 fulfillment is currently at {Math.round((simulationResults.tier3.fulfilled / (simulationResults.tier3.totalRequested || 1)) * 100)}%. 
                   Insufficient pool to fully reward high-multiplier backers. Consider increasing the prize pool or adjusting builder share.
                 </p>
               </Card>
               <Card className="p-6 border-l-4 border-blue-500">
-                <h4 className="text-sm font-bold text-gray-500 uppercase mb-2">Next Steps</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Next Steps</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   Executing this payout will trigger {Object.values(tiers).reduce((a, b) => a + b.backers, 0)} Circle USDC transfers. 
                   Ensure the platform wallet has sufficient balance.
                 </p>

@@ -27,7 +27,7 @@ const UPDATE_TYPES = {
   milestone: {
     icon: TrophyIcon,
     label: 'Milestone',
-    color: 'text-emerald-600',
+    color: 'text-emerald-600 dark:text-emerald-400',
     bg: 'bg-emerald-50',
     border: 'border-emerald-200',
     weight: 'high',
@@ -35,7 +35,7 @@ const UPDATE_TYPES = {
   revenue: {
     icon: ChartBarIcon,
     label: 'Revenue',
-    color: 'text-green-600',
+    color: 'text-green-600 dark:text-green-400',
     bg: 'bg-green-50',
     border: 'border-green-200',
     weight: 'high',
@@ -43,7 +43,7 @@ const UPDATE_TYPES = {
   users: {
     icon: UserGroupIcon,
     label: 'Users',
-    color: 'text-blue-600',
+    color: 'text-blue-600 dark:text-blue-400',
     bg: 'bg-blue-50',
     border: 'border-blue-200',
     weight: 'high',
@@ -51,7 +51,7 @@ const UPDATE_TYPES = {
   launch: {
     icon: RocketLaunchIcon,
     label: 'Launch',
-    color: 'text-purple-600',
+    color: 'text-purple-600 dark:text-purple-400',
     bg: 'bg-purple-50',
     border: 'border-purple-200',
     weight: 'high',
@@ -59,7 +59,7 @@ const UPDATE_TYPES = {
   partnership: {
     icon: HandRaisedIcon,
     label: 'Partnership',
-    color: 'text-indigo-600',
+    color: 'text-indigo-600 dark:text-indigo-400',
     bg: 'bg-indigo-50',
     border: 'border-indigo-200',
     weight: 'high',
@@ -67,7 +67,7 @@ const UPDATE_TYPES = {
   funding: {
     icon: CurrencyDollarIcon,
     label: 'Funding',
-    color: 'text-amber-600',
+    color: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-50',
     border: 'border-amber-200',
     weight: 'high',
@@ -75,7 +75,7 @@ const UPDATE_TYPES = {
   product: {
     icon: CubeIcon,
     label: 'Product',
-    color: 'text-teal-600',
+    color: 'text-teal-600 dark:text-teal-400',
     bg: 'bg-teal-50',
     border: 'border-teal-200',
     weight: 'medium',
@@ -83,7 +83,7 @@ const UPDATE_TYPES = {
   community: {
     icon: ChatBubbleLeftRightIcon,
     label: 'Community',
-    color: 'text-pink-600',
+    color: 'text-pink-600 dark:text-pink-400',
     bg: 'bg-pink-50',
     border: 'border-pink-200',
     weight: 'medium',
@@ -91,7 +91,7 @@ const UPDATE_TYPES = {
   development: {
     icon: WrenchIcon,
     label: 'Development',
-    color: 'text-gray-600',
+    color: 'text-gray-600 dark:text-gray-400',
     bg: 'bg-gray-50',
     border: 'border-gray-200',
     weight: 'low',
@@ -99,7 +99,7 @@ const UPDATE_TYPES = {
   bugfix: {
     icon: BugAntIcon,
     label: 'Bug Fix',
-    color: 'text-red-600',
+    color: 'text-red-600 dark:text-red-400',
     bg: 'bg-red-50',
     border: 'border-red-200',
     weight: 'low',
@@ -119,8 +119,8 @@ export default function StructuredUpdateCard({ update, isCompact }) {
       <div className="flex items-start gap-2 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
         <Icon className={`w-4 h-4 ${config.color} mt-0.5 flex-shrink-0`} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm text-gray-700">{update.message}</p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-sm text-gray-700 dark:text-gray-300">{update.message}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
             {update.userHandle} · {formatTime(update.timestamp)}
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function StructuredUpdateCard({ update, isCompact }) {
           <span className={`text-xs font-bold uppercase tracking-wider ${config.color}`}>
             {config.label}
           </span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             {update.userHandle} · {formatTime(update.timestamp)}
           </span>
           {config.weight === 'high' && (
@@ -162,7 +162,7 @@ export default function StructuredUpdateCard({ update, isCompact }) {
                   : val.toLocaleString())
                 : val;
               return (
-                <span key={key} className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+                <span key={key} className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700 dark:text-gray-300">
                   {formatMetricKey(key)}: {formatted}
                 </span>
               );
@@ -172,7 +172,7 @@ export default function StructuredUpdateCard({ update, isCompact }) {
 
         {/* Message */}
         <div className={`bg-white p-3 rounded-lg border border-gray-100 shadow-sm ${config.border}`}>
-          <p className="text-sm text-gray-700">{update.message}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">{update.message}</p>
         </div>
       </div>
     </div>

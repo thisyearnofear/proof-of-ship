@@ -318,7 +318,7 @@ export default function OnboardingFlow({ onComplete, onClose }) {
             error={error}
             hideAction
           >
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Connect your wallet to get started. This will be your primary identity on the platform.
               We support both EVM (MetaMask, Rabby, etc.) and Solana wallets.
             </p>
@@ -326,12 +326,12 @@ export default function OnboardingFlow({ onComplete, onClose }) {
             {anyConnected ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                 <div className="flex items-center space-x-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-600" />
-                  <span className="text-green-800 font-medium">Wallet Connected</span>
+                  <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="text-green-800 dark:text-green-300 font-medium">Wallet Connected</span>
                 </div>
-                <p className="text-green-700 text-sm mt-1 font-mono">
+                <p className="text-green-700 dark:text-green-300 text-sm mt-1 font-mono">
                   {connectedAddress ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}` : 'Connected'}
-                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700">
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:text-green-300">
                     {evmConnected ? 'EVM' : 'Solana'}
                   </span>
                 </p>
@@ -344,11 +344,11 @@ export default function OnboardingFlow({ onComplete, onClose }) {
                   className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-200 hover:border-blue-400 bg-blue-50/50 hover:bg-blue-50 transition-all disabled:opacity-50 text-left"
                 >
                   <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <WalletIcon className="w-5 h-5 text-blue-600" />
+                    <WalletIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">EVM Wallet</p>
-                    <p className="text-xs text-gray-500">MetaMask, Rabby, Coinbase</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">EVM Wallet</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">MetaMask, Rabby, Coinbase</p>
                   </div>
                 </button>
                 <button
@@ -357,20 +357,20 @@ export default function OnboardingFlow({ onComplete, onClose }) {
                   className="flex items-center gap-3 p-4 rounded-xl border-2 border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 transition-all disabled:opacity-50 text-left"
                 >
                   <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M4 16.5l3.5-3.5H18l-3.5 3.5H4zm0-4l3.5-3.5H18l-3.5 3.5H4z"/>
                     </svg>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">Solana Wallet</p>
-                    <p className="text-xs text-gray-500">Phantom, Solflare, Backpack</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Solana Wallet</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Phantom, Solflare, Backpack</p>
                   </div>
                 </button>
               </div>
             )}
 
             {loading && (
-              <div className="flex items-center justify-center gap-2 py-3 text-sm text-gray-500">
+              <div className="flex items-center justify-center gap-2 py-3 text-sm text-gray-500 dark:text-gray-400">
                 <LoadingSpinner size="sm" />
                 Connecting wallet...
               </div>
@@ -390,12 +390,12 @@ export default function OnboardingFlow({ onComplete, onClose }) {
             actionText="Connect GitHub"
             skipText="Skip for now"
           >
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Connect your GitHub account to showcase your development activity and contributions.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <h4 className="font-medium text-blue-900 mb-2">What we analyze:</h4>
-              <ul className="text-blue-800 text-sm space-y-1">
+              <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">What we analyze:</h4>
+              <ul className="text-blue-800 dark:text-blue-300 text-sm space-y-1">
                 <li>• Public repositories and contributions</li>
                 <li>• Commit frequency and consistency</li>
                 <li>• Community engagement (stars, forks)</li>
@@ -417,12 +417,12 @@ export default function OnboardingFlow({ onComplete, onClose }) {
             actionText="Connect Farcaster"
             skipText="Skip for now"
           >
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Connect your Farcaster profile to build your crypto social reputation.
             </p>
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-              <h4 className="font-medium text-purple-900 mb-2">Reputation factors:</h4>
-              <ul className="text-purple-800 text-sm space-y-1">
+              <h4 className="font-medium text-purple-900 dark:text-purple-200 mb-2">Reputation factors:</h4>
+              <ul className="text-purple-800 dark:text-purple-300 text-sm space-y-1">
                 <li>• Profile completeness and verification</li>
                 <li>• Posting activity and engagement</li>
                 <li>• Network strength and followers</li>
@@ -444,12 +444,12 @@ export default function OnboardingFlow({ onComplete, onClose }) {
             actionText="Connect Lens"
             skipText="Skip for now"
           >
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Connect your Lens Protocol handle to expand your decentralized social presence.
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-              <h4 className="font-medium text-green-900 mb-2">Social metrics:</h4>
-              <ul className="text-green-800 text-sm space-y-1">
+              <h4 className="font-medium text-green-900 dark:text-green-200 mb-2">Social metrics:</h4>
+              <ul className="text-green-800 dark:text-green-300 text-sm space-y-1">
                 <li>• Posts and content creation</li>
                 <li>• Followers and social reach</li>
                 <li>• Mirrors and engagement</li>
@@ -471,20 +471,20 @@ export default function OnboardingFlow({ onComplete, onClose }) {
 
     return (
       <Card className="p-8 text-center">
-        <SparklesIcon className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+        <SparklesIcon className="w-16 h-16 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Calculate Your Credit Score
         </h3>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Ready to analyze your reputation across all connected platforms and calculate your developer credit score.
         </p>
         
         {userProfile && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h4 className="font-medium text-gray-900 mb-3">Connected Profiles:</h4>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Connected Profiles:</h4>
             <div className="flex justify-center space-x-4">
               {Object.entries(userProfile.completionStatus).map(([key, completed]) => (
-                <div key={key} className={`flex items-center space-x-2 ${completed ? 'text-green-600' : 'text-gray-400'}`}>
+                <div key={key} className={`flex items-center space-x-2 ${completed ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}`}>
                   {completed ? (
                     <CheckCircleIcon className="w-5 h-5" />
                   ) : (
@@ -532,26 +532,26 @@ export default function OnboardingFlow({ onComplete, onClose }) {
               max={850}
               size={140}
               strokeWidth={10}
-              className="text-blue-600 relative"
+              className="text-blue-600 dark:text-blue-400 relative"
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-4xl font-black text-gray-900">
+                <div className="text-4xl font-black text-gray-900 dark:text-gray-100">
                   {creditData.totalScore}
                 </div>
-                <div className="text-xs uppercase tracking-widest font-bold text-gray-500">Reputation</div>
+                <div className="text-xs uppercase tracking-widest font-bold text-gray-500 dark:text-gray-400">Reputation</div>
               </div>
             </div>
           </div>
         </div>
 
-        <h3 className="text-3xl font-bold text-gray-900 mb-2">
+        <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           ✨ You&apos;re Ready to Ship! ✨
         </h3>
         
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
           {creditData.fundingEligible ? (
-            <>You qualify for up to <span className="font-bold text-green-600 underline decoration-2 underline-offset-4">${creditData.fundingAmount.toLocaleString()} USDC</span> in credit!</>
+            <>You qualify for up to <span className="font-bold text-green-600 dark:text-green-400 underline decoration-2 underline-offset-4">${creditData.fundingAmount.toLocaleString()} USDC</span> in credit!</>
           ) : (
             'Your reputation profile is live. Connect more platforms to unlock higher credit limits.'
           )}
@@ -559,12 +559,12 @@ export default function OnboardingFlow({ onComplete, onClose }) {
 
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div className="bg-gray-50 rounded-lg p-3">
-            <div className="font-medium text-gray-900">Completion</div>
-            <div className="text-2xl font-bold text-blue-600">{Math.round(getCompletionPercentage())}%</div>
+            <div className="font-medium text-gray-900 dark:text-gray-100">Completion</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{Math.round(getCompletionPercentage())}%</div>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <div className="font-medium text-gray-900">Funding Status</div>
-            <div className={`text-2xl font-bold ${creditData.fundingEligible ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="font-medium text-gray-900 dark:text-gray-100">Funding Status</div>
+            <div className={`text-2xl font-bold ${creditData.fundingEligible ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {creditData.fundingEligible ? 'Eligible' : 'Not Eligible'}
             </div>
           </div>
@@ -586,10 +586,10 @@ export default function OnboardingFlow({ onComplete, onClose }) {
       {/* Progress Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Build Your Developer Profile
           </h2>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             Step {Math.min(currentStep + 1, 5)} of 5
           </div>
         </div>
@@ -630,19 +630,19 @@ function StepCard({
           completed ? 'bg-green-100' : 'bg-blue-100'
         }`}>
           {completed ? (
-            <CheckCircleIcon className="w-6 h-6 text-green-600" />
+            <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
           ) : (
-            <step.icon className="w-6 h-6 text-blue-600" />
+            <step.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           )}
         </div>
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-900">{step.title}</h3>
-          <p className="text-gray-600">{step.description}</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{step.title}</h3>
+          <p className="text-gray-600 dark:text-gray-400">{step.description}</p>
           {step.impact && (
             <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-2 ${
               step.impact === 'High Impact' ? 'bg-red-100 text-red-800' :
               step.impact === 'Medium Impact' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-green-100 text-green-800'
+              'bg-green-100 text-green-800 dark:text-green-300'
             }`}>
               {step.impact}
             </span>
@@ -655,8 +655,8 @@ function StepCard({
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center space-x-2">
-            <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
-            <span className="text-red-700 text-sm">{error}</span>
+            <ExclamationTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <span className="text-red-700 dark:text-red-300 text-sm">{error}</span>
           </div>
         </div>
       )}

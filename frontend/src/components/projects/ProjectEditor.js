@@ -731,7 +731,7 @@ export default function ProjectEditor({ projectSlug }) {
   if (!currentUser) {
     return (
       <Card className="p-6">
-        <div className="text-gray-700">Please sign in to continue.</div>
+        <div className="text-gray-700 dark:text-gray-300">Please sign in to continue.</div>
       </Card>
     );
   }
@@ -739,7 +739,7 @@ export default function ProjectEditor({ projectSlug }) {
   if (!canEdit) {
     return (
       <Card className="p-6">
-        <div className="text-red-700">
+        <div className="text-red-700 dark:text-red-300">
           You do not have permission to edit this project.
         </div>
       </Card>
@@ -776,17 +776,17 @@ export default function ProjectEditor({ projectSlug }) {
       <Card className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {isEditMode ? "Edit project" : "Add a project"}
             </h2>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Keep it crisp. Links + contract address are the minimum viable proof.
             </p>
             {/* Draft status indicator */}
             {!isEditMode && draftSaved && (
               <div className="flex items-center gap-1.5 mt-2">
                 <span className={`w-1.5 h-1.5 rounded-full ${draftSaved === 'cloud' ? 'bg-green-500' : 'bg-blue-500'}`} />
-                <span className="text-[11px] text-gray-500">
+                <span className="text-[11px] text-gray-500 dark:text-gray-400">
                   {draftSaved === 'cloud'
                     ? `Draft saved${lastCloudSave ? ` at ${lastCloudSave.toLocaleTimeString()}` : ''}`
                     : 'Draft saved locally'}
@@ -807,7 +807,7 @@ export default function ProjectEditor({ projectSlug }) {
                     />
                   ))}
                 </div>
-                <span className={`text-xs font-medium ${allRequired ? 'text-green-600' : 'text-gray-500'}`}>
+                <span className={`text-xs font-medium ${allRequired ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                   {completedCount}/{checklist.length}
                 </span>
               </div>
@@ -829,8 +829,8 @@ export default function ProjectEditor({ projectSlug }) {
 
         {!isEditMode && (
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm font-semibold text-blue-900 mb-2">What makes your project look great to backers:</p>
-            <ul className="text-sm text-blue-800 space-y-1 list-disc pl-5">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">What makes your project look great to backers:</p>
+            <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1 list-disc pl-5">
               <li><strong>Clear description</strong> — What does it do, who is it for, what&apos;s onchain? (2-3 sentences minimum)</li>
               <li><strong>GitHub repo</strong> — Public repos with recent commits boost your health score significantly</li>
               <li><strong>Correct ecosystem</strong> — Pick the chain you&apos;re building on so backers can filter to you</li>
@@ -847,7 +847,7 @@ export default function ProjectEditor({ projectSlug }) {
         )}
 
         {success && (
-          <div className="mt-4 bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg">
+          <div className="mt-4 bg-green-50 border border-green-200 text-green-800 dark:text-green-300 p-4 rounded-lg">
             {success}
           </div>
         )}
@@ -860,10 +860,10 @@ export default function ProjectEditor({ projectSlug }) {
                 <div key={`${suggestion.field}-${index}`} className="rounded-md bg-white p-3 border border-indigo-100">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{suggestion.field}</p>
-                      <p className="text-sm text-gray-700 mt-1">{suggestion.suggested}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{suggestion.field}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{suggestion.suggested}</p>
                       {suggestion.reason && (
-                        <p className="text-xs text-gray-500 mt-1">{suggestion.reason}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{suggestion.reason}</p>
                       )}
                     </div>
                     {suggestion.canApplyAutomatically && (
@@ -881,7 +881,7 @@ export default function ProjectEditor({ projectSlug }) {
         {duplicateWarning && !existingProjectConflict && (
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <ExclamationTriangleIcon className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold text-amber-900">Possible duplicate detected</p>
                 <p className="text-sm text-amber-700 mt-1">
@@ -890,7 +890,7 @@ export default function ProjectEditor({ projectSlug }) {
                     {duplicateWarning.name}
                   </Link>
                 </p>
-                <p className="text-xs text-amber-600 mt-1">
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                   If this is yours, you can edit the existing project instead of creating a duplicate.
                 </p>
               </div>
@@ -902,15 +902,15 @@ export default function ProjectEditor({ projectSlug }) {
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Project name already exists
                 </h3>
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
                   A project named <strong>{existingProjectConflict.name}</strong> already exists.
                 </p>
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
@@ -971,14 +971,14 @@ export default function ProjectEditor({ projectSlug }) {
                       ? 'bg-emerald-500 text-white'
                       : isActive
                       ? 'bg-gray-900 text-white ring-4 ring-gray-900/10'
-                      : 'bg-gray-200 text-gray-400'
+                      : 'bg-gray-200 text-gray-400 dark:text-gray-500'
                   }`}
                 >
                   {isCompleted ? <CheckCircleIcon className="w-5 h-5" /> : stepNum}
                 </div>
                 <span
                   className={`text-sm font-medium hidden sm:inline ${
-                    isActive ? 'text-gray-900' : 'text-gray-500'
+                    isActive ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >
                   {stepName}
@@ -996,17 +996,17 @@ export default function ProjectEditor({ projectSlug }) {
           <Card className="p-8 mt-6 text-center space-y-5 border-2 border-green-200 bg-gradient-to-br from-green-50 via-white to-blue-50">
             <div className="flex justify-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircleIcon className="w-10 h-10 text-green-600" />
+                <CheckCircleIcon className="w-10 h-10 text-green-600 dark:text-green-400" />
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Project shipped!</h2>
-              <p className="text-gray-600 mt-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Project shipped!</h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
                 Your project is live. Share it to get backers and build momentum.
               </p>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-2 max-w-md mx-auto">
-              <code className="text-sm text-gray-700 flex-1 text-left truncate">
+              <code className="text-sm text-gray-700 dark:text-gray-300 flex-1 text-left truncate">
                 {typeof window !== 'undefined' ? window.location.origin : ''}/u/{currentUser?.reloadUserInfo?.screenName || currentUser?.displayName || 'you'}
               </code>
               <button
@@ -1018,11 +1018,11 @@ export default function ProjectEditor({ projectSlug }) {
                     setTimeout(() => setCopied(false), 2000);
                   });
                 }}
-                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition-colors"
                 title="Copy link"
               >
                 {copied
-                  ? <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                  ? <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
                   : <ClipboardDocumentIcon className="w-5 h-5" />}
               </button>
             </div>
@@ -1047,7 +1047,7 @@ export default function ProjectEditor({ projectSlug }) {
 
       {(wizardStep === 1 || isEditMode) && (
       <Card className="p-6 space-y-5">
-        <h3 className="text-lg font-semibold text-gray-900">Basics</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Basics</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -1085,7 +1085,7 @@ export default function ProjectEditor({ projectSlug }) {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Project image
           </label>
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
             Shown on project cards and backer feeds. Auto-resized to 1200×630. Max 2MB.
           </p>
           <div className="flex items-start gap-4 flex-wrap">
@@ -1095,7 +1095,7 @@ export default function ProjectEditor({ projectSlug }) {
                 <button
                   type="button"
                   onClick={() => setImageUrl("")}
-                  className="absolute top-1 right-1 bg-white/90 rounded-full p-0.5 hover:bg-red-50 text-gray-500 hover:text-red-600 text-xs"
+                  className="absolute top-1 right-1 bg-white/90 rounded-full p-0.5 hover:bg-red-50 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:text-red-400 text-xs"
                   title="Remove image"
                 >
                   ✕
@@ -1103,13 +1103,13 @@ export default function ProjectEditor({ projectSlug }) {
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-40 h-[84px] rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 cursor-pointer hover:border-blue-400 transition-colors flex-shrink-0">
-                <PhotoIcon className="w-6 h-6 text-gray-400" />
-                <span className="text-xs text-gray-500 mt-1">Upload image</span>
+                <PhotoIcon className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Upload image</span>
                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
               </label>
             )}
             {uploadingImage && <LoadingSpinner size="sm" />}
-            {imageError && <span className="text-xs text-red-600">{imageError}</span>}
+            {imageError && <span className="text-xs text-red-600 dark:text-red-400">{imageError}</span>}
           </div>
         </div>
 
@@ -1120,7 +1120,7 @@ export default function ProjectEditor({ projectSlug }) {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Media gallery
               </label>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Additional images and videos. First image is the hero, rest form a gallery.
               </p>
             </div>
@@ -1128,11 +1128,11 @@ export default function ProjectEditor({ projectSlug }) {
               <button
                 type="button"
                 onClick={handleAddVideoUrl}
-                className="text-xs font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                className="text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
               >
                 + Add video URL
               </button>
-              <label className="text-xs font-medium text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200 hover:border-blue-300 cursor-pointer transition-colors">
+              <label className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-lg border border-blue-200 hover:border-blue-300 cursor-pointer transition-colors">
                 + Add images
                 <input type="file" accept="image/*" multiple onChange={handleGalleryImageUpload} className="hidden" />
               </label>
@@ -1170,7 +1170,7 @@ export default function ProjectEditor({ projectSlug }) {
           )}
 
           {galleryMedia.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-4 border border-dashed border-gray-200 rounded-lg">
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4 border border-dashed border-gray-200 rounded-lg">
               No gallery items yet. Add images or video URLs to showcase your project.
             </p>
           )}
@@ -1184,7 +1184,7 @@ export default function ProjectEditor({ projectSlug }) {
             placeholder="https://github.com/org/repo"
             required
           />
-          <div className="text-xs text-gray-600">
+          <div className="text-xs text-gray-600 dark:text-gray-400">
             {fetchingGithub ? "⏳ Auto-populating from GitHub..." : "Paste a GitHub URL to auto-fill project details."}
           </div>
 
@@ -1225,10 +1225,10 @@ export default function ProjectEditor({ projectSlug }) {
         {Array.isArray(ecosystemConfig?.submissionRequirements) &&
           ecosystemConfig.submissionRequirements.length > 0 && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="font-medium text-gray-900 mb-2">
+              <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {ecosystemConfig.shortName} submission checklist
               </div>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc pl-5">
+              <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-disc pl-5">
                 {ecosystemConfig.submissionRequirements.map((r, i) => (
                   <li key={i}>{r}</li>
                 ))}
@@ -1241,56 +1241,56 @@ export default function ProjectEditor({ projectSlug }) {
       {/* Step 3: Review & Submit */}
       {(wizardStep === 3) && (
         <Card className="p-6 space-y-5">
-          <h3 className="text-lg font-semibold text-gray-900">Review & Submit</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Review & Submit</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Review your project before submitting. All required fields are complete.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Name</p>
-              <p className="text-sm font-medium text-gray-900">{form.name || '—'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Name</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{form.name || '—'}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Ecosystem</p>
-              <p className="text-sm font-medium text-gray-900">{ecosystemConfig?.shortName || form.ecosystem || '—'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Ecosystem</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{ecosystemConfig?.shortName || form.ecosystem || '—'}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl md:col-span-2">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Description</p>
-              <p className="text-sm text-gray-900 line-clamp-3">{form.description || '—'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Description</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100 line-clamp-3">{form.description || '—'}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">GitHub</p>
-              <p className="text-sm text-gray-900 truncate">{form.githubUrl || '—'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">GitHub</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{form.githubUrl || '—'}</p>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Category</p>
-              <p className="text-sm font-medium text-gray-900">{form.category || '—'}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Category</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{form.category || '—'}</p>
             </div>
             {form.website && (
               <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Website</p>
-                <p className="text-sm text-gray-900 truncate">{form.website}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Website</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{form.website}</p>
               </div>
             )}
             {form.twitter && (
               <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Twitter</p>
-                <p className="text-sm text-gray-900 truncate">{form.twitter}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Twitter</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{form.twitter}</p>
               </div>
             )}
             {form.discord && (
               <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Discord</p>
-                <p className="text-sm text-gray-900 truncate">{form.discord}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Discord</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100 truncate">{form.discord}</p>
               </div>
             )}
             {Array.isArray(form.milestones) && form.milestones.filter(Boolean).length > 0 && (
               <div className="p-4 bg-gray-50 rounded-xl md:col-span-2">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-2">Milestones ({form.milestones.filter(Boolean).length})</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-2">Milestones ({form.milestones.filter(Boolean).length})</p>
                 <ul className="space-y-1">
                   {form.milestones.filter(Boolean).map((m, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <CheckCircleIcon className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <CheckCircleIcon className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                       <span>{String(m)}</span>
                     </li>
                   ))}
@@ -1299,8 +1299,8 @@ export default function ProjectEditor({ projectSlug }) {
             )}
             {form.lookingForFunding && (
               <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Funding</p>
-                <p className="text-sm font-medium text-emerald-700">Seeking {form.fundingAmount || 'support'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Funding</p>
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Seeking {form.fundingAmount || 'support'}</p>
               </div>
             )}
           </div>
@@ -1317,7 +1317,7 @@ export default function ProjectEditor({ projectSlug }) {
       >
         <span className="flex items-center gap-2">
           {showOptional ? "Hide" : "Show"} optional details
-          <span className="text-xs text-blue-600 font-normal">— projects with links get 3× more backer views</span>
+          <span className="text-xs text-blue-600 dark:text-blue-400 font-normal">— projects with links get 3× more backer views</span>
         </span>
         {showOptional ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
       </button>
@@ -1345,7 +1345,7 @@ export default function ProjectEditor({ projectSlug }) {
       <Card className="p-6 space-y-5">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Links & Team</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Backers look for signals that you are real and active. A Twitter/X account shows your builder journey.
             Discord shows community engagement. A website shows you care about users, not just code.
           </p>
@@ -1364,7 +1364,7 @@ export default function ProjectEditor({ projectSlug }) {
               onChange={(e) => setField("twitter", e.target.value)}
               placeholder="https://x.com/yourhandle"
             />
-            <p className="text-xs text-gray-500 mt-1">Build in public. Backers follow your progress here.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Build in public. Backers follow your progress here.</p>
           </div>
           <div>
             <Input
@@ -1373,7 +1373,7 @@ export default function ProjectEditor({ projectSlug }) {
               onChange={(e) => setField("discord", e.target.value)}
               placeholder="https://discord.gg/yourserver"
             />
-            <p className="text-xs text-gray-500 mt-1">Shows you have a community. Backers love early traction.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Shows you have a community. Backers love early traction.</p>
           </div>
           <div>
             <Input
@@ -1382,7 +1382,7 @@ export default function ProjectEditor({ projectSlug }) {
               onChange={(e) => setField("website", e.target.value)}
               placeholder="https://yourapp.com"
             />
-            <p className="text-xs text-gray-500 mt-1">Landing page, docs, or demo — any link where users can try it.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Landing page, docs, or demo — any link where users can try it.</p>
           </div>
         </div>
 
@@ -1411,42 +1411,42 @@ export default function ProjectEditor({ projectSlug }) {
                 <div className="flex items-start gap-3 mb-3">
                   <span className="text-xl mt-0.5">🚀</span>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Token Launch Readiness</h4>
-                    <p className="text-sm text-gray-600">Launch a project token on Bags once you've proven traction. Tokens launched after reaching milestones tend to perform better with backers.</p>
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">Token Launch Readiness</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Launch a project token on Bags once you've proven traction. Tokens launched after reaching milestones tend to perform better with backers.</p>
                   </div>
                 </div>
 
                 {/* Readiness indicators */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="p-3 rounded-lg bg-white/70 border border-emerald-100 text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Hackathon Wins</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Hackathon Wins</p>
                     <p className="text-lg font-bold">
-                      <span className={form.hackathons.filter(h => h.outcome === 'winner').length >= 2 ? 'text-emerald-600' : 'text-gray-400'}>
+                      <span className={form.hackathons.filter(h => h.outcome === 'winner').length >= 2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}>
                         {form.hackathons.filter(h => h.outcome === 'winner').length}
                       </span>
-                      <span className="text-gray-300 text-sm">/2</span>
+                      <span className="text-gray-300 dark:text-gray-500 text-sm">/2</span>
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                       {form.hackathons.filter(h => h.outcome === 'winner').length >= 2 ? '✓ Met' : 'Wins needed'}
                     </p>
                   </div>
                   <div className="p-3 rounded-lg bg-white/70 border border-emerald-100 text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Backers</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Backers</p>
                     <p className="text-lg font-bold">
-                      <span className="text-gray-400">0</span>
-                      <span className="text-gray-300 text-sm">/5</span>
+                      <span className="text-gray-400 dark:text-gray-500">0</span>
+                      <span className="text-gray-300 dark:text-gray-500 text-sm">/5</span>
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">After launch</p>
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">After launch</p>
                   </div>
                   <div className="p-3 rounded-lg bg-white/70 border border-emerald-100 text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Description</p>
+                    <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase mb-1">Description</p>
                     <p className="text-lg font-bold">
-                      <span className={form.description.trim().length >= 50 ? 'text-emerald-600' : 'text-gray-400'}>
+                      <span className={form.description.trim().length >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}>
                         {form.description.trim().length >= 50 ? '✓' : Math.min(Math.round(form.description.trim().length / 50 * 100), 99)}
                       </span>
-                      <span className="text-gray-300 text-sm">{form.description.trim().length >= 50 ? '' : '%'}</span>
+                      <span className="text-gray-300 dark:text-gray-500 text-sm">{form.description.trim().length >= 50 ? '' : '%'}</span>
                     </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                       {form.description.trim().length >= 50 ? 'Complete' : 'Min 50 chars'}
                     </p>
                   </div>
@@ -1455,8 +1455,8 @@ export default function ProjectEditor({ projectSlug }) {
                 {/* Toggle */}
                 <div className="flex items-center justify-between p-3 rounded-lg bg-white/70 border border-emerald-100">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Launch token on Bags</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Launch token on Bags</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {form.launchOnBags
                         ? 'Token will be created when you submit.'
                         : 'Enable to configure your token.'}
@@ -1554,7 +1554,7 @@ export default function ProjectEditor({ projectSlug }) {
                       type="button"
                       variant="ghost"
                       onClick={() => removeArrayItem("teamMembers", idx)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 dark:text-red-400 hover:text-red-700 dark:text-red-300"
                     >
                       <TrashIcon className="w-5 h-5" />
                     </Button>
@@ -1564,12 +1564,12 @@ export default function ProjectEditor({ projectSlug }) {
             ))}
           </div>
           <div className="mt-3 flex justify-between items-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Set 100% for single developers. For teams, total must equal 100% for automated splits.
             </p>
             <div className={`text-sm font-bold ${
               form.teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0) === 100 
-              ? 'text-green-600' : 'text-orange-600'
+              ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
             }`}>
               Total Share: {form.teamMembers.reduce((sum, m) => sum + (parseInt(m.share) || 0), 0)}%
             </div>
@@ -1578,7 +1578,7 @@ export default function ProjectEditor({ projectSlug }) {
       </Card>
 
       <Card className="p-6 space-y-5">
-        <h3 className="text-lg font-semibold text-gray-900">Milestones</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Milestones</h3>
 
         <div className="space-y-2">
           {form.milestones.map((m, idx) => (
@@ -1616,8 +1616,8 @@ export default function ProjectEditor({ projectSlug }) {
       <Card className="p-6 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Hackathon proof</h3>
-            <p className="text-gray-600 text-sm">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Hackathon proof</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm">
               This is a core Proof of Ship signal. Add structured evidence that ties your repo, wallet, and public win/submission history together.
             </p>
           </div>
@@ -1642,15 +1642,15 @@ export default function ProjectEditor({ projectSlug }) {
         </div>
 
         {form.hackathons.length === 0 ? (
-          <div className="text-gray-600">No hackathon claims yet. Add one if this project was submitted to or won a hackathon.</div>
+          <div className="text-gray-600 dark:text-gray-400">No hackathon claims yet. Add one if this project was submitted to or won a hackathon.</div>
         ) : (
           <div className="space-y-4">
             {form.hackathons.map((h, idx) => (
               <Card key={idx} className="p-4 bg-gray-50 border border-gray-200">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-medium text-gray-900">Hackathon claim {idx + 1}</div>
-                    <div className="text-xs text-gray-500 mt-1">Attach enough evidence for backers and reviewers to trust the claim.</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">Hackathon claim {idx + 1}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Attach enough evidence for backers and reviewers to trust the claim.</div>
                   </div>
                   <Button
                     type="button"
@@ -1821,23 +1821,23 @@ export default function ProjectEditor({ projectSlug }) {
                   title={item.label}
                 />
               ))}
-              <span className={`text-xs font-medium ml-1 ${allRequired ? 'text-green-600' : 'text-gray-500'}`}>
+              <span className={`text-xs font-medium ml-1 ${allRequired ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 {completedCount}/{checklist.length}
               </span>
             </div>
           )}
           {isEditMode && (
             <>
-              <Button type="button" variant="outline" onClick={() => setField('archived', !form.archived)} className={form.archived ? 'text-emerald-600 border-emerald-300 hover:bg-emerald-50' : 'text-amber-600 border-amber-300 hover:bg-amber-50'} leftIcon={<ArchiveBoxArrowDownIcon className="w-4 h-4" />}>
+              <Button type="button" variant="outline" onClick={() => setField('archived', !form.archived)} className={form.archived ? 'text-emerald-600 dark:text-emerald-400 border-emerald-300 hover:bg-emerald-50' : 'text-amber-600 dark:text-amber-400 border-amber-300 hover:bg-amber-50'} leftIcon={<ArchiveBoxArrowDownIcon className="w-4 h-4" />}>
                 {form.archived ? 'Unarchive' : 'Archive'}
               </Button>
-              <Button type="button" variant="outline" onClick={handleDelete} loading={deleting} className="text-red-600 border-red-300 hover:bg-red-50">
+              <Button type="button" variant="outline" onClick={handleDelete} loading={deleting} className="text-red-600 dark:text-red-400 border-red-300 hover:bg-red-50">
                 Delete
               </Button>
             </>
           )}
           {hasDraft && !isEditMode && (
-            <button type="button" onClick={() => { clearDraft(); window.location.reload(); }} className="text-xs text-gray-500 hover:text-red-500 underline">
+            <button type="button" onClick={() => { clearDraft(); window.location.reload(); }} className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 dark:text-red-400 underline">
               Clear saved draft
             </button>
           )}

@@ -13,7 +13,7 @@ import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClie
 import { getCachedResult, setCachedResult } from "@/lib/agentCache";
 import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
 import { withAgentAuth } from "@/lib/agentAuth";
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from "@solana/spl-token";
@@ -140,10 +140,8 @@ async function handler(req, res) {
       // (read-only — no transaction is submitted)
       if (process.env.SOLANA_RPC_URL) {
         try {
-          const connection = new Connection(
-            process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com",
-            "confirmed"
-          );
+          const { getSolanaConnection } = await import("@/lib/chains/solanaConnection");
+          const connection = getSolanaConnection({ rpcUrl: process.env.SOLANA_RPC_URL, commitment: "confirmed" });
           const projectPubkey = new PublicKey(projectPda);
           const idlWithAddress = { ...IDL, address: PROGRAM_ID.toBase58() };
           const dummyWallet = new anchor.Wallet(

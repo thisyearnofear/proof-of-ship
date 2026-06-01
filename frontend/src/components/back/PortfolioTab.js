@@ -155,12 +155,11 @@ export default function PortfolioTab({ setTab }) {
     setClaimSuccess(null);
 
     try {
-      const { Connection } = await import('@solana/web3.js');
       const { solanaCreditService } = await import('@/services/SolanaCreditService');
+      const { getSolanaConnection } = await import('@/lib/chains/solanaConnection');
       const txs = await solanaCreditService.claimFees(wallet.solanaWallet, claimableFees);
       // Send the signed transactions
-      const rpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-      const connection = new Connection(rpc);
+      const connection = getSolanaConnection();
       for (const tx of txs) {
         await connection.sendRawTransaction(tx.serialize());
       }

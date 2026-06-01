@@ -14,7 +14,8 @@
  * Falls back to empty data if the SDK is unavailable.
  */
 async function fetchBagsData(mint, apiKey, rpcUrl) {
-  const { Connection, PublicKey } = await import('@solana/web3.js');
+  const { PublicKey } = await import('@solana/web3.js');
+  const { getSolanaConnection } = await import('@/lib/chains/solanaConnection');
 
   let mintPubkey;
   try {
@@ -23,7 +24,7 @@ async function fetchBagsData(mint, apiKey, rpcUrl) {
     return { error: 'Invalid mint address' };
   }
 
-  const connection = new Connection(rpcUrl);
+  const connection = getSolanaConnection({ rpcUrl });
 
   // Dynamic import — the SDK is ESM-only but Next.js handles this
   const { BagsSDK } = await import('@bagsfm/bags-sdk');

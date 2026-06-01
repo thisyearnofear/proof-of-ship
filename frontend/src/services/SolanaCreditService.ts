@@ -7,6 +7,8 @@ import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, ASSOCIATED_TOKEN_PROGR
 import { BagsSDK } from '@bagsfm/bags-sdk';
 import { getDomainKeySync } from '@bonfida/spl-name-service';
 import { snsService } from './SnsService';
+import { getSolanaConnection } from '../lib/chains/solanaConnection';
+import type { ProjectData, ProjectBackingData, ProjectDetails } from '../lib/chains/types';
 
 /**
  * Solana Credit Service
@@ -36,42 +38,6 @@ import { snsService } from './SnsService';
  *                        authority, systemProgram, tokenProgram, associatedTokenProgram
  */
 
-interface ProjectData {
-    hackathonIds: number[];
-    githubUrl: string;
-    projectName: string;
-    milestoneDescriptions: string[];
-    milestoneAmounts: string[] | number[];
-    verifier?: string;
-    builderSnsDomain?: string;
-    builderSnsNameAccount?: string;
-    launchOnBags?: boolean;
-    bagsTokenMetadata?: {
-        name: string;
-        symbol: string;
-        description: string;
-    };
-    creditScore?: number;
-}
-
-interface ProjectBackingData {
-    totalBacking: string;
-    backerCount: number;
-    maxMultiplier: number;
-    creditScore: number;
-}
-
-interface ProjectDetails {
-    isActive: boolean;
-    creditScore: number;
-    fundingAmount: string;
-    milestonesCompleted: number;
-    milestonesCount: number;
-    builderSnsDomain?: string;
-    builderSnsNameAccount?: string;
-    bagsTokenAddress?: string;
-}
-
 class SolanaCreditService {
     private PROGRAM_ID = new PublicKey(
         process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || (IDL as any).address
@@ -82,10 +48,9 @@ class SolanaCreditService {
     constructor() {
         const apiKey = process.env.NEXT_PUBLIC_BAGS_API_KEY;
         if (apiKey) {
-            const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
             this.bagsClient = new BagsSDK(
                 apiKey,
-                new Connection(rpcUrl),
+                getSolanaConnection(),
             );
         }
     }

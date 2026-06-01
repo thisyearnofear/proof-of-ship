@@ -6,40 +6,18 @@ import type { PublicClient, WalletClient } from 'viem';
 
 import { BUILDER_CREDIT_CORE_ABI, ERC20_ABI, HACKATHON_REGISTRY_ABI } from '../constants/abis';
 import { BUILDER_CREDIT_CORE_ADDRESSES, TESTNET_USDC_ADDRESSES, HACKATHON_REGISTRY_ADDRESSES } from '../config/tokens';
+import type { ProjectData, ProjectBackingData, ProjectDetails } from '../lib/chains/types';
 
 // ABIs are in human-readable format; cast for viem (tuple() syntax not supported by parseAbi)
 const coreAbi = BUILDER_CREDIT_CORE_ABI as unknown as readonly any[];
 const erc20Abi = ERC20_ABI as unknown as readonly any[];
 const registryAbi = HACKATHON_REGISTRY_ABI as unknown as readonly any[];
 
-interface ProjectData {
-    hackathonIds: number[];
-    githubUrl: string;
-    projectName: string;
-    milestoneDescriptions: string[];
-    milestoneAmounts: string[] | number[];
-}
-
 interface Contracts {
     core: any;
     usdc: any;
     registry: any;
     coreAddress: `0x${string}`;
-}
-
-interface ProjectBackingData {
-    totalBacking: string;
-    backerCount: number;
-    maxMultiplier: number;
-    creditScore: number;
-}
-
-interface ProjectDetails {
-    isActive: boolean;
-    creditScore: number;
-    fundingAmount: string;
-    milestonesCompleted: number;
-    milestonesCount: number;
 }
 
 class CreditService {

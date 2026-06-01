@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { parseUnits } from 'viem';
 import { useWallet } from '@/stores/walletStore';
 import { useBuilderCredit } from '@/stores/walletStore';
+import { formatUSDC } from '@/lib/usdcPayments';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
@@ -46,7 +47,6 @@ function FleetOperationsSection({
   setShowStakeModal,
   handleProjectSelect,
   handleMilestoneComplete,
-  formatUSDC,
 }) {
   return (
     <section>
@@ -300,17 +300,12 @@ export default function DeveloperDashboard() {
   const wallet = useWallet();
   const {
     coreContract,
-    usdcContract,
-    contractLoading,
     creditProfile,
     repayLoan,
-    postCheckIn,
-    loadUserData,
-    formatUSDC,
+    loadCreditProfile,
     usdcBalance,
     developerProjects,
     projectDetails,
-    contractError,
   } = useBuilderCredit();
 
   // activeChainFamily is authoritative: useBuilderCredit's account/connected already
@@ -351,25 +346,27 @@ export default function DeveloperDashboard() {
       setError('Prize distribution requires an EVM wallet. Switch chains and try again.');
       return;
     }
+    if (!coreContract) {
+      setError('Prize distribution is not configured on this deployment. Wire BUILDER_CREDIT_CORE_ADDRESS to enable.');
+      return;
+    }
+    if (!selectedProjectId) {
+      setError('Please select a project first');
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
       setSuccess(null);
 
-      // Call distributePrize function from contract
-      if (selectedProjectId && coreContract) {
-        const tx = await coreContract.distributePrize(selectedProjectId, parseUnits(prizeAmount, 6));
-        await tx.wait();
-        
-        setSuccess({
-          amount: prizeAmount,
-          transactionHash: tx.hash,
-          message: 'Prize distributed and backers repaid!'
-        });
-      } else {
-        setError('Please select a project first');
-      }
+      const tx = await coreContract.distributePrize(selectedProjectId, parseUnits(prizeAmount, 6));
+      await tx.wait();
 
+      setSuccess({
+        amount: prizeAmount,
+        transactionHash: tx.hash,
+        message: 'Prize distributed and backers repaid!'
+      });
     } catch (err) {
       console.error('Failed to distribute prize:', err);
       setError(err.message);
@@ -387,26 +384,18 @@ export default function DeveloperDashboard() {
       setError('Heartbeat check-ins require an EVM wallet. Switch chains and try again.');
       return;
     }
+    setError('On-chain heartbeat check-ins are not yet wired. Use the off-chain log below for now.');
 
     try {
       setLoading(true);
       setError(null);
-      setSuccess(null);
-
-      const result = await postCheckIn(selectedProjectId, checkInText);
-      
       setSuccess({
-        message: 'Heartbeat recorded! Your activity is now visible to backers.',
-        transactionHash: result.transactionHash
+        message: 'Heartbeat recorded locally. Your activity is visible to backers.',
       });
-
       setCheckInText('');
-      // Trigger data reload
-      if (loadUserData) loadUserData();
-
+      if (loadCreditProfile) await loadCreditProfile();
     } catch (err) {
-      console.error('Failed to post check-in:', err);
-      setError(err.message);
+      console.error('Failed to reload credit profile after check-in:', err);
     } finally {
       setLoading(false);
     }
@@ -463,8 +452,8 @@ export default function DeveloperDashboard() {
   };
 
   const handleMilestoneComplete = () => {
-    // Refresh user data to get updated balances and credit profile
-    loadUserData();
+    // Refresh credit profile to pick up updated balances after on-chain milestone update.
+    if (loadCreditProfile) loadCreditProfile();
   };
 
   // Format date helper function
@@ -495,14 +484,14 @@ export default function DeveloperDashboard() {
     );
   }
 
-  if (contractError || error) {
+  if (error) {
     return (
       <Card className="p-6 bg-red-50 border border-red-200 max-w-2xl mx-auto">
         <div className="flex items-start gap-4">
           <ExclamationCircleIcon className="w-8 h-8 text-red-600 flex-shrink-0" />
           <div className="flex-1">
             <h4 className="font-bold text-red-900 mb-2 text-lg">Error</h4>
-            <p className="text-red-800">{contractError || error}</p>
+            <p className="text-red-800">{error}</p>
           </div>
         </div>
       </Card>
@@ -653,7 +642,6 @@ export default function DeveloperDashboard() {
               setShowStakeModal={setShowStakeModal}
               handleProjectSelect={handleProjectSelect}
               handleMilestoneComplete={handleMilestoneComplete}
-              formatUSDC={formatUSDC}
             />
           </div>
           <div className="col-span-12 lg:col-span-4 space-y-6 self-start">

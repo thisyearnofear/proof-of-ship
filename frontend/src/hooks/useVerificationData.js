@@ -12,7 +12,7 @@ import { realGitHubService } from '@/services/RealGitHubService';
 
 export function useVerificationData() {
   const { currentUser } = useUser();
-  const { hackathonRegistryContract, coreContract, account } = useBuilderCredit();
+  const { account } = useBuilderCredit();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [assignedHackathons, setAssignedHackathons] = useState([]);
@@ -21,8 +21,9 @@ export function useVerificationData() {
   const [evidence, setEvidence] = useState([]);
 
   const fetchData = useCallback(async () => {
-    // If we're not connected or no contract, we can't do much
-    if (!currentUser || !hackathonRegistryContract || !account) {
+    // Without the registry contract wired in the hydrator we can only render empty
+    // state; bail early so callers see loading=false with no rows.
+    if (!currentUser || !account) {
       setLoading(false);
       return;
     }
@@ -201,7 +202,7 @@ export function useVerificationData() {
     } finally {
       setLoading(false);
     }
-  }, [currentUser, hackathonRegistryContract, coreContract, account]);
+  }, [currentUser, account]);
 
   useEffect(() => {
     fetchData();

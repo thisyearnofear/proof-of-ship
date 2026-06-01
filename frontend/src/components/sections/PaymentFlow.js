@@ -49,15 +49,15 @@ export function PaymentFlow() {
             {/* Arrow */}
             <div className="hidden md:flex items-center justify-center">
               <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-400 dark:text-gray-500 mb-1">$0.01–0.05</span>
+                <span className="text-xs text-gray-500 dark:text-gray-300 mb-1">$0.01–0.05</span>
                 <div className="w-full h-0.5 bg-gradient-to-r from-blue-300 to-teal-300 dark:from-blue-700 dark:to-teal-700 relative">
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-transparent border-l-teal-400 dark:border-l-teal-600" />
                 </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">USDC</span>
+                <span className="text-xs text-gray-500 dark:text-gray-300 mt-1">USDC</span>
               </div>
             </div>
             <div className="md:hidden flex justify-center">
-              <span className="text-gray-300 text-xl">↓</span>
+              <span className="text-gray-300 dark:text-gray-400 text-xl">↓</span>
             </div>
             {/* Step 2: Gateway */}
             <div className="bg-white rounded-xl border-2 border-teal-200 dark:border-teal-700 dark:bg-gray-800 shadow-sm p-4 text-center">
@@ -68,15 +68,15 @@ export function PaymentFlow() {
             {/* Arrow */}
             <div className="hidden md:flex items-center justify-center">
               <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-400 dark:text-gray-500 mb-1">analyze</span>
+                <span className="text-xs text-gray-500 dark:text-gray-300 mb-1">analyze</span>
                 <div className="w-full h-0.5 bg-gradient-to-r from-teal-300 to-purple-300 dark:from-teal-700 dark:to-purple-700 relative">
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-6 border-transparent border-l-purple-400 dark:border-l-purple-600" />
                 </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">score</span>
+                <span className="text-xs text-gray-500 dark:text-gray-300 mt-1">score</span>
               </div>
             </div>
             <div className="md:hidden flex justify-center">
-              <span className="text-gray-300 text-xl">↓</span>
+              <span className="text-gray-300 dark:text-gray-400 text-xl">↓</span>
             </div>
             {/* Step 3: AI Agent */}
             <div className="bg-white rounded-xl border-2 border-purple-200 dark:border-purple-800 dark:bg-gray-800 shadow-sm p-4 text-center">
@@ -87,11 +87,11 @@ export function PaymentFlow() {
           </div>
           {/* Secondary: Agent → LLM inference */}
           <div className="mt-4 flex justify-center">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-2 inline-flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-2 inline-flex items-center gap-3 text-xs text-gray-500 dark:text-gray-300">
               <span>🤖 Agent</span>
-              <span className="text-gray-300 dark:text-gray-600">→ pays →</span>
+              <span className="text-gray-400 dark:text-gray-400">→ pays →</span>
               <span>🧠 LLM Inference</span>
-              <span className="text-gray-300 dark:text-gray-600">→ settled on</span>
+              <span className="text-gray-400 dark:text-gray-400">→ settled on</span>
               <span className="font-semibold text-teal-600 dark:text-teal-400">Arc L2</span>
             </div>
           </div>

@@ -3,8 +3,9 @@
  *
  * Phase 3: collapsed 7 React contexts (User, Wallet, Circle, Credit, Financial,
  * Nanopayment, App) into 3 useSyncExternalStore stores. The 7 provider wrappers
- * are gone. `WalletHydrator` keeps the live wagmi/Solana state flowing into
- * `walletStore`. `init*()` calls are idempotent.
+ * are gone. `EvmWalletHydrator` and `SolanaWalletHydrator` keep the live
+ * wagmi/Solana state flowing into `walletStore`. `init*()` calls are
+ * idempotent.
  */
 
 import React from 'react';
@@ -17,7 +18,7 @@ import NoSSR from '@/providers/NoSSR/NoSSR';
 
 import { ToastProvider } from '@/components/common/Toast';
 import { EnhancedGithubProvider } from '@/providers/Github/EnhancedGithubProvider';
-import { WalletHydrator, initWalletStore } from '@/stores/walletStore';
+import { EvmWalletHydrator, SolanaWalletHydrator, initWalletStore } from '@/stores/walletStore';
 import { initAuthStore } from '@/stores/authStore';
 import { initProfileStore } from '@/stores/profileStore';
 
@@ -50,7 +51,8 @@ export default function AppProviders({ children }) {
             <ConnectKitProvider>
               <ToastProvider position='top-right' maxToasts={5}>
                 <EnhancedGithubProvider>
-                  <WalletHydrator />
+                  <EvmWalletHydrator />
+                  <SolanaWalletHydrator />
                   {children}
                 </EnhancedGithubProvider>
               </ToastProvider>

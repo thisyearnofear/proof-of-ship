@@ -8,9 +8,9 @@
  * the migration is mechanical.
  *
  * Hydrator pattern: wagmi and Solana wallet adapter hooks only work inside
- * a React component. `WalletHydrator` (mounted once in AppProviders) reads
- * those hooks and writes the live values to the store. Other components
- * read via `useWalletStore()`.
+ * a React component. `EvmWalletHydrator` and `SolanaWalletHydrator`
+ * (mounted once each in AppProviders) read those hooks and write the live
+ * values to the store. Other components read via `useWalletStore()`.
  *
  * Dead surface removed (see audit):
  * - `error` (WalletContext — never written)
@@ -382,13 +382,11 @@ export function initWalletStore() {
   refreshCircleWallets();
 }
 
-export function WalletHydrator() {
+export function EvmWalletHydrator() {
   const account = useAccount();
   const chainId = useChainId();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const solana = useSolanaWalletAdapter();
-  const solanaConn = useSolanaConnectionAdapter();
 
   useEffect(() => {
     walletStore.setState((s) => ({
@@ -417,6 +415,13 @@ export function WalletHydrator() {
     })();
     return () => { cancelled = true; };
   }, [account.address, publicClient]);
+
+  return null;
+}
+
+export function SolanaWalletHydrator() {
+  const solana = useSolanaWalletAdapter();
+  const solanaConn = useSolanaConnectionAdapter();
 
   useEffect(() => {
     walletStore.setState((s) => ({

@@ -36,5 +36,6 @@ export {
   useFinancial,
   useLiFi,
   initWalletStore,
-  WalletHydrator,
+  EvmWalletHydrator,
+  SolanaWalletHydrator,
 } from "./walletStore";

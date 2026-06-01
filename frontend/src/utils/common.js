@@ -209,6 +209,13 @@ export function safeJsonStringify(obj, defaultValue = "{}") {
 }
 
 /**
+ * Conditionally join class names. Standard tailwind ergonomics.
+ */
+export function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
+/**
  * Get timestamp in various formats
  */
 export function getTimestamp(format = "iso") {
@@ -248,4 +255,5 @@ export default {
   safeJsonParse,
   safeJsonStringify,
   getTimestamp,
+  classNames,
 };

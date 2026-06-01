@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 import { Modal } from '../common/Modal';
 import { 
   SparklesIcon, 

@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 import { Card, Button, Breadcrumbs } from '@/components/common';
 import { 
   ArrowLeftIcon,

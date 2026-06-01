@@ -9,7 +9,7 @@
  */
 
 import React from "react";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useNanopayment } from "@/stores/walletStore";
 import {
   BanknotesIcon,
   ClockIcon,

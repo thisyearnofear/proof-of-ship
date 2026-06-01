@@ -6,8 +6,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/clientApp';
-import { useUser } from '@/contexts/UserContext';
-import { useBuilderCredit } from '@/contexts/CreditContext';
+import { useUser } from '@/stores/authStore';
+import { useBuilderCredit } from '@/stores/walletStore';
 import { realGitHubService } from '@/services/RealGitHubService';
 
 export function useVerificationData() {

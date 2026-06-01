@@ -1,5 +1,10 @@
 /**
  * AppProviders — Consolidated Provider Composition
+ *
+ * Phase 3: collapsed 7 React contexts (User, Wallet, Circle, Credit, Financial,
+ * Nanopayment, App) into 3 useSyncExternalStore stores. The 7 provider wrappers
+ * are gone. `WalletHydrator` keeps the live wagmi/Solana state flowing into
+ * `walletStore`. `init*()` calls are idempotent.
  */
 
 import React from 'react';
@@ -10,15 +15,11 @@ import { wagmiConfig } from '@/config/wagmi';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import NoSSR from '@/providers/NoSSR/NoSSR';
 
-import { WalletProvider } from '@/contexts/WalletContext';
-import { CircleProvider } from '@/contexts/CircleContext';
-import { CreditProvider } from '@/contexts/CreditContext';
-import { NanopaymentProvider } from '@/contexts/NanopaymentContext';
-import { UserProvider } from '@/contexts/UserContext';
-import { AppProvider } from '@/contexts/AppContext';
-import { FinancialProvider } from '@/contexts/FinancialContext';
 import { ToastProvider } from '@/components/common/Toast';
 import { EnhancedGithubProvider } from '@/providers/Github/EnhancedGithubProvider';
+import { WalletHydrator, initWalletStore } from '@/stores/walletStore';
+import { initAuthStore } from '@/stores/authStore';
+import { initProfileStore } from '@/stores/profileStore';
 
 const queryClient = new QueryClient();
 
@@ -30,32 +31,29 @@ function BoundProvider({ name, children }) {
   );
 }
 
+let initialized = false;
+function initStores() {
+  if (initialized) return;
+  initialized = true;
+  initProfileStore();
+  initAuthStore();
+  initWalletStore();
+}
+
 export default function AppProviders({ children }) {
+  initStores();
   return (
     <BoundProvider name='App Root'>
       <NoSSR>
         <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
             <ConnectKitProvider>
-              <AppProvider>
-                <ToastProvider position='top-right' maxToasts={5}>
-                  <UserProvider>
-                    <WalletProvider demand={false}>
-                      <CircleProvider>
-                        <CreditProvider>
-                          <NanopaymentProvider>
-                            <FinancialProvider>
-                              <EnhancedGithubProvider>
-                                {children}
-                              </EnhancedGithubProvider>
-                            </FinancialProvider>
-                          </NanopaymentProvider>
-                        </CreditProvider>
-                      </CircleProvider>
-                    </WalletProvider>
-                  </UserProvider>
-                </ToastProvider>
-              </AppProvider>
+              <ToastProvider position='top-right' maxToasts={5}>
+                <EnhancedGithubProvider>
+                  <WalletHydrator />
+                  {children}
+                </EnhancedGithubProvider>
+              </ToastProvider>
             </ConnectKitProvider>
           </QueryClientProvider>
         </WagmiProvider>

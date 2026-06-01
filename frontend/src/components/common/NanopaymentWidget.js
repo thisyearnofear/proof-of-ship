@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useNanopayment } from "@/stores/walletStore";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import {

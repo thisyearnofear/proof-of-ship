@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useUser } from '@/contexts/UserContext';
-import { useNanopayment, useWallet } from '@/contexts/WalletContext';
+import { useUser } from '@/stores/authStore';
+import { useNanopayment, useWallet } from '@/stores/walletStore';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
 import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useWallet } from "@/contexts/WalletContext";
-import { useBuilderCredit } from "@/contexts/CreditContext";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useWallet } from "@/stores/walletStore";
+import { useBuilderCredit } from "@/stores/walletStore";
+import { useNanopayment } from "@/stores/walletStore";
 import { useProjectData } from "@/hooks/useProjectData";
 import ProjectCard from "@/components/backer/ProjectCard";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";

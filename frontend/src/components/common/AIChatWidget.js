@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useNanopayment } from "@/stores/walletStore";
 import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon, SparklesIcon, CreditCardIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 
 const QUICK_ACTIONS = [

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { formatUnits } from 'viem';
-import { useWallet } from "@/contexts/WalletContext";
-import { useBuilderCredit } from "@/contexts/CreditContext";
+import { useWallet } from "@/stores/walletStore";
+import { useBuilderCredit } from "@/stores/walletStore";
 import { calculateCompassScore, getCompassTier } from "@/utils/compassScore";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";

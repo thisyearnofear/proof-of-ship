@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';

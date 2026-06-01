@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useEnhancedGithub } from '@/providers/Github/EnhancedGithubProvider';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';

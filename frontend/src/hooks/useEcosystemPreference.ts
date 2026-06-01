@@ -18,8 +18,8 @@
  */
 
 import { useMemo } from 'react';
-import { useApp } from '@/contexts/AppContext';
-import { useWallet } from '@/contexts/WalletContext';
+import { useApp } from '@/stores/profileStore';
+import { useWallet } from '@/stores/walletStore';
 
 // Canonical list of every ecosystem we support. Keep in sync with explore page filter.
 export const SUPPORTED_ECOSYSTEMS = [

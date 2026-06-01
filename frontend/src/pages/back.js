@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/stores/authStore";
 import TabBar from "@/components/common/TabBar";
 import Modal from "@/components/common/Modal";
 import ErrorBoundary from "@/components/ErrorBoundary";

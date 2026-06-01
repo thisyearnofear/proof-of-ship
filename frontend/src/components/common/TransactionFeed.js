@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useNanopayment } from "@/stores/walletStore";
 
 const AGENT_LABELS = {
   underwrite: { icon: "🤖", name: "pos-underwriter.sol", humanName: "Underwriter Agent", snsDomain: "pos-underwriter.sol", color: "text-blue-600" },

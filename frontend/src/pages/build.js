@@ -4,11 +4,10 @@
 
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { useWallet } from "@/contexts/WalletContext";
-import { useBuilderCredit } from "@/contexts/CreditContext";
-import { useUser } from "@/contexts/UserContext";
+import { useWallet } from "@/stores/walletStore";
+import { useBuilderCredit } from "@/stores/walletStore";
+import { useUser } from "@/stores/authStore";
 import { useRouter } from "next/router";
-import { FinancialProvider } from "@/contexts/FinancialContext";
 
 import DeveloperDashboard from "@/components/DeveloperDashboard";
 import BuilderProjectGrowth from "@/components/projects/BuilderProjectGrowth";
@@ -146,7 +145,6 @@ export default function BuildPage() {
   ];
 
   return (
-    <FinancialProvider>
     <>
       <Head><title>Build | Builder Credit</title></Head>
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -277,6 +275,5 @@ export default function BuildPage() {
         )}
       </div>
     </>
-    </FinancialProvider>
   );
 }

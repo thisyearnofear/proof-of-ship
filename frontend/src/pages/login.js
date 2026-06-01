@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { useUser } from "@/contexts/UserContext";
-import { useWallet } from "@/contexts/WalletContext";
+import { useUser } from "@/stores/authStore";
+import { useWallet } from "@/stores/walletStore";
 import { useSignMessage } from "wagmi";
 import Head from "next/head";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
@@ -90,7 +90,26 @@ export default function LoginPage() {
     if (!anyWalletConnected || !activeWalletAddress) throw new Error('No wallet connected');
     const identifier = currentUser?.providerData?.find(p => p.providerId === 'github.com')?.uid
       || currentUser?.displayName || activeWalletAddress;
-    const message = `Proof of Ship - Verify Identity\n\nIdentifier: ${identifier}\nWallet: ${activeWalletAddress}\nTimestamp: ${Date.now()}`;
+    // SIWE-style fields: nonce (replay protection), domain (prevents
+    // cross-site replay), ISO timestamp (human-readable audit trail).
+    // Chain family is the only chain identifier included — EVM chainId is
+    // intentionally not bound into the message because sign-in is a
+    // wallet-ownership proof, not a chain-scoped auth.
+    const nonce = typeof crypto !== 'undefined' && (crypto as any).randomUUID
+      ? (crypto as any).randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const domain = typeof window !== 'undefined' ? window.location.host : 'proof-of-ship.xyz';
+    const timestamp = new Date().toISOString();
+    const message = [
+      'Proof of Ship - Verify Identity',
+      '',
+      `Identifier: ${identifier}`,
+      `Wallet: ${activeWalletAddress}`,
+      `Chain: ${walletFamily || 'unknown'}`,
+      `Domain: ${domain}`,
+      `Nonce: ${nonce}`,
+      `Timestamp: ${timestamp}`,
+    ].join('\n');
     let signature;
     if (walletFamily === 'solana') {
       if (!solanaWallet?.signMessage) throw new Error('Your Solana wallet does not support message signing');

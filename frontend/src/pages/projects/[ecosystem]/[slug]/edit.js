@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/stores/authStore";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ProjectEditor from "@/components/projects";
 

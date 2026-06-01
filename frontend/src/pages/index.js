@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useRouter } from "next/router";
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/stores/authStore";
 
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";

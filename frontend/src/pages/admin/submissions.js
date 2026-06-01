@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 import useCampaigns from '@/hooks/useCampaigns';
 import useCampaignSubmissions from '@/hooks/useCampaignSubmissions';
 import { Card } from '@/components/common/Card';

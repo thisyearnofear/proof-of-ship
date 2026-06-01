@@ -73,8 +73,20 @@ export const HACKATHON_REGISTRY_ABI = [
   "function getHackathonVerifiers(uint256 hackathonId) external view returns (address[] memory)",
   "function getHackathonIdByName(string name) external view returns (uint256)",
   "function getHackathonDetails(uint256 hackathonId) external view returns (string name, address organizer, uint256 startDate, uint256 endDate, bool isActive)",
-  "function hackathons(uint256 hackathonId) external view returns (address host, uint8 requiredSignatures, bool active, uint256 startDate, uint256 endDate, uint256 createdAt, string name)",
+  "function hackathons(uint256 hackathonId) public view returns (address host, uint8 requiredSignatures, bool active, uint256 startDate, uint256 endDate, uint256 createdAt, string name)",
   "event HackathonCreated(uint256 indexed hackathonId, string name, address host, uint8 requiredSignatures)",
   "event VerifierAdded(uint256 indexed hackathonId, address verifier)",
   "event VerifierRemoved(uint256 indexed hackathonId, address verifier)"
+];
+
+// BuilderCreditScoring ABI
+// Bug fix (Phase 3): pages/api/credit/score.js imports this symbol but it
+// was never exported. Added a minimal read-only surface — the route is
+// currently mocked, but having the ABI in place makes the wire-up trivial
+// when the contract is live.
+export const BUILDER_CREDIT_SCORING_ABI = [
+  "function getCreditScore(address developer) external view returns (uint256)",
+  "function getBreakdown(address developer) external view returns (uint256 profile, uint256 activity, uint256 community, uint256 repositories, uint256 consistency)",
+  "function getTier(address developer) external view returns (string memory)",
+  "function isVerified(address developer) external view returns (bool)"
 ];

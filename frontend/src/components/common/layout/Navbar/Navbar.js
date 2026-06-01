@@ -14,8 +14,8 @@ import {
   CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
-import { useUser } from "@/contexts/UserContext";
-import { useNanopayment, useWallet } from "@/contexts/WalletContext";
+import { useUser } from "@/stores/authStore";
+import { useNanopayment, useWallet } from "@/stores/walletStore";
 import { Fragment, useState, useEffect } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";

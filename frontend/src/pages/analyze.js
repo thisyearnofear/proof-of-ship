@@ -14,7 +14,7 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { qvacService } from "@/services/QvacService";
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/stores/authStore";
 import {
   MagnifyingGlassIcon,
   ShieldCheckIcon,

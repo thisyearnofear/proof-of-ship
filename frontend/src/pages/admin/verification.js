@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useUser } from '@/contexts/UserContext';
-import { useBuilderCredit } from '@/contexts/CreditContext';
+import { useUser } from '@/stores/authStore';
+import { useBuilderCredit } from '@/stores/walletStore';
 import { useVerificationData } from '@/hooks/useVerificationData';
 import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';

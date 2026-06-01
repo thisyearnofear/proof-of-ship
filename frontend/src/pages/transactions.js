@@ -5,7 +5,7 @@
 import React, { useState, useMemo } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { useNanopayment } from "@/contexts/WalletContext";
+import { useNanopayment } from "@/stores/walletStore";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import { SkeletonTable } from "@/components/common/LoadingStates";
 

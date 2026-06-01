@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 
 const STATUS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 

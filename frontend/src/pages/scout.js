@@ -15,7 +15,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { db } from "@/lib/firebase/clientApp";
 import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/stores/authStore";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";

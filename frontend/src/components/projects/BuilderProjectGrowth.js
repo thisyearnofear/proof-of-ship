@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useUser } from '@/contexts/UserContext';
+import { useUser } from '@/stores/authStore';
 import { Card, CardHeader, CardTitle } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';

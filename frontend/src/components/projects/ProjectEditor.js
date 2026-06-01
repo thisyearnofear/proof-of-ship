@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useUser } from "@/contexts/UserContext";
-import { useBuilderCredit } from "@/contexts/CreditContext";
+import { useUser } from "@/stores/authStore";
+import { useBuilderCredit } from "@/stores/walletStore";
 import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { Input, Textarea, Select, Checkbox } from "@/components/common/Input";

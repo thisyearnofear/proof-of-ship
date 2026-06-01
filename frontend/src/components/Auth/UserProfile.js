@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { useUser } from '@/contexts/UserContext';
-import { useWallet } from '@/contexts/WalletContext';
+import { useUser } from '@/stores/authStore';
+import { useWallet } from '@/stores/walletStore';
 import { sdk } from '@farcaster/miniapp-sdk';
 import { db, storage } from '@/lib/firebase/clientApp';
 import { doc, getDoc, setDoc } from 'firebase/firestore';

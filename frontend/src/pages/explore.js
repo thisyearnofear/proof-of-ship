@@ -8,7 +8,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
 import { useEnhancedGithub } from "@/providers/Github/EnhancedGithubProvider";
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/stores/authStore";
 import { useBookmarks } from '@/hooks/useBookmarks.js';
 import useFollow from '@/hooks/useFollow.js';
 import { useToastActions } from "@/components/common/Toast";

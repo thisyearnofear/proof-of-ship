@@ -21,7 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function TransferHistory() {
-  const { transferHistory, updateTransferStatus, availableChains, loading } = useFinancial();
+  const { transferHistory, updateTransferStatuses, loading } = useFinancial();
   const { address } = useWallet();
   const [expandedTransfer, setExpandedTransfer] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,7 +31,7 @@ export default function TransferHistory() {
   const refreshTransfers = async () => {
     setRefreshing(true);
     try {
-      await updateTransferStatus();
+      await updateTransferStatuses();
     } catch (error) {
       console.error('Failed to refresh transfers:', error);
     } finally {
@@ -50,8 +50,7 @@ export default function TransferHistory() {
 
   // Get chain details by chainId
   const getChainDetails = (chainId) => {
-    const chain = availableChains.find(c => c.id === chainId);
-    return chain || { name: `Chain #${chainId}`, icon: '🌐' };
+    return { name: `Chain #${chainId}`, icon: '🌐' };
   };
 
   // Format timestamp to readable date

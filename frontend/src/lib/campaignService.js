@@ -102,7 +102,7 @@ class CampaignService {
       }
 
       const snap = await getDoc(doc(this.db, 'campaigns', campaignId));
-      if (!snap.exists()) return null;
+      if (!snap.exists) return null;
 
       const campaign = { id: snap.id, ...snap.data() };
       this.cache.set(cacheKey, { data: campaign, timestamp: Date.now() });
@@ -280,7 +280,7 @@ class CampaignService {
       };
 
       const snap = await getDoc(doc(this.db, 'submissions', submissionId));
-      if (!snap.exists()) throw new Error('Submission not found');
+      if (!snap.exists) throw new Error('Submission not found');
 
       const existing = snap.data();
       const merged = { ...existing, ...submission };

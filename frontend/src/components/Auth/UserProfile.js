@@ -85,7 +85,7 @@ export default function UserProfile() {
         setError(null);
         const userRef = doc(db, 'users', currentUser.uid);
         const snap = await getDoc(userRef);
-        if (!cancelled && snap.exists()) {
+        if (!cancelled && snap.exists) {
           const data = snap.data();
           setGithubUsername(String(data.githubUsername || ''));
           setDisplayNameInput(String(data.displayName || ''));

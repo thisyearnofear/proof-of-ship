@@ -109,7 +109,7 @@ export async function getProject(slug: string, ecosystem: string | null = null):
   try {
     const ref = doc(db, 'projects', slug);
     const snap = await getDoc(ref);
-    if (!snap.exists()) return null;
+    if (!snap.exists) return null;
 
     const snapData = snap.data();
     const projectData: Project = {

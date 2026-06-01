@@ -147,7 +147,7 @@ export default function ProjectDetailPage() {
       try {
         if (!currentUser?.uid) { setIsAdminClient(false); return; }
         const snap = await getDoc(doc(clientDb, 'users', currentUser.uid));
-        const admin = snap.exists() && (snap.data().isAdmin === true || snap.data().role === 'admin');
+        const admin = snap.exists && (snap.data().isAdmin === true || snap.data().role === 'admin');
         if (!cancelled) setIsAdminClient(Boolean(admin));
       } catch {
         if (!cancelled) setIsAdminClient(false);

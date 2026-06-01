@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { parseUnits } from 'viem';
 import { useWallet } from '@/stores/walletStore';
 import { useBuilderCredit } from '@/stores/walletStore';
-import { formatUSDC } from '@/lib/usdcPayments';
+import { formatUSDC } from '@/lib/format';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';

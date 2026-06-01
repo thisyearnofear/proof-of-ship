@@ -8,6 +8,12 @@
 
 import { realCircleService, calculateFundingAmount } from '../services/RealCircleService';
 import { ARC_CIRCLE_BLOCKCHAIN } from '../config/tokens';
+import { getFundingTier } from './format';
+// Re-export client-safe formatters so existing server-side callers that
+// already import usdcPayments keep working. Client components should
+// import these from @/lib/format instead to avoid pulling the
+// server-only RealCircleService chain into the browser bundle.
+export { formatUSDC, getFundingTier } from './format';
 
 export class USDCPaymentService {
   constructor() {
@@ -244,22 +250,5 @@ export class USDCPaymentService {
 
 // Export singleton instance
 export const usdcPaymentService = new USDCPaymentService();
-
-export const formatUSDC = (amount) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
-
-export const getFundingTier = (creditScore) => {
-  if (creditScore >= 800) return { tier: 'Excellent', color: 'green' };
-  if (creditScore >= 700) return { tier: 'Good', color: 'blue' };
-  if (creditScore >= 600) return { tier: 'Fair', color: 'yellow' };
-  if (creditScore >= 500) return { tier: 'Poor', color: 'orange' };
-  return { tier: 'Very Poor', color: 'red' };
-};
 
 export default USDCPaymentService;

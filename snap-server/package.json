@@ -1,10 +1,13 @@
 {
   "name": "snap-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Farcaster Snap server (scout + celebration snaps)",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "tsc --noEmit",
+    "lint": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -8,7 +8,6 @@ const nextConfig = {
     '@solana/wallet-adapter-base',
     '@solana/wallet-adapter-phantom',
     '@solana/wallet-adapter-solflare',
-    '@solana-mobile/wallet-adapter-mobile',
   ],
   // Enable skew protection (if supported by the deployment platform)
   deploymentId:

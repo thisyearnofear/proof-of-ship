@@ -3,7 +3,7 @@
  * Verifies that Circle API is properly configured and accessible
  */
 
-import { serviceManager } from "../../../services/ServiceManager";
+import { serviceRegistry } from "../../../services/ServiceRegistry";
 import { ApiResponse } from "../../../utils/apiResponse";
 import { withApiMiddleware } from "../../../utils/apiMiddleware";
 
@@ -12,9 +12,9 @@ import { withApiMiddleware } from "../../../utils/apiMiddleware";
  */
 async function statusHandler(req, res) {
   try {
-    // Get service status from service manager
-    const serviceStatus = serviceManager.getServiceStatus();
-    const circleService = serviceManager.getCircleService();
+    // Get service status from service registry
+    const serviceStatus = serviceRegistry.getServiceStatus();
+    const circleService = serviceRegistry.getCircleService();
 
     // Check if Circle service is available
     if (!circleService.isConfigured()) {

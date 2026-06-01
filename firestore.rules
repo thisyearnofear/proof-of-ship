@@ -69,8 +69,13 @@ service cloud.firestore {
     }
 
     // Pending permissions collection
+    // Docs are created by `blockchain/scripts/auto-grant-permissions.js` with
+    // a `githubUsername` field. A user can read the docs addressed to them
+    // (looked up from their `users/{uid}.githubUsername` profile); admins read all.
     match /pendingPermissions/{permissionId} {
-      allow read: if isAuthenticated();
+      allow read: if isAdminUser() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.githubUsername
+          == resource.data.githubUsername;
       allow write: if isAdminUser();
     }
 

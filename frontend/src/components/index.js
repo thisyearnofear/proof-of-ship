@@ -16,9 +16,6 @@ export {
   ProjectGridCard
 } from './projects/ProjectCard';
 
-// Onboarding Components
-export { default as OnboardingFlow } from './onboarding/OnboardingFlow';
-
 // Cross-Chain Components
 export { default as CrossChainFunding } from './CrossChainFunding';
 

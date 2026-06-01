@@ -1,7 +1,16 @@
 /**
- * Service Manager
- * Centralized service management and access
- * Refactored to use BFF services (Phase 2A)
+ * Service Registry
+ *
+ * Facade for the 4 first-class BFF-backed services (circle, github, lifi, solana).
+ * These all route through Next.js API routes so secrets stay server-side.
+ *
+ * The remaining 15+ utilities under `services/` (BuilderCredentialService,
+ * EthosService, FairScoreService, QvacService, SnsService, etc.) are imported
+ * directly by their callers. They are not registered here on purpose: registering
+ * them all would create a god-object facade that hides their actual dependencies
+ * and makes test doubles harder to wire. If you need to look up a service by name,
+ * use the explicit `getCircleService()` / `getGitHubService()` / `getLiFiService()`
+ * / `getSolanaService()` accessors below.
  */
 
 import { walletService } from "./walletService";
@@ -10,7 +19,7 @@ import { realLiFiService } from "./RealLiFiService";
 import { solanaCreditService } from "./SolanaCreditService";
 import { validateApiService } from "../config/publicConfig";
 
-class ServiceManager {
+class ServiceRegistry {
   constructor() {
     this.services = new Map();
     this.initializeServices();
@@ -147,5 +156,5 @@ class ServiceManager {
 }
 
 // Export singleton instance
-export const serviceManager = new ServiceManager();
-export default serviceManager;
+export const serviceRegistry = new ServiceRegistry();
+export default serviceRegistry;

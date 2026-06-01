@@ -45,7 +45,7 @@ export default function BuildPage() {
 
   // Rail detection — which capital rail is this builder on?
   const doesHaveProjects = Array.isArray(developerProjects) && developerProjects.length > 0;
-  const hasBagsToken = false; // TODO: detect from Bags SDK once wired
+  const hasBagsToken = false; // Bags SDK not yet wired — defaults to false until integration lands
   const hasHackathonWins = Array.isArray(developerProjects) && developerProjects.some(
     p => Array.isArray(p.hackathons) && p.hackathons.some(h => h.outcome === 'winner' || h.outcome === 'finalist')
   );

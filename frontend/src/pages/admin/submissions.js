@@ -10,6 +10,8 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/clientApp';
 import { useUser } from '@/stores/authStore';
 import useCampaigns from '@/hooks/useCampaigns';
 import useCampaignSubmissions from '@/hooks/useCampaignSubmissions';
@@ -40,11 +42,27 @@ export default function AdminSubmissionsPage() {
   useEffect(() => {
     if (currentUser === false) {
       router.push('/login?redirectTo=/admin/submissions');
+      return;
     }
-    // TODO: Add proper admin role check
-    if (currentUser && !currentUser.email?.includes('@')) {
-      router.push('/');
-    }
+    if (!currentUser) return;
+
+    const checkAdmin = async () => {
+      try {
+        const adminSnap = await getDoc(doc(db, 'admins', currentUser.uid));
+        if (adminSnap.exists()) return;
+        const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+        const profile = userSnap.exists() ? userSnap.data() : {};
+        const isAdmin = profile.role === 'admin' || profile.isAdmin === true;
+        if (!isAdmin) {
+          router.push('/');
+        }
+      } catch (err) {
+        console.error('Admin check failed:', err);
+        router.push('/');
+      }
+    };
+
+    checkAdmin();
   }, [currentUser, router]);
 
   // Load campaigns

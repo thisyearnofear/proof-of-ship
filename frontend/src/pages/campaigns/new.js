@@ -10,6 +10,8 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase/clientApp';
 import { useUser } from '@/stores/authStore';
 import useCampaigns from '@/hooks/useCampaigns';
 import { CampaignForm } from '@/components/campaigns';
@@ -35,14 +37,19 @@ export default function CreateCampaignPage() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        // TODO: Load user's projects from Firestore
-        // For now, use mock data
-        setProjects([
-          { id: 'proj1', name: 'Project Alpha' },
-          { id: 'proj2', name: 'Project Beta' },
-        ]);
+        const q = query(
+          collection(db, 'projects'),
+          where('owners', 'array-contains', currentUser.uid),
+          orderBy('createdAt', 'desc'),
+          limit(50)
+        );
+        const snap = await getDocs(q);
+        setProjects(
+          snap.docs.map((d) => ({ id: d.id, name: d.data().name || d.id }))
+        );
       } catch (err) {
         console.error('Failed to load projects:', err);
+        setProjects([]);
       }
     };
 

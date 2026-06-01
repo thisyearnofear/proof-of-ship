@@ -8,28 +8,26 @@
 
 import { classNames } from "@/utils/common";
 
-interface ActiveWallet {
-  label: string;
-  color: "purple" | "orange";
-}
+/**
+ * @typedef {{ label: string, color: "purple" | "orange" }} ActiveWallet
+ * @typedef {{
+ *   currentUser: { photoURL?: string | null, displayName?: string | null },
+ *   userRole: "builder" | "backer" | null,
+ *   githubUsername: string | null,
+ *   activeWallet: ActiveWallet | null,
+ *   compact?: boolean,
+ *   showStatus?: boolean,
+ * }} UserIdentityHeaderProps
+ */
 
-interface UserIdentityHeaderProps {
-  currentUser: { photoURL?: string | null; displayName?: string | null };
-  userRole: "builder" | "backer" | null;
-  githubUsername: string | null;
-  activeWallet: ActiveWallet | null;
-  compact?: boolean;
-  showStatus?: boolean;
-}
-
-export default function UserIdentityHeader({
+export default function UserIdentityHeader(/** @type {UserIdentityHeaderProps} */ {
   currentUser,
   userRole,
   githubUsername,
   activeWallet,
   compact = false,
   showStatus = true,
-}: UserIdentityHeaderProps) {
+}) {
   return (
     <div className={classNames("bg-gray-50 dark:bg-gray-900/80 border-b border-default", compact ? "px-4 py-3" : "px-4 py-3")}>
       <div className="flex items-center gap-3">
@@ -84,7 +82,7 @@ export default function UserIdentityHeader({
   );
 }
 
-function StatusPill({ ok = false, label }: { ok?: boolean; label: string }) {
+function StatusPill(/** @type {{ ok?: boolean, label: string }} */ { ok = false, label }) {
   const cls = ok
     ? "text-green-600 dark:text-green-400"
     : "text-amber-500 dark:text-amber-400";

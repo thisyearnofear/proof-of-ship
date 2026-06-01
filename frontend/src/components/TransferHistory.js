@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useFinancial } from '../contexts/FinancialContext';
-import { useWallet } from '../contexts/WalletContext';
+import { useFinancial } from '@/stores/walletStore';
+import { useWallet } from '@/stores/walletStore';
 import { formatUnits } from 'viem';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';

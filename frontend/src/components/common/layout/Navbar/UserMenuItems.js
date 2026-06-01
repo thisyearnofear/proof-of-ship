@@ -25,19 +25,21 @@ import {
 } from "@heroicons/react/24/outline";
 import { classNames } from "@/utils/common";
 
-interface UserMenuItemsProps {
-  userRole: "builder" | "backer" | null;
-  githubUsername: string | null;
-  onSignOut: () => void;
-  compact?: boolean;
-}
+/**
+ * @typedef {{
+ *   userRole: "builder" | "backer" | null,
+ *   githubUsername: string | null,
+ *   onSignOut: () => void,
+ *   compact?: boolean,
+ * }} UserMenuItemsProps
+ */
 
-export default function UserMenuItems({
+export default function UserMenuItems(/** @type {UserMenuItemsProps} */ {
   userRole,
   githubUsername,
   onSignOut,
   compact = false,
-}: UserMenuItemsProps) {
+}) {
   const py = compact ? "py-2.5" : "py-2";
   return (
     <Fragment>

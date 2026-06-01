@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { crossChainUSDCService } from '../lib/lifiIntegration';
 import { calculateFundingAmount as computeFundingAmount } from '../lib/funding/calculateFundingAmount';
-import { useWallet } from '../contexts/WalletContext';
-import { useCircleWallet } from '../contexts/WalletContext';
+import { useWallet } from '@/stores/walletStore';
+import { useCircleWallet } from '@/stores/walletStore';
 import Button from './common/Button';
 import { Card } from './common/Card';
 import { LoadingSpinner } from './common/LoadingStates';

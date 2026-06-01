@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '../contexts/WalletContext';
-import { useBuilderCredit } from '../contexts/CreditContext';
+import { useWallet } from '@/stores/walletStore';
+import { useBuilderCredit } from '@/stores/walletStore';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner, MarketConfidenceSkeleton } from './common/LoadingStates';

@@ -4,9 +4,9 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { useWallet } from "../contexts/WalletContext";
-import { useBuilderCredit } from "../contexts/CreditContext";
-import { useFinancial } from "../contexts/FinancialContext";
+import { useWallet } from "@/stores/walletStore";
+import { useBuilderCredit } from "@/stores/walletStore";
+import { useFinancial } from "@/stores/walletStore";
 import { formatUnits } from 'viem';
 import { Card } from "./common/Card";
 import Button from "./common/Button";

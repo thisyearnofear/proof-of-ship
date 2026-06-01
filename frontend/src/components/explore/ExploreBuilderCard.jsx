@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { useFollow } from "@/hooks/useFollow.js";
+import useFollow from "@/hooks/useFollow.js";
 import { useToastActions } from "@/components/common/Toast";
 import { ConfirmModal } from "@/components/common/Modal";
 import { CodeBracketIcon, StarIcon } from "@heroicons/react/24/outline";

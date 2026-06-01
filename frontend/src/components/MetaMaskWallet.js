@@ -1,5 +1,5 @@
 import React from 'react';
-import { useWallet } from '../contexts/WalletContext';
+import { useWallet } from '@/stores/walletStore';
 
 const MetaMaskWallet = () => {
   const {

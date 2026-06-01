@@ -95,8 +95,8 @@ export default function LoginPage() {
     // Chain family is the only chain identifier included — EVM chainId is
     // intentionally not bound into the message because sign-in is a
     // wallet-ownership proof, not a chain-scoped auth.
-    const nonce = typeof crypto !== 'undefined' && (crypto as any).randomUUID
-      ? (crypto as any).randomUUID()
+    const nonce = typeof crypto !== 'undefined' && /** @type {any} */ (crypto).randomUUID
+      ? /** @type {any} */ (crypto).randomUUID()
       : Math.random().toString(36).slice(2) + Date.now().toString(36);
     const domain = typeof window !== 'undefined' ? window.location.host : 'proof-of-ship.xyz';
     const timestamp = new Date().toISOString();

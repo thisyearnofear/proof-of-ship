@@ -22,7 +22,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
 import Card from "@/components/common/Card";
-import CreditTab from "@/components/build/CreditTab";
 
 export default function BuildPage() {
   const { userRole } = useUser();
@@ -201,17 +200,7 @@ export default function BuildPage() {
 
         {activeTab === "credit" && (
           <ErrorBoundary name="CreditTab" errorMessage="Failed to load credit data.">
-            <CreditTab
-              creditProfile={creditProfile}
-              usdcBalance={usdcBalance}
-              chainBalances={builderCredit.chainBalances || {}}
-              activeChainFamily={activeChainFamily}
-              developerProjects={developerProjects}
-              projectDetails={projectDetails}
-              setActiveTab={setActiveTab}
-              onSwitchChain={(family) => builderCredit.switchChain(family)}
-              isLoadingBalances={builderCredit.isFetchingBalances}
-            />
+            <div className="p-6 text-center text-text-secondary">Credit dashboard has moved to your <a href="/profile" className="text-blue-600 dark:text-blue-400 underline">profile</a>.</div>
           </ErrorBoundary>
         )}
 

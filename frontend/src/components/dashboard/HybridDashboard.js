@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { useUserBehavior } from '../../contexts/AppContext';
+import { useUserBehavior } from '@/stores/profileStore';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingStates';

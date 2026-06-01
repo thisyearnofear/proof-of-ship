@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '../../contexts/AppContext';
+import { useTheme } from '@/stores/profileStore';
 import { SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 
 const ThemeToggle = ({ variant = 'button', className = '' }) => {

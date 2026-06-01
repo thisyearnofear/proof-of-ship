@@ -10,7 +10,7 @@
 
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getDomainKeySync, NameRegistryState, getDomainKeysWithReverses, getAllDomains } from '@bonfida/spl-name-service';
-import { getSolanaConnection } from '@/contexts/wallet/constants';
+import { getSolanaConnection } from '@/lib/wallet/constants';
 
 // Cache: address -> .sol name (avoids repeated RPC calls)
 const nameCache: Map<string, { name: string | null; ts: number }> = new Map();

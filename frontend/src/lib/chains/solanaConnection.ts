@@ -6,7 +6,7 @@
  * pages/api/bags/market.js, pages/api/agent/verify.js,
  * components/back/PortfolioTab.js). All of them now import from here.
  *
- * The historical location `contexts/wallet/constants.ts` re-exports these
+ * The historical location `lib/wallet/constants.ts` re-exports these
  * symbols for backward compatibility — no need to migrate existing wallet
  * imports in this pass.
  *

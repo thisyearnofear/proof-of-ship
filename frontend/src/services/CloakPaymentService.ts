@@ -24,7 +24,7 @@ import {
 } from '@cloak.dev/sdk';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
-import { getSolanaConnection } from '@/contexts/wallet/constants';
+import { getSolanaConnection } from '@/lib/wallet/constants';
 import { SOLANA_MAINNET_USDC, SOLANA_DEVNET_USDC } from '../config/tokens';
 
 // USDC mint addresses

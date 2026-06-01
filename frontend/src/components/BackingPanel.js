@@ -152,7 +152,7 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         );
         fundTx.recentBlockhash = (await wallet.solanaWallet.connection?.getRecentBlockhash?.())?.recentBlockhash;
         const signedFundTx = await wallet.solanaWallet.signTransaction(fundTx);
-        const conn = (await import('@/contexts/wallet/constants')).getSolanaConnection();
+        const conn = (await import('@/lib/wallet/constants')).getSolanaConnection();
         await conn.sendRawTransaction(signedFundTx.serialize());
 
         const result = await cloakPaymentService.privateStake(

@@ -1,7 +1,7 @@
 import React from "react";
 import { useRouter } from "next/router";
 import localFont from "next/font/local";
-import { sdk } from "@farcaster/miniapp-sdk";
+import dynamic from "next/dynamic";
 import AppProviders from "@/providers/AppProviders";
 import { Navbar, Footer } from "@/components/common/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -10,11 +10,11 @@ import "@/styles/nautical.css";
 import "@/styles/themes.css";
 
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
-import { initObservability } from "@/lib/observability";
-import AIAnalysisModal from "@/components/common/AIAnalysisModal";
-import OnboardingBanner from "@/components/common/OnboardingBanner";
-import AIChatWidget from "@/components/common/AIChatWidget";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
+
+const AIAnalysisModal = dynamic(() => import("@/components/common/AIAnalysisModal"), { ssr: false });
+const OnboardingBanner = dynamic(() => import("@/components/common/OnboardingBanner"), { ssr: false });
+const AIChatWidget = dynamic(() => import("@/components/common/AIChatWidget"), { ssr: false });
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -61,15 +61,18 @@ export default function App({ Component, pageProps }) {
 
   // Initialize global error handling
   React.useEffect(() => {
-    // Initialize observability (PostHog/Sentry)
-    initObservability();
-
     const init = async () => {
       try {
-        // New miniapp-sdk: ready() signals the host we're ready to receive context
+        const { initObservability } = await import("@/lib/observability");
+        initObservability();
+      } catch (err) {
+        console.warn("Observability init failed:", err);
+      }
+
+      try {
+        const { sdk } = await import("@farcaster/miniapp-sdk");
         await sdk.actions.ready();
       } catch (error) {
-        // miniapp-sdk may not be available outside Warpcast - that's ok
         if (error?.message?.includes('sdk')) {
           console.warn("Farcaster miniapp-sdk not available (expected outside Warpcast)");
         } else {

@@ -5,15 +5,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock Firebase admin
+const fakeQuery = () => {
+  /** @type {any} */
+  const q = {};
+  q.orderBy = vi.fn(() => q);
+  q.where = vi.fn(() => q);
+  q.limit = vi.fn(() => q);
+  q.get = vi.fn(() => Promise.resolve({ docs: [] }));
+  q.doc = vi.fn(() => ({
+    get: vi.fn(() => Promise.resolve({ exists: true, id: 'test-project', data: () => ({ name: 'Test Project' }) })),
+    set: vi.fn(() => Promise.resolve()),
+  }));
+  return q;
+};
 vi.mock('@/lib/firebase/serverOnly', () => ({
   db: {
-    collection: vi.fn(() => ({
-      doc: vi.fn(() => ({
-        get: vi.fn(() => Promise.resolve({ exists: true, id: 'test-project', data: () => ({ name: 'Test Project' }) })),
-        set: vi.fn(() => Promise.resolve()),
-      })),
-      get: vi.fn(() => Promise.resolve({ docs: [] })),
-    })),
+    collection: vi.fn(() => fakeQuery()),
   },
 }));
 

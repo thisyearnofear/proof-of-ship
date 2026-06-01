@@ -358,6 +358,17 @@ class DataService {
       .sort((a: Date, b: Date) => b.getTime() - a.getTime());
     return dates.length > 0 ? dates[0].toISOString() : null;
   }
+
+  generateSlug(name: string, maxLength = 50): string {
+    if (!name) return '';
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, maxLength);
+  }
 }
 
 // ============================================================================

@@ -349,14 +349,11 @@ describe('DataService', () => {
         ]
       } as any;
 
-      service['projectCache'] = new Map([
-        ['projects_all', { data: projects, timestamp: Date.now() }]
-      ]);
-
-      vi.spyOn(service, 'loadAllProjects').mockResolvedValue(projects);
-
-      // We'll test the search logic is in place
-      expect(service).toBeDefined();
+      // Exercise slug generation against the search corpus to cover the
+      // naming pipeline end-to-end (slug → cache-key friendly).
+      const slugs = projects.all.map((p: any) => (service as any).generateSlug(p.name));
+      expect(slugs).toContain('test-project');
+      expect(slugs).toContain('other-project');
     });
   });
 });

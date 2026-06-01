@@ -90,7 +90,7 @@ export function useCloudDraftRestore({ isEditMode, currentUser, hasLocalDraft })
         const { db } = await import("@/lib/firebase/clientApp");
         const { doc, getDoc } = await import("firebase/firestore");
         const snap = await getDoc(doc(db, "drafts", currentUser.uid));
-        if (!cancelled && snap.exists() && !isEditMode) {
+        if (!cancelled && snap.exists && !isEditMode) {
           setCloudDraft(snap.data()?.form || null);
         }
       } catch (e) {

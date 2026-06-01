@@ -17,7 +17,7 @@ export function useGithubImport({ githubUrl, isEditMode, githubUsername, setForm
   const [fetchingGithub, setFetchingGithub] = useState(false);
   const [imported, setImported] = useState(null);
   const [duplicateWarning, setDuplicateWarning] = useState(null);
-  const lastUrlRef = useRef(githubUrl);
+  const lastUrlRef = useRef(null);
 
   const fetchGithubInfo = useCallback(
     async (url) => {

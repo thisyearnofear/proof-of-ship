@@ -15,7 +15,7 @@ export default function useUserCreditScore(currentUser) {
         const { db } = await import("@/lib/firebase/clientApp");
         const { doc, getDoc } = await import("firebase/firestore");
         const snap = await getDoc(doc(db, "users", currentUser.uid));
-        if (cancelled || !snap.exists()) return;
+        if (cancelled || !snap.exists) return;
         const data = snap.data();
         if (data.creditScore || data.reputation) {
           setUserScore(data);

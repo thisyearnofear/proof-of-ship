@@ -75,16 +75,17 @@ describe('useGithubImport', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
   });
 
-  it('skips fetch when the URL is unchanged across renders', async () => {
+  it('fires fetch once on initial mount with a URL and does not re-fetch on stable re-renders', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({ project: {} }) });
     const { rerender } = renderHook(
       ({ url }) =>
         useGithubImport({ githubUrl: url, isEditMode: false, setForm: vi.fn() }),
       { initialProps: { url: 'https://github.com/a/b' } }
     );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     rerender({ url: 'https://github.com/a/b' });
-    await act(async () => { await Promise.resolve(); });
-    expect(fetchMock).not.toHaveBeenCalled();
+    rerender({ url: 'https://github.com/a/b' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('skips fetch when the URL is not a github.com URL', async () => {

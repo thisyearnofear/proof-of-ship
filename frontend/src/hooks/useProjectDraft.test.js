@@ -17,11 +17,9 @@ const DRAFT_KEY = 'project-editor-draft';
 
 const { mocks, fakeRef, fakeExistsDoc, fakeMissingDoc } = vi.hoisted(() => {
   const fakeRef = { __fake: 'doc-ref' };
-  // The hook reads snap.exists() as a function — match that contract in the fake.
-  // (Real Firestore exposes exists as a boolean property; the hook is internally
-  // inconsistent, but the test should not depend on that quirk.)
-  const fakeExistsDoc = { exists: () => true, data: () => ({ form: { name: 'restored' } }), id: 'doc-id' };
-  const fakeMissingDoc = { exists: () => false, data: () => undefined, id: 'doc-id' };
+  // Real Firestore exposes `exists` as a boolean property on DocumentSnapshot.
+  const fakeExistsDoc = { exists: true, data: () => ({ form: { name: 'restored' } }), id: 'doc-id' };
+  const fakeMissingDoc = { exists: false, data: () => undefined, id: 'doc-id' };
   return {
     mocks: {
       doc: vi.fn(() => fakeRef),

@@ -1,5 +1,66 @@
 # Changelog
 
+## 2026-06-02 — Code Quality: Test Coverage Wave, Vercel Build Leak, Hydrator Split, Dark-Mode Pass
+
+A focused day of compounding quality work — 7 atomic commits covering test coverage, real production bugs surfaced and fixed, a Vercel build leak caught early, a single-concern refactor, and a dark-mode contrast pass driven by user feedback. Test count grew from 149 → 315 (+166 tests, +111%).
+
+### Test Coverage for Phase 4b / 4c / 4d (0 → 22 test files)
+
+Fills the 0-test gap on the three page-decomposition phases:
+
+- **`components/leaderboard/*` (10 test files)** — `MovementIndicator`, `tabs` (truncateAddress + generateShareText), `EmptyState` (5 tabs + fallback), `ShareButton` (X/Farcaster share + og ref URL + analytics), `FastestPayoutHero` (sort + speed filter + runner-up + 3-tier payout color), `LeaderboardRow` (builders/backers copy + explorer + SNS), `HackathonLeaderboardRow` (4-tier payout color/label), plus 3 list wrappers.
+- **`components/explore/*` (7 test files)** — `ActiveFilterChips`, `ExplorePagination` (pageNumbers edge cases), `ExploreBuilderCard` (follow-button self-hide), `ExploreProjectCard`, `ExploreProjectListItem`, `TrendingSection` (dismiss + slug-aware bookmark), `constants` (option shape).
+- **`components/projects/editor/*` (3 test files)** — `ProjectEditorStepNav` (wizard step indicators + Continue/Back), `ProjectEditorReview` (10 fields + milestones + funding), `ProjectEditorCelebration` (copy + share + view/submit navigation).
+
+**Infrastructural**: `vitest.config.ts` now ships a `jsxInJs` Vite plugin so `*.test.{js,jsx}` files can import `.js` source files containing JSX (the repo's convention pre-dates Next 16's Turbopack strictness — many components are `.js` with JSX). Uses esbuild's `loader: 'jsx'` with `jsx: 'automatic'` so React 19's runtime is fine.
+
+### Vercel Build Leak — `formatUSDC` was dragging `firebase-admin` into the client bundle
+
+**`lib/format.js`** (new) — Pure `Intl.NumberFormat` + `getFundingTier` helper, zero imports. Replaces the long-standing `formatUSDC`/`getFundingTier` functions in `lib/usdcPayments.js` which were entangled with `RealCircleService` (a `firebase-admin` consumer). `usdcPayments.js` now re-exports from `format.js` for backward compat.
+
+**`components/DeveloperDashboard.js`** — Now imports `formatUSDC` from `@/lib/format` instead of `@/lib/usdcPayments`. The Vercel build was failing with 25 module-not-found errors (`child_process`/`fs`/`net`/`tls`/`http2` — all from `firebase-admin`'s transitive Node imports being pulled into the browser bundle by Turbopack).
+
+### Firestore `snap.exists` Shape Bug (5 Sites)
+
+`DocumentSnapshot.exists` is a boolean **property**, not a method. Calling `snap.exists()` returns `undefined` (not a boolean), so the guards silently passed through and the code crashed one line later at `snap.data()` on a missing document.
+
+Fixed 5 pre-existing sites that were flagged but left from the earlier 3-site fix:
+- `services/ProjectDataService.ts:112` (`getProject`) — would have returned the wrong shape on miss
+- `pages/projects/[ecosystem]/[slug]/index.js:150` (admin check) — `currentUser.isAdmin` always read as `false`
+- `lib/campaignService.js:105` (`getCampaign`) — would have returned a half-shape rather than `null`
+- `lib/campaignService.js:283` (`reviewSubmission`) — admin error swallowed, submission not updated
+- `components/Auth/UserProfile.js:88` (profile loader) — user edits would not persist on first load
+
+Pattern sweep confirms 0 `snap.exists()` call sites remain.
+
+### Hydrator Decomposition — `WalletHydrator` → `EvmWalletHydrator` + `SolanaWalletHydrator`
+
+**`stores/walletStore.ts`** — The 64-LOC `WalletHydrator` was a monolithic component reading wagmi and Solana wallet-adapter hooks side-by-side, with 4 mixed effects. Split into two single-purpose components, each owning one chain family's hook surface + store write:
+- **`EvmWalletHydrator`** — reads `useAccount` / `useChainId` / `usePublicClient` / `useWalletClient` and writes to `walletStore.evm` (account sync + balance fetch, 2 effects)
+- **`SolanaWalletHydrator`** — reads `useSolanaWallet` / `useSolanaConnection` and writes to `walletStore.solana` (wallet sync + balance fetch, 2 effects)
+
+**`providers/AppProviders.js`** — Mounts both in order. The `stores` barrel re-exports the two named functions. Same wagmi + Solana hook surface, same store shape, same re-render frequency — just two re-render boundaries instead of one. No API changes to `walletStore` consumers.
+
+### Dark-Mode Contrast Pass (User-Reported)
+
+**`components/sections/PaymentFlow.js`** — Flow arrows and the secondary `🤖 Agent → 🧠 LLM Inference → Arc L2` strip were rendered with `text-gray-400 dark:text-gray-500` / `text-gray-300 dark:text-gray-600` — Tailwind anti-pattern where the dark variant is *darker* than the light one. Contrast fell to ~3.5:1 in dark mode (below WCAG AA 4.5:1) on the teal-950/50 section background. Fixed by flipping the dark variants to be lighter than their light counterparts.
+
+**`components/sections/Hero.js`, `CapitalStack.js`, `UserJourney.js`, `FeatureSection.js`** — Follow-up audit on the other 4 landing sections. The same `text-gray-X dark:text-gray-Y` anti-pattern was a one-off in PaymentFlow; in the other sections, the related "no dark variant at all" issue caused light-only pills/tiles to clash with the dark backdrop. Added `dark:bg-X-900/40 dark:text-X-300` (or equivalent) to the Hero "Exclusive to Past Hackathon Winners" pill, the Three Rails visual's purple/blue/green pill+label triples, the UserJourney step-connector line, and the FeatureSection icon tile.
+
+### Explore Tab Lazy-Loading
+
+**`pages/explore.js`** — ProjectsTab / BuildersTab / HackathonsTab were eagerly imported through the `@/components/explore` barrel. All three tabs (and their card subcomponents) shipped in the initial landing-page bundle regardless of which tab the user opened first. `ProjectsTab` alone is 19.6 KB and pulls in the project-quality library + bookmark/fetch logic. Converted all three tabs to `next/dynamic` with `ssr: false` and `loading: () => null`. Tab chrome (TabBar, Breadcrumbs, LiveAgentTicker, ErrorBoundary, TrendingSection) remains eager.
+
+### Scout `reasoningTrace` Temporal Dead Zone
+
+**`pages/api/agent/scout.js`** — The Firestore `set()` call referenced `reasoningTrace` inside the object literal at the original line 139-156, but the `let reasoningTrace = null` declaration sat 50 lines later at the original line 190. Triggered `ReferenceError: Cannot access 'reasoningTrace' before initialization` at runtime, swallowed by the surrounding `try/catch` so the endpoint kept returning results — but Firestore was never updated with the reasoning trace, ecosystem analysis, or result source.
+
+Fixed by hoisting the four let-decls (`ecosystemAnalysis`, `reasoningTrace`, `aisaPayment`, `resultSource`) above the Firestore log call. The order is now: declare → log → execute (POST + execute=1) → AIsa enrichment → fallback → return.
+
+Also bumped the chat-endpoint test's per-test timeout to 15s. It consistently completes in ~4-5s (module-load overhead from the dynamically-imported handler chain) but vitest's 5s default was always within ~50ms of tripping.
+
+---
+
 ## 2026-05-25 — Agentic Economy: Live Agent Runs, Reasoning Traces, Scout Portfolio
 
 Real-time agent activity feed, AI reasoning traces, and a public portfolio page for the Proof Scout agent — moving from mock data to live on-chain agent infrastructure.

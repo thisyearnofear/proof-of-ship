@@ -35,7 +35,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = router.asPath;
   const [mounted, setMounted] = useState(false);
-  const { currentUser, logout, userRole, loading: authLoading } = useUser();
+  const { currentUser, logout, userRole, linkedWallets, loading: authLoading } = useUser();
   const { isInitialized: nanopayReady, balance } = useNanopayment();
   const wallet = useWallet();
   const { disconnect: disconnectEvm, disconnectSolana, solanaAddress, account } = wallet;
@@ -48,7 +48,14 @@ export default function Navbar() {
     ? { label: `${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`, color: "purple" }
     : account
       ? { label: `${account.slice(0, 6)}...${account.slice(-4)}`, color: "orange" }
-      : null;
+      : linkedWallets.length > 0
+        ? {
+            label: linkedWallets[0].chainFamily === "solana"
+              ? `${linkedWallets[0].address.slice(0, 4)}...${linkedWallets[0].address.slice(-4)}`
+              : `${linkedWallets[0].address.slice(0, 6)}...${linkedWallets[0].address.slice(-4)}`,
+            color: linkedWallets[0].chainFamily === "solana" ? "purple" : "orange",
+          }
+        : null;
 
   useEffect(() => {
     setMounted(true);

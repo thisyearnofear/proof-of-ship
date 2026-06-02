@@ -97,6 +97,7 @@ function loadFromStorage() {
   try {
     const themeRaw = window.localStorage.getItem(THEME_KEY);
     if (themeRaw === "light" || themeRaw === "dark" || themeRaw === "high-contrast") {
+      applyThemeToDOM(themeRaw);
       profileStore.setState({ theme: themeRaw });
     }
     const prefRaw = window.localStorage.getItem(PREF_KEY);
@@ -125,7 +126,14 @@ function persistTheme(theme: Theme) {
 // Actions
 // ============================================================================
 
+function applyThemeToDOM(theme: Theme) {
+  if (typeof window === "undefined") return;
+  document.documentElement.setAttribute("data-theme", theme);
+  document.documentElement.classList.toggle("dark", theme === "dark");
+}
+
 function setTheme(theme: Theme) {
+  applyThemeToDOM(theme);
   persistTheme(theme);
   profileStore.setState((s) => ({ theme, preferences: { ...s.preferences, theme } }));
 }

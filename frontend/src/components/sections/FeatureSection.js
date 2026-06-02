@@ -21,7 +21,7 @@ export function FeatureSection({ features = [] }) {
               variant="default"
             >
               <div className="flex flex-col items-center text-center">
-                <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary-50 text-primary-600 mb-4">
+                <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 mb-4">
                   {feature.icon && (
                     <feature.icon className="w-6 h-6 sm:w-7 sm:h-7" />
                   )}

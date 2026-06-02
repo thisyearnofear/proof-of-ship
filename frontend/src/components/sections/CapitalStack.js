@@ -37,9 +37,9 @@ const Rail = ({ rail, tone }) => (
 );
 
 const TONES = {
-  purple: { border: 'border-t-purple-500', label: 'text-purple-600', pill: 'bg-purple-100 text-purple-700' },
-  blue:   { border: 'border-t-blue-500',   label: 'text-blue-600',   pill: 'bg-blue-100 text-blue-700' },
-  green:  { border: 'border-t-green-500',  label: 'text-green-600',  pill: 'bg-green-100 text-green-700' },
+  purple: { border: 'border-t-purple-500', label: 'text-purple-600 dark:text-purple-400', pill: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
+  blue:   { border: 'border-t-blue-500',   label: 'text-blue-600 dark:text-blue-400',     pill: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
+  green:  { border: 'border-t-green-500',  label: 'text-green-600 dark:text-green-400',   pill: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
 };
 
 const RAILS = [

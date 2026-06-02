@@ -132,6 +132,14 @@ async function scoutHandler(req, res) {
     const toBack = scored.filter((p) => p.backed);
     const totalStake = toBack.reduce((sum, p) => sum + (p.recommendation?.amount || 0), 0);
 
+    // AIsa-powered ecosystem analysis + reasoning traces (optional)
+    // Declared before the Firestore log call — the log references
+    // `reasoningTrace` (line ~146), so it must be initialized first.
+    let ecosystemAnalysis = null;
+    let reasoningTrace = null;
+    let aisaPayment = null;
+    let resultSource = "rule_based";
+
     // Log scout run to Firestore (non-fatal if it fails)
     let runId = null;
     try {
@@ -184,12 +192,6 @@ async function scoutHandler(req, res) {
         executionResult = { error: err.message };
       }
     }
-
-    // AIsa-powered ecosystem analysis + reasoning traces (optional)
-    let ecosystemAnalysis = null;
-    let reasoningTrace = null;
-    let aisaPayment = null;
-    let resultSource = "rule_based";
     if (isAisaConfigured()) {
       try {
         const avgScore = scored.length > 0

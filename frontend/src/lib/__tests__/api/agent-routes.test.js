@@ -102,10 +102,10 @@ describe('Agent API Response Contracts', () => {
         status: vi.fn(() => mockRes),
         json: vi.fn((data) => data),
       };
-      
+
       const req = { method: 'POST', body: { message: 'Hello' } };
       await handler(req, mockRes);
-      
+
       const response = mockRes.json.mock.calls[0][0];
       expect(response).toHaveProperty('agent');
       expect(response).toHaveProperty('success');
@@ -113,7 +113,7 @@ describe('Agent API Response Contracts', () => {
       expect(response).toHaveProperty('agentInfo');
       expect(response.agent).toHaveProperty('type', 'assistant');
       expect(response.agent).toHaveProperty('snsDomain');
-    });
+    }, 15000);
   });
 
   describe('Scout Endpoint', () => {

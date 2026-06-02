@@ -1,33 +1,39 @@
 /**
- * UserIdentityHeader — Avatar + name + role + GitHub + wallet status.
+ * UserIdentityHeader — Avatar + name + role + GitHub + wallet list.
  *
- * Extracted from Navbar because the same panel is rendered inside both
- * the desktop user dropdown and the mobile user dropdown. The optional
- * `compact` prop shrinks the layout for the smaller mobile dropdown.
+ * Shows all linked wallets with per-wallet connection state
+ * (connected = live extension, linked = persisted in Firestore).
  */
 
 import { classNames } from "@/utils/common";
 
 /**
- * @typedef {{ label: string, color: "purple" | "orange" }} ActiveWallet
+ * @typedef {{ address: string, chainFamily: "evm" | "solana", isConnected: boolean }} WalletEntry
  * @typedef {{
  *   currentUser: { photoURL?: string | null, displayName?: string | null },
  *   userRole: "builder" | "backer" | null,
  *   githubUsername: string | null,
- *   activeWallet: ActiveWallet | null,
+ *   wallets: WalletEntry[],
  *   compact?: boolean,
  *   showStatus?: boolean,
  * }} UserIdentityHeaderProps
  */
 
+function formatAddress(addr, chainFamily) {
+  if (chainFamily === "solana") return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
 export default function UserIdentityHeader(/** @type {UserIdentityHeaderProps} */ {
   currentUser,
   userRole,
   githubUsername,
-  activeWallet,
+  wallets = [],
   compact = false,
   showStatus = true,
 }) {
+  const connectedCount = wallets.filter((w) => w.isConnected).length;
+
   return (
     <div className={classNames("bg-gray-50 dark:bg-gray-900/80 border-b border-default", compact ? "px-4 py-3" : "px-4 py-3")}>
       <div className="flex items-center gap-3">
@@ -61,22 +67,58 @@ export default function UserIdentityHeader(/** @type {UserIdentityHeaderProps} *
             {githubUsername && (
               <span className="text-[10px] text-tertiary truncate">gh/{githubUsername}</span>
             )}
-            {activeWallet && (
-              <span className={classNames(
-                "text-[10px] font-mono",
-                activeWallet.color === "purple" ? "text-purple-500" : "text-orange-500",
-              )}>
-                {activeWallet.label}
-              </span>
-            )}
           </div>
         </div>
       </div>
+
       {showStatus && (
         <div className="mt-2 flex gap-2 flex-wrap">
           {githubUsername ? <StatusPill ok label="GitHub connected" /> : <StatusPill label="No GitHub linked" />}
-          {activeWallet ? <StatusPill ok label="Wallet connected" /> : <StatusPill label="No wallet linked" />}
+          {wallets.length === 0 ? (
+            <StatusPill label="No wallets linked" />
+          ) : connectedCount > 0 ? (
+            <StatusPill ok label={`${connectedCount} wallet${connectedCount > 1 ? "s" : ""} connected`} />
+          ) : (
+            <StatusPill label="Wallets linked, none connected" />
+          )}
         </div>
+      )}
+
+      {wallets.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {wallets.map((w) => (
+            <WalletRow key={w.address} wallet={w} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WalletRow(/** @type {{ wallet: WalletEntry }} */ { wallet }) {
+  const isSolana = wallet.chainFamily === "solana";
+  return (
+    <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md bg-white dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className={classNames(
+          "px-1.5 py-0.5 text-[10px] font-semibold rounded flex-shrink-0",
+          isSolana
+            ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+            : "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300",
+        )}>
+          {isSolana ? "Phantom" : "MetaMask"}
+        </span>
+        <span className="text-[11px] font-mono text-primary truncate">
+          {formatAddress(wallet.address, wallet.chainFamily)}
+        </span>
+      </div>
+      {wallet.isConnected ? (
+        <span className="flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400 flex-shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          Connected
+        </span>
+      ) : (
+        <span className="text-[10px] text-tertiary flex-shrink-0">Linked</span>
       )}
     </div>
   );

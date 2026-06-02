@@ -44,18 +44,14 @@ export default function Navbar() {
     || currentUser?.providerData?.find((p) => p.providerId === "github.com")?.displayName?.toLowerCase().replace(/\s/g, "")
     || null;
 
-  const activeWallet = solanaAddress
-    ? { label: `${solanaAddress.slice(0, 4)}...${solanaAddress.slice(-4)}`, color: "purple" }
-    : account
-      ? { label: `${account.slice(0, 6)}...${account.slice(-4)}`, color: "orange" }
-      : linkedWallets.length > 0
-        ? {
-            label: linkedWallets[0].chainFamily === "solana"
-              ? `${linkedWallets[0].address.slice(0, 4)}...${linkedWallets[0].address.slice(-4)}`
-              : `${linkedWallets[0].address.slice(0, 6)}...${linkedWallets[0].address.slice(-4)}`,
-            color: linkedWallets[0].chainFamily === "solana" ? "purple" : "orange",
-          }
-        : null;
+  const wallets = linkedWallets.map((w) => {
+    const isConnected = w.chainFamily === "solana"
+      ? solanaAddress?.toLowerCase() === w.address.toLowerCase()
+      : account?.toLowerCase() === w.address.toLowerCase();
+    return { address: w.address, chainFamily: w.chainFamily, isConnected };
+  });
+
+  const hasAnyWallet = wallets.length > 0 || !!solanaAddress || !!account;
 
   useEffect(() => {
     setMounted(true);
@@ -146,12 +142,6 @@ export default function Navbar() {
                     </div>
                   ) : currentUser ? (
                     <div className="flex items-center gap-2">
-                      {activeWallet && (
-                        <div className={`hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-mono ${activeWallet.color === "purple" ? "bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300" : "bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300"}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${activeWallet.color === "purple" ? "bg-purple-500" : "bg-orange-500"}`} />
-                          {activeWallet.label}
-                        </div>
-                      )}
                       <Menu as="div" className="relative">
                         <Menu.Button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                           {currentUser.photoURL ? (
@@ -163,7 +153,7 @@ export default function Navbar() {
                           )}
                           <div className="hidden md:flex flex-col items-start text-left leading-tight">
                             <span className="text-xs font-semibold text-primary truncate max-w-[100px]">
-                              {currentUser.displayName || (activeWallet ? activeWallet.label : "User")}
+                              {currentUser.displayName || "User"}
                             </span>
                             <span className={`text-[10px] font-medium ${userRole === "backer" ? "text-purple-600 dark:text-purple-400" : "text-blue-600 dark:text-blue-400"}`}>
                               {userRole === "backer" ? "Backer" : "Builder"}
@@ -185,7 +175,7 @@ export default function Navbar() {
                               currentUser={currentUser}
                               userRole={userRole}
                               githubUsername={githubUsername}
-                              activeWallet={activeWallet}
+                              wallets={wallets}
                             />
                             <UserMenuItems
                               userRole={userRole}
@@ -196,12 +186,8 @@ export default function Navbar() {
                         </Transition>
                       </Menu>
                     </div>
-                  ) : activeWallet ? (
+                  ) : hasAnyWallet ? (
                     <div className="flex items-center gap-2">
-                      <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-mono ${activeWallet.color === "purple" ? "bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300" : "bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300"}`}>
-                        <span className={`w-2 h-2 rounded-full animate-pulse ${activeWallet.color === "purple" ? "bg-purple-500" : "bg-orange-500"}`} />
-                        {activeWallet.label}
-                      </div>
                       <Link
                         href="/login"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all min-h-touch flex items-center justify-center shadow-sm"
@@ -255,7 +241,7 @@ export default function Navbar() {
                             currentUser={currentUser}
                             userRole={userRole}
                             githubUsername={githubUsername}
-                            activeWallet={activeWallet}
+                            wallets={wallets}
                             compact
                             showStatus={false}
                           />
@@ -268,7 +254,7 @@ export default function Navbar() {
                         </Menu.Items>
                       </Transition>
                     </Menu>
-                  ) : activeWallet ? (
+                  ) : hasAnyWallet ? (
                     <Link
                       href="/login"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-semibold min-h-touch flex items-center justify-center"
@@ -352,17 +338,11 @@ export default function Navbar() {
 
                   {authReady && !currentUser && (
                     <div className="mt-4 pt-4 border-t border-default">
-                      {activeWallet && (
-                        <div className={`flex items-center gap-2 px-3 py-2 mb-2 rounded-md text-xs font-mono ${activeWallet.color === "purple" ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" : "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"}`}>
-                          <span className={`w-2 h-2 rounded-full animate-pulse ${activeWallet.color === "purple" ? "bg-purple-500" : "bg-orange-500"}`} />
-                          {activeWallet.label}
-                        </div>
-                      )}
                       <Link
                         href="/login"
                         className="block bg-surface-tertiary text-primary px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
-                        {activeWallet ? "Complete setup" : "Sign in"}
+                        {hasAnyWallet ? "Complete setup" : "Sign in"}
                       </Link>
                     </div>
                   )}

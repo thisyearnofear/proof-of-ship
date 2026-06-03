@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useWallet } from "@/stores/walletStore";
-import { useBuilderCredit } from "@/stores/walletStore";
-import { useNanopayment } from "@/stores/walletStore";
+import { useWallet, useNanopayment } from "@/stores/walletStore";
 import { useProjectData } from "@/hooks/useProjectData";
 import ProjectCard from "@/components/backer/ProjectCard";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
@@ -37,8 +35,9 @@ const SORT_OPTIONS = [
 
 export default function DiscoverTab() {
   const { projects, loading, error, refresh } = useProjectData();
-  const { connected, connect, account } = useWallet();
-  const { backProject } = useBuilderCredit();
+  const wallet = useWallet();
+  const { connected, account } = wallet;
+
   const { payForScout, loading: nanopaymentLoading, nanopaymentDemoMode } = useNanopayment();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterEcosystem, setFilterEcosystem] = useState("all");
@@ -146,7 +145,7 @@ export default function DiscoverTab() {
     (backingProject?.ecosystem === "solana" || isValidSolanaAddress(backingProject.developer));
 
   const handleBackProject = (project) => {
-    if (!connected) { connect(); return; }
+    if (!connected) { return; }
     setBackingProject(project);
     setBackingAmount("");
     setBackingMultiplier("150");
@@ -159,7 +158,8 @@ export default function DiscoverTab() {
     try {
       setBackingStatus("pending");
       setBackingError(null);
-      await backProject(backingProject.id, parseInt(backingMultiplier), parseFloat(backingAmount));
+      const { creditService } = await import('@/services/creditService');
+      await creditService.backProject(wallet.chainId, wallet.publicClient, wallet.walletClient, backingProject.id, parseInt(backingMultiplier), parseFloat(backingAmount));
       setBackingStatus("success");
       refresh();
     } catch (err) {

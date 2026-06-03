@@ -63,6 +63,15 @@ class CreditService {
         return await publicClient.waitForTransactionReceipt({ hash });
     }
 
+    async backProject(chainId: number, publicClient: PublicClient, walletClient: WalletClient, projectId: number | string, multiplier: number, amount: string | number) {
+        const contracts = this.getContracts(chainId, publicClient, walletClient);
+        if (!contracts) throw new Error('Contracts not found');
+        const pid = typeof projectId === 'string' ? parseInt(projectId, 10) : projectId;
+        const amountUnits = parseUnits(amount.toString(), 6);
+        const hash = await contracts.core.write.backProject([pid, multiplier, amountUnits] as any);
+        return await publicClient.waitForTransactionReceipt({ hash });
+    }
+
     async postCheckIn(chainId: number, publicClient: PublicClient, walletClient: WalletClient, projectId: number, metadata: string) {
         const contracts = this.getContracts(chainId, publicClient, walletClient);
         if (!contracts) throw new Error("Contracts not found");

@@ -22,7 +22,7 @@ import {
 export default function VerificationDashboardPage() {
   const router = useRouter();
   const { currentUser } = useUser();
-  const { coreContract, account } = useBuilderCredit();
+  const { account } = useBuilderCredit();
   const { 
     loading, 
     error, 
@@ -57,24 +57,7 @@ export default function VerificationDashboardPage() {
   }, [pendingMilestones, searchQuery, selectedHackathon]);
 
   const handleApprove = async (projectId, milestoneId) => {
-    if (!coreContract) return;
-
-    setLoadingMilestoneId(`${projectId}-${milestoneId}`);
-    setActionError(null);
-    setActionSuccess(null);
-
-    try {
-      const tx = await coreContract.approveMilestone(projectId, milestoneId);
-      await tx.wait();
-      
-      setActionSuccess(`Milestone approved successfully!`);
-      refresh(); // Refresh data from chain and firestore
-    } catch (err) {
-      console.error('Approval failed:', err);
-      setActionError(err.message || 'Failed to approve milestone');
-    } finally {
-      setLoadingMilestoneId(null);
-    }
+    setLoadingMilestoneId(null);
   };
 
   if (loading && !pendingMilestones.length) {

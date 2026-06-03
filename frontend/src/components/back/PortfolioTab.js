@@ -18,7 +18,7 @@ import {
 
 export default function PortfolioTab({ setTab }) {
   const wallet = useWallet();
-  const { getBackerProjects, chainId, signer } = useBuilderCredit();
+  const { chainId, signer } = useBuilderCredit();
   const [loading, setLoading] = useState(true);
   const [backedDetails, setBackedDetails] = useState([]);
   const [compassScore, setCompassScore] = useState(400);
@@ -40,7 +40,9 @@ export default function PortfolioTab({ setTab }) {
       }
       try {
         if (!cancelled) setLoading(true);
-        const projectIds = await getBackerProjects(wallet.account);
+        const { creditService } = await import('@/services/creditService');
+        const contracts = creditService.getContracts(chainId, signer);
+        const projectIds = contracts ? await contracts.core.read.getBackerProjects([wallet.account]) as bigint[] : [];
         if (cancelled) return;
         
         if (!projectIds || projectIds.length === 0) {
@@ -50,8 +52,6 @@ export default function PortfolioTab({ setTab }) {
           return;
         }
         
-        const { creditService } = await import('@/services/creditService');
-        const contracts = creditService.getContracts(chainId, signer);
         if (!contracts || cancelled) {
           if (!cancelled) setLoading(false);
           return;
@@ -113,7 +113,7 @@ export default function PortfolioTab({ setTab }) {
     
     load();
     return () => { cancelled = true; };
-  }, [wallet.account, signer, chainId, getBackerProjects]);
+  }, [wallet.account, signer, chainId]);
 
   // Fetch claimable Bags fees for Solana wallets
   useEffect(() => {
@@ -171,7 +171,7 @@ export default function PortfolioTab({ setTab }) {
     } finally {
       setClaimingFees(false);
     }
-  }, [wallet.solanaWallet, wallet.solanaConnection, claimableFees]);
+  }, [wallet.solanaWallet, claimableFees]);
 
   const compassTier = getCompassTier(compassScore);
 
@@ -183,7 +183,6 @@ export default function PortfolioTab({ setTab }) {
         <ShieldCheckIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Connect Wallet</h3>
         <p className="text-gray-500 dark:text-gray-400 mt-2">Connect your wallet to view your backed positions.</p>
-        <Button onClick={() => wallet.connect()} className="mt-4">Connect Wallet</Button>
       </Card>
     );
   }

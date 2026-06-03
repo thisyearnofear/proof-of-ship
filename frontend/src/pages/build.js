@@ -32,12 +32,10 @@ export default function BuildPage() {
 
   const {
     connected,
-    connect,
     loading: metaMaskLoading,
     activeChainFamily,
     setActiveChainFamily,
     solanaConnected,
-    connectSolana,
     disconnectSolana,
     solanaAddress
   } = wallet;
@@ -72,7 +70,6 @@ export default function BuildPage() {
   }
 
   const isActuallyConnected = activeChainFamily === 'solana' ? solanaConnected : connected;
-  const handleConnect = activeChainFamily === 'solana' ? connectSolana : connect;
 
   const loading = metaMaskLoading || contractLoading;
 
@@ -112,12 +109,9 @@ export default function BuildPage() {
             <p className="mt-2 text-secondary">
               Connect your {activeChainFamily === 'solana' ? 'Solana' : 'EVM'} wallet to view your credit score, request funding, and manage projects.
             </p>
-            <Button 
-              onClick={handleConnect} 
-              className={`mt-6 ${activeChainFamily === 'solana' ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
-            >
-              Connect {activeChainFamily === 'solana' ? 'Solana' : 'Wallet'}
-            </Button>
+            <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
+              Use your browser wallet extension to connect{activeChainFamily === 'solana' ? ' Solana' : ''}.
+            </div>
           </div>
 
           <div className="border-t border-default pt-8">

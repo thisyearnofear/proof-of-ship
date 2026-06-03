@@ -11,7 +11,7 @@ import { formatUnits } from 'viem';
 import { Card } from "./common/Card";
 import Button from "./common/Button";
 import { LoadingSpinner } from "./common/LoadingStates";
-import { getUSDCAddress, getNetworkName } from "../config/networks";
+import { getUSDCAddress, getNetworkName, NETWORK_CONFIGS } from "../config/networks";
 import { formatTokenAmount, truncateAddress } from "../utils/common";
 import {
   ArrowsRightLeftIcon,
@@ -24,17 +24,20 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function CrossChainTransfer() {
-  const { address: account, chainId, switchNetwork } = useWallet();
+  const { address: account, chainId } = useWallet();
   const { usdcBalance } = useBuilderCredit();
   const {
-    availableChains,
-    availableTokens,
-    loading: lifiLoading,
-    error: lifiError,
+    lifiLoading,
+    lifiError,
     getQuote,
     executeTransfer,
     transferHistory,
   } = useFinancial();
+
+  const availableChains = Object.entries(NETWORK_CONFIGS).map(([id, config]) => {
+    var nid = parseInt(id, 10);
+    return { id: isNaN(nid) ? id : nid, name: config.name, icon: '' };
+  });
 
   const [fromChain, setFromChain] = useState(null);
   const [toChain, setToChain] = useState(null);
@@ -133,10 +136,7 @@ export default function CrossChainTransfer() {
       setError(null);
       setSuccess(null);
 
-      // Check if we need to switch networks
-      if (chainId !== fromChain.id) {
-        await switchNetwork(fromChain.id);
-      }
+      // Note: network switching requires wagmi switchChain, not exposed via useWallet
 
       // Execute the transfer using LiFi
       const result = await executeTransfer(quote);

@@ -29,7 +29,7 @@ export default function FundingInterface({
   const circleWallet = useCircleWallet();
   
   const { activeChainFamily, account, connected, requestFunding, contractLoading } = builderCredit;
-  const { getFundingHistory, isConfigured, getEnvironment, loading: circleLoading } = circleWallet;
+  const { isConfigured, getEnvironment, loading: circleLoading } = circleWallet;
   
   const [fundingAmount, setFundingAmount] = useState(0);
   const [fundingHistory, setFundingHistory] = useState([]);
@@ -104,12 +104,7 @@ export default function FundingInterface({
   };
 
   const loadFundingHistory = async () => {
-    try {
-      const history = await circleWallet.getFundingHistory(account);
-      setFundingHistory(history);
-    } catch (err) {
-      console.error('Failed to load funding history:', err);
-    }
+    setFundingHistory([]);
   };
   
   // Add a milestone field

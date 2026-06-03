@@ -26,7 +26,7 @@ import { PrivacyInline, PrivacyBadge } from './common/PrivacyShield';
 
 export default function BackingPanel({ projectId, developerAddress, builderSnsDomain }) {
   const wallet = useWallet();
-  const { getUSDCBalanceAsync, backProject: backProjectFn } = useBuilderCredit();
+  const { getUSDCBalanceAsync } = useBuilderCredit();
   const { incentives } = useTorqueIncentives();
   const showBuilderIdentity = isValidSolanaAddress(developerAddress || '');
 
@@ -163,8 +163,9 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
         setSuccess(`Private stake sent! Amount shielded via Cloak.`);
       } else {
         // Standard public staking
-        const txHash = await backProjectFn(projectId, multiplier, amount);
-        setSuccess(`Successfully backed project! Transaction: ${txHash.slice(0, 10)}...`);
+        const { creditService } = await import('@/services/creditService');
+        const receipt = await creditService.backProject(wallet.chainId, wallet.publicClient, wallet.walletClient, projectId, multiplier, amount);
+        setSuccess(`Successfully backed project! Transaction: ${receipt.transactionHash ? receipt.transactionHash.slice(0, 10) : 'sent'}...`);
       }
 
       setStage('form');

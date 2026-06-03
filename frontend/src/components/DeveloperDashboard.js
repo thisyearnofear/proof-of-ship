@@ -306,6 +306,7 @@ export default function DeveloperDashboard() {
     usdcBalance,
     developerProjects,
     projectDetails,
+    contractLoading,
   } = useBuilderCredit();
 
   // activeChainFamily is authoritative: useBuilderCredit's account/connected already

@@ -7,7 +7,6 @@
 
 import { useState, useMemo } from "react";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { LoadingSpinner } from "@/components/common/LoadingStates";
 import HackathonLeaderboardRow from "./HackathonLeaderboardRow";
 import PayoutLeadForm from "./PayoutLeadForm";
 

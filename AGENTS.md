@@ -40,6 +40,9 @@ A single vitest file: `cd frontend && npx vitest run src/path/to/file.test.ts`.
 
 Vitest 4.1.5 with jsdom. Tests live next to source as `*.test.ts`/`*.test.js`. Mock external SDKs (Firebase admin, nanopayment middleware, agent identity) at the module boundary with `vi.mock('@/lib/...')`. Firestore query mocks must be chainable — see `src/lib/__tests__/api/agent-routes.test.js` `fakeQuery()`.
 
+**IMPORTANT**: Do NOT put test files inside `pages/` or `pages/api/` — Next.js treats them as routes. Place API route tests in `src/lib/__tests__/api/` and page tests in `src/lib/__tests__/pages/`. Use relative `import()` paths to the handler (e.g., `import('../../../pages/api/payout-leads/process')`) and mock `@/lib/firebase/serverOnly` with chainable collections.
+Also bumped esbuild to 0.27.7 as a devDependency to fix the pre-existing esbuild binary mismatch (0.24.2 vs 0.27.7) in the test environment.
+
 ## Commit & Pull Request Guidelines
 
 Lowercase `<type>: <description>` — `refactor:`, `fix:`, `chore:`, `feat:`. Body explains the why + measured outcome (LOC counts, test deltas, build status). One logical change per commit; atomic renames use `git mv` to preserve history. Branch is `main`; push directly (no PR template, no CI).

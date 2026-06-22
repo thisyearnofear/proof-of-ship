@@ -9,6 +9,7 @@ import Button from '@/components/common/Button';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import PayoutTimeline from '@/components/hackathons/PayoutTimeline';
+import { trackEvent } from '@/lib/analytics';
 
 import {
   CalendarIcon,
@@ -391,6 +392,12 @@ export default function HackathonDetailPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
+                          trackEvent("leaderboard_share_clicked", {
+                            platform: "x",
+                            entry_type: "hackathon",
+                            entry_name: hackathon.name,
+                            hackathon_id: id,
+                          });
                           const text = hackathon.prizePool > 0
                             ? `How fast does ${hackathon.name} pay winners? Track real payout data on @proofofship` + (hackathon.prizePool ? ` Prize pool: $${hackathon.prizePool.toLocaleString()}.` : "")
                             : `Track payout speed for ${hackathon.name} on @proofofship`;
@@ -406,6 +413,12 @@ export default function HackathonDetailPage() {
                       </button>
                       <button
                         onClick={() => {
+                          trackEvent("leaderboard_share_clicked", {
+                            platform: "farcaster",
+                            entry_type: "hackathon",
+                            entry_name: hackathon.name,
+                            hackathon_id: id,
+                          });
                           const text = `Track payout speed for ${hackathon.name}`;
                           const url = `https://proofofship.app/hackathons/${id}`;
                           window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}%20${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");

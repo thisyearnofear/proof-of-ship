@@ -7,14 +7,28 @@
 
 import { useState, useMemo } from "react";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { LoadingSpinner } from "@/components/common/LoadingStates";
 import HackathonLeaderboardRow from "./HackathonLeaderboardRow";
 import PayoutLeadForm from "./PayoutLeadForm";
+
+function SkeletonRow() {
+  return (
+    <div className="animate-pulse flex items-center gap-4 p-4 rounded-lg border border-border-primary bg-surface-primary">
+      <div className="w-8 h-8 rounded-full bg-surface-hover" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-48 rounded bg-surface-hover" />
+        <div className="h-3 w-32 rounded bg-surface-hover" />
+      </div>
+      <div className="h-4 w-20 rounded bg-surface-hover" />
+    </div>
+  );
+}
 
 export default function HackathonLeaderboardList({ entries }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filtered = useMemo(() => {
-    if (!searchQuery.trim()) return entries;
+    if (!entries || !searchQuery.trim()) return entries;
     const q = searchQuery.toLowerCase();
     return entries.filter(
       (e) =>
@@ -22,6 +36,16 @@ export default function HackathonLeaderboardList({ entries }) {
         (e.ecosystem && e.ecosystem.toLowerCase().includes(q)),
     );
   }, [entries, searchQuery]);
+
+  if (!entries) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonRow key={i} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -56,7 +80,11 @@ export default function HackathonLeaderboardList({ entries }) {
 
       {filtered.length === 0 && (
         <div className="text-center py-8 text-text-tertiary">
-          No hackathons match &ldquo;{searchQuery}&rdquo;
+          {searchQuery ? (
+            <>No hackathons match &ldquo;{searchQuery}&rdquo;</>
+          ) : (
+            <>No hackathons found</>
+          )}
         </div>
       )}
 

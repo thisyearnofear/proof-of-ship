@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Input } from "@/components/common/Input";
 import Button from "@/components/common/Button";
 import { Card } from "@/components/common/Card";
-import { EnvelopeIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { EnvelopeIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { trackEvent } from "@/lib/analytics";
 
 export default function PayoutLeadForm({ className = "" }) {
   const [hackathonName, setHackathonName] = useState("");
@@ -29,10 +30,16 @@ export default function PayoutLeadForm({ className = "" }) {
           wallet: wallet.trim() || null,
         }),
       });
-      if (!res.ok) throw new Error("Failed to submit");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed to submit payout info");
+      trackEvent("payout_lead_submitted", {
+        hackathon: hackathonName.trim(),
+        has_prize: !!prizeAmount,
+        has_wallet: !!wallet,
+      });
       setSubmitted(true);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -90,7 +97,12 @@ export default function PayoutLeadForm({ className = "" }) {
             size="sm"
           />
         </div>
-        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+        {error && (
+          <div className="flex items-start gap-2 mb-3 p-3 rounded-lg bg-red-50 border border-red-200">
+            <XCircleIcon className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
         <Button
           type="submit"
           variant="primary"

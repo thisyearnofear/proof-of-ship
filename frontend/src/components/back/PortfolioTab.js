@@ -42,7 +42,7 @@ export default function PortfolioTab({ setTab }) {
         if (!cancelled) setLoading(true);
         const { creditService } = await import('@/services/creditService');
         const contracts = creditService.getContracts(chainId, signer);
-        const projectIds = contracts ? await contracts.core.read.getBackerProjects([wallet.account]) as bigint[] : [];
+        const projectIds = contracts ? await contracts.core.read.getBackerProjects([wallet.account]) : [];
         if (cancelled) return;
         
         if (!projectIds || projectIds.length === 0) {

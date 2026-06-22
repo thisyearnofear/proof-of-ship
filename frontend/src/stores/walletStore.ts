@@ -276,7 +276,6 @@ function buildAgentUrl(agentType: string, params: any) {
     case "scout": return `${base}/api/agent/scout`;
     case "underwrite": return `${base}/api/agent/underwrite?projectId=${params.projectId}`;
     case "verify": return `${base}/api/agent/verify?prId=${params.prId}&lines=${params.lines}`;
-    case "rebalance": return `${base}/api/agent/rebalance`;
     case "chat": return `${base}${params.endpoint}`;
     default: return `${base}/api/agent/${agentType}`;
   }
@@ -285,7 +284,6 @@ function buildAgentUrl(agentType: string, params: any) {
 async function payForScout(baseUrl?: string) { return payForAgent("scout", { baseUrl }); }
 async function payForUnderwrite(projectId: string, baseUrl?: string) { return payForAgent("underwrite", { projectId, baseUrl }); }
 async function payForVerification(prId: string, lines: number, baseUrl?: string) { return payForAgent("verify", { prId, lines, baseUrl }); }
-async function payForRebalance(baseUrl?: string) { return payForAgent("rebalance", { baseUrl }); }
 async function pay(endpoint: string, options?: any) { return payForAgent("chat", { endpoint, ...options }); }
 
 // ============================================================================
@@ -544,7 +542,7 @@ export function useNanopayment() {
     payForScout,
     payForUnderwrite,
     payForVerification,
-    payForRebalance,
+
   };
 }
 
@@ -582,7 +580,6 @@ export const walletActions = {
   payForScout,
   payForUnderwrite,
   payForVerification,
-  payForRebalance,
   pay,
   getQuote: getTransferQuote,
   executeTransfer,

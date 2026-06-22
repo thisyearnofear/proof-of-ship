@@ -51,7 +51,9 @@ const nextConfig = {
       skipTrailingSlashRedirect: true,
     }
     : {}),
-  turbopack: {},
+  turbopack: {
+    root: __dirname,
+  },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },

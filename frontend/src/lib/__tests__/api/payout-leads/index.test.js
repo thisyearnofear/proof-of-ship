@@ -49,13 +49,14 @@ describe('/api/payout-leads (index)', () => {
     const handler = (await import('../../../../pages/api/payout-leads/index')).default;
     const req = {
       method: 'POST',
+      headers: { 'x-forwarded-for': '127.0.0.1' },
       body: { email: 'test@example.com' },
     };
     const res = {
       status: vi.fn(() => res),
       json: vi.fn(),
     };
-    handler(req, res);
+    await handler(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
@@ -63,6 +64,7 @@ describe('/api/payout-leads (index)', () => {
     const handler = (await import('../../../../pages/api/payout-leads/index')).default;
     const req = {
       method: 'POST',
+      headers: { 'x-forwarded-for': '127.0.0.1' },
       body: {
         hackathonName: 'Test Hackathon',
         email: 'test@example.com',

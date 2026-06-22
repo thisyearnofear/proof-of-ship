@@ -28,7 +28,14 @@ const EMPTY_ENTRIES = { builders: [], proofBuilders: [], projects: [], backers: 
 
 export default function LeaderboardPage() {
   const router = useRouter();
-  const [tab, setTab] = useState("proof-builders");
+  const tab = router.query.tab || "hackathons";
+  const setTab = (t) => {
+    router.replace(
+      { pathname: router.pathname, query: t === "hackathons" ? {} : { tab: t } },
+      undefined,
+      { shallow: true },
+    );
+  };
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState(EMPTY_ENTRIES);
 
@@ -110,10 +117,10 @@ export default function LeaderboardPage() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <TrophyIcon className="w-8 h-8 text-yellow-500 dark:text-yellow-400" />
-              <h1 className="text-3xl font-bold text-text-primary">Leaderboard</h1>
+              <h1 className="text-3xl font-bold text-text-primary">Payout Leaderboard</h1>
             </div>
             <p className="text-text-secondary">
-              Discover the most credible builders, projects, and hackathons by proof strength, payout behavior, and shipping velocity.
+              Real payout speeds from real hackathons. Ranked by how fast winners actually get paid.
             </p>
           </div>
 

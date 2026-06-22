@@ -24,7 +24,7 @@ import { classNames } from "@/utils/common";
 
 const navigation = [
   { name: "Discover", href: "/explore", icon: GlobeAltIcon },
-  { name: "Leaderboards", href: "/leaderboard", icon: TrophyIcon },
+  { name: "Payouts", href: "/leaderboard", icon: BoltIcon },
   { name: "Build", href: "/build", icon: CreditCardIcon, auth: true, builderOnly: true },
   { name: "Back", href: "/back", icon: ChartBarIcon },
   { name: "Analyze", href: "/analyze", icon: CalculatorIcon },

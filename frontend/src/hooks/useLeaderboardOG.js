@@ -58,7 +58,7 @@ function buildOgImageUrl(highlightedEntry) {
 }
 
 function buildOgTitle(highlightedEntry) {
-  if (!highlightedEntry) return "Leaderboard | Proof of Ship";
+  if (!highlightedEntry) return "Payout Leaderboard | Proof of Ship";
   const { entry, rank, ogType } = highlightedEntry;
   const label = LABELS[ogType] || ogType;
   const name = entry.name || entry.address || "Builder";
@@ -66,7 +66,7 @@ function buildOgTitle(highlightedEntry) {
 }
 
 function buildOgDescription(highlightedEntry) {
-  if (!highlightedEntry) return "Top builders and backers ranked by proof strength, payout behavior, and shipping velocity.";
+  if (!highlightedEntry) return "Real hackathon payout speeds ranked by how fast winners actually get paid.";
   const { entry, rank, ogType } = highlightedEntry;
   const name = entry.name || entry.address || "Builder";
   const scoreStr = entry.score ? `Score: ${entry.score}` : "";

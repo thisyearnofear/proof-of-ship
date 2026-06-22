@@ -3,5 +3,11 @@
   "buildCommand": "cd .. && pnpm --filter ./frontend build",
   "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "crons": [
+    {
+      "path": "/api/payout-leads/process",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

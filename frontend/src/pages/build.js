@@ -7,6 +7,7 @@ import Head from "next/head";
 import { useWallet } from "@/stores/walletStore";
 import { useBuilderCredit } from "@/stores/walletStore";
 import { useUser } from "@/stores/authStore";
+import Link from "next/link";
 import { useRouter } from "next/router";
 
 import DeveloperDashboard from "@/components/DeveloperDashboard";
@@ -29,6 +30,9 @@ export default function BuildPage() {
   const wallet = useWallet();
   const builderCredit = useBuilderCredit();
   const [activeTab, setActiveTab] = useState("credit");
+  const ref = router.query.ref;
+
+  const isPayoutReferral = ref === "payouts";
 
   const {
     connected,
@@ -104,20 +108,45 @@ export default function BuildPage() {
               </div>
             </div>
 
-            <ShieldCheckIcon className={`w-16 h-16 mx-auto ${activeChainFamily === 'solana' ? 'text-purple-500 dark:text-purple-400' : 'text-blue-500 dark:text-blue-400'}`} />
-            <h1 className="mt-4 text-2xl font-bold text-primary">Builder Hub</h1>
+            {isPayoutReferral ? (
+              <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-teal-500 shadow-lg shadow-indigo-200/50">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            ) : (
+              <ShieldCheckIcon className={`w-16 h-16 mx-auto ${activeChainFamily === 'solana' ? 'text-purple-500 dark:text-purple-400' : 'text-blue-500 dark:text-blue-400'}`} />
+            )}
+            <h1 className="mt-4 text-2xl font-bold text-primary">
+              {isPayoutReferral ? "Get Paid Today, Not in 67 Days" : "Builder Hub"}
+            </h1>
             <p className="mt-2 text-secondary">
-              Connect your {activeChainFamily === 'solana' ? 'Solana' : 'EVM'} wallet to view your credit score, request funding, and manage projects.
+              {isPayoutReferral
+                ? "Proof of Ship advances you USDC against your hackathon prize — so you can keep building while the organizers take their time. No interest, no collateral."
+                : `Connect your ${activeChainFamily === 'solana' ? 'Solana' : 'EVM'} wallet to view your credit score, request funding, and manage projects.`}
             </p>
-            <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-              Use your browser wallet extension to connect{activeChainFamily === 'solana' ? ' Solana' : ''}.
-            </div>
+            {isPayoutReferral ? (
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/login?mode=signup">
+                  <Button variant="primary" size="md">Get Funded Now</Button>
+                </Link>
+                <span className="text-sm text-text-tertiary">or preview your credit score below</span>
+              </div>
+            ) : (
+              <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
+                Use your browser wallet extension to connect{activeChainFamily === 'solana' ? ' Solana' : ''}.
+              </div>
+            )}
           </div>
 
-          <div className="border-t border-default pt-8">
-            <h2 className="text-lg font-semibold text-primary mb-2">🔍 Preview Your Score</h2>
+          <div className={isPayoutReferral ? "" : "border-t border-default pt-8"}>
+            <h2 className="text-lg font-semibold text-primary mb-2">
+              {isPayoutReferral ? "📊 Your Estimated Credit" : "🔍 Preview Your Score"}
+            </h2>
             <p className="text-sm text-secondary mb-4">
-              Enter your GitHub username to see an estimated credit score — no login required.
+              {isPayoutReferral
+                ? "Enter your GitHub username to see how much USDC you qualify for — no wallet or login required."
+                : "Enter your GitHub username to see an estimated credit score — no login required."}
             </p>
             <ScorePreviewCard />
           </div>

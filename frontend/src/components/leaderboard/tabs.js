@@ -12,19 +12,19 @@ import {
 import { BoltIcon } from "@heroicons/react/24/solid";
 
 export const TABS = [
+  { id: "hackathons", label: "Payouts", icon: BoltIcon },
   { id: "proof-builders", label: "Proof Builders", icon: TrophyIcon },
   { id: "projects", label: "Proven Projects", icon: FireIcon },
-  { id: "hackathons", label: "Hackathons", icon: BoltIcon },
   { id: "builders", label: "Top Builders", icon: RocketLaunchIcon },
   { id: "backers", label: "Top Backers", icon: BanknotesIcon },
 ];
 
 export const TAB_EXPLAINERS = {
+  hackathons: "Real payout speeds from real hackathons. How fast do winners actually get paid? See the data and stop waiting.",
   "proof-builders": "Builders ranked by verified wins, evidence coverage, and proof-backed project claims — the most credible in the ecosystem.",
-  "projects": "Projects ranked by onchain evidence, verified hackathon claims, and overall credibility score.",
-  "hackathons": "Hackathons ranked by payout speed, winner payment rates, and builder satisfaction.",
-  "builders": "Top builders by shipping velocity, project submissions, and milestone completions.",
-  "backers": "Top backers by staking volume, projects backed, and portfolio performance.",
+  projects: "Projects ranked by onchain evidence, verified hackathon claims, and overall credibility score.",
+  builders: "Top builders by shipping velocity, project submissions, and milestone completions.",
+  backers: "Top backers by staking volume, projects backed, and portfolio performance.",
 };
 
 export function truncateAddress(addr) {

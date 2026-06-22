@@ -89,6 +89,10 @@ export default async function handler(req) {
       return renderProjectOG(searchParams, fontRegular, fontBold);
     }
 
+    if (type === "hackathon") {
+      return renderHackathonOG(searchParams, fontRegular, fontBold);
+    }
+
     return renderFallbackOG(fontRegular, fontBold);
   } catch (e) {
     console.error("OG image error:", e);
@@ -469,6 +473,154 @@ function renderProjectOG(params, fontRegular, fontBold) {
             height: "35%",
             background:
               "radial-gradient(ellipse at 30% 100%, rgba(99,102,241,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 100%, rgba(168,85,247,0.1) 0%, transparent 60%)",
+          }}
+        />
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        { name: "Inter", data: fontRegular, weight: 400 },
+        { name: "Inter", data: fontBold, weight: 700 },
+      ],
+    }
+  );
+}
+
+/** ── Hackathon OG Image ── */
+function renderHackathonOG(params, fontRegular, fontBold) {
+  const name = params.get("name") || "Hackathon";
+  const ecosystem = params.get("ecosystem") || "";
+  const prizePool = params.get("prizePool") || "";
+  const avgPayoutDays = params.get("avgPayoutDays") || "";
+  const payoutRate = params.get("payoutRate") || "";
+  const status = params.get("status") || "";
+  const ecoColors = ECOSYSTEM_COLORS[ecosystem] || { bg: BRAND.gray100, text: BRAND.gray700 };
+  const ecoEmoji = ECOSYSTEM_EMOJIS[ecosystem] || "\uD83C\uDF10";
+  const ecoLabel = ECOSYSTEM_LABELS[ecosystem] || ecosystem;
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          fontFamily: '"Inter"',
+          color: BRAND.white,
+          padding: "48px 56px",
+          position: "relative",
+        }}
+      >
+        {/* Top bar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "auto",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 28 }}>⚓</span>
+            <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px", opacity: 0.9 }}>
+              Proof of Ship
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              padding: "6px 14px",
+              borderRadius: 20,
+              background: ecoColors.bg,
+              color: ecoColors.text,
+            }}
+          >
+            <span>{ecoEmoji}</span>
+            <span>{ecoLabel}</span>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            marginTop: 48,
+          }}
+        >
+          <span style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-1px", lineHeight: 1.1 }}>
+            {name}
+          </span>
+          {status && (
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                padding: "4px 12px",
+                borderRadius: 20,
+                background: status === "completed" ? "rgba(5,150,105,0.25)" : status === "active" ? "rgba(37,99,235,0.25)" : "rgba(251,191,36,0.25)",
+                display: "inline-flex",
+                width: "fit-content",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              {status === "completed" ? "✅" : status === "active" ? "▶" : "📅"}
+              <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Metrics row */}
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            marginTop: 32,
+            padding: "16px 24px",
+            borderRadius: 16,
+            background: "rgba(255,255,255,0.08)",
+          }}
+        >
+          {avgPayoutDays && (
+            <>
+              <StatBlock label="Avg Payout" value={`${avgPayoutDays}d`} />
+              <div style={{ width: 1, background: "rgba(255,255,255,0.15)" }} />
+            </>
+          )}
+          {payoutRate && (
+            <>
+              <StatBlock label="Paid" value={`${payoutRate}%`} />
+              <div style={{ width: 1, background: "rgba(255,255,255,0.15)" }} />
+            </>
+          )}
+          {prizePool && (
+            <StatBlock label="Prize Pool" value={`$${Number(prizePool).toLocaleString()}`} />
+          )}
+          {!avgPayoutDays && !payoutRate && !prizePool && (
+            <StatBlock label="Hackathon" value="Track payout speed" />
+          )}
+        </div>
+
+        {/* Bottom decoration */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "35%",
+            background:
+              "radial-gradient(ellipse at 30% 100%, rgba(15,52,96,0.4) 0%, transparent 60%), radial-gradient(ellipse at 70% 100%, rgba(22,33,62,0.3) 0%, transparent 60%)",
           }}
         />
       </div>

@@ -49,11 +49,11 @@ describe('generateShareText', () => {
 });
 
 describe('TABS', () => {
-  it('exposes the 5 leaderboard tabs in display order', () => {
+  it('exposes the 5 leaderboard tabs with Payouts first', () => {
     expect(TABS.map((t) => t.id)).toEqual([
+      'hackathons',
       'proof-builders',
       'projects',
-      'hackathons',
       'builders',
       'backers',
     ]);

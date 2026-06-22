@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
@@ -16,7 +16,8 @@ import {
   UsersIcon,
   CheckBadgeIcon,
   ArrowTopRightOnSquareIcon,
-  PlusIcon
+  PlusIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -135,11 +136,33 @@ export default function HackathonDetailPage() {
     >
       <div className="min-h-screen bg-gray-50">
         <Head>
-          <title>{hackathon.name} • Hackathons</title>
+          <title>{hackathon.name} Payout Report • Proof of Ship</title>
           <meta
             name="description"
-            content={`Details about ${hackathon.name} - ${hackathon.ecosystem} hackathon`}
+            content={`How fast does ${hackathon.name} pay winners? Track real payout speeds, completion rates, and verified winner data for the ${hackathon.ecosystem} hackathon.`}
           />
+          <meta property="og:title" content={`${hackathon.name} — Payout Speed & Winner Report`} />
+          <meta property="og:description" content={`Track how fast ${hackathon.name} pays its winners. Real payout data, verified on-chain.${hackathon.prizePool > 0 ? ` Prize pool: $${hackathon.prizePool.toLocaleString()}.` : ''}`} />
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content={`https://proofofship.app/hackathons/${id}`} />
+          {(() => {
+            const ogParams = new URLSearchParams({
+              type: "hackathon",
+              name: hackathon.name || "",
+              ecosystem: hackathon.ecosystem || "",
+              status: hackathon.status || "",
+            });
+            if (hackathon.prizePool > 0) ogParams.set("prizePool", String(hackathon.prizePool));
+            return (
+              <>
+                <meta property="og:image" content={`/api/og?${ogParams.toString()}`} />
+                <meta name="twitter:image" content={`/api/og?${ogParams.toString()}`} />
+              </>
+            );
+          })()}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={`${hackathon.name} — Payout Speed Report`} />
+          <meta name="twitter:description" content={`How fast does ${hackathon.name} pay winners? Real payout data from verified winners.`} />
         </Head>
 
         {/* Hackathon Header */}
@@ -365,10 +388,36 @@ export default function HackathonDetailPage() {
                 <div className="p-6">
                   <h3 className="font-semibold text-primary mb-4">Quick Actions</h3>
                   <div className="space-y-3">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
-                      Share Hackathon
-                    </Button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          const text = hackathon.prizePool > 0
+                            ? `How fast does ${hackathon.name} pay winners? Track real payout data on @proofofship` + (hackathon.prizePool ? ` Prize pool: $${hackathon.prizePool.toLocaleString()}.` : "")
+                            : `Track payout speed for ${hackathon.name} on @proofofship`;
+                          const url = `https://proofofship.app/hackathons/${id}`;
+                          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-border-primary bg-surface-primary text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-blue-500 transition-colors"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                        Share
+                      </button>
+                      <button
+                        onClick={() => {
+                          const text = `Track payout speed for ${hackathon.name}`;
+                          const url = `https://proofofship.app/hackathons/${id}`;
+                          window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}%20${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-border-primary bg-surface-primary text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-purple-500 transition-colors"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M6.336 2.1h11.328l-.84 10.257L12 14.1l-4.824-1.743L6.336 2.1zM4.2 5.556l.672 8.166H8.4l.42 4.176h3.18l.42-4.176h3.528l.672-8.166H4.2z" />
+                        </svg>
+                        Cast
+                      </button>
+                    </div>
 
                     {isActive && (
                       <Button variant="primary" size="sm" className="w-full justify-start">
@@ -376,11 +425,6 @@ export default function HackathonDetailPage() {
                         Submit Project
                       </Button>
                     )}
-
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      Add to Calendar
-                    </Button>
                   </div>
                 </div>
               </Card>

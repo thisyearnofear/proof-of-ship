@@ -13,3 +13,4 @@ export { default as ProvenProjectsList } from "./ProvenProjectsList";
 export { default as HackathonLeaderboardRow } from "./HackathonLeaderboardRow";
 export { default as HackathonLeaderboardList } from "./HackathonLeaderboardList";
 export { default as FastestPayoutHero } from "./FastestPayoutHero";
+export { default as PayoutLeadForm } from "./PayoutLeadForm";

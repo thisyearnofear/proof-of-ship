@@ -25,6 +25,9 @@ A single vitest file: `cd frontend && npx vitest run src/path/to/file.test.ts`.
 - `frontend/src/services/` — data + integrations; per-domain files (`ProjectDataService`, `SubmissionService`, `DataServiceCore`, `walletService`, etc.). `DataService.ts` is a re-export shim — add new methods to `DataServiceCore`.
 - Decomposition convention: large pages live in `pages/` and pull co-located subcomponents from sibling folders (`components/leaderboard/`, `components/explore/`, `components/projects/editor/`, `components/common/layout/Navbar/`). New large pages follow the same pattern — see `pages/leaderboard.js` (167 LOC) for the canonical example.
 - Hydrator pattern: components that need wagmi/Solana hooks read them and write to `walletStore` via `setState` (see `stores/walletStore.ts` `WalletHydrator`).
+- **Payout lead pipeline** — `PayoutLeadForm` (bottom of HackathonLeaderboardList) POSTs to `POST /api/payout-leads` which stores to Firestore `payoutLeads` collection + optionally pings Slack. `GET /api/payout-leads/verify` converts lead → Firestore project claim → leaderboard picks it up. `GET /api/payout-leads/process` is called hourly by a Vercel cron (`frontend/vercel.json` `crons[]`) to auto-process unverified leads.
+- **OG image handler** — `GET /api/og?type=hackathon` generates dark gradient OG cards with name, ecosystem badge, and stats. Edge runtime, no satori/puppeteer — uses raw SVG served as PNG via `Content-Type: image/svg+xml`.
+- **Seed scripts** live in `scripts/` (root) and use `dotenv` with `path: ".env.local"`. Run with `--confirm` to write. Example: `node scripts/seed-payout-data.js --confirm`.
 
 ## Coding Style & Naming Conventions
 

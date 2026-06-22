@@ -1,18 +1,59 @@
 import verificationService from '@/lib/verification/VerificationService';
 
-/**
- * Hackathon Verification API Endpoint
- * Handles verification of hackathon participation
- * 
- * POST /api/verification/hackathon - Verify hackathon participation
- * GET /api/verification/hackathon/status - Get verification status
- * 
- * Follows ENHANCEMENT FIRST by using centralized verification service
- * Maintains CLEAN separation with dedicated verification logic
- */
-
 export default async function handler(req, res) {
-  // CLEAN: Explicit method handling
+  const { action } = req.query;
+
+  if (action === "funding") {
+    return handleFundingEligibility(req, res);
+  }
+
+  if (action === "hackathon" || !action) {
+    return handleHackathon(req, res);
+  }
+
+  return res.status(404).json({ error: `Unknown action: ${action}` });
+}
+
+async function handleFundingEligibility(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({
+        error: 'userId is required'
+      });
+    }
+
+    const result = await verificationService.verifyFundingEligibility(userId);
+
+    res.status(200).json({
+      success: true,
+      eligible: result.eligible,
+      eligibilityScore: result.score,
+      eligibilityFactors: result.factors,
+      estimatedFundingAmount: result.eligible ? calculateEstimatedFunding(result.score) : 0
+    });
+
+  } catch (error) {
+    console.error('Error checking funding eligibility:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
+  }
+}
+
+function calculateEstimatedFunding(score) {
+  const baseAmount = 500;
+  const additionalAmount = Math.floor((score - 50) * 50);
+  return Math.min(Math.max(baseAmount + additionalAmount, 500), 5000);
+}
+
+async function handleHackathon(req, res) {
   switch (req.method) {
     case 'POST':
       return handleVerifyParticipation(req, res);
@@ -23,30 +64,16 @@ export default async function handler(req, res) {
   }
 }
 
-/**
- * POST /api/verification/hackathon
- * Verify hackathon participation
- * 
- * Request Body:
- * {
- *   hackathonId: string (required)
- *   userId: string (required)
- *   verificationProof: string (optional, for onchain verification)
- *   verificationMethod: 'onchain' | 'offchain' (default: 'offchain')
- * }
- */
 async function handleVerifyParticipation(req, res) {
   try {
-    // CLEAN: Explicit validation
     const { hackathonId, userId, verificationProof, verificationMethod } = req.body;
-    
+
     if (!hackathonId || !userId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'hackathonId and userId are required'
       });
     }
 
-    // MODULAR: Use verification service
     const result = await verificationService.verifyHackathonParticipation(
       hackathonId,
       userId,
@@ -54,7 +81,6 @@ async function handleVerifyParticipation(req, res) {
       verificationMethod
     );
 
-    // PERFORMANT: Return consistent response format
     if (result.success) {
       res.status(200).json({
         success: true,
@@ -68,52 +94,41 @@ async function handleVerifyParticipation(req, res) {
         error: result.error
       });
     }
-    
+
   } catch (error) {
     console.error('Verification error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
-      details: error.message 
+      details: error.message
     });
   }
 }
 
-/**
- * GET /api/verification/hackathon/status
- * Get verification status for hackathon participation
- * 
- * Query Parameters:
- * - hackathonId: string (required)
- * - userId: string (required)
- */
 async function handleGetVerificationStatus(req, res) {
   try {
-    // CLEAN: Explicit validation
     const { hackathonId, userId } = req.query;
-    
+
     if (!hackathonId || !userId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'hackathonId and userId are required'
       });
     }
 
-    // MODULAR: Use verification service
     const result = await verificationService.getVerificationStatus(
       hackathonId,
       userId
     );
 
-    // PERFORMANT: Return consistent response format
     res.status(200).json({
       success: true,
       ...result
     });
-    
+
   } catch (error) {
     console.error('Error getting verification status:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
-      details: error.message 
+      details: error.message
     });
   }
 }

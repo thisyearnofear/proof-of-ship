@@ -52,7 +52,7 @@ export default function useWinnerStatus() {
 
       try {
         const token = await currentUser.getIdToken();
-        const res = await fetch('/api/winner-verification/status', {
+        const res = await fetch('/api/winner-verification', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
@@ -100,7 +100,7 @@ export default function useWinnerStatus() {
     }
 
     try {
-      const res = await fetch('/api/winner-verification/claim', {
+      const res = await fetch('/api/winner-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hackathonName, announcementUrl, githubRepo, outcome }),

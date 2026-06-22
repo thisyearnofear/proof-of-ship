@@ -290,7 +290,7 @@ function PendingLeadMagnet({ pendingClaim, platformStats }) {
     (async () => {
       try {
         const token = currentUser ? await currentUser.getIdToken() : null;
-        const res = await fetch('/api/winner-verification/status', {
+        const res = await fetch('/api/winner-verification', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const data = await res.json();

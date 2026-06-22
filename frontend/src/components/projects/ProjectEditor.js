@@ -360,7 +360,7 @@ export default function ProjectEditor({ projectSlug }) {
       let useClientSide = false;
       try {
         const token = await currentUser.getIdToken();
-        const res = await fetch("/api/projects/submit", {
+        const res = await fetch("/api/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({

@@ -38,7 +38,7 @@ export default function PayoutTimeline({ hackathonId, hackathonName, isCompleted
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`/api/hackathons/${hackathonId}/payout-timeline`);
+        const res = await fetch(`/api/hackathons/${hackathonId}?sub=payout-timeline`);
 
         if (!res.ok) {
           if (res.status === 404) {

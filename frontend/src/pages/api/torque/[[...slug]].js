@@ -1,15 +1,25 @@
-/**
- * Leaderboard API
- *
- * Aggregates builder and backer data from Firestore activities
- * and Torque events. Returns ranked lists by shipping velocity.
- *
- * GET /api/torque/leaderboard?limit=50
- */
-
 import { db } from "../../../lib/firebase/serverOnly";
 
 export default async function handler(req, res) {
+  const { slug } = req.query;
+  const action = Array.isArray(slug) && slug.length > 0 ? slug[0] : null;
+
+  switch (action) {
+    case "leaderboard":
+      return handleLeaderboard(req, res);
+    case "incentives":
+      return handleIncentives(req, res);
+    case "events":
+      return handleEvents(req, res);
+    default:
+      if (!action) {
+        return res.status(404).json({ error: "Not found" });
+      }
+      return res.status(404).json({ error: `Unknown action: ${action}` });
+  }
+}
+
+async function handleLeaderboard(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -17,7 +27,6 @@ export default async function handler(req, res) {
   const limit = Math.min(parseInt(req.query.limit) || 50, 200);
 
   try {
-    // Load previous snapshot for rank movement tracking
     let prevBuilders = null;
     let prevBackers = null;
     try {
@@ -28,14 +37,11 @@ export default async function handler(req, res) {
         prevBackers = prev.backers || null;
       }
     } catch (e) {
-      // First run or Firestore not ready — no movement data yet
       console.warn('Could not load previous torque leaderboard snapshot:', e.message);
     }
 
-    // Fetch all projects to build the builders leaderboard
     const projectsSnap = await db.collection("projects").get();
 
-    // Build builder stats from projects
     const builderMap = new Map();
 
     for (const doc of projectsSnap.docs) {
@@ -59,7 +65,6 @@ export default async function handler(req, res) {
       builder.milestoneCount += milestones;
       if (p.ecosystem) builder.ecosystems.add(p.ecosystem);
 
-      // Shipping velocity: (projects * 5) + (milestones * 10)
       builder.velocity = builder.projectCount * 5 + builder.milestoneCount * 10;
     }
 
@@ -72,7 +77,6 @@ export default async function handler(req, res) {
       .sort((a, b) => b.velocity - a.velocity)
       .slice(0, limit);
 
-    // Fetch activities for backer stats
     let backers = [];
     try {
       const activitiesSnap = await db
@@ -113,11 +117,9 @@ export default async function handler(req, res) {
         .sort((a, b) => b.score - a.score)
         .slice(0, limit);
     } catch (e) {
-      // Activities collection may not exist yet — that's fine
       console.warn("Could not load backer activities:", e.message);
     }
 
-    // Try to enrich with Torque leaderboard data if available
     if (process.env.TORQUE_API_KEY) {
       try {
         const torqueRes = await fetch("https://api.torque.so/leaderboard", {
@@ -125,7 +127,6 @@ export default async function handler(req, res) {
         });
         if (torqueRes.ok) {
           const torqueData = await torqueRes.json();
-          // Merge Torque velocity scores with local data
           if (torqueData.builders) {
             for (const tBuilder of torqueData.builders) {
               const local = builders.find((b) => b.address === tBuilder.address);
@@ -152,7 +153,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Compute movement by comparing current rank against previous snapshot
     function computeMovement(entries, prevMap) {
       if (!prevMap) return entries;
       return entries.map((entry, idx) => {
@@ -173,7 +173,6 @@ export default async function handler(req, res) {
     const buildersWithMovement = computeMovement(builders, prevBuilders);
     const backersWithMovement = computeMovement(backers, prevBackers);
 
-    // Save current rankings as snapshot for next comparison
     try {
       await db.collection('leaderboardSnapshots').doc('torque').set({
         builders: Object.fromEntries(builders.map((e, i) => [e.address, i])),
@@ -189,5 +188,93 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("Leaderboard error:", err);
     return res.status(500).json({ error: "Failed to load leaderboard" });
+  }
+}
+
+async function handleIncentives(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const apiToken = process.env.TORQUE_API_TOKEN;
+  if (!apiToken) {
+    return res.status(200).json({ incentives: [] });
+  }
+
+  const projectId = process.env.TORQUE_PROJECT_ID;
+  if (!projectId) {
+    return res.status(200).json({ incentives: [] });
+  }
+
+  try {
+    const response = await fetch(
+      `https://server.torque.so/projects/${projectId}/incentives`,
+      { headers: { Authorization: `Bearer ${apiToken}` } }
+    );
+
+    if (!response.ok) {
+      return res.status(200).json({ incentives: [] });
+    }
+
+    const { data } = await response.json();
+    const active = (data || []).filter(
+      (i) => i.status === "ACTIVE" || i.status === "active"
+    );
+
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+    return res.status(200).json({ incentives: active });
+  } catch (err) {
+    console.warn("[Torque] incentives fetch failed (non-blocking):", err.message);
+    return res.status(200).json({ incentives: [] });
+  }
+}
+
+async function handleEvents(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const apiKey = process.env.TORQUE_API_KEY;
+  if (!apiKey) {
+    return res.status(503).json({
+      error: "Torque not configured",
+      message: "Set TORQUE_API_KEY to enable event tracking",
+    });
+  }
+
+  try {
+    const { eventName, userPubkey, timestamp, data } = req.body;
+
+    if (!eventName || !userPubkey) {
+      return res.status(400).json({ error: "eventName and userPubkey required" });
+    }
+
+    const response = await fetch("https://ingest.torque.so/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        eventName,
+        userPubkey,
+        timestamp: timestamp || Date.now(),
+        data: data || {},
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      console.warn("[Torque API] upstream rejected:", response.status, text);
+      return res.status(response.status).json({
+        error: "Upstream rejection",
+        upstream: text.slice(0, 200),
+      });
+    }
+
+    return res.status(202).json({ success: true });
+  } catch (err) {
+    console.error("[Torque API] proxy error:", err);
+    return res.status(500).json({ error: "Proxy failed", message: err.message });
   }
 }

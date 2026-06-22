@@ -9,7 +9,6 @@ async function handler(req, res) {
   }
 
   try {
-    // Verify auth token
     const userId = await verifyAuth(req, auth);
 
     const projectData = { ...(req.body || {}) };
@@ -22,7 +21,6 @@ async function handler(req, res) {
       });
     }
 
-    // Also check for duplicate GitHub URL server-side
     if (projectData.githubUrl) {
       const dupeSnap = await db.collection("projects")
         .where("githubUrl", "==", projectData.githubUrl)
@@ -45,11 +43,9 @@ async function handler(req, res) {
       }
     }
 
-    // Generate project slug
     const slug = generateProjectSlug(projectData.name);
     console.log("Checking project slug:", slug);
 
-    // Check if slug already exists in both projects and projects_* collections
     const existingProject = await db.collection("projects").doc(slug).get();
     if (existingProject.exists) {
       const existingData = existingProject.data();
@@ -69,7 +65,6 @@ async function handler(req, res) {
       });
     }
 
-    // Extract GitHub owner and repo from URL
     const githubMatch = projectData.githubUrl.match(
       /github\.com\/([^\/]+)\/([^\/]+)/
     );
@@ -81,7 +76,6 @@ async function handler(req, res) {
 
     const [, owner, repo] = githubMatch;
 
-    // Attempt ownership verification via OAuth and username match
     let ownershipVerified = false;
     let submitterGithub = null;
     let oauthVerified = false;
@@ -104,7 +98,6 @@ async function handler(req, res) {
       ownershipVerified = false;
     }
 
-    // Normalize accent color — ensure it's from the palette or null
     if (projectData.accentColor) {
       const { ACCENT_COLORS } = await import('../../../lib/projects/projectNormalize');
       const valid = ACCENT_COLORS.some(c => c.value === projectData.accentColor);
@@ -116,11 +109,9 @@ async function handler(req, res) {
       status: ownershipVerified ? "submitted" : "pending_review"
     });
 
-    // Save to Firestore with transaction for atomicity
     await db.runTransaction(async (transaction) => {
       transaction.set(db.collection("projects").doc(slug), projectDoc);
 
-      // Grant permissions within the same transaction
       if (userId) {
         const userRef = db.collection("users").doc(userId);
         const userSnap = await transaction.get(userRef);
@@ -150,7 +141,6 @@ async function handler(req, res) {
       }
     });
 
-    // Log submission for admin review
     await db.collection("admin_queue").add({
       type: "project_submission",
       projectSlug: slug,
@@ -158,43 +148,31 @@ async function handler(req, res) {
       submittedBy: userId,
       submittedAt: new Date().toISOString(),
       status: ownershipVerified ? "info" : "pending",
-      priority: projectData.ecosystem === "base" ? "high" : "normal", // Prioritize Base projects,
+      priority: projectData.ecosystem === "base" ? "high" : "normal",
       note: ownershipVerified ? "ownership_verified_via_github_username_match" : "ownership_unverified"
-
     });
 
-    // Send notification (you could integrate with Discord, Slack, etc.)
     await notifyAdmins(projectDoc);
 
-    // Log to engagement feed
     await logActivity({
       type: "project_submitted",
       projectSlug: slug,
       projectName: projectData.name,
-      userHandle: userId, // In a real app, you might fetch the actual username/handle
+      userHandle: userId,
       description: `New project "${projectData.name}" was launched in the ${projectData.ecosystem} ecosystem!`,
       ecosystem: projectData.ecosystem
     });
 
-    // Torque event — fire and forget
     if (process.env.TORQUE_API_KEY) {
       try {
         await fetch("https://ingest.torque.so/events", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": process.env.TORQUE_API_KEY,
-          },
+          headers: { "Content-Type": "application/json", "x-api-key": process.env.TORQUE_API_KEY },
           body: JSON.stringify({
             eventName: "project_submitted",
             userPubkey: userId,
             timestamp: Date.now(),
-            data: {
-              project_name: projectData.name,
-              ecosystem: projectData.ecosystem,
-              category: projectData.category,
-              project_slug: slug,
-            },
+            data: { project_name: projectData.name, ecosystem: projectData.ecosystem, category: projectData.category, project_slug: slug },
           }),
         });
       } catch (e) {
@@ -216,36 +194,11 @@ async function handler(req, res) {
   }
 }
 
-export default withApiMiddleware(handler, { allowedMethods: ["POST"], rateLimit: 5, rateLimitKey: "PROJECT_SUBMIT" });
-
 async function notifyAdmins(projectData) {
   try {
-    // You could integrate with Discord webhook, Slack, email, etc.
-
-    // Example Discord webhook (uncomment and configure)
-    /*
-    if (process.env.DISCORD_WEBHOOK_URL) {
-      await fetch(process.env.DISCORD_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embeds: [{
-            title: '🚀 New Project Submission',
-            description: `**${projectData.name}** has been submitted to the ${projectData.ecosystem} ecosystem`,
-            fields: [
-              { name: 'Description', value: projectData.description.substring(0, 100) + '...', inline: false },
-              { name: 'GitHub', value: `https://github.com/${projectData.owner}/${projectData.repo}`, inline: true },
-              { name: 'Category', value: projectData.category, inline: true },
-              { name: 'Contract', value: projectData.contractAddress, inline: true }
-            ],
-            color: projectData.ecosystem === 'base' ? 0x0052FF : 0x35D07F,
-            timestamp: new Date().toISOString()
-          }]
-        })
-      });
-    }
-    */
   } catch (error) {
     console.error("Error sending admin notification:", error);
   }
 }
+
+export default withApiMiddleware(handler, { allowedMethods: ["POST"], rateLimit: 5, rateLimitKey: "PROJECT_SUBMIT" });

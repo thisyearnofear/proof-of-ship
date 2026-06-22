@@ -1,12 +1,42 @@
-import { db, auth } from "../../../lib/firebase/serverOnly";
-import { verifyAuth, isAdmin } from "../../../utils/apiMiddleware";
-import { withApiMiddleware } from "../../../utils/apiMiddleware";
+import { db, auth } from "@/lib/firebase/serverOnly";
+import { verifyAuth, isAdmin, withApiMiddleware } from "@/utils/apiMiddleware";
 
 async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  switch (req.method) {
+    case "GET":
+      return handleLookup(req, res);
+    case "POST":
+      return handleSubmit(req, res);
+    default:
+      return res.status(405).json({ error: "Method not allowed" });
   }
+}
 
+async function handleLookup(req, res) {
+  const { id } = req.query || {};
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ error: 'Missing id' });
+  }
+  try {
+    const fbRef = db.collection('feedback').doc(id);
+    const fbSnap = await fbRef.get();
+    if (!fbSnap.exists) return res.status(404).json({ error: 'Not found' });
+    const feedback = { id: fbSnap.id, ...fbSnap.data() };
+
+    let user = null;
+    if (feedback.submittedBy) {
+      const userSnap = await db.collection('users').doc(feedback.submittedBy).get();
+      if (userSnap.exists) user = { id: userSnap.id, ...userSnap.data() };
+    }
+
+    return res.status(200).json({ feedback, user });
+  } catch (e) {
+    console.error('lookup error', e);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function handleSubmit(req, res) {
   try {
     const {
       projectSlug,
@@ -31,7 +61,6 @@ async function handler(req, res) {
         .json({ error: "message must be at least 10 characters" });
     }
 
-    // Basic allowlist for evidence URLs to prevent random domains
     const allowedHosts = new Set(["www.youtube.com","youtu.be","vimeo.com","www.loom.com","loom.com","imgur.com","i.imgur.com","drive.google.com","dropbox.com","www.dropbox.com"]);
     const isAllowedUrl = (u) => {
       try {
@@ -42,7 +71,6 @@ async function handler(req, res) {
       }
     };
 
-    // If taskId provided, validate against project's testerTasks and time window
     if (taskId) {
       try {
         const projectSnap = await db.collection('projects').doc(projectSlug).get();
@@ -55,7 +83,6 @@ async function handler(req, res) {
         if (!task) {
           return res.status(400).json({ error: 'Invalid taskId for this project' });
         }
-        // Optional: enforce time window
         const nowIso = new Date().toISOString();
         if (task.startAt && nowIso < String(task.startAt)) {
           return res.status(400).json({ error: 'Task has not started yet' });
@@ -69,7 +96,6 @@ async function handler(req, res) {
       }
     }
 
-    // Enforce that only admin can set non-submitted status
     let finalStatus = "submitted";
     if (["accepted","rejected"].includes(status)) {
       try {
@@ -104,3 +130,9 @@ async function handler(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
+
+export default withApiMiddleware(handler, {
+  allowedMethods: ["GET", "POST"],
+  rateLimit: 30,
+  rateLimitKey: "FEEDBACK_API",
+});

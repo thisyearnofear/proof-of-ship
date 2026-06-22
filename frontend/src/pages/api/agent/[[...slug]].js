@@ -1,0 +1,565 @@
+import { withNanopayment } from "@/lib/nanopayment";
+import { getAisaFetch, AISA_BASE_URL, isAisaConfigured } from "@/server/aisaClient";
+import { getCachedResult, setCachedResult } from "@/lib/agentCache";
+import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
+import { withAgentAuth } from "@/lib/agentAuth";
+import { db } from "@/lib/firebase/serverOnly";
+import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
+
+export default async function handler(req, res) {
+  const { slug } = req.query;
+  const action = Array.isArray(slug) && slug.length > 0 ? slug[0] : null;
+
+  switch (action) {
+    case "chat":
+      return handleChat(req, res);
+    case "underwrite":
+      return handleUnderwrite(req, res);
+    case "verify":
+      return handleVerify(req, res);
+    case "scout":
+      return handleScout(req, res);
+    case "execute":
+      return handleExecute(req, res);
+    case "copy":
+      return handleCopy(req, res);
+    default:
+      if (!action) return res.status(404).json({ error: "Not found" });
+      return res.status(404).json({ error: `Unknown agent: ${action}` });
+  }
+}
+
+const FEATHERLESS_API_KEY = process.env.FEATHERLESS_API_KEY || "";
+const FEATHERLESS_MODEL = "deepseek-ai/DeepSeek-V3-0324";
+const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
+
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
+const GOOGLE_MODEL = "gemini-2.0-flash";
+const GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+
+const SYSTEM_PROMPT = `You are the Proof of Ship AI Assistant — a helpful guide for a platform that tracks and funds blockchain projects using x402 nanopayments on Circle's Arc network.
+
+Key platform features you should help users with:
+- **Explore**: Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism)
+- **Back**: Use AI agents (Underwriter, Scout, Verifier) to analyze projects. Each agent costs a small USDC micropayment via x402.
+- **Submit**: Add your own project — just needs a name, description, GitHub URL, ecosystem, and category.
+- **AI Agents**: The Underwriter ($0.05) scores project health, the Scout ($0.01) finds top projects, the Verifier ($0.01) checks code quality.
+- **x402 Nanopayments**: Sub-cent USDC payments settled on Arc via Circle Gateway. Users deposit USDC, then each AI query deducts from their balance.
+
+Keep responses concise (2-4 sentences). Be friendly and actionable. If asked about something outside the platform, briefly answer but guide back to platform features.`;
+
+async function handleChat(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { message, history = [], modelTier = "free" } = req.body;
+
+  if (!message || typeof message !== "string" || message.trim().length === 0) {
+    return res.status(400).json({ error: "Message is required" });
+  }
+
+  if (message.length > 500) {
+    return res.status(400).json({ error: "Message too long (max 500 chars)" });
+  }
+
+  try {
+    let reply;
+    let aiPayment = null;
+    let resultSource = "contextual";
+    let status = "ok";
+    const usePremiumModel = modelTier === "premium";
+
+    if (!reply && FEATHERLESS_API_KEY) {
+      try {
+        const messages = [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...history.slice(-6).map(m => ({ role: m.role, content: m.content.slice(0, 300) })),
+          { role: "user", content: message },
+        ];
+
+        const featherlessRes = await fetch(`${FEATHERLESS_BASE_URL}/chat/completions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${FEATHERLESS_API_KEY}` },
+          body: JSON.stringify({ model: FEATHERLESS_MODEL, messages, max_tokens: 300 }),
+        });
+
+        if (featherlessRes.ok) {
+          const data = await featherlessRes.json();
+          reply = data.choices?.[0]?.message?.content || null;
+          aiPayment = { provider: "featherless", model: FEATHERLESS_MODEL, status: "ok" };
+          resultSource = "live_ai";
+        }
+      } catch (err) {
+        console.warn("Featherless AI chat failed, trying Google Gemini:", err.message);
+      }
+    }
+
+    if (!reply && GOOGLE_API_KEY) {
+      try {
+        const contents = [
+          ...history.slice(-6).map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content.slice(0, 300) }] })),
+          { role: "user", parts: [{ text: message }] },
+        ];
+
+        const googleRes = await fetch(
+          `${GOOGLE_BASE_URL}/models/${GOOGLE_MODEL}:generateContent?key=${GOOGLE_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ system_instruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents, generationConfig: { maxOutputTokens: 300 } }),
+          }
+        );
+
+        if (googleRes.ok) {
+          const data = await googleRes.json();
+          reply = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+          aiPayment = { provider: "google", model: GOOGLE_MODEL, status: "ok" };
+          resultSource = "live_ai";
+        }
+      } catch (err) {
+        console.warn("Google Gemini chat failed, trying AIsa:", err.message);
+      }
+    }
+
+    if (!reply && isAisaConfigured()) {
+      try {
+        const aisaFetch = getAisaFetch();
+        const msgs = [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...history.slice(-6).map(m => ({ role: m.role, content: m.content.slice(0, 300) })),
+          { role: "user", content: message },
+        ];
+        const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "sonar", messages: msgs, max_tokens: 300 }),
+        });
+        if (aisaRes.ok) {
+          const data = await aisaRes.json();
+          reply = data.choices?.[0]?.message?.content || null;
+          aiPayment = { provider: "aisa-x402", model: "perplexity/sonar", status: "paid" };
+          resultSource = "live_ai";
+        }
+      } catch (err) {
+        console.warn("AIsa chat also failed, using contextual fallback:", err.message);
+      }
+    }
+
+    if (!reply) {
+      reply = getContextualReply(message);
+      aiPayment = { provider: "contextual", model: usePremiumModel ? "premium-fallback" : "free-guide", status: usePremiumModel ? "fallback" : "free" };
+      resultSource = usePremiumModel ? "fallback" : "free_guide";
+      status = usePremiumModel ? "fallback" : "ok";
+    }
+
+    const cost = !usePremiumModel
+      ? "free"
+      : resultSource === "fallback" ? "0.005 USDC (fallback)" : "0.005 USDC";
+
+    return res.status(200).json({
+      agent: { type: "assistant", snsDomain: "pos-scout.sol", displayName: "pos-scout.sol", humanName: "Platform Assistant", icon: "🔭", description: "Platform helper assistant" },
+      success: true,
+      status,
+      resultSource,
+      nextAction: "Use one of the AI agent actions on the Back page when you're ready to analyze a project.",
+      reply,
+      agentInfo: { name: "pos-scout.sol", humanName: "Platform Assistant", cost, txHash: req.nanopayment?.txHash, network: "arc", paymentStatus: req.nanopayment?.testMode ? "test_mode" : (req.nanopayment?.verificationStatus || "unverified"), ...(aiPayment && { aiPayment }) },
+    });
+  } catch (error) {
+    console.error("Chat agent error:", error);
+    return res.status(500).json({ error: "Assistant unavailable. Please try again.", status: "error" });
+  }
+}
+
+function getContextualReply(message) {
+  const lower = message.toLowerCase();
+  if (lower.match(/hello|hi|hey|sup|what's up/)) return "Hey! 👋 I'm the Proof of Ship assistant. I can help you explore projects, understand AI agents, or submit your own project. What would you like to do?";
+  if (lower.match(/submit|add|create|new project/)) return "To submit a project, click **Submit Project** in the nav or go to /projects/new. You'll need a project name, description, GitHub URL, ecosystem, and category. Contract address is optional!";
+  if (lower.match(/agent|underwrite|scout|verify|ai/)) return "We have 3 AI agents: **Underwriter** ($0.05) scores project health, **Scout** ($0.01) finds top projects across ecosystems, and **Verifier** ($0.01) checks code quality. Try them on the **Back** page → Economy tab!";
+  if (lower.match(/x402|nanopay|payment|usdc|cost|price/)) return "x402 nanopayments let you pay small USDC amounts for AI analysis. Set up your payment wallet on the **Back** page to unlock agent flows.";
+  if (lower.match(/explore|browse|find|search|project/)) return "Head to the **Explore** page to browse projects across 7 ecosystems. Use the search bar to filter by name or category. Click any project for details and AI analysis!";
+  if (lower.match(/arc|circle|ecosystem/)) return "Arc is Circle's USDC-native EVM network for fast stablecoin settlement. We use it so small AI analysis payments can settle cleanly in USDC.";
+  if (lower.match(/back|fund|invest|support/)) return "The **Back** page lets you discover and support projects. Use AI agents to analyze projects before backing them. Your payment balance is shown there when you set it up.";
+  if (lower.match(/how|work|explain|what is/)) return "Proof of Ship helps you explore projects, run AI analysis, and decide what to back. The core flow is: pick a project → run analysis → review the result → back with confidence.";
+  return "I can help you explore projects, use AI agents, submit your own project, or understand AI analysis payments. What would you like to do next?";
+}
+
+async function handleUnderwrite(req, res) {
+  const { withAgentAuth } = await import("@/lib/agentAuth");
+  return withAgentAuth(withNanopayment(underwriteHandler, 0.05))(req, res);
+}
+
+async function underwriteHandler(req, res) {
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+
+  const { projectId, fresh } = req.query;
+  if (!projectId) return res.status(400).json({ error: "projectId query parameter is required" });
+
+  try {
+    const identity = getAgentIdentity('underwrite');
+    if (fresh !== "1") {
+      const cached = await getCachedResult("underwrite", { projectId });
+      if (cached) {
+        return res.status(200).json({ ...cached.data, status: "ok", resultSource: "cached", nextAction: "Review the health score and decide whether to back this project.", cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+      }
+    }
+
+    const docRef = db.collection("projects").doc(projectId);
+    const snapshot = await docRef.get();
+    if (!snapshot.exists) return res.status(404).json({ error: "Project not found", status: "error" });
+
+    const project = { id: snapshot.id, ...snapshot.data() };
+    const { total, breakdown } = computeScore(project);
+    const recommendation = getRecommendation(total);
+    const { computeStrategicAdvice } = await import("@/lib/scoringEngine");
+    const strategicAdvice = computeStrategicAdvice(project);
+
+    let aiAnalysis = null;
+    let aisaPayment = null;
+    let resultSource = "rule_based";
+
+    if (isAisaConfigured()) {
+      try {
+        const aisaFetch = getAisaFetch();
+        const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "sonar", messages: [{ role: "user", content: `Analyze this blockchain project for investment potential in 3 sentences. Project: ${project.name}. Ecosystem: ${project.ecosystem || 'unknown'}. Description: ${project.description || "N/A"}. GitHub stats: ${JSON.stringify(project.stats || {})}. Score: ${total}/100. Also provide a brief recommendation on whether they should launch a token on Solana via Bags or stick to Circle-backed credit lines based on their GitHub activity.` }] }),
+        });
+
+        if (aisaRes.ok) {
+          const data = await aisaRes.json();
+          aiAnalysis = data.choices?.[0]?.message?.content || null;
+          aisaPayment = { provider: "AIsa x402", model: "perplexity/sonar", estimatedCost: "~0.012 USDC", paymentHeader: aisaRes.headers.get("x-402-receipt"), paymentVerified: !!aisaRes.headers.get("x-402-receipt") };
+          resultSource = "live_ai";
+        }
+      } catch (aisaErr) { console.error("AIsa enrichment error:", aisaErr.message); }
+    }
+
+    const result = { ...agentIdentityResponse('underwrite'), success: true, status: "ok", resultSource, nextAction: "Review the health score and decide whether to back this project.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment.amount, txHash: req.nanopayment.txHash, network: "arc", paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"), aisaPayment }, project: { id: project.id, name: project.name }, healthScore: total, breakdown, recommendation, strategicAdvice, aiAnalysis, timestamp: new Date().toISOString() };
+
+    try {
+      await db.collection("agent_runs").doc(`underwrite_${Date.now()}`).set({
+        type: "underwrite", timestamp: result.timestamp, projectId: project.id,
+        project: { id: project.id, name: project.name, ecosystem: project.ecosystem },
+        healthScore: total, breakdown, recommendation: recommendation?.recommendation || "analyze", resultSource,
+        reasoningTrace: aiAnalysis ? [{ project: project.name, trace: aiAnalysis }] : [{ project: project.name, trace: `Rule-based score: ${total}/100. ${strategicAdvice?.[0] || "Analyzed project health."}` }],
+        strategicAdvice: strategicAdvice || null, ecosystemAnalysis: aiAnalysis || null,
+      });
+    } catch (logErr) { console.warn("Failed to log underwrite run:", logErr.message); }
+
+    await setCachedResult("underwrite", { projectId }, result);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Underwriter agent error:", error);
+    return res.status(500).json({ error: "Underwriter agent failed", details: error.message, status: "error" });
+  }
+}
+
+async function handleVerify(req, res) {
+  const { withAgentAuth } = await import("@/lib/agentAuth");
+  return withAgentAuth(withNanopayment(verifyHandler, 0.01))(req, res);
+}
+
+async function verifyHandler(req, res) {
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+
+  const { prId, lines = 100, fresh, network, projectPda, developerTokenAccount, milestoneIndex } = req.query;
+  if (!prId) return res.status(400).json({ error: "prId query parameter is required" });
+
+  try {
+    const identity = getAgentIdentity('verify');
+    if (fresh !== "1") {
+      const cached = await getCachedResult("verify", { prId });
+      if (cached) return res.status(200).json({ ...cached.data, status: cached.status || "ok", resultSource: cached.resultSource || "cached", nextAction: cached.nextAction || "Review the verification summary before releasing any milestone funds.", cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+    }
+
+    let verification;
+    let aisaPayment = null;
+    let resultSource = "fallback";
+    let status = "fallback";
+
+    if (isAisaConfigured()) {
+      try {
+        const aisaFetch = getAisaFetch();
+        const aiResponse = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "sonar", messages: [{ role: "user", content: `Analyze GitHub pull request #${prId}. Check code quality, test coverage, and security. Respond ONLY with JSON: {"approved": boolean, "confidence": number between 0 and 1, "summary": "one sentence", "issues": number}. Note: If this is a Solana/Rust project, evaluate Anchor framework usage and Rust safety. If EVM, evaluate Solidity security.` }] }),
+        });
+
+        const aiData = await aiResponse.json();
+        const content = aiData.choices?.[0]?.message?.content || "";
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+
+        if (parsed && typeof parsed.approved === "boolean") {
+          verification = { prId, linesAnalyzed: lines, approved: parsed.approved, confidence: Math.min(1, Math.max(0, parsed.confidence || 0.5)), summary: parsed.summary || "AI analysis complete.", issuesFound: parsed.issues || 0 };
+          aisaPayment = { provider: "aisa-x402", model: "perplexity-sonar" };
+          resultSource = "live_ai";
+          status = "ok";
+        }
+      } catch (aisaErr) { console.warn("AIsa verification failed, returning explicit fallback state:", aisaErr.message); }
+    }
+
+    if (!verification) {
+      verification = { prId, linesAnalyzed: lines, approved: null, confidence: 0, summary: "Automated verification is currently unavailable. No approval decision was made.", issuesFound: null };
+    }
+
+    let onChainContext = null;
+    if (network === "solana" && projectPda) {
+      onChainContext = { projectPda, milestoneIndex: milestoneIndex || "0", network: "solana", note: "On-chain execution requires a separate authenticated request. This is only a preview of what would be verified." };
+
+      if (process.env.SOLANA_RPC_URL) {
+        try {
+          const { getSolanaConnection } = await import("@/lib/chains/solanaConnection");
+          const { Keypair, PublicKey } = await import("@solana/web3.js");
+          const anchor = await import("@coral-xyz/anchor");
+          const IDL = (await import("@/idl/blockchain_solana.json")).default;
+          const PROGRAM_ID = new PublicKey(process.env.SOLANA_PROGRAM_ID || process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID || IDL.address);
+
+          const connection = getSolanaConnection({ rpcUrl: process.env.SOLANA_RPC_URL, commitment: "confirmed" });
+          const projectPubkey = new PublicKey(projectPda);
+          const idlWithAddress = { ...IDL, address: PROGRAM_ID.toBase58() };
+          const dummyWallet = new anchor.Wallet(Keypair.generate());
+          const provider = new anchor.AnchorProvider(connection, dummyWallet, { preflightCommitment: "confirmed" });
+          const program = new anchor.Program(idlWithAddress, provider);
+          const projectAcct = await program.account.project.fetch(projectPubkey);
+
+          onChainContext = { ...onChainContext, developer: projectAcct.developer.toBase58(), milestonesCompleted: projectAcct.milestonesCompleted, milestonesCount: projectAcct.milestonesCount, isActive: projectAcct.isActive, onChainDataFetched: true };
+        } catch (fetchErr) {
+          console.warn("Could not fetch on-chain project state (non-fatal):", fetchErr.message);
+          onChainContext.onChainDataFetched = false;
+        }
+      }
+    }
+
+    const result = { ...agentIdentityResponse('verify'), success: status === "ok", status, resultSource, nextAction: verification.approved === true ? "Review the verification summary before releasing any milestone funds." : "Review the verification summary and retry later if you need an automated approval decision.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment.amount, txHash: req.nanopayment.txHash, network: network || "arc", paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"), ...(aisaPayment && { aisaPayment }) }, verification, onChainContext, timestamp: new Date().toISOString() };
+
+    await setCachedResult("verify", { prId }, result);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Verification agent error:", error);
+    return res.status(500).json({ error: "Verification agent failed", details: error.message, status: "error" });
+  }
+}
+
+async function handleScout(req, res) {
+  const { withAgentAuth } = await import("@/lib/agentAuth");
+  return withAgentAuth(withNanopayment(scoutHandler, 0.01))(req, res);
+}
+
+async function scoutHandler(req, res) {
+  if (req.method !== "GET" && req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  try {
+    const identity = getAgentIdentity('scout');
+    if (req.method === "GET" && req.query.fresh !== "1") {
+      const cached = await getCachedResult("scout", { ecosystem: req.query.ecosystem || "all" });
+      if (cached) return res.status(200).json({ ...cached.data, status: "ok", resultSource: "cached", nextAction: "Review the recommended projects and run deeper analysis on the best candidates.", cached: true, cachedAt: cached.cachedAt, cachedAge: cached.ageHuman });
+    }
+
+    const SCOUT_PAGE_LIMIT = 200;
+    let projects = [];
+    try {
+      let query = db.collection("projects").orderBy("submittedAt", "desc").limit(SCOUT_PAGE_LIMIT);
+      if (req.query.ecosystem && req.query.ecosystem !== "all") query = query.where("ecosystem", "==", req.query.ecosystem);
+      const snapshot = await query.get();
+      projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      if (err.code === "failed-precondition" || err.message?.includes("index")) {
+        try {
+          const snapshot = await db.collection("projects").limit(SCOUT_PAGE_LIMIT).get();
+          projects = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        } catch (fallbackErr) {
+          return res.status(500).json({ ...agentIdentityResponse('scout'), success: false, status: 'error', error: 'Failed to fetch projects', details: fallbackErr.message, projects: [], summary: { evaluated: 0, recommended: 0, totalStake: '$0.00' } });
+        }
+      } else {
+        return res.status(500).json({ ...agentIdentityResponse('scout'), success: false, status: 'error', error: 'Failed to fetch projects', details: err.message, projects: [], summary: { evaluated: 0, recommended: 0, totalStake: '$0.00' } });
+      }
+    }
+
+    let scored = [];
+    try {
+      scored = projects.map((project) => {
+        try {
+          const { total, breakdown } = computeScore(project);
+          const recommendation = getRecommendation(total);
+          return { id: project.id, name: project.name || project.slug || "Unnamed Project", ecosystem: project.ecosystem, slug: project.slug, score: total, breakdown, recommendation, backed: total >= MIN_SCORE_TO_BACK };
+        } catch (projectErr) { return null; }
+      }).filter(Boolean).sort((a, b) => b.score - a.score);
+    } catch (scoringErr) {
+      return res.status(500).json({ ...agentIdentityResponse('scout'), success: false, status: 'error', error: 'Scoring engine failed', details: scoringErr.message });
+    }
+
+    const toBack = scored.filter((p) => p.backed);
+    const totalStake = toBack.reduce((sum, p) => sum + (p.recommendation?.amount || 0), 0);
+
+    let ecosystemAnalysis = null;
+    let reasoningTrace = null;
+    let aisaPayment = null;
+    let resultSource = "rule_based";
+    let runId = null;
+
+    try {
+      runId = `scout_${Date.now()}`;
+      await db.collection("agent_runs").doc(runId).set({
+        type: "scout", timestamp: new Date().toISOString(), projectsEvaluated: scored.length, projectsBacked: toBack.length, totalStakeRecommended: totalStake, executed: req.method === "POST" && req.query.execute === "1", reasoningTrace, ecosystemAnalysis, resultSource, results: toBack.map((p) => ({ id: p.id, name: p.name, score: p.score, amount: p.recommendation?.amount, multiplier: p.recommendation?.multiplier })),
+      });
+    } catch (logErr) { console.warn("Failed to log scout run to Firestore:", logErr.message); }
+
+    let executionResult = null;
+    const shouldExecute = req.method === "POST" && req.query.execute === "1";
+
+    if (shouldExecute && toBack.length > 0) {
+      try {
+        const baseUrl = req.headers.host?.includes("localhost") ? `http://${req.headers.host}` : `https://${req.headers.host}`;
+        const execRes = await fetch(`${baseUrl}/api/agent/execute`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projects: toBack.map((p) => ({ id: p.id, amount: p.recommendation.amount, multiplier: p.recommendation.multiplier })) }),
+        });
+        executionResult = await execRes.json();
+      } catch (err) { executionResult = { error: err.message }; }
+    }
+
+    if (isAisaConfigured()) {
+      try {
+        const avgScore = scored.length > 0 ? Math.round(scored.reduce((s, p) => s + p.score, 0) / scored.length) : 0;
+        const topNames = toBack.slice(0, 3).map((p) => `${p.name} (${p.ecosystem || 'unknown'})`).join(", ");
+
+        const prompt = `You are an investment analyst for a blockchain project scouting platform. SCOUTED PROJECTS: ${scored.length} TOP RECOMMENDATIONS: ${topNames} AVERAGE ECOSYSTEM SCORE: ${avgScore}/100. For EACH of the top 3 recommended projects, provide a 2-3 sentence reasoning trace explaining WHY the scout should back it. Break down by: GitHub velocity, project completeness, and community signals. Be specific — mention actual project names and what makes them stand out. Then summarize the overall investment landscape in 1 sentence. Respond in this exact JSON format: { "reasoningTraces": [{"project": "Name", "trace": "Detailed reasoning..."}], "ecosystemSummary": "One sentence landscape summary." }`;
+
+        const aisaFetch = getAisaFetch();
+        const aisaRes = await aisaFetch(`${AISA_BASE_URL}/perplexity/sonar`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "sonar", messages: [{ role: "user", content: prompt }] }),
+        });
+        const aisaData = await aisaRes.json();
+        const aiContent = aisaData.choices?.[0]?.message?.content || null;
+
+        if (aiContent) {
+          try {
+            const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              reasoningTrace = parsed.reasoningTraces || null;
+              ecosystemAnalysis = parsed.ecosystemSummary || aiContent;
+            } else { ecosystemAnalysis = aiContent; }
+          } catch { ecosystemAnalysis = aiContent; }
+        }
+
+        aisaPayment = { provider: "aisa", model: "perplexity/sonar", status: "paid" };
+        resultSource = "live_ai";
+      } catch (err) { console.warn("AIsa ecosystem analysis failed (non-fatal):", err.message); }
+    }
+
+    if (!reasoningTrace && toBack.length > 0) {
+      reasoningTrace = toBack.slice(0, 3).map((p) => ({ project: p.name, trace: `Scored ${p.score}/100. GitHub velocity: ${p.breakdown?.velocity || '?'}%, completeness: ${p.breakdown?.completeness || '?'}%, community: ${p.breakdown?.community || '?'}%. Recommendation: ${p.recommendation?.recommendation || 'analyze'} with ${p.recommendation?.multiplier || '?'}x multiplier.` }));
+    }
+
+    const result = { ...agentIdentityResponse('scout'), success: true, status: "ok", resultSource, nextAction: shouldExecute ? "Review the execution results and confirm which backings succeeded." : "Review the recommended projects and run deeper analysis on the best candidates.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment?.amount || 0, txHash: req.nanopayment?.txHash, network: "arc", paymentStatus: req.nanopayment?.testMode ? "test_mode" : (req.nanopayment?.verificationStatus || "unverified"), ...(aisaPayment && { aisaPayment }) }, runId, summary: { evaluated: scored.length, recommended: toBack.length, totalStake: `$${totalStake.toFixed(2)} USDC`, executed: shouldExecute }, reasoningTrace, ecosystemAnalysis, execution: executionResult, projects: scored };
+
+    if (req.method === "GET") await setCachedResult("scout", { ecosystem: req.query.ecosystem || "all" }, result);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Scout agent error:", error);
+    return res.status(500).json({ error: "Scout agent failed", details: error.message, status: "error" });
+  }
+}
+
+async function handleExecute(req, res) {
+  const { withAgentAuth } = await import("@/lib/agentAuth");
+  return withAgentAuth(withNanopayment(executeHandler, 0.01))(req, res);
+}
+
+async function executeHandler(req, res) {
+  if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
+
+  const contractAddress = process.env.BUILDER_CREDIT_ARC_ADDRESS;
+  const agentWalletId = process.env.CIRCLE_AGENT_WALLET_ID;
+  const { realCircleService } = await import("../../../services/RealCircleService");
+  const { TESTNET_USDC_ADDRESSES, ARC_TESTNET_CHAIN_ID } = await import("../../../config/tokens");
+  const USDC_ADDRESS = (TESTNET_USDC_ADDRESSES || {})[ARC_TESTNET_CHAIN_ID] || "0x3600000000000000000000000000000000000000";
+
+  if (!contractAddress || !agentWalletId || !realCircleService.isClientConfigured()) {
+    return res.status(500).json({ error: "Agent not configured", missing: [!agentWalletId && "CIRCLE_AGENT_WALLET_ID", !contractAddress && "BUILDER_CREDIT_ARC_ADDRESS", !realCircleService.isClientConfigured() && "CIRCLE_API_KEY/CIRCLE_ENTITY_SECRET"].filter(Boolean) });
+  }
+
+  const { projects } = req.body || {};
+  if (!projects || !Array.isArray(projects) || projects.length === 0) return res.status(400).json({ error: "projects array required" });
+
+  try {
+    const { createHash } = await import("crypto");
+    const keccak256 = (str) => createHash("sha3-256").update(str).digest("hex");
+    const encodeUint256 = (value) => BigInt(value).toString(16).padStart(64, "0");
+    const encodeAddress = (addr) => addr.toLowerCase().replace("0x", "").padStart(64, "0");
+    const encodeBackCall = (projectId, multiplier, amount) => "0x" + keccak256("backProject(uint256,uint256,uint256)").slice(0, 8) + encodeUint256(projectId) + encodeUint256(multiplier) + encodeUint256(amount);
+    const encodeApproveCall = (spender) => "0x" + keccak256("approve(address,uint256)").slice(0, 8) + encodeAddress(spender) + "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+    const submitContractTx = async ({ walletId, destinationAddress, contractAddress, calldata, idempotencyKey }) => {
+      const result = await realCircleService.createTransaction({ walletId, destinationAddress, contractAddress, calldata, feeLevel: "MEDIUM", idempotencyKey });
+      return result.data?.transaction || result.data;
+    };
+
+    const approveCalldata = encodeApproveCall(contractAddress);
+    await submitContractTx({ walletId: agentWalletId, destinationAddress: USDC_ADDRESS, contractAddress: USDC_ADDRESS, calldata: approveCalldata, idempotencyKey: `agent-approve-${agentWalletId}-${contractAddress.toLowerCase()}` });
+
+    const results = [];
+    for (const project of projects) {
+      try {
+        const calldata = encodeBackCall(project.id, project.multiplier, project.amount);
+        const tx = await submitContractTx({ walletId: agentWalletId, destinationAddress: contractAddress, contractAddress, calldata, idempotencyKey: `agent-back-${agentWalletId}-${project.id}-${project.multiplier}-${project.amount}` });
+        results.push({ projectId: project.id, amount: project.amount, multiplier: project.multiplier, txHash: tx?.txHash || tx?.id, status: "success" });
+      } catch (err) { results.push({ projectId: project.id, amount: project.amount, multiplier: project.multiplier, error: err.message, status: "failed" }); }
+    }
+
+    const successful = results.filter((r) => r.status === "success");
+    const failed = results.filter((r) => r.status === "failed");
+    const runId = `exec_${Date.now()}`;
+
+    await db.collection("agent_runs").doc(runId).set({ type: "execution", timestamp: new Date().toISOString(), agentWalletId, chain: "arc-testnet", totalBacked: successful.length, totalFailed: failed.length, totalStaked: successful.reduce((s, r) => s + r.amount, 0), transactions: results });
+
+    return res.status(200).json({ success: true, runId, agentWalletId, circleManaged: true, summary: { backed: successful.length, failed: failed.length, totalStaked: successful.reduce((s, r) => s + r.amount, 0).toFixed(2) + " USDC", txHashes: successful.map((r) => r.txHash).filter(Boolean) }, results });
+  } catch (error) {
+    return res.status(500).json({ error: "Execution failed", details: error.message });
+  }
+}
+
+async function handleCopy(req, res) {
+  const { withAgentAuth } = await import("@/lib/agentAuth");
+  return withAgentAuth(copyHandler)(req, res);
+}
+
+async function copyHandler(req, res) {
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const { action, depositAmount } = req.body;
+  const userId = req.user?.uid || req.body.userId;
+
+  if (!userId) return res.status(401).json({ error: "Authentication required" });
+
+  const docRef = db.collection("copy_scout_subscriptions").doc(userId);
+
+  try {
+    if (action === "subscribe") {
+      await docRef.set({ userId, subscribed: true, depositAmount: depositAmount || 0, subscribedAt: new Date().toISOString(), updatedAt: new Date().toISOString(), totalBacked: 0, totalStaked: 0, status: "active" }, { merge: true });
+      return res.status(200).json({ success: true, message: "Subscribed to Proof Scout copy-trading", subscribed: true });
+    }
+
+    if (action === "unsubscribe") {
+      await docRef.set({ subscribed: false, unsubscribedAt: new Date().toISOString(), updatedAt: new Date().toISOString(), status: "inactive" }, { merge: true });
+      return res.status(200).json({ success: true, message: "Unsubscribed from Proof Scout copy-trading", subscribed: false });
+    }
+
+    if (action === "status") {
+      const doc = await docRef.get();
+      if (!doc.exists) return res.status(200).json({ success: true, subscribed: false, depositAmount: 0 });
+      const data = doc.data();
+      return res.status(200).json({ success: true, subscribed: data.subscribed || false, depositAmount: data.depositAmount || 0, totalBacked: data.totalBacked || 0, totalStaked: data.totalStaked || 0, status: data.status || "inactive", subscribedAt: data.subscribedAt || null });
+    }
+
+    return res.status(400).json({ error: "Invalid action. Use subscribe, unsubscribe, or status." });
+  } catch (err) {
+    console.error("Copy Scout API error:", err.message);
+    return res.status(500).json({ success: false, error: "Copy Scout operation failed", details: err.message });
+  }
+}

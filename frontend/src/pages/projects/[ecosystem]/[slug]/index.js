@@ -644,7 +644,7 @@ function AdminApproveForm({ projectSlug }) {
   const prefillFromFeedback = async (id) => {
     try {
       if (!id) return;
-      const res = await fetch(`/api/feedback/lookup?id=${encodeURIComponent(id)}`);
+      const res = await fetch(`/api/feedback?id=${encodeURIComponent(id)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.feedback && data.user && data.user.walletAddress) {

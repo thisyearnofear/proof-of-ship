@@ -14,17 +14,16 @@ export default function useKeyboardShortcuts() {
       const tag = document.activeElement?.tagName;
       const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 
-      // Cmd+K → navigate to explore (search)
+      // Cmd+K → focus search on Back Discover or navigate to Explore
       if (isMeta && e.key === "k") {
         e.preventDefault();
-        if (router.pathname !== "/explore") {
+        if (router.pathname !== "/explore" && router.pathname !== "/back") {
           router.push("/explore");
         }
-        // Focus the search input on explore page
         setTimeout(() => {
-          const searchInput = document.querySelector('[data-search-input]');
+          const searchInput = document.querySelector("[data-search-input]");
           if (searchInput) searchInput.focus();
-        }, 100);
+        }, router.pathname === "/back" ? 0 : 100);
         return;
       }
 

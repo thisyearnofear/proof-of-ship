@@ -2,23 +2,18 @@
  * /compare — redirects to the Agents tab on /back.
  */
 
-import { useEffect } from "react";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { agentsHref } from "@/config/navigation";
+import useRouteRedirect from "@/lib/routing/useRouteRedirect";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 
 export default function CompareRedirectPage() {
-  const router = useRouter();
-  const ids = router.query.ids;
-
-  useEffect(() => {
-    if (!router.isReady) return;
-    const target = ids
+  useRouteRedirect((router) => {
+    const ids = router.query.ids;
+    return ids
       ? `${agentsHref("compare")}&ids=${encodeURIComponent(String(ids))}`
       : agentsHref("compare");
-    router.replace(target);
-  }, [router, router.isReady, ids]);
+  });
 
   const fallbackTarget = agentsHref("compare");
 

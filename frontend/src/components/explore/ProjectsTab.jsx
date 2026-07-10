@@ -196,6 +196,7 @@ export default function ProjectsTab() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
+            data-search-input
             placeholder="Search projects by name, description, or owner..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}

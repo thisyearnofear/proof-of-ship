@@ -80,5 +80,6 @@ describe("normalizeBackTab", () => {
 
   it("passes through known tabs", () => {
     expect(normalizeBackTab("portfolio")).toBe("portfolio");
+    expect(normalizeBackTab("agents")).toBe("agents");
   });
 });

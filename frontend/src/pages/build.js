@@ -23,6 +23,14 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
 import Card from "@/components/common/Card";
+import CapitalStack from "@/components/sections/CapitalStack";
+import {
+  CAPITAL_RAILS,
+  getRailById,
+  isRailIntegrated,
+  RAIL_STATUS_LABELS,
+  RAIL_STATUS_STYLES,
+} from "@/config/capitalStack";
 
 export default function BuildPage() {
   const { userRole } = useUser();
@@ -47,7 +55,9 @@ export default function BuildPage() {
 
   // Rail detection — which capital rail is this builder on?
   const doesHaveProjects = Array.isArray(developerProjects) && developerProjects.length > 0;
-  const hasBagsToken = false; // Bags SDK not yet wired — defaults to false until integration lands
+  const bagsRail = getRailById("bags");
+  const hasBagsToken = false; // user-level: Bags SDK not wired yet
+  const bagsIntegrated = isRailIntegrated("bags");
   const hasHackathonWins = Array.isArray(developerProjects) && developerProjects.some(
     p => Array.isArray(p.hackathons) && p.hackathons.some(h => h.outcome === 'winner' || h.outcome === 'finalist')
   );
@@ -150,6 +160,10 @@ export default function BuildPage() {
             </p>
             <ScorePreviewCard />
           </div>
+
+          {!isPayoutReferral && (
+            <CapitalStack variant="compact" showHeader className="text-left" />
+          )}
         </div>
       </>
     );
@@ -172,27 +186,39 @@ export default function BuildPage() {
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Rail progression indicator */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100 rounded-xl">
-            <div className="hidden sm:flex items-center gap-2 text-xs font-medium">
-              <span className={`px-2 py-1 rounded-full ${!hasBagsToken ? 'bg-purple-200 text-purple-800 dark:text-purple-300' : 'bg-purple-100 text-purple-600 dark:text-purple-400'}`}>
-                🎒 Rail 1: Bags
-              </span>
-              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              <span className={`px-2 py-1 rounded-full ${doesHaveProjects && !hasBagsToken ? 'bg-blue-200 text-blue-800 dark:text-blue-300' : !doesHaveProjects ? 'bg-gray-100 text-gray-500 dark:text-gray-400' : 'bg-blue-100 text-blue-600 dark:text-blue-400'}`}>
-                💳 Rail 2: Credit
-              </span>
-              <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              <span className={`px-2 py-1 rounded-full ${hasHackathonWins ? 'bg-green-200 text-green-800 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:text-gray-400'}`}>
-                🏆 Rail 3: Prize Routing
-              </span>
+          <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+            <div className="hidden sm:flex items-center gap-2 text-xs font-medium flex-wrap">
+              {CAPITAL_RAILS.map((rail, index) => (
+                <React.Fragment key={rail.id}>
+                  {index > 0 && (
+                    <svg className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full ${
+                      (rail.id === "bags" && hasBagsToken) ||
+                      (rail.id === "x402" && doesHaveProjects) ||
+                      (rail.id === "prize" && hasHackathonWins)
+                        ? "bg-blue-200 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                        : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                    }`}
+                  >
+                    <span>{rail.emoji} {rail.eyebrow}: {rail.shortTitle}</span>
+                    <span className={`px-1.5 py-0.5 text-[9px] font-semibold rounded-full ${RAIL_STATUS_STYLES[rail.status]}`}>
+                      {RAIL_STATUS_LABELS[rail.status]}
+                    </span>
+                  </span>
+                </React.Fragment>
+              ))}
             </div>
             <div className="flex-1 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
-              {!doesHaveProjects && !hasBagsToken && !hasHackathonWins && (
-                <span>Start on <strong>Rail 1</strong> — launch a project token on Bags, or submit a project to unlock <strong>Rail 2</strong> credit.</span>
+              {!doesHaveProjects && !hasHackathonWins && (
+                <span>
+                  {bagsIntegrated
+                    ? <>Start on <strong>Rail 1</strong> — launch a project token on Bags, or submit a project to unlock <strong>Rail 2</strong> credit.</>
+                    : <>Submit a project to unlock <strong>Rail 2</strong> credit. <strong>Rail 1</strong> (Bags) is {RAIL_STATUS_LABELS.coming_soon.toLowerCase()}.</>}
+                </span>
               )}
               {doesHaveProjects && !hasHackathonWins && (
                 <span>You're on <strong>Rail 2</strong> (credit). Win a hackathon to unlock <strong>Rail 3</strong> — auto-repay backers from your prize.</span>
@@ -235,33 +261,40 @@ export default function BuildPage() {
                 <DeveloperDashboard />
               </div>
               {/* Bags — Rail 1: launch a project token on Solana */}
+              {bagsRail && (
               <div className="border-t border-slate-200 pt-8">
-                <Card className="p-6 border-t-4 border-t-purple-500 bg-gradient-to-br from-purple-50 to-white">
+                <Card className="p-6 border-t-4 border-t-purple-500 bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/10 dark:to-surface">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">Rail 1</span>
-                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 dark:text-purple-300 rounded-full">Pre-prize</span>
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">{bagsRail.eyebrow}</span>
+                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 dark:text-purple-300 rounded-full">{bagsRail.tag}</span>
+                        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${RAIL_STATUS_STYLES[bagsRail.status]}`}>
+                          {RAIL_STATUS_LABELS[bagsRail.status]}
+                        </span>
                       </div>
                       <h3 className="text-lg font-bold text-primary">Launch a Bags Token</h3>
                       <p className="text-sm text-secondary mt-1 max-w-xl">
-                        Don't have a prize pipeline yet? Launch a project token on Solana via Bags. 
-                        Community buys in, you earn fee-share yield from trading volume.
+                        {bagsIntegrated
+                          ? "Don't have a prize pipeline yet? Launch a project token on Solana via Bags. Community buys in, you earn fee-share yield from trading volume."
+                          : "Bags token launch is coming soon. For now, submit a project with milestones to access Rail 2 credit."}
                       </p>
                     </div>
                     <Button
                       variant="outline"
-                      className="flex-shrink-0 border-purple-300 text-purple-700 dark:text-purple-300 hover:bg-purple-600 hover:text-white"
-                      onClick={() => window.open('https://bags.gg', '_blank')}
+                      disabled={!bagsIntegrated}
+                      className="flex-shrink-0 border-purple-300 text-purple-700 dark:text-purple-300 hover:bg-purple-600 hover:text-white disabled:opacity-50"
+                      onClick={() => bagsIntegrated && window.open('https://bags.gg', '_blank')}
                     >
                       <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
-                      Launch on Bags
+                      {bagsIntegrated ? "Launch on Bags" : "Coming soon"}
                     </Button>
                   </div>
                 </Card>
               </div>
+              )}
             </div>
           </ErrorBoundary>
         )}

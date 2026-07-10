@@ -1,10 +1,20 @@
 /**
- * CapitalStack — the "Three Rails" visual on the landing page.
+ * CapitalStack — the "Three Rails" visual.
  *
- * Self-contained presentational section: Bags Token → x402 Credit Line →
- * Prize Routing. No props.
+ * Reads rail definitions from config/capitalStack.js. Supports a compact
+ * variant for embedded contexts (e.g. build page empty state).
  */
+import React from "react";
 import { Card } from "@/components/common/Card";
+import {
+  CAPITAL_RAILS,
+  RAIL_TONES,
+  RAIL_STATUS_LABELS,
+  RAIL_STATUS_STYLES,
+  CAPITAL_STACK_HEADING,
+  CAPITAL_STACK_SUBHEADING,
+  CAPITAL_STACK_FOOTNOTE,
+} from "@/config/capitalStack";
 
 const Arrow = () => (
   <div className="hidden md:flex items-center self-center">
@@ -14,103 +24,86 @@ const Arrow = () => (
   </div>
 );
 
-const Rail = ({ rail, tone }) => (
-  <Card className={`relative p-6 border-t-4 ${tone.border} bg-surface shadow-card hover:shadow-card-hover transition-shadow`}>
-    <div className="flex items-center gap-2 mb-1">
-      <span className={`text-xs font-bold uppercase tracking-wider ${tone.label}`}>{rail.eyebrow}</span>
-      <span className={`px-2 py-0.5 text-[10px] font-semibold ${tone.pill} rounded-full`}>{rail.tag}</span>
-    </div>
-    <h3 className="text-lg font-bold text-primary mb-2">{rail.title}</h3>
-    <p className="text-sm text-secondary mb-4">{rail.description}</p>
-    <ul className="space-y-2 text-sm text-secondary">
-      {rail.bullets.map((b) => (
-        <li key={b} className="flex items-start gap-2">• {b}</li>
-      ))}
-    </ul>
-    <div className="mt-4 pt-4 border-t border-default">
-      <div className="flex items-center justify-between text-xs text-tertiary">
-        <span>{rail.footerLeft}</span>
-        <span>{rail.footerRight}</span>
-      </div>
-    </div>
-  </Card>
-);
-
-const TONES = {
-  purple: { border: 'border-t-purple-500', label: 'text-purple-600 dark:text-purple-400', pill: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' },
-  blue:   { border: 'border-t-blue-500',   label: 'text-blue-600 dark:text-blue-400',     pill: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
-  green:  { border: 'border-t-green-500',  label: 'text-green-600 dark:text-green-400',   pill: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
-};
-
-const RAILS = [
-  {
-    tone: 'purple',
-    eyebrow: 'Rail 1',
-    tag: 'Pre-prize',
-    title: 'Bags Token',
-    description: 'No prize pipeline yet? Launch a project token on Solana. Community buys in, you earn fee-share yield.',
-    bullets: [
-      'Community capital from token buyers',
-      'Fee-share yield from trading volume',
-      'No verification required',
-    ],
-    footerLeft: 'Backer yield: Fee-share %',
-    footerRight: 'Risk: Market-driven',
-  },
-  {
-    tone: 'blue',
-    eyebrow: 'Rail 2',
-    tag: 'Mid-stage',
-    title: 'x402 Credit Line',
-    description: 'Have milestones to ship? Get a USDC credit line backed by your future hackathon prizes.',
-    bullets: [
-      'Up to $5,000 USDC credit',
-      'Collateralized by prize pipeline',
-      'AI agents verify milestones',
-    ],
-    footerLeft: 'Backer yield: Principal + multiplier',
-    footerRight: 'Risk: Milestone-driven',
-  },
-  {
-    tone: 'green',
-    eyebrow: 'Rail 3',
-    tag: 'Settlement',
-    title: 'Prize Routing',
-    description: 'Won a hackathon? Route the prize through the platform to auto-repay backers and keep the rest.',
-    bullets: [
-      'Auto-repay backers from prize',
-      'Payout verification on 3 chains',
-      'Leaderboard ranks fastest payouts',
-    ],
-    footerLeft: 'Backer yield: Principal + multiplier',
-    footerRight: 'Risk: Prize-dependent',
-  },
-];
-
-export default function CapitalStack() {
+function RailStatusPill({ status }) {
   return (
-    <div className="py-12 sm:py-16 bg-surface border-t border-default">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary mb-3">
-            Capital That Grows With You
-          </h2>
-          <p className="text-sm sm:text-base text-secondary max-w-2xl mx-auto">
-            Three capital instruments, one progression. Start where you are, level up as you ship.
-          </p>
+    <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${RAIL_STATUS_STYLES[status]}`}>
+      {RAIL_STATUS_LABELS[status]}
+    </span>
+  );
+}
+
+/**
+ * @param {{ rail: import('@/config/capitalStack').CapitalRail, tone: typeof RAIL_TONES[string], compact?: boolean }} props
+ */
+function Rail({ rail, tone, compact = false }) {
+  return (
+    <Card
+      className={`relative border-t-4 ${tone.border} bg-surface shadow-card hover:shadow-card-hover transition-shadow ${
+        compact ? "p-4" : "p-6"
+      }`}
+    >
+      <div className="flex items-center gap-2 mb-1 flex-wrap">
+        <span className={`text-xs font-bold uppercase tracking-wider ${tone.label}`}>{rail.eyebrow}</span>
+        <span className={`px-2 py-0.5 text-[10px] font-semibold ${tone.pill} rounded-full`}>{rail.tag}</span>
+        <RailStatusPill status={rail.status} />
+      </div>
+      <h3 className={`${compact ? "text-base" : "text-lg"} font-bold text-primary mb-2`}>{rail.title}</h3>
+      <p className={`${compact ? "text-xs" : "text-sm"} text-secondary mb-4`}>{rail.description}</p>
+      {!compact && (
+        <>
+          <ul className="space-y-2 text-sm text-secondary">
+            {rail.bullets.map((b) => (
+              <li key={b} className="flex items-start gap-2">• {b}</li>
+            ))}
+          </ul>
+          <div className="mt-4 pt-4 border-t border-default">
+            <div className="flex items-center justify-between text-xs text-tertiary">
+              <span>{rail.footerLeft}</span>
+              <span>{rail.footerRight}</span>
+            </div>
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
+/**
+ * @param {{ variant?: 'default' | 'compact', showHeader?: boolean, className?: string }} props
+ */
+export default function CapitalStack({ variant = "default", showHeader = true, className = "" }) {
+  const compact = variant === "compact";
+
+  return (
+    <div
+      className={`${
+        compact ? "py-6 bg-transparent" : "py-12 sm:py-16 bg-surface border-t border-default"
+      } ${className}`}
+    >
+      <div className={`${compact ? "max-w-xl mx-auto px-0" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}`}>
+        {showHeader && (
+          <div className={`text-center ${compact ? "mb-6" : "mb-10"}`}>
+            <h2 className={`${compact ? "text-lg" : "text-2xl sm:text-3xl"} font-bold text-primary mb-3`}>
+              {CAPITAL_STACK_HEADING}
+            </h2>
+            <p className={`${compact ? "text-xs" : "text-sm sm:text-base"} text-secondary max-w-2xl mx-auto`}>
+              {CAPITAL_STACK_SUBHEADING}
+            </p>
+          </div>
+        )}
+
+        <div className={`flex ${compact ? "flex-col gap-3" : "flex-col md:flex-row items-stretch gap-4 sm:gap-6"}`}>
+          {CAPITAL_RAILS.map((rail, index) => (
+            <React.Fragment key={rail.id}>
+              {index > 0 && !compact && <Arrow />}
+              <Rail rail={rail} tone={RAIL_TONES[rail.tone]} compact={compact} />
+            </React.Fragment>
+          ))}
         </div>
 
-        <div className="flex flex-col md:flex-row items-stretch gap-4 sm:gap-6">
-          <Rail rail={RAILS[0]} tone={TONES.purple} />
-          <Arrow />
-          <Rail rail={RAILS[1]} tone={TONES.blue} />
-          <Arrow />
-          <Rail rail={RAILS[2]} tone={TONES.green} />
-        </div>
-
-        <p className="text-center text-xs sm:text-sm text-tertiary mt-8">
-          The rails are composable — use one or all three. The agent layer recommends which fits your stage.
-        </p>
+        {!compact && (
+          <p className="text-center text-xs sm:text-sm text-tertiary mt-8">{CAPITAL_STACK_FOOTNOTE}</p>
+        )}
       </div>
     </div>
   );

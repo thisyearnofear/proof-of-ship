@@ -14,17 +14,7 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 
-const ECOSYSTEM_OPTIONS = [
-  { value: "all", label: "All Ecosystems" },
-  { value: "solana", label: "Solana" },
-  { value: "celo", label: "Celo" },
-  { value: "arc", label: "Arc" },
-  { value: "base", label: "Base" },
-  { value: "linea", label: "Linea" },
-  { value: "arbitrum", label: "Arbitrum" },
-  { value: "ethereum", label: "Ethereum" },
-  { value: "optimism", label: "Optimism" },
-];
+import { ECOSYSTEM_FILTER_OPTIONS } from "@/components/explore/constants";
 
 const SORT_OPTIONS = [
   { value: "health", label: "Health" },
@@ -240,8 +230,8 @@ export default function DiscoverTab() {
           <AdjustmentsHorizontalIcon className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
           <select value={filterEcosystem} onChange={(e) => setFilterEcosystem(e.target.value)}
             className="border border-gray-300 rounded text-sm px-2 py-1.5 font-medium bg-white">
-            {ECOSYSTEM_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {ECOSYSTEM_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>{opt.label}</option>
             ))}
           </select>
         </div>

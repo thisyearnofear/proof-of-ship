@@ -6,15 +6,13 @@ import {
   CreditCardIcon,
   ChartBarIcon,
   GlobeAltIcon,
-  CalculatorIcon,
-  ShieldCheckIcon,
   BoltIcon,
   TrophyIcon,
-  CpuChipIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 import { useNanopayment, useWallet } from "@/stores/walletStore";
+import { PRIMARY_NAV, filterNavItems } from "@/config/navigation";
 import { Fragment, useState, useEffect } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
@@ -22,14 +20,12 @@ import UserIdentityHeader from "./UserIdentityHeader";
 import UserMenuItems from "./UserMenuItems";
 import { classNames } from "@/utils/common";
 
-const navigation = [
-  { name: "Discover", href: "/explore", icon: GlobeAltIcon },
-  { name: "Payouts", href: "/leaderboard", icon: BoltIcon },
-  { name: "Build", href: "/build", icon: CreditCardIcon, auth: true, builderOnly: true },
-  { name: "Back", href: "/back", icon: ChartBarIcon },
-  { name: "Analyze", href: "/analyze", icon: CalculatorIcon },
-  { name: "Scout", href: "/scout", icon: CpuChipIcon },
-];
+const NAV_ICONS = {
+  explore: GlobeAltIcon,
+  leaderboard: TrophyIcon,
+  build: CreditCardIcon,
+  back: ChartBarIcon,
+};
 
 export default function Navbar() {
   const router = useRouter();
@@ -58,6 +54,7 @@ export default function Navbar() {
   }, []);
 
   const authReady = mounted && !authLoading;
+  const navigation = filterNavItems(PRIMARY_NAV, { currentUser, userRole });
 
   const handleLogout = async () => {
     disconnectEvm();
@@ -88,15 +85,11 @@ export default function Navbar() {
                     </Link>
                   </div>
                   <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
-                    {navigation
-                      .filter((item) => {
-                        if (item.auth && !currentUser) return false;
-                        if (item.builderOnly && userRole === "backer") return false;
-                        return true;
-                      })
-                      .map((item) => (
+                    {navigation.map((item) => {
+                      const Icon = NAV_ICONS[item.id];
+                      return (
                         <Link
-                          key={item.name}
+                          key={item.id}
                           href={item.href}
                           className={classNames(
                             pathname === item.href
@@ -106,17 +99,18 @@ export default function Navbar() {
                           )}
                           aria-current={pathname === item.href ? "page" : undefined}
                         >
-                          {item.icon && (
-                            <item.icon
+                          {Icon && (
+                            <Icon
                               className={classNames(
                                 pathname === item.href ? "text-blue-600" : "text-muted group-hover:text-gray-600",
                                 "mr-2 h-4 w-4",
                               )}
                             />
                           )}
-                          {item.name}
+                          {item.label}
                         </Link>
-                      ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -288,15 +282,11 @@ export default function Navbar() {
             >
               <Disclosure.Panel className="sm:hidden bg-surface border-t border-default">
                 <div className="space-y-1 px-2 py-2 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
-                  {navigation
-                    .filter((item) => {
-                      if (item.auth && !currentUser) return false;
-                      if (item.builderOnly && userRole === "backer") return false;
-                      return true;
-                    })
-                    .map((item) => (
+                  {navigation.map((item) => {
+                    const Icon = NAV_ICONS[item.id];
+                    return (
                       <Disclosure.Button
-                        key={item.name}
+                        key={item.id}
                         as={Link}
                         href={item.href}
                         className={classNames(
@@ -307,17 +297,18 @@ export default function Navbar() {
                         )}
                         aria-current={pathname === item.href ? "page" : undefined}
                       >
-                        {item.icon && (
-                          <item.icon
+                        {Icon && (
+                          <Icon
                             className={classNames(
                               pathname === item.href ? "text-blue-600 dark:text-blue-400" : "text-muted",
                               "mr-3 h-4 w-4 sm:h-5 sm:w-5",
                             )}
                           />
                         )}
-                        <span className="flex-1">{item.name}</span>
+                        <span className="flex-1">{item.label}</span>
                       </Disclosure.Button>
-                    ))}
+                    );
+                  })}
 
                   {nanopayReady && (
                     <div className="mt-2 pt-2 border-t border-default">

@@ -6,6 +6,7 @@ import { useNanopayment, useWallet } from '@/stores/walletStore';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
 import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { agentsHref } from '@/config/navigation';
 import { SkeletonBlock, SkeletonCard, SkeletonText } from '@/components/common/LoadingStates';
 
 export default function ProfilePage() {
@@ -137,7 +138,7 @@ export default function ProfilePage() {
                     <p className="text-xs text-secondary mt-0.5">Find projects to back</p>
                   </div>
                 </Link>
-                <Link href="/back?tab=economy" className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors">
+                <Link href={agentsHref('analyze')} className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors">
                   <ChartBarIcon className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-primary">AI Analysis</p>

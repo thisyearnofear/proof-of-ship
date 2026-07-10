@@ -8,6 +8,7 @@ import {
   SORT_LABELS,
   BUILDER_SORT_OPTIONS,
   ECOSYSTEM_OPTIONS,
+  ECOSYSTEM_FILTER_OPTIONS,
   ITEMS_PER_PAGE,
 } from './constants';
 
@@ -55,6 +56,13 @@ describe('SORT_LABELS', () => {
 describe('BUILDER_SORT_OPTIONS', () => {
   it('has 6 options', () => {
     expect(BUILDER_SORT_OPTIONS).toHaveLength(6);
+  });
+});
+
+describe('ECOSYSTEM_FILTER_OPTIONS', () => {
+  it('starts with an "all" sentinel', () => {
+    expect(ECOSYSTEM_FILTER_OPTIONS[0]).toEqual({ id: 'all', label: 'All Ecosystems' });
+    expect(ECOSYSTEM_FILTER_OPTIONS.length).toBe(ECOSYSTEM_OPTIONS.length + 1);
   });
 });
 

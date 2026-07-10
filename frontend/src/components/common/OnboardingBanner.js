@@ -12,6 +12,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 import { trackEvent } from "@/lib/analytics";
+import { agentsHref } from "@/config/navigation";
 import {
   MagnifyingGlassIcon,
   SparklesIcon,
@@ -106,7 +107,7 @@ function AuthBanner({ userRole, onDismiss, router }) {
       icon: SparklesIcon,
       title: "2. Try AI Agents",
       desc: "Get instant project analysis for fractions of a cent",
-      action: () => router.push("/back?tab=economy"),
+      action: () => router.push(agentsHref("analyze")),
       cta: "Try Agents \u2192",
     },
     {
@@ -130,7 +131,7 @@ function AuthBanner({ userRole, onDismiss, router }) {
       icon: SparklesIcon,
       title: "2. Analyze with AI",
       desc: "Use AI agents to evaluate project health and risk",
-      action: () => router.push("/back?tab=economy"),
+      action: () => router.push(agentsHref("analyze")),
       cta: "Analyze \u2192",
     },
     {

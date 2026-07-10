@@ -46,4 +46,10 @@ export const ECOSYSTEM_OPTIONS = Object.entries(ECOSYSTEM_CONFIGS).map(([id, cfg
   label: `${cfg.icon} ${cfg.shortName}`,
 }));
 
+/** Ecosystem filter dropdowns — includes "all" sentinel */
+export const ECOSYSTEM_FILTER_OPTIONS = [
+  { id: "all", label: "All Ecosystems" },
+  ...ECOSYSTEM_OPTIONS,
+];
+
 export const ITEMS_PER_PAGE = 12;

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNanopayment } from "@/stores/walletStore";
+import { agentsHref } from "@/config/navigation";
 import { ChatBubbleLeftRightIcon, XMarkIcon, PaperAirplaneIcon, SparklesIcon, CreditCardIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline";
 
 const QUICK_ACTIONS = [
@@ -386,7 +387,7 @@ export default function AIChatWidget() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => {
-                      window.location.href = '/back?tab=economy';
+                      window.location.href = agentsHref("analyze");
                     }}
                     className="flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >

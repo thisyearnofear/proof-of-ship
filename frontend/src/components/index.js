@@ -4,7 +4,6 @@
  */
 
 // Dashboard Components
-export { default as HybridDashboard } from './dashboard/HybridDashboard';
 export { default as EcosystemSection } from './dashboard/EcosystemSection';
 
 // Project Components

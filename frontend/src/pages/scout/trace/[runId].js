@@ -16,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { agentsHref } from "@/config/navigation";
 import { db } from "@/lib/firebase/clientApp";
 import { doc, getDoc } from "firebase/firestore";
 import { Card } from "@/components/common/Card";
@@ -103,7 +104,7 @@ export default function ScoutTracePage() {
       <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-400 dark:text-slate-500 mb-4">{error || "Run not found"}</p>
-          <Link href="/scout">
+          <Link href={agentsHref("scout")}>
             <Button variant="outline" className="text-xs">
               <ArrowLeftIcon className="w-3.5 h-3.5 mr-1" />
               Back to Scout Portfolio
@@ -138,7 +139,7 @@ export default function ScoutTracePage() {
         <div className="bg-gradient-to-b from-indigo-900/20 to-slate-950 border-b border-slate-800">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="flex items-center justify-between mb-4">
-              <Link href="/scout">
+              <Link href={agentsHref("scout")}>
                 <Button variant="outline" className="text-xs">
                   <ArrowLeftIcon className="w-3.5 h-3.5 mr-1" />
                   Back to Portfolio

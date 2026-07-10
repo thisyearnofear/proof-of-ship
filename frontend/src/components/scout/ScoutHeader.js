@@ -13,10 +13,11 @@ import {
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 
-export default function ScoutHeader({ subscribed, onShare, onCopy }) {
+export default function ScoutHeader({ subscribed, onShare, onCopy, embedded = false }) {
+  const TitleTag = embedded ? "h2" : "h1";
   return (
     <div className="bg-gradient-to-b from-indigo-900/20 to-slate-950 border-b border-slate-800">
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className={`max-w-5xl mx-auto px-4 ${embedded ? "py-8" : "py-12"}`}>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -26,7 +27,7 @@ export default function ScoutHeader({ subscribed, onShare, onCopy }) {
               </div>
               <span className="text-xs font-black uppercase tracking-widest text-cyan-400 dark:text-cyan-500">Autonomous Agent</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Proof Scout</h1>
+            <TitleTag className={`${embedded ? "text-2xl" : "text-3xl"} font-bold text-white mb-2`}>Proof Scout</TitleTag>
             <p className="text-slate-400 dark:text-slate-500 max-w-xl">
               An AI agent that continuously evaluates builder projects, generates reasoning traces, and executes backings on Arc with USDC. Every decision is transparent and on-chain.
             </p>

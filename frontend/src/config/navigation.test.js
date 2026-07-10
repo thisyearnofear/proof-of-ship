@@ -3,6 +3,7 @@ import {
   PRIMARY_NAV,
   filterNavItems,
   agentsHref,
+  exploreHref,
   normalizeBackTab,
   AGENTS_TAB,
 } from "@/config/navigation";
@@ -54,6 +55,14 @@ describe("agentsHref", () => {
   it("includes mode for non-analyze tabs", () => {
     expect(agentsHref("scout")).toBe(`/back?tab=${AGENTS_TAB}&mode=scout`);
     expect(agentsHref("compare")).toBe(`/back?tab=${AGENTS_TAB}&mode=compare`);
+  });
+});
+
+describe("exploreHref", () => {
+  it("builds explore URLs with optional ecosystem filter", () => {
+    expect(exploreHref()).toBe("/explore");
+    expect(exploreHref("all")).toBe("/explore");
+    expect(exploreHref("base")).toBe("/explore?ecosystem=base");
   });
 });
 

@@ -1,0 +1,52 @@
+import { describe, it, expect } from "vitest";
+import {
+  filterBackerProjects,
+  sortBackerProjects,
+  prioritizeScoutProjects,
+} from "@/utils/projectUtils";
+
+const sampleProjects = [
+  { id: "a", name: "Alpha", ecosystem: "base", health: 80, confidence: 70, activeMultiplier: 2, createdAt: "2024-01-01" },
+  { id: "b", name: "Beta Solana", ecosystem: "solana", health: 90, confidence: 60, activeMultiplier: 1.5, createdAt: "2024-06-01" },
+  { id: "c", name: "Gamma", ecosystem: "base", health: 50, confidence: 90, activeMultiplier: 3, createdAt: "2023-01-01" },
+];
+
+describe("filterBackerProjects", () => {
+  it("filters by search, ecosystem, and multiplier", () => {
+    const result = filterBackerProjects(sampleProjects, {
+      search: "solana",
+      ecosystem: "all",
+      minMultiplier: "all",
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("b");
+  });
+
+  it("filters by minimum multiplier", () => {
+    const result = filterBackerProjects(sampleProjects, { minMultiplier: "3.0" });
+    expect(result.map((p) => p.id)).toEqual(["c"]);
+  });
+});
+
+describe("sortBackerProjects", () => {
+  it("sorts by health descending by default", () => {
+    const sorted = sortBackerProjects(sampleProjects, "health");
+    expect(sorted.map((p) => p.id)).toEqual(["b", "a", "c"]);
+  });
+
+  it("sorts by confidence", () => {
+    const sorted = sortBackerProjects(sampleProjects, "confidence");
+    expect(sorted[0].id).toBe("c");
+  });
+});
+
+describe("prioritizeScoutProjects", () => {
+  it("puts scout matches first", () => {
+    const ordered = prioritizeScoutProjects(sampleProjects, [{ id: "c" }, { slug: "a" }]);
+    expect(ordered.map((p) => p.id)).toEqual(["a", "c", "b"]);
+  });
+
+  it("returns input unchanged when scout list is empty", () => {
+    expect(prioritizeScoutProjects(sampleProjects, [])).toEqual(sampleProjects);
+  });
+});

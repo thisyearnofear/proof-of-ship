@@ -39,6 +39,15 @@ export function agentsHref(mode) {
 }
 
 /**
+ * @param {string} [ecosystem]
+ * @returns {string}
+ */
+export function exploreHref(ecosystem) {
+  if (!ecosystem || ecosystem === "all") return "/explore";
+  return `/explore?ecosystem=${encodeURIComponent(ecosystem)}`;
+}
+
+/**
  * Normalize legacy `tab=economy` query values.
  * @param {string | string[] | undefined} tab
  * @returns {string | undefined}

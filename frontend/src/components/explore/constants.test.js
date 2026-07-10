@@ -10,6 +10,7 @@ import {
   ECOSYSTEM_OPTIONS,
   ECOSYSTEM_FILTER_OPTIONS,
   ITEMS_PER_PAGE,
+  BACKER_SORT_OPTIONS,
 } from './constants';
 
 describe('CATEGORY_OPTIONS', () => {
@@ -78,5 +79,12 @@ describe('ITEMS_PER_PAGE', () => {
   it('is a positive integer', () => {
     expect(Number.isInteger(ITEMS_PER_PAGE)).toBe(true);
     expect(ITEMS_PER_PAGE).toBeGreaterThan(0);
+  });
+});
+
+describe('BACKER_SORT_OPTIONS', () => {
+  it('includes health as the default sort id', () => {
+    expect(BACKER_SORT_OPTIONS[0].id).toBe('health');
+    expect(BACKER_SORT_OPTIONS).toHaveLength(4);
   });
 });

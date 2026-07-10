@@ -81,6 +81,94 @@ export const filterProjects = (projects, filters = {}) => {
 };
 
 /**
+ * @param {Date | string | { toDate?: () => Date } | undefined} value
+ * @returns {number}
+ */
+function backerCreatedAt(value) {
+  if (!value) return 0;
+  if (typeof value === "object" && typeof value.toDate === "function") {
+    return value.toDate().getTime();
+  }
+  return new Date(value).getTime();
+}
+
+/**
+ * Filter backer-facing projects (enhanced metrics from useProjectData).
+ * @param {object[]} projects
+ * @param {{ search?: string, ecosystem?: string, minMultiplier?: string }} filters
+ * @returns {object[]}
+ */
+export const filterBackerProjects = (projects, filters = {}) => {
+  if (!Array.isArray(projects)) return [];
+
+  const search = (filters.search || "").trim().toLowerCase();
+  const ecosystem = filters.ecosystem || "all";
+  const minMultiplier = filters.minMultiplier || "all";
+
+  return projects.filter((project) => {
+    const matchesSearch = !search || [
+      project.name,
+      project.description,
+      project.category,
+      project.ecosystem,
+    ].some((field) => field && String(field).toLowerCase().includes(search));
+
+    const matchesMultiplier = minMultiplier === "all"
+      || (project.activeMultiplier || 0) >= parseFloat(minMultiplier);
+
+    const matchesEcosystem = ecosystem === "all" || project.ecosystem === ecosystem;
+
+    return matchesSearch && matchesMultiplier && matchesEcosystem;
+  });
+};
+
+/**
+ * Sort backer-facing projects by derived metrics.
+ * @param {object[]} projects
+ * @param {string} sortBy
+ * @returns {object[]}
+ */
+export const sortBackerProjects = (projects, sortBy = "health") => {
+  if (!Array.isArray(projects)) return [];
+
+  const sorted = [...projects];
+  sorted.sort((a, b) => {
+    switch (sortBy) {
+      case "confidence":
+        return (b.confidence || 0) - (a.confidence || 0);
+      case "multiplier":
+        return (b.activeMultiplier || 0) - (a.activeMultiplier || 0);
+      case "newest":
+        return backerCreatedAt(b.createdAt) - backerCreatedAt(a.createdAt);
+      case "health":
+      default:
+        return (b.health || 0) - (a.health || 0);
+    }
+  });
+  return sorted;
+};
+
+/**
+ * Put scout-recommended projects first while preserving relative order.
+ * @param {object[]} projects
+ * @param {object[] | undefined} scoutProjects
+ * @returns {object[]}
+ */
+export const prioritizeScoutProjects = (projects, scoutProjects) => {
+  if (!Array.isArray(projects) || !Array.isArray(scoutProjects) || scoutProjects.length === 0) {
+    return projects;
+  }
+
+  const scoutIds = new Set(
+    scoutProjects.flatMap((p) => [p.id, p.slug].filter(Boolean)),
+  );
+
+  const recommended = projects.filter((p) => scoutIds.has(p.id) || scoutIds.has(p.slug));
+  const rest = projects.filter((p) => !scoutIds.has(p.id) && !scoutIds.has(p.slug));
+  return [...recommended, ...rest];
+};
+
+/**
  * Sort projects based on different criteria
  */
 export const sortProjects = (projects, sortBy = 'name', order = 'asc') => {

@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 import { normalizeBackTab } from "@/config/navigation";
 import TabBar from "@/components/common/TabBar";
+import PageHeader from "@/components/common/PageHeader";
 import Modal from "@/components/common/Modal";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import DiscoverTab from "@/components/back/DiscoverTab";
@@ -86,12 +87,11 @@ export default function BackPage() {
             <PrivacyOnboarding onDismiss={dismissPrivacy} />
           </Modal>
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Back Builders</h1>
-              <PrivacyBadge />
-            </div>
-          </div>
+          <PageHeader
+            title="Back Builders"
+            subtitle="Discover projects to back, track your positions, and run AI agents."
+            actions={<PrivacyBadge />}
+          />
 
           <TabBar
             tabs={tabs}

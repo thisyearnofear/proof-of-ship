@@ -151,3 +151,9 @@ export const CAPITAL_STACK_SUBHEADING =
   "Three capital instruments, one progression. Start where you are, level up as you ship.";
 export const CAPITAL_STACK_FOOTNOTE =
   "The rails are composable — use one or all three. The agent layer recommends which fits your stage.";
+
+/** Landing page anchor for deep links from Agents tab and elsewhere. */
+export const CAPITAL_STACK_ANCHOR_ID = "capital-stack";
+export const CAPITAL_STACK_HREF = `/#${CAPITAL_STACK_ANCHOR_ID}`;
+export const AGENTS_CAPITAL_HINT =
+  "Agents recommend which rail fits your stage.";

@@ -14,6 +14,7 @@ import {
   CAPITAL_STACK_HEADING,
   CAPITAL_STACK_SUBHEADING,
   CAPITAL_STACK_FOOTNOTE,
+  CAPITAL_STACK_ANCHOR_ID,
 } from "@/config/capitalStack";
 
 const Arrow = () => (
@@ -76,6 +77,7 @@ export default function CapitalStack({ variant = "default", showHeader = true, c
 
   return (
     <div
+      id={compact ? undefined : CAPITAL_STACK_ANCHOR_ID}
       className={`${
         compact ? "py-6 bg-transparent" : "py-12 sm:py-16 bg-surface border-t border-default"
       } ${className}`}

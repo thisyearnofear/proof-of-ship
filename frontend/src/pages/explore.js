@@ -10,7 +10,7 @@ import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import TabBar from "@/components/common/TabBar";
-import Breadcrumbs from "@/components/common/Breadcrumbs";
+import PageHeader from "@/components/common/PageHeader";
 import LiveAgentTicker from "@/components/common/LiveAgentTicker";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -50,7 +50,11 @@ export default function ExplorePage() {
       <div className="min-h-screen bg-surface-secondary">
         <LiveAgentTicker />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Breadcrumbs items={[{ label: "Explore" }]} />
+          <PageHeader
+            title="Explore"
+            subtitle="Browse projects, builders, and hackathon winners across ecosystems."
+            breadcrumbs={[{ label: "Explore" }]}
+          />
           <TabBar tabs={TABS} activeTab={tab} onChange={setTab} variant="pill" className="mb-6" />
           {tab === "projects" ? <ProjectsTab /> : tab === "builders" ? <BuildersTab /> : <HackathonsTab />}
         </div>

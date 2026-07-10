@@ -4,11 +4,13 @@
  */
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Card } from "@/components/common/Card";
 import TabBar from "@/components/common/TabBar";
 import { AGENTS, AGENTS_INTRO } from "@/config/agents";
 import { AGENT_MODES } from "@/config/navigation";
+import { AGENTS_CAPITAL_HINT, CAPITAL_STACK_HREF } from "@/config/capitalStack";
 import AgentsSetupPanel from "./AgentsSetupPanel";
 
 const AnalyzePanel = dynamic(() => import("./AnalyzePanel"), { ssr: false, loading: () => null });
@@ -50,6 +52,13 @@ export default function AgentsTab() {
           <div className="max-w-3xl">
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Agents</h2>
             <p className="text-sm text-gray-600 dark:text-gray-300">{AGENTS_INTRO}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              {AGENTS_CAPITAL_HINT}{" "}
+              <Link href={CAPITAL_STACK_HREF} className="text-teal-600 dark:text-teal-400 underline">
+                See the capital stack
+              </Link>
+              .
+            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:min-w-[420px]">
             {AGENTS.map((agent) => (

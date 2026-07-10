@@ -11,6 +11,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { TrophyIcon } from "@heroicons/react/24/outline";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
+import PageHeader from "@/components/common/PageHeader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useLeaderboardOG } from "@/hooks/useLeaderboardOG";
 import {
@@ -114,17 +115,15 @@ export default function LeaderboardPage() {
 
       <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <TrophyIcon className="w-8 h-8 text-yellow-500 dark:text-yellow-400" />
-              <h1 className="text-3xl font-bold text-text-primary">Payout Leaderboard</h1>
-            </div>
-            <p className="text-text-secondary">
-              Real payout speeds from real hackathons. Ranked by how fast winners actually get paid.
-            </p>
-          </div>
+          <PageHeader
+            className="mb-8"
+            title="Payout Leaderboard"
+            subtitle="Real payout speeds from real hackathons. Ranked by how fast winners actually get paid."
+            detail={TAB_EXPLAINERS[tab]}
+            icon={<TrophyIcon className="w-8 h-8 text-yellow-500 dark:text-yellow-400" />}
+          />
 
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-6">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = tab === t.id;
@@ -144,10 +143,6 @@ export default function LeaderboardPage() {
               );
             })}
           </div>
-
-          <p className="text-sm text-text-tertiary mb-6 ml-1">
-            {TAB_EXPLAINERS[tab]}
-          </p>
 
           {loading ? (
             <div className="flex justify-center py-20">

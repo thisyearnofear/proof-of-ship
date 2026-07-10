@@ -22,6 +22,7 @@ import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import TabBar from "@/components/common/TabBar";
+import PageHeader from "@/components/common/PageHeader";
 import Card from "@/components/common/Card";
 import CapitalStack from "@/components/sections/CapitalStack";
 import {
@@ -92,49 +93,51 @@ export default function BuildPage() {
       <>
         <Head><title>Build | Builder Credit</title></Head>
         <div className="py-12 max-w-xl mx-auto px-4 text-center space-y-8">
-          <div>
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex p-1 bg-gray-100 rounded-lg">
-                <button
-                  onClick={() => setActiveChainFamily('evm')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                    activeChainFamily === 'evm' 
-                      ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-sm' 
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  EVM (Metamask)
-                </button>
-                <button
-                  onClick={() => setActiveChainFamily('solana')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                    activeChainFamily === 'solana' 
-                      ? 'bg-surface text-purple-600 dark:text-purple-400 shadow-sm' 
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  Solana
-                </button>
-              </div>
-            </div>
-
-            {isPayoutReferral ? (
-              <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-teal-500 shadow-lg shadow-indigo-200/50">
-                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            ) : (
-              <ShieldCheckIcon className={`w-16 h-16 mx-auto ${activeChainFamily === 'solana' ? 'text-purple-500 dark:text-purple-400' : 'text-blue-500 dark:text-blue-400'}`} />
-            )}
-            <h1 className="mt-4 text-2xl font-bold text-primary">
-              {isPayoutReferral ? "Get Paid Today, Not in 67 Days" : "Builder Hub"}
-            </h1>
-            <p className="mt-2 text-secondary">
-              {isPayoutReferral
+          <PageHeader
+            align="center"
+            title={isPayoutReferral ? "Get Paid Today, Not in 67 Days" : "Builder Hub"}
+            subtitle={
+              isPayoutReferral
                 ? "Proof of Ship advances you USDC against your hackathon prize — so you can keep building while the organizers take their time. No interest, no collateral."
-                : `Connect your ${activeChainFamily === 'solana' ? 'Solana' : 'EVM'} wallet to view your credit score, request funding, and manage projects.`}
-            </p>
+                : `Connect your ${activeChainFamily === "solana" ? "Solana" : "EVM"} wallet to view your credit score, request funding, and manage projects.`
+            }
+            icon={
+              isPayoutReferral ? (
+                <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-teal-500 shadow-lg shadow-indigo-200/50">
+                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              ) : (
+                <ShieldCheckIcon className={`w-16 h-16 ${activeChainFamily === "solana" ? "text-purple-500 dark:text-purple-400" : "text-blue-500 dark:text-blue-400"}`} />
+              )
+            }
+          />
+          <div className="flex justify-center">
+            <div className="inline-flex p-1 bg-gray-100 rounded-lg">
+              <button
+                onClick={() => setActiveChainFamily("evm")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  activeChainFamily === "evm"
+                    ? "bg-surface text-blue-600 dark:text-blue-400 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                EVM (Metamask)
+              </button>
+              <button
+                onClick={() => setActiveChainFamily("solana")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  activeChainFamily === "solana"
+                    ? "bg-surface text-purple-600 dark:text-purple-400 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                Solana
+              </button>
+            </div>
+          </div>
+          <div>
             {isPayoutReferral ? (
               <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link href="/login?mode=signup">
@@ -184,6 +187,10 @@ export default function BuildPage() {
     <>
       <Head><title>Build | Builder Credit</title></Head>
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <PageHeader
+          title="Builder Hub"
+          subtitle="Credit, projects, funding, and cross-chain tools for verified builders."
+        />
         {/* Rail progression indicator */}
         <div className="mb-6">
           <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">

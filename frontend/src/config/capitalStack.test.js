@@ -6,6 +6,8 @@ import {
   isRailAvailable,
   isRailIntegrated,
   RAIL_STATUS_LABELS,
+  CAPITAL_STACK_ANCHOR_ID,
+  CAPITAL_STACK_HREF,
 } from "@/config/capitalStack";
 
 describe("CAPITAL_RAILS", () => {
@@ -43,5 +45,12 @@ describe("isRailIntegrated", () => {
   it("treats beta as available", () => {
     expect(isRailAvailable("beta")).toBe(true);
     expect(isRailAvailable("coming_soon")).toBe(false);
+  });
+});
+
+describe("capital stack deep links", () => {
+  it("exposes a landing anchor href", () => {
+    expect(CAPITAL_STACK_ANCHOR_ID).toBe("capital-stack");
+    expect(CAPITAL_STACK_HREF).toBe("/#capital-stack");
   });
 });

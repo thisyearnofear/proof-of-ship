@@ -30,12 +30,15 @@ export const AGENT_MODES = ["analyze", "scout", "compare", "setup"];
 
 /**
  * @param {string} [mode]
+ * @param {string} [projectId]
  * @returns {string}
  */
-export function agentsHref(mode) {
+export function agentsHref(mode, projectId) {
+  const query = new URLSearchParams({ tab: AGENTS_TAB });
   const resolved = mode && mode !== "analyze" ? mode : null;
-  if (!resolved) return `/back?tab=${AGENTS_TAB}`;
-  return `/back?tab=${AGENTS_TAB}&mode=${resolved}`;
+  if (resolved) query.set("mode", resolved);
+  if (projectId) query.set("project", projectId);
+  return `/back?${query.toString()}`;
 }
 
 /**

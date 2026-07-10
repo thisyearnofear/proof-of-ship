@@ -39,6 +39,7 @@ export default function AgentsTab() {
   const setMode = (nextMode) => {
     const query = { tab: "agents" };
     if (nextMode !== "analyze") query.mode = nextMode;
+    if (router.query.project) query.project = router.query.project;
     router.replace({ pathname: "/back", query }, undefined, { shallow: true });
   };
 

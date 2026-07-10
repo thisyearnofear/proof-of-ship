@@ -13,7 +13,6 @@ import "@/styles/themes.css";
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
 
-const AIAnalysisModal = dynamic(() => import("@/components/common/AIAnalysisModal"), { ssr: false });
 const OnboardingBanner = dynamic(() => import("@/components/common/OnboardingBanner"), { ssr: false });
 const AIChatWidget = dynamic(() => import("@/components/common/AIChatWidget"), { ssr: false });
 
@@ -105,7 +104,6 @@ export default function App({ Component, pageProps }) {
           </main>
         )}
         <Footer />
-        <AIAnalysisModal />
         <AIChatWidget />
       </div>
       </OnboardingCoordinator>

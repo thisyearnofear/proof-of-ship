@@ -2,6 +2,8 @@
  * AnalyzePanel — project analysis flow (formerly /analyze page body).
  */
 
+import React, { useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 import useAnalyzeProjects from "@/hooks/useAnalyzeProjects";
 import useUserCreditScore from "@/hooks/useUserCreditScore";
@@ -18,11 +20,26 @@ import {
 } from "@/components/analyze";
 
 export default function AnalyzePanel() {
+  const router = useRouter();
   const { currentUser } = useUser();
-  const { filtered, loading, searchQuery, setSearchQuery } = useAnalyzeProjects();
+  const { projects, filtered, loading, searchQuery, setSearchQuery } = useAnalyzeProjects();
   const userScore = useUserCreditScore(currentUser);
   const analyze = useAnalyzeProject();
   const explainCredit = useExplainCredit(userScore);
+  const autoRunRef = useRef(null);
+
+  useEffect(() => {
+    if (!router.isReady || loading) return;
+    const rawId = Array.isArray(router.query.project)
+      ? router.query.project[0]
+      : router.query.project;
+    if (!rawId || autoRunRef.current === rawId) return;
+    const match = projects.find((p) => p.id === rawId);
+    if (match) {
+      autoRunRef.current = rawId;
+      analyze.run(match);
+    }
+  }, [router.isReady, router.query.project, projects, loading, analyze.run]);
 
   return (
     <div className="space-y-6">

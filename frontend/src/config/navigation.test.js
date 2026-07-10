@@ -56,6 +56,13 @@ describe("agentsHref", () => {
     expect(agentsHref("scout")).toBe(`/back?tab=${AGENTS_TAB}&mode=scout`);
     expect(agentsHref("compare")).toBe(`/back?tab=${AGENTS_TAB}&mode=compare`);
   });
+
+  it("includes project id for deep links", () => {
+    expect(agentsHref("analyze", "proj-1")).toBe(`/back?tab=${AGENTS_TAB}&project=proj-1`);
+    expect(agentsHref("scout", "proj-2")).toBe(
+      `/back?tab=${AGENTS_TAB}&mode=scout&project=proj-2`,
+    );
+  });
 });
 
 describe("exploreHref", () => {

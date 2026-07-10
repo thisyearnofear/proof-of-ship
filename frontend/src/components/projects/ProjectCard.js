@@ -4,6 +4,8 @@
  */
 
 import React, { useMemo } from 'react';
+import { useRouter } from 'next/router';
+import { agentsHref } from '@/config/navigation';
 import { Card } from '../common/Card';
 import Button from '../common/Button';
 import VelocityBadge from '../common/VelocityBadge';
@@ -114,6 +116,7 @@ export const ProjectPreviewCard = ({ project, onClick }) => {
  * Project Detail Card - Full information display
  */
 export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) => {
+  const router = useRouter();
   const ecosystemConfig = getEcosystemConfig(project.ecosystem);
   const githubUrl = getGitHubUrl(project);
   const tier = getEvolutionTier(project.stats?.healthScore || 0);
@@ -295,7 +298,7 @@ SCOUT&apos;S CHOICE
               className="text-xs"
               onClick={(e) => {
                 e.stopPropagation();
-                window.dispatchEvent(new CustomEvent('requestAIAnalysis', { detail: { project } }));
+                router.push(agentsHref("analyze", project.id));
               }}
             >
               Analyze · $0.05

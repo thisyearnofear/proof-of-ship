@@ -1,9 +1,8 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 
 import LiveAgentTicker from "@/components/common/LiveAgentTicker";
-import UnifiedOnboarding from "@/components/onboarding/UnifiedOnboarding";
 import Hero from "@/components/sections/Hero";
 import CapitalStack from "@/components/sections/CapitalStack";
 import EcosystemsGrid from "@/components/sections/EcosystemsGrid";
@@ -31,22 +30,8 @@ LandingPage.fullWidth = true;
 
 export default function LandingPage() {
   const router = useRouter();
-  const { currentUser, onboardingComplete } = useUser();
+  const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState("developers");
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-
-  useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem("hasSeenUnifiedOnboarding");
-    if (!hasSeenOnboarding && !onboardingComplete) {
-      const timer = setTimeout(() => setIsOnboardingOpen(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [onboardingComplete]);
-
-  const handleCloseOnboarding = () => {
-    setIsOnboardingOpen(false);
-    localStorage.setItem("hasSeenUnifiedOnboarding", "true");
-  };
 
   const ecosystems = Object.values(ECOSYSTEM_CONFIGS).map((eco) => ({
     id: eco.id,
@@ -60,10 +45,9 @@ export default function LandingPage() {
 
   const handleGetStarted = () => {
     if (currentUser) {
-      if (!onboardingComplete) setIsOnboardingOpen(true);
-      else router.push("/projects/new");
+      router.push("/projects/new");
     } else {
-      setIsOnboardingOpen(true);
+      router.push("/login?mode=signup");
     }
   };
 
@@ -131,8 +115,6 @@ export default function LandingPage() {
 
       <EcosystemsGrid ecosystems={ecosystems} onEcosystemClick={handleEcosystemClick} />
       <CTASection onGetStarted={handleGetStarted} onExplore={handleExploreFleet} />
-
-      <UnifiedOnboarding isOpen={isOnboardingOpen} onClose={handleCloseOnboarding} />
     </div>
   );
 }

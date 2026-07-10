@@ -6,6 +6,9 @@ import { useWallet } from "@/stores/walletStore";
 import { useSignMessage } from "wagmi";
 import Head from "next/head";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
+import SetupChecklist from "@/components/common/SetupChecklist";
+import useLoginSetupProgress from "@/hooks/useLoginSetupProgress";
+import { getPostLoginDestination } from "@/lib/onboarding/loginSteps";
 import { snsService } from "@/services/SnsService";
 
 export default function LoginPage() {
@@ -44,6 +47,14 @@ export default function LoginPage() {
   const alreadyLinked = activeWalletAddress && linkedWallets.some(w => w.address.toLowerCase() === activeWalletAddress.toLowerCase());
   const isFullyAuthed = !!currentUser && anyWalletConnected && linked;
 
+  const { steps: setupSteps, progress: setupProgress } = useLoginSetupProgress({
+    role,
+    currentUser,
+    anyWalletConnected,
+    linked,
+    alreadyLinked,
+  });
+
   useEffect(() => {
     if (!walletFamily) {
       if (solanaConnected && solanaAddress) setWalletFamily('solana');
@@ -72,19 +83,19 @@ export default function LoginPage() {
   // even without a fresh wallet connection.
   useEffect(() => {
     if (isFullyAuthed || (alreadyLinked && currentUser)) {
-      const dest = redirect || (role === 'backer' ? '/back' : '/build');
+      const dest = getPostLoginDestination(role || userRole || "builder", redirect);
       const timer = setTimeout(() => router.push(dest), 1500);
       return () => clearTimeout(timer);
     }
     if (currentUser && linkedWallets.length > 0 && !role) {
-      setRole('builder');
+      setRole("builder");
     }
     if (currentUser && linkedWallets.length > 0 && role) {
-      const dest = redirect || (role === 'backer' ? '/back' : '/build');
+      const dest = getPostLoginDestination(role, redirect);
       const timer = setTimeout(() => router.push(dest), 500);
       return () => clearTimeout(timer);
     }
-  }, [isFullyAuthed, alreadyLinked, currentUser, linkedWallets, redirect, router, role]);
+  }, [isFullyAuthed, alreadyLinked, currentUser, linkedWallets, redirect, router, role, userRole]);
 
   const signWalletMessage = useCallback(async () => {
     if (!anyWalletConnected || !activeWalletAddress) throw new Error('No wallet connected');
@@ -204,6 +215,7 @@ export default function LoginPage() {
           <p className="mt-2 text-center text-sm text-secondary">Choose how you want to participate.</p>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+          <SetupChecklist steps={setupSteps} />
           <div className="grid grid-cols-2 gap-4">
             <button onClick={() => setRole('builder')}
               className="p-6 bg-surface rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all text-left group">
@@ -215,7 +227,7 @@ export default function LoginPage() {
             <button onClick={() => setRole('backer')}
               className="p-6 bg-surface rounded-xl border-2 border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all text-left group">
               <div className="text-2xl mb-2">{'\u{1F4B0}'}</div>
-              <h3 className="text-lg font-bold text-primary group-hover:text-purple-700 dark:text-purple-300">I&apos;m Staking</h3>
+              <h3 className="text-lg font-bold text-primary group-hover:text-purple-700 dark:text-purple-300">I&apos;m Backing</h3>
               <p className="text-sm text-secondary mt-1">Fund builders and track your portfolio.</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">Wallet only — no GitHub needed</p>
             </button>
@@ -236,6 +248,8 @@ export default function LoginPage() {
           <p className="mt-2 text-center text-sm text-secondary">This is your identity on Proof of Ship. You&apos;ll sign a message to prove you own it.</p>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+          <SetupChecklist steps={setupSteps} />
+          <p className="text-center text-xs text-secondary mb-4">Step {setupProgress.label}</p>
           <div className="bg-surface py-8 px-4 shadow-xl border border-gray-100 sm:rounded-xl sm:px-10">
             {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 dark:text-red-300">{error}</div>}
             <div className="space-y-6">
@@ -302,6 +316,8 @@ export default function LoginPage() {
         <p className="mt-2 text-center text-sm text-secondary">Two quick steps to verify your identity and start shipping.</p>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+        <SetupChecklist steps={setupSteps} />
+        <p className="text-center text-xs text-secondary mb-4">Step {setupProgress.label}</p>
         <div className="bg-surface py-8 px-4 shadow-xl border border-gray-100 sm:rounded-xl sm:px-10">
           {error && <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 dark:text-red-300">{error}</div>}
           <div className="space-y-6">

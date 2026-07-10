@@ -14,23 +14,24 @@ import DiscoverTab from "@/components/back/DiscoverTab";
 import PortfolioTab from "@/components/back/PortfolioTab";
 import AgentsTab from "@/components/back/AgentsTab";
 import { PrivacyOnboarding, PrivacyBadge } from "@/components/common/PrivacyShield";
-
-const PRIVACY_STORAGE_KEY = "pos_privacy_onboarding_dismissed";
+import { isPrivacyDismissed, markPrivacyDismissed, isBannerDismissed } from "@/lib/onboarding/storage";
+import { useOnboardingCoordinator } from "@/components/onboarding/OnboardingCoordinator";
 
 export default function BackPage() {
   const router = useRouter();
-  const { userRole } = useUser();
+  const { userRole, onboardingComplete } = useUser();
+  const { surfacesBlocked } = useOnboardingCoordinator();
   const [tab, setTabState] = useState("discover");
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const dismissed = localStorage.getItem(PRIVACY_STORAGE_KEY);
-      if (!dismissed && userRole === "backer") {
-        setShowPrivacy(true);
-      }
-    }
-  }, [userRole]);
+    if (typeof window === "undefined") return;
+    if (surfacesBlocked) return;
+    if (userRole !== "backer") return;
+    if (isPrivacyDismissed()) return;
+    if (onboardingComplete && !isBannerDismissed()) return;
+    setShowPrivacy(true);
+  }, [userRole, surfacesBlocked, onboardingComplete]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -60,7 +61,7 @@ export default function BackPage() {
 
   const dismissPrivacy = () => {
     setShowPrivacy(false);
-    localStorage.setItem(PRIVACY_STORAGE_KEY, "1");
+    markPrivacyDismissed();
   };
 
   const tabs = [

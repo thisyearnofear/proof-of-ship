@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import localFont from "next/font/local";
 import dynamic from "next/dynamic";
 import AppProviders from "@/providers/AppProviders";
+import OnboardingCoordinator from "@/components/onboarding/OnboardingCoordinator";
 import { Navbar, Footer } from "@/components/common/layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "@/styles/globals.css";
@@ -85,7 +86,8 @@ export default function App({ Component, pageProps }) {
 
   return (
     <AppProviders>
-      <RouteLoadingBar />
+      <OnboardingCoordinator>
+        <RouteLoadingBar />
       <div
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen font-[family-name:var(--font-geist-sans)] flex flex-col bg-background text-primary transition-colors`}
       >
@@ -106,6 +108,7 @@ export default function App({ Component, pageProps }) {
         <AIAnalysisModal />
         <AIChatWidget />
       </div>
+      </OnboardingCoordinator>
     </AppProviders>
   );
 }

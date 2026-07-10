@@ -11,6 +11,7 @@ import {
   ChevronLeftIcon
 } from '@heroicons/react/24/outline';
 import Button from '../common/Button';
+import { markTourDismissed } from "@/lib/onboarding/storage";
 
 const TOUR_STEPS = [
   {
@@ -53,7 +54,7 @@ export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
       setCurrentTourStep(currentTourStep + 1);
     } else {
       // Last step — route unauthenticated users to signup, otherwise explore
-      localStorage.setItem('hasSeenUnifiedOnboarding', 'true');
+      markTourDismissed();
       onClose?.();
       if (!currentUser) {
         router.push('/login?mode=signup');
@@ -68,7 +69,7 @@ export default function UnifiedOnboarding({ isOpen, onClose, onComplete }) {
   };
 
   const handleSkipTour = () => {
-    localStorage.setItem('hasSeenUnifiedOnboarding', 'true');
+    markTourDismissed();
     onClose?.();
   };
 

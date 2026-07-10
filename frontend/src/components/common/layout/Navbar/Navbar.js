@@ -13,6 +13,7 @@ import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 import { useNanopayment, useWallet } from "@/stores/walletStore";
 import { PRIMARY_NAV, filterNavItems } from "@/config/navigation";
+import useLoginSetupProgress from "@/hooks/useLoginSetupProgress";
 import { Fragment, useState, useEffect } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
@@ -55,6 +56,12 @@ export default function Navbar() {
 
   const authReady = mounted && !authLoading;
   const navigation = filterNavItems(PRIMARY_NAV, { currentUser, userRole });
+  const { navbarLabel } = useLoginSetupProgress({
+    currentUser,
+    hasAnyWallet,
+    linkedWallets,
+  });
+  const setupCtaLabel = navbarLabel || "Complete setup";
 
   const handleLogout = async () => {
     disconnectEvm();
@@ -186,7 +193,7 @@ export default function Navbar() {
                         href="/login"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all min-h-touch flex items-center justify-center shadow-sm"
                       >
-                        Complete setup
+                        {setupCtaLabel}
                       </Link>
                     </div>
                   ) : (
@@ -253,7 +260,7 @@ export default function Navbar() {
                       href="/login"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2.5 py-1.5 rounded-md text-xs font-semibold min-h-touch flex items-center justify-center"
                     >
-                      Complete setup
+                      {setupCtaLabel}
                     </Link>
                   ) : (
                     <Link
@@ -333,7 +340,7 @@ export default function Navbar() {
                         href="/login"
                         className="block bg-surface-tertiary text-primary px-3 py-2.5 rounded-md text-sm font-medium text-center min-h-touch"
                       >
-                        {hasAnyWallet ? "Complete setup" : "Sign in"}
+                        {hasAnyWallet ? setupCtaLabel : "Sign in"}
                       </Link>
                     </div>
                   )}

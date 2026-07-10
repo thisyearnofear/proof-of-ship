@@ -13,6 +13,8 @@ import { useRouter } from "next/router";
 import { useUser } from "@/stores/authStore";
 import { trackEvent } from "@/lib/analytics";
 import { agentsHref } from "@/config/navigation";
+import { isBannerDismissed, markBannerDismissed } from "@/lib/onboarding/storage";
+import { useOnboardingCoordinator } from "@/components/onboarding/OnboardingCoordinator";
 import {
   MagnifyingGlassIcon,
   SparklesIcon,
@@ -21,11 +23,11 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-const AUTH_STORAGE_KEY = "pos_onboarding_dismissed";
 
 export default function OnboardingBanner() {
   const router = useRouter();
   const { currentUser, userRole, onboardingComplete, loading } = useUser();
+  const { surfacesBlocked } = useOnboardingCoordinator();
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -44,15 +46,15 @@ export default function OnboardingBanner() {
   useEffect(() => {
     if (!resolved) return;
 
-    if (currentUser && onboardingComplete) {
-      const dismissed = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (currentUser && onboardingComplete && !surfacesBlocked) {
+      const dismissed = isBannerDismissed();
       if (!dismissed) {
         setVisible(true);
       }
     } else {
       setVisible(false);
     }
-  }, [resolved, currentUser, onboardingComplete, router.pathname]);
+  }, [resolved, currentUser, onboardingComplete, router.pathname, surfacesBlocked]);
 
   useEffect(() => {
     if (visible) {
@@ -82,7 +84,7 @@ export default function OnboardingBanner() {
         userRole={userRole}
         onDismiss={() => {
           setVisible(false);
-          localStorage.setItem(AUTH_STORAGE_KEY, "1");
+          markBannerDismissed();
           trackEvent("onboarding_banner_dismissed", { mode: "auth", role: userRole });
         }}
         router={router}

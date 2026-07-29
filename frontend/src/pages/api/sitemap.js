@@ -3,7 +3,7 @@
  * Project and hackathon detail pages are added as they're crawled.
  */
 
-const BASE_URL = "https://proofofship.web.app";
+const BASE_URL = "https://proof-of-ship.vercel.app";
 
 const STATIC_ROUTES = [
   { path: "/", priority: "1.0", changefreq: "daily" },

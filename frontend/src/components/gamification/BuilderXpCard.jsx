@@ -28,7 +28,7 @@ export default function BuilderXpCard({ xp, username }) {
   const embedUrl = typeof window !== "undefined" && username
     ? `${window.location.origin}/api/badge?builder=${encodeURIComponent(username)}&type=proof`
     : "";
-  const embedMarkdown = `[![Proof of Ship](${embedUrl})](https://proofofship.web.app/u/${username || ""})`;
+  const embedMarkdown = `[![Proof of Ship](${embedUrl})](https://proof-of-ship.vercel.app/u/${username || ""})`;
 
   const handleCopyEmbed = () => {
     navigator.clipboard.writeText(embedMarkdown).then(() => {

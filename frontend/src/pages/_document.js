@@ -27,7 +27,7 @@ export default function Document() {
               "@type": "WebApplication",
               name: "Proof of Ship",
               description: "On-chain builder credit backed by reputation. AI agents analyze projects, backers stake USDC, and hackathon payout speed is public data.",
-              url: "https://proofofship.web.app",
+              url: "https://proof-of-ship.vercel.app",
               applicationCategory: "FinanceApplication",
               operatingSystem: "Web",
               offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },

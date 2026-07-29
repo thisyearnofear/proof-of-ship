@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://proofofship.web.app/sitemap.xml
+Sitemap: https://proof-of-ship.vercel.app/sitemap.xml

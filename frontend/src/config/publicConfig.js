@@ -54,7 +54,7 @@ const baseConfig = {
   },
   api: {
     baseUrl: isProduction
-      ? "https://proofofship.web.app/api"
+      ? "https://proof-of-ship.vercel.app/api"
       : "http://localhost:3000/api",
     timeout: 30000,
     retryAttempts: 3,

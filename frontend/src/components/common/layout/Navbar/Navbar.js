@@ -17,6 +17,7 @@ import useLoginSetupProgress from "@/hooks/useLoginSetupProgress";
 import { Fragment, useState, useEffect } from "react";
 import Breadcrumbs from "../../Breadcrumbs";
 import ThemeToggle from "../../ThemeToggle";
+import NotificationBell from "../../NotificationBell";
 import UserIdentityHeader from "./UserIdentityHeader";
 import UserMenuItems from "./UserMenuItems";
 import { classNames } from "@/utils/common";
@@ -136,6 +137,8 @@ export default function Navbar() {
                   )}
 
                   <ThemeToggle />
+
+                  {currentUser && <NotificationBell />}
 
                   {!authReady ? (
                     <div className="flex items-center gap-2">

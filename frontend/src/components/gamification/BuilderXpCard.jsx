@@ -5,8 +5,10 @@
  * the builder profile or dashboard.
  */
 
-import { RocketLaunchIcon, TrophyIcon, ShieldCheckIcon, GlobeAltIcon, StarIcon, UsersIcon, CommandLineIcon, FireIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import { RocketLaunchIcon, TrophyIcon, ShieldCheckIcon, GlobeAltIcon, StarIcon, UsersIcon, CommandLineIcon, FireIcon, CodeBracketIcon, CheckIcon, ShareIcon } from "@heroicons/react/24/outline";
 import { Card } from "@/components/common/Card";
+import { buildReferralUrl } from "@/lib/gamification/referral";
 
 const ICON_MAP = {
   rocket: RocketLaunchIcon,
@@ -18,7 +20,32 @@ const ICON_MAP = {
   anchor: CommandLineIcon,
 };
 
-export default function BuilderXpCard({ xp }) {
+export default function BuilderXpCard({ xp, username }) {
+  const [showEmbed, setShowEmbed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
+
+  const embedUrl = typeof window !== "undefined" && username
+    ? `${window.location.origin}/api/badge?builder=${encodeURIComponent(username)}&type=proof`
+    : "";
+  const embedMarkdown = `[![Proof of Ship](${embedUrl})](https://proofofship.web.app/u/${username || ""})`;
+
+  const handleCopyEmbed = () => {
+    navigator.clipboard.writeText(embedMarkdown).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const referralUrl = username ? buildReferralUrl(username) : null;
+  const handleCopyReferral = () => {
+    if (referralUrl) {
+      navigator.clipboard.writeText(referralUrl).then(() => {
+        setRefCopied(true);
+        setTimeout(() => setRefCopied(false), 2000);
+      });
+    }
+  };
   if (!xp || xp.totalXp === 0) {
     return (
       <Card className="p-6 text-center">
@@ -96,6 +123,60 @@ export default function BuilderXpCard({ xp }) {
             Longest streak
           </span>
           <span className="font-medium">{xp.streak.longest} months</span>
+        </div>
+      )}
+
+      {/* Embed in README */}
+      {username && (
+        <div className="pt-2 border-t border-default">
+          <button
+            onClick={() => setShowEmbed(!showEmbed)}
+            className="flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <CodeBracketIcon className="w-3.5 h-3.5" />
+            {showEmbed ? "Hide embed code" : "Embed in your README"}
+          </button>
+          {showEmbed && (
+            <div className="mt-2 space-y-2">
+              <div className="flex items-center gap-2">
+                <img src={embedUrl} alt="Proof of Ship badge" className="h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-[10px] text-secondary bg-gray-50 dark:bg-gray-800 rounded px-2 py-1.5 truncate font-mono">
+                  {embedMarkdown}
+                </code>
+                <button
+                  onClick={handleCopyEmbed}
+                  className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors flex-shrink-0"
+                  title="Copy markdown"
+                >
+                  {copied ? <CheckIcon className="w-4 h-4 text-green-500" /> : <CodeBracketIcon className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Referral link */}
+      {referralUrl && (
+        <div className="pt-2 border-t border-default">
+          <div className="flex items-center gap-1.5 mb-2">
+            <ShareIcon className="w-3.5 h-3.5 text-purple-500" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-tertiary">Invite builders · +150 XP each</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-[10px] text-secondary bg-gray-50 dark:bg-gray-800 rounded px-2 py-1.5 truncate font-mono">
+              {referralUrl}
+            </code>
+            <button
+              onClick={handleCopyReferral}
+              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors flex-shrink-0"
+              title="Copy referral link"
+            >
+              {refCopied ? <CheckIcon className="w-4 h-4 text-green-500" /> : <ShareIcon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       )}
     </Card>

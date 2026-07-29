@@ -12,6 +12,7 @@ import "@/styles/themes.css";
 
 import useNoSSR from "@/providers/NoSSR/useNoSSR";
 import useKeyboardShortcuts from "@/hooks/useKeyboardShortcuts";
+import useNotificationFeed from "@/hooks/useNotificationFeed";
 
 const OnboardingBanner = dynamic(() => import("@/components/common/OnboardingBanner"), { ssr: false });
 const AIChatWidget = dynamic(() => import("@/components/common/AIChatWidget"), { ssr: false });
@@ -58,6 +59,7 @@ function RouteLoadingBar() {
 export default function App({ Component, pageProps }) {
   useNoSSR(() => {});
   useKeyboardShortcuts();
+  useNotificationFeed();
 
   // Initialize global error handling
   React.useEffect(() => {

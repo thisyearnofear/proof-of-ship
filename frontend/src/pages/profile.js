@@ -258,7 +258,7 @@ export default function ProfilePage() {
             xpLoading ? (
               <SkeletonCard className="h-64" />
             ) : (
-              <BuilderXpCard xp={builderXp} />
+              <BuilderXpCard xp={builderXp} username={githubUsername} />
             )
           )}
           <TransactionFeed maxItems={10} />

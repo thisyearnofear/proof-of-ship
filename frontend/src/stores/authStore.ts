@@ -210,6 +210,23 @@ function attachAuthListener() {
           creditData: data.creditData || null,
           onboardingComplete: data.onboardingComplete || false,
         });
+      } else {
+        // New user — check for stored referral code and attribute
+        try {
+          const { getStoredReferralCode, clearStoredReferralCode, REFERRAL_BONUS_XP } =
+            await import("@/lib/gamification/referral");
+          const refCode = getStoredReferralCode();
+          if (refCode) {
+            await setDoc(doc(db, "referrals", user.uid), {
+              referralCode: refCode,
+              referredUid: user.uid,
+              referredAt: new Date().toISOString(),
+              bonusXp: REFERRAL_BONUS_XP,
+              status: "pending",
+            }, { merge: true });
+            clearStoredReferralCode();
+          }
+        } catch { /* non-fatal */ }
       }
     } else {
       authStore.setState({

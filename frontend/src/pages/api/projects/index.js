@@ -163,6 +163,20 @@ async function handler(req, res) {
       ecosystem: projectData.ecosystem
     });
 
+    // Broadcast the new project to Farcaster (top-of-funnel viral moment).
+    // Non-blocking — failure to cast must not affect project creation.
+    try {
+      const { socialSharingService } = await import("../../../services/SocialSharingService");
+      socialSharingService.shareNewProject({
+        slug,
+        name: projectData.name,
+        description: projectData.description || "",
+        ecosystem: projectData.ecosystem,
+      });
+    } catch (e) {
+      console.warn("[Share] shareNewProject failed (non-blocking):", e.message);
+    }
+
     if (process.env.TORQUE_API_KEY) {
       try {
         await fetch("https://ingest.torque.so/events", {

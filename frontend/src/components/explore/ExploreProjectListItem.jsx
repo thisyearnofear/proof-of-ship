@@ -56,7 +56,15 @@ export default function ExploreProjectListItem({ project, isBookmarked, onToggle
           <div className="flex items-center gap-3 mt-1.5 text-xs text-secondary">
             {project.stats?.commits > 0 && <span>{project.stats.commits} commits</span>}
             {project.stats?.stars > 0 && <span>{project.stats.stars} ★</span>}
-            <span className={`font-medium ${qualityTextColor(quality.score)}`}>{quality.score}% quality</span>
+            <span className={`font-medium ${
+              quality.score < 25 && !(project.stats?.commits || project.stats?.stars || project.stats?.healthScore)
+                ? "text-blue-500 dark:text-blue-400"
+                : qualityTextColor(quality.score)
+            }`}>
+              {quality.score < 25 && !(project.stats?.commits || project.stats?.stars || project.stats?.healthScore)
+                ? "New"
+                : `${quality.score}% quality`}
+            </span>
             {project.category && <span>· {project.category}</span>}
           </div>
         </div>

@@ -11,7 +11,6 @@ import { formatUSDC } from '@/lib/format';
 import { Card } from './common/Card';
 import Button from './common/Button';
 import { LoadingSpinner } from './common/LoadingStates';
-import ProjectDetails from './ProjectDetails';
 import VelocityGauge from './github/VelocityGauge';
 import BackingPanel from './BackingPanel';
 import { getEvolutionTier } from './projects/ProjectCard';
@@ -108,9 +107,12 @@ function FleetOperationsSection({
           {/* Project Details */}
           <div className="lg:col-span-2">
             {selectedProjectId ? (
-              <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-                <ProjectDetails projectId={selectedProjectId} onMilestoneComplete={handleMilestoneComplete} />
-              </div>
+              <Card className="p-8 text-center">
+                <DocumentTextIcon className="w-10 h-10 text-slate-400 dark:text-slate-300 mx-auto mb-3" />
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Project details view is being upgraded. Use the project page to manage milestones.
+                </p>
+              </Card>
             ) : (
               <Card className="p-12 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/60 border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-center">
                 <div className="w-20 h-20 bg-slate-200 dark:bg-slate-700 rounded-2xl flex items-center justify-center mb-5">

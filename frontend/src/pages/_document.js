@@ -19,6 +19,27 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "Proof of Ship",
+              description: "On-chain builder credit backed by reputation. AI agents analyze projects, backers stake USDC, and hackathon payout speed is public data.",
+              url: "https://proofofship.web.app",
+              applicationCategory: "FinanceApplication",
+              operatingSystem: "Web",
+              offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+              featureList: [
+                "Hackathon payout leaderboards",
+                "AI agent project analysis via x402 nanopayments",
+                "USDC backing with multiplier returns",
+                "Proof-based builder credit scoring",
+              ],
+            }),
+          }}
+        />
       </Head>
       <body className="antialiased">
         <Main />

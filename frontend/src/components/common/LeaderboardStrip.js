@@ -85,7 +85,11 @@ export default function LeaderboardStrip() {
   const fastestHackathon = data?.lbData?.hackathons
     ?.filter((h) => h.avgPayoutDays !== null && h.avgPayoutDays >= 0)
     ?.sort((a, b) => a.avgPayoutDays - b.avgPayoutDays)?.[0];
-  const topProject = data?.lbData?.projects?.[0];
+  // Only highlight a project when it has meaningful proof (evidence > 0 or verified wins).
+  // Showing "0% evidence coverage" for the top project damages credibility.
+  const topProject = data?.lbData?.projects?.find(
+    (p) => (p.evidenceCoverage || 0) > 0 || (p.verifiedWins || 0) > 0,
+  );
   const stats = data?.statsData;
 
   const verifiedWins = stats?.totalVerifiedWins || topBuilder?.verifiedWins || 0;
@@ -130,7 +134,11 @@ export default function LeaderboardStrip() {
             icon={<ShieldCheckIcon className="w-4 h-4" />}
             label="Most Proven Project"
             value={topProject?.name || "No projects yet"}
-            sublabel={topProject ? `${topProject.evidenceCoverage || 0}% evidence coverage` : "Add proof to your project"}
+            sublabel={
+              topProject
+                ? `${topProject.avgProofScore || 0} proof score${topProject.verifiedWins > 0 ? ` · ${topProject.verifiedWins} win${topProject.verifiedWins > 1 ? "s" : ""}` : ""}`
+                : "Add proof to your project"
+            }
             href="/leaderboard"
             accentColor="bg-blue-500"
           />

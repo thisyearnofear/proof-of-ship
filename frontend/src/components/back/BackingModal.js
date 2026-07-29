@@ -3,7 +3,9 @@
  */
 
 import { useState } from "react";
+import { ShareIcon } from "@heroicons/react/24/outline";
 import { Card } from "@/components/common/Card";
+import Confetti from "@/components/common/Confetti";
 import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import { isValidSolanaAddress } from "@/utils/common";
 
@@ -55,14 +57,29 @@ export default function BackingModal({ project, wallet, onClose, onSuccess }) {
       <Card className="w-full max-w-md p-6 bg-white dark:bg-gray-900" onClick={(e) => e.stopPropagation()}>
         {backingStatus === "success" ? (
           <div className="text-center py-4">
-            <p className="text-2xl mb-2">✅</p>
-            <p className="font-bold text-green-700 dark:text-green-300">Backed successfully!</p>
+            <Confetti duration={3000} count={60} />
+            <div className="text-4xl mb-2">🎉</div>
+            <p className="font-bold text-green-700 dark:text-green-300 text-lg">Backed successfully!</p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {backingAmount} USDC at {parseInt(backingMultiplier, 10) / 100}x on {project.name}
             </p>
-            <button type="button" onClick={onClose} className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              Close
-            </button>
+            <div className="mt-4 flex flex-col gap-2 items-center">
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                  `Just backed ${project.name} on Proof of Ship! Stake USDC, earn when builders win prizes. 🚢`
+                )}&url=${encodeURIComponent(
+                  typeof window !== "undefined" ? `${window.location.origin}/projects/${project.ecosystem || "base"}/${project.slug || project.id}` : ""
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                <ShareIcon className="w-4 h-4" /> Share your backing
+              </a>
+              <button type="button" onClick={onClose} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                Close
+              </button>
+            </div>
           </div>
         ) : (
           <>

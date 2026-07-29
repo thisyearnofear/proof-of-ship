@@ -22,6 +22,26 @@ function qualityTextColor(score) {
   return "text-gray-400 dark:text-gray-500";
 }
 
+/**
+ * Quality badge — shows a progress bar with score, or "New" when the project
+ * has no GitHub stats loaded (quality < 25 with no commits/stars), avoiding
+ * a misleadingly low percentage that looks like a data bug.
+ */
+function QualityBadge({ project, quality }) {
+  const hasGithubStats = (project.stats?.commits || 0) > 0 || (project.stats?.stars || 0) > 0 || project.stats?.healthScore;
+  if (quality.score < 25 && !hasGithubStats) {
+    return <span className="text-xs font-medium text-blue-500 dark:text-blue-400">New</span>;
+  }
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${qualityColor(quality.score)}`} style={{ width: `${quality.score}%` }} />
+      </div>
+      <span className={`text-xs font-medium ${qualityTextColor(quality.score)}`}>{quality.score}%</span>
+    </div>
+  );
+}
+
 export default function ExploreProjectCard({ project, isBookmarked, onToggleBookmark, onClick }) {
   const ecosystemConfig = ECOSYSTEM_CONFIGS[project.ecosystem];
   const quality = getProjectQuality(project);
@@ -95,12 +115,7 @@ export default function ExploreProjectCard({ project, isBookmarked, onToggleBook
             {project.stats?.stars > 0 && <span>{project.stats.stars} ★</span>}
             {project.lookingForFunding && <span className="text-blue-600 dark:text-blue-400 font-medium">Funding</span>}
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${qualityColor(quality.score)}`} style={{ width: `${quality.score}%` }} />
-            </div>
-            <span className={`text-xs font-medium ${qualityTextColor(quality.score)}`}>{quality.score}%</span>
-          </div>
+          <QualityBadge project={project} quality={quality} />
         </div>
       </div>
     </div>

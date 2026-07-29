@@ -31,6 +31,11 @@ const nextConfig = {
       { source: '/about', destination: '/', permanent: true },
     ];
   },
+  async rewrites() {
+    return [
+      { source: '/sitemap.xml', destination: '/api/sitemap' },
+    ];
+  },
   // Common configuration for all environments
   images: {
     remotePatterns: [
@@ -52,7 +57,7 @@ const nextConfig = {
     }
     : {}),
   turbopack: {
-    root: __dirname,
+    root: require('path').resolve(__dirname, '..'),
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",

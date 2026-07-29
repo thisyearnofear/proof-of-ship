@@ -7,11 +7,11 @@
   "crons": [
     {
       "path": "/api/payout-leads/process",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/leaderboard/snapshot",
-      "schedule": "0 0 * * *"
+      "schedule": "30 0 * * *"
     }
   ]
 }

@@ -5,6 +5,8 @@ import { useUser } from '@/stores/authStore';
 import { useNanopayment, useWallet } from '@/stores/walletStore';
 import UserProfile from '@/components/Auth/UserProfile';
 import TransactionFeed from '@/components/common/TransactionFeed';
+import BuilderXpCard from '@/components/gamification/BuilderXpCard';
+import useBuilderXp from '@/hooks/useBuilderXp';
 import { ChartBarIcon, MagnifyingGlassIcon, BanknotesIcon, CubeIcon } from '@heroicons/react/24/outline';
 import { agentsHref } from '@/config/navigation';
 import { SkeletonBlock, SkeletonCard, SkeletonText } from '@/components/common/LoadingStates';
@@ -17,6 +19,12 @@ export default function ProfilePage() {
   const [myProjects, setMyProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const isBacker = userRole === 'backer';
+
+  // Builder XP — fetch from portfolio API for hackathon proof + activity data
+  const githubUsername = currentUser?.reloadUserInfo?.screenName
+    || currentUser?.providerData?.find((p) => p.providerId === 'github.com')?.displayName?.toLowerCase().replace(/\s/g, '')
+    || currentUser?.uid;
+  const { xp: builderXp, loading: xpLoading } = useBuilderXp(!isBacker ? githubUsername : null);
 
   useEffect(() => {
     if (!loading && !currentUser) {
@@ -244,8 +252,15 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Right column: transaction feed */}
+        {/* Right column: XP card + transaction feed */}
         <div className="space-y-6">
+          {!isBacker && (builderXp || xpLoading) && (
+            xpLoading ? (
+              <SkeletonCard className="h-64" />
+            ) : (
+              <BuilderXpCard xp={builderXp} />
+            )
+          )}
           <TransactionFeed maxItems={10} />
         </div>
       </div>

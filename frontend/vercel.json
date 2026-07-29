@@ -8,6 +8,10 @@
     {
       "path": "/api/payout-leads/process",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/leaderboard/snapshot",
+      "schedule": "0 0 * * 1"
     }
   ]
 }

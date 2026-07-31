@@ -43,7 +43,10 @@ async function handleGetHackathons(req, res) {
     
     // CLEAN: Explicit query building with clear conditions
     if (ecosystem) {
-      query = query.where('ecosystem', '==', ecosystem);
+      const ecosystems = String(ecosystem).split(',').map(id => id.trim()).filter(Boolean);
+      query = ecosystems.length === 1
+        ? query.where('ecosystem', '==', ecosystems[0])
+        : query.where('ecosystem', 'in', ecosystems.slice(0, 10));
     }
     
     if (status) {

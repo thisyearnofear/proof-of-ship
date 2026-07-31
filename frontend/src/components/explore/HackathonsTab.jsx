@@ -18,7 +18,7 @@ const STATUS_GROUPS = [
 
 const FILTERS = ["all", "upcoming", "active", "completed"];
 
-export default function HackathonsTab() {
+export default function HackathonsTab({ selectedEcosystems = [] }) {
   const [hackathons, setHackathons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,6 +31,7 @@ export default function HackathonsTab() {
         setLoading(true);
         const params = new URLSearchParams();
         if (filter !== "all") params.append("status", filter);
+        if (selectedEcosystems.length > 0) params.append("ecosystem", selectedEcosystems.join(","));
         const res = await fetch(`/api/hackathons?${params}`);
         if (!res.ok) throw new Error("Failed to fetch hackathons");
         const data = await res.json();
@@ -43,7 +44,7 @@ export default function HackathonsTab() {
     }
     load();
     return () => { cancelled = true; };
-  }, [filter]);
+  }, [filter, selectedEcosystems]);
 
   const grouped = useMemo(() => ({
     upcoming: hackathons.filter((h) => h.status === "upcoming"),

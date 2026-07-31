@@ -43,14 +43,13 @@ function computeTrendingScore(project) {
   return Math.round(activityScore + healthScore + consistency + crossChain + quality);
 }
 
-export default function ProjectsTab() {
+export default function ProjectsTab({ selectedEcosystems = [], onEcosystemsChange = () => {} }) {
   const { projectData, loading, errors } = useEnhancedGithub();
   const { currentUser } = useUser();
   const { bookmarks, isBookmarked, toggleBookmark, loaded: bookmarksLoaded } = useBookmarks();
   const resultsRef = useRef(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEcosystems, setSelectedEcosystems] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minQualityScore, setMinQualityScore] = useState(0);
   const [fundingOnly, setFundingOnly] = useState(false);
@@ -85,14 +84,14 @@ export default function ProjectsTab() {
 
   const clearAllFilters = useCallback(() => {
     setSearchQuery("");
-    setSelectedEcosystems([]);
+    onEcosystemsChange([]);
     setSelectedCategories([]);
     setMinQualityScore(0);
     setFundingOnly(false);
     setBookmarksOnly(false);
     setSortBy("trending");
     setPage(1);
-  }, []);
+  }, [onEcosystemsChange]);
 
   const hasActiveFilters =
     searchQuery || selectedEcosystems.length > 0 || selectedCategories.length > 0 ||
@@ -117,13 +116,13 @@ export default function ProjectsTab() {
 
   const removeFilterChip = useCallback((key) => {
     if (key === "search") setSearchQuery("");
-    else if (key.startsWith("eco-")) setSelectedEcosystems((prev) => prev.filter((e) => `eco-${e}` !== key));
+    else if (key.startsWith("eco-")) onEcosystemsChange(selectedEcosystems.filter((e) => `eco-${e}` !== key));
     else if (key.startsWith("cat-")) setSelectedCategories((prev) => prev.filter((c) => `cat-${c}` !== key));
     else if (key === "quality") setMinQualityScore(0);
     else if (key === "funding") setFundingOnly(false);
     else if (key === "bookmarks") setBookmarksOnly(false);
     setPage(1);
-  }, []);
+  }, [onEcosystemsChange, selectedEcosystems]);
 
   const processedProjects = useMemo(() => {
     let list = [...allProjects];
@@ -275,7 +274,14 @@ export default function ProjectsTab() {
                 {ECOSYSTEM_OPTIONS.map((eco) => (
                   <button
                     key={eco.id}
-                    onClick={() => handleFilterToggle(setSelectedEcosystems, eco.id)}
+                    onClick={() => {
+                      onEcosystemsChange(
+                        selectedEcosystems.includes(eco.id)
+                          ? selectedEcosystems.filter((id) => id !== eco.id)
+                          : [...selectedEcosystems, eco.id],
+                      );
+                      setPage(1);
+                    }}
                     className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       selectedEcosystems.includes(eco.id)
                         ? "bg-blue-600 text-white shadow-sm"

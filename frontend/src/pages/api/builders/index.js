@@ -121,9 +121,9 @@ export default async function handler(req, res) {
     }
 
     // Apply ecosystem filter
-    const ecosystem = (req.query.ecosystem || "").trim();
-    if (ecosystem) {
-      filtered = filtered.filter((b) => b.ecosystems.includes(ecosystem));
+    const ecosystems = (req.query.ecosystem || "").split(",").map((id) => id.trim()).filter(Boolean);
+    if (ecosystems.length > 0) {
+      filtered = filtered.filter((b) => ecosystems.some((ecosystem) => b.ecosystems.includes(ecosystem)));
     }
 
     // Sort

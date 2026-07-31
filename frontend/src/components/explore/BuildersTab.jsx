@@ -15,9 +15,9 @@ import { ECOSYSTEM_CONFIGS } from "@/config/ecosystems";
 import ActiveFilterChips from "./ActiveFilterChips";
 import ExplorePagination from "./ExplorePagination";
 import ExploreBuilderCard from "./ExploreBuilderCard";
-import { BUILDER_SORT_OPTIONS, ECOSYSTEM_OPTIONS, ITEMS_PER_PAGE } from "./constants";
+import { BUILDER_SORT_OPTIONS, ITEMS_PER_PAGE } from "./constants";
 
-export default function BuildersTab() {
+export default function BuildersTab({ selectedEcosystems = [], onEcosystemsChange = () => {} }) {
   const { currentUser } = useUser();
   const resultsRef = useRef(null);
   const [builders, setBuilders] = useState([]);
@@ -25,7 +25,6 @@ export default function BuildersTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedEcosystem, setSelectedEcosystem] = useState("");
   const [sortBy, setSortBy] = useState("projects");
   const [page, setPage] = useState(1);
 
@@ -38,7 +37,7 @@ export default function BuildersTab() {
         const params = new URLSearchParams();
         params.append("limit", "200");
         if (searchQuery) params.append("search", searchQuery);
-        if (selectedEcosystem) params.append("ecosystem", selectedEcosystem);
+        if (selectedEcosystems.length > 0) params.append("ecosystem", selectedEcosystems.join(","));
         if (sortBy) params.append("sort", sortBy);
         const res = await fetch(`/api/builders?${params}`);
         if (!res.ok) throw new Error("Failed to load builders");
@@ -55,7 +54,7 @@ export default function BuildersTab() {
     }
     fetchBuilders();
     return () => { cancelled = true; };
-  }, [searchQuery, selectedEcosystem, sortBy]);
+  }, [searchQuery, selectedEcosystems, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(builders.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -67,27 +66,29 @@ export default function BuildersTab() {
   const activeFilterChips = useMemo(() => {
     const chips = [];
     if (searchQuery) chips.push({ key: "search", label: `"${searchQuery}"` });
-    if (selectedEcosystem) {
-      const cfg = ECOSYSTEM_CONFIGS[selectedEcosystem];
-      chips.push({ key: "ecosystem", label: cfg ? `${cfg.icon} ${cfg.shortName}` : selectedEcosystem });
-    }
+    selectedEcosystems.forEach((ecosystem) => {
+      const cfg = ECOSYSTEM_CONFIGS[ecosystem];
+      chips.push({ key: `ecosystem-${ecosystem}`, label: cfg ? `${cfg.icon} ${cfg.shortName}` : ecosystem });
+    });
     return chips;
-  }, [searchQuery, selectedEcosystem]);
+  }, [searchQuery, selectedEcosystems]);
 
   const removeFilterChip = useCallback((key) => {
     if (key === "search") setSearchQuery("");
-    if (key === "ecosystem") setSelectedEcosystem("");
+    if (key.startsWith("ecosystem-")) {
+      onEcosystemsChange(selectedEcosystems.filter((ecosystem) => `ecosystem-${ecosystem}` !== key));
+    }
     setPage(1);
-  }, []);
+  }, [onEcosystemsChange, selectedEcosystems]);
 
   const clearAllFilters = useCallback(() => {
     setSearchQuery("");
-    setSelectedEcosystem("");
+    onEcosystemsChange([]);
     setSortBy("projects");
     setPage(1);
-  }, []);
+  }, [onEcosystemsChange]);
 
-  const hasActiveFilters = searchQuery || selectedEcosystem;
+  const hasActiveFilters = searchQuery || selectedEcosystems.length > 0;
 
   if (loading && builders.length === 0) {
     return (
@@ -124,14 +125,6 @@ export default function BuildersTab() {
         </div>
 
         <div className="flex items-center gap-2">
-          <select
-            value={selectedEcosystem}
-            onChange={(e) => { setSelectedEcosystem(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 border border-secondary rounded-xl text-sm bg-surface dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All ecosystems</option>
-            {ECOSYSTEM_OPTIONS.map((eco) => <option key={eco.id} value={eco.id}>{eco.label}</option>)}
-          </select>
           <select
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value); setPage(1); }}

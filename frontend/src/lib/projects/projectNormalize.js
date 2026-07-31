@@ -91,16 +91,7 @@ export function cleanHackathons(hackathons) {
         proofType: String(hackathon?.proofType || '').trim(),
         repoUrl: String(hackathon?.repoUrl || '').trim(),
         contractAddress: String(hackathon?.contractAddress || '').trim(),
-        verificationStatus: String(hackathon?.verificationStatus || '').trim() || 'self_attested',
       };
-
-      // Preserve PayoutVerifier fields when present
-      if (hackathon.payoutVerifiedAt) cleaned.payoutVerifiedAt = hackathon.payoutVerifiedAt;
-      if (hackathon.payoutVerified) cleaned.payoutVerified = Boolean(hackathon.payoutVerified);
-      if (hackathon.payoutConfidence) cleaned.payoutConfidence = hackathon.payoutConfidence;
-      if (hackathon.payoutActualAmount != null) cleaned.payoutActualAmount = Number(hackathon.payoutActualAmount);
-      if (hackathon.payoutAttestationId) cleaned.payoutAttestationId = hackathon.payoutAttestationId;
-      if (hackathon.payoutProvider) cleaned.payoutProvider = hackathon.payoutProvider;
 
       // Optional hackathon date range for payout speed computation
       if (hackathon.hackathonEndDate) cleaned.hackathonEndDate = String(hackathon.hackathonEndDate).trim();
@@ -109,6 +100,25 @@ export function cleanHackathons(hackathons) {
       return hasAnyEvidence ? cleaned : null;
     })
     .filter(Boolean);
+}
+
+const HACKATHON_VERIFICATION_FIELDS = [
+  'verificationStatus', 'payoutVerifiedAt', 'payoutVerified', 'payoutConfidence',
+  'payoutActualAmount', 'payoutAttestationId', 'payoutProvider',
+];
+
+export function mergeHackathonsWithVerification(hackathons, existing = []) {
+  return cleanHackathons(hackathons).map((hackathon) => {
+    const prior = existing.find((entry) => (
+      String(entry?.name || '').trim().toLowerCase() === hackathon.name.toLowerCase()
+      && String(entry?.url || '').trim().toLowerCase() === hackathon.url.toLowerCase()
+    )) || {};
+    const verification = {};
+    for (const field of HACKATHON_VERIFICATION_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(prior, field)) verification[field] = prior[field];
+    }
+    return { ...hackathon, ...verification };
+  });
 }
 
 export function normalizeProjectInput(input = {}) {
@@ -139,6 +149,10 @@ export function normalizeProjectInput(input = {}) {
     hackathons: cleanHackathons(input.hackathons),
     launchOnBags: Boolean(input.launchOnBags),
     bagsTokenMetadata: input.bagsTokenMetadata || null,
+    bagsTokenAddress: String(input.bagsTokenAddress || '').trim() || null,
+    solanaProjectPda: String(input.solanaProjectPda || '').trim() || null,
+    builderSnsDomain: String(input.builderSnsDomain || '').trim() || null,
+    builderSnsNameAccount: String(input.builderSnsNameAccount || '').trim() || null,
     // Quick win: per-project accent color (constrained palette)
     accentColor: input.accentColor || null,
     // Quick win: archive state (soft-delete)
@@ -152,7 +166,9 @@ export function validateProjectInput(project) {
   const errors = [];
 
   if (!project.name) errors.push('Project name is required');
+  if (project.name && project.name.length > 120) errors.push('Project name must be 120 characters or fewer');
   if (!project.description) errors.push('Description is required');
+  if (project.description && project.description.length > 5000) errors.push('Description must be 5000 characters or fewer');
   if (!parseGitHubRepoUrl(project.githubUrl)) errors.push('A valid GitHub URL is required');
   if (!project.ecosystem) errors.push('Chain / ecosystem is required');
   if (!project.category) errors.push('Category is required');
@@ -162,6 +178,10 @@ export function validateProjectInput(project) {
   if (project.contractAddress && !project.contractAddress.startsWith('0x')) {
     errors.push('Contract address must start with 0x');
   }
+  if (cleanTags(project.tags).length > 20) errors.push('Projects can have at most 20 tags');
+  if (cleanMilestones(project.milestones).length > 30) errors.push('Projects can have at most 30 milestones');
+  if (cleanHackathons(project.hackathons).length > 30) errors.push('Projects can have at most 30 hackathon entries');
+  if (cleanMedia(project.media).length > 20) errors.push('Projects can have at most 20 media items');
 
   // accentColor must be one of the allowed palette values
   if (project.accentColor) {

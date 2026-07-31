@@ -36,7 +36,7 @@ function EmailToggle({ label, description, checked, onChange }) {
 }
 
 export default function UserProfile() {
-  const { currentUser, logout, userPermissions, linkedWallets, unlinkWallet, userRole } = useUser();
+  const { currentUser, logout, linkedWallets, unlinkWallet, userRole } = useUser();
   const { disconnect: disconnectEvm, disconnectSolana } = useWallet();
 
   const [githubUsername, setGithubUsername] = useState('');
@@ -697,19 +697,6 @@ export default function UserProfile() {
         </div>
       </form>
 
-      {Array.isArray(userPermissions) && userPermissions.length > 0 && (
-        <div className="mb-2">
-          <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">Your Projects</h3>
-          <ul className="space-y-2">
-            {userPermissions.map((permission) => (
-              <li key={permission.projectSlug} className="flex items-center justify-between">
-                <span className="text-gray-900 dark:text-gray-100">{permission.projectName}</span>
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full">{permission.role}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

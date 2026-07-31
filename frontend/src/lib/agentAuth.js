@@ -13,8 +13,16 @@ export function withAgentAuth(handler) {
   return async (req, res) => {
     const apiKey = process.env.AGENT_API_KEY;
 
-    // If no API key is configured, skip auth (backward compatibility)
+    // Keep local development frictionless, but never expose protected
+    // production mutations because a deployment secret was omitted.
     if (!apiKey) {
+      if (process.env.NODE_ENV === "production") {
+        return res.status(503).json({
+          error: "Agent API unavailable",
+          message: "Agent authentication is not configured.",
+          status: "unavailable",
+        });
+      }
       return handler(req, res);
     }
 

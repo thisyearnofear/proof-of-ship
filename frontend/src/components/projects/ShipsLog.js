@@ -13,6 +13,7 @@ import { Card } from '@/components/common/Card';
 import Button from '@/components/common/Button';
 import { Input, Textarea, Select } from '@/components/common/Input';
 import { LoadingSpinner } from '@/components/common/LoadingStates';
+import { useUser } from '@/stores/authStore';
 import StructuredUpdateCard, { UPDATE_TYPES } from './StructuredUpdateCard';
 import {
   ChatBubbleLeftRightIcon,
@@ -32,6 +33,7 @@ const FILTERS = [
 ];
 
 export default function ShipsLog({ projectSlug, canEdit }) {
+  const { currentUser } = useUser();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -99,9 +101,10 @@ export default function ShipsLog({ projectSlug, canEdit }) {
 
     setSubmitting(true);
     try {
+      const token = await currentUser.getIdToken();
       const response = await fetch('/api/projects/log', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           projectSlug,
           message: message.trim(),
@@ -112,14 +115,17 @@ export default function ShipsLog({ projectSlug, canEdit }) {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to post update');
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to post update');
+      }
 
       setMessage('');
       setMetrics({});
       setUpdateType('milestone');
     } catch (error) {
       console.error('Error posting update:', error);
-      alert('Failed to post update.');
+      alert(error.message || 'Failed to post update.');
     } finally {
       setSubmitting(false);
     }

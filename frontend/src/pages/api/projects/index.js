@@ -1,218 +1,92 @@
-import { db, auth } from "../../../lib/firebase/serverOnly";
-import { verifyAuth, withApiMiddleware } from "../../../utils/apiMiddleware";
-import { logActivity } from "../../../utils/activityLogger";
-import { createProjectDocument, generateProjectSlug, validateProjectInput } from "../../../lib/projects/projectNormalize";
+import { createHash } from 'crypto';
+import { db } from '../../../lib/firebase/serverOnly';
+import { withApiMiddleware } from '../../../utils/apiMiddleware';
+import { logActivity } from '../../../utils/activityLogger';
+import { createProjectDocument, generateProjectSlug, normalizeProjectInput, validateProjectInput } from '../../../lib/projects/projectNormalize';
+import { withDeveloperAuth } from '../../../lib/developerAuth/middleware';
+import { completeReceipt, prepareIdempotency, readReceipt, recordMutationAudit } from '../../../lib/developerAuth/idempotency';
+
+const ROUTE = '/api/projects';
+const ALLOWED_INPUT_FIELDS = new Set([
+  'name', 'description', 'githubUrl', 'ecosystem', 'category', 'otherCategoryDetail',
+  'contractAddress', 'deploymentTxHash', 'liveUrl', 'website', 'twitter', 'discord',
+  'imageUrl', 'teamMembers', 'tags', 'isOpenSource', 'lookingForFunding', 'fundingAmount',
+  'milestones', 'hackathons', 'launchOnBags', 'bagsTokenMetadata', 'bagsTokenAddress',
+  'solanaProjectPda', 'builderSnsDomain', 'builderSnsNameAccount', 'accentColor', 'archived', 'media',
+]);
+
+function repositoryId(owner, repo) {
+  return createHash('sha256').update(`${owner.toLowerCase()}/${repo.toLowerCase()}`).digest('hex');
+}
 
 async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   try {
-    const userId = await verifyAuth(req, auth);
-
-    const projectData = { ...(req.body || {}) };
-
-    const validation = validateProjectInput(projectData);
-    if (!validation.isValid) {
-      return res.status(400).json({
-        error: validation.errors[0],
-        errors: validation.errors,
-      });
+    const unknownFields = Object.keys(req.body || {}).filter((field) => !ALLOWED_INPUT_FIELDS.has(field));
+    if (unknownFields.length) {
+      return res.status(400).json({ error: `Forbidden or unknown fields: ${unknownFields.join(', ')}` });
     }
+    const input = normalizeProjectInput(req.body || {});
+    const validation = validateProjectInput(input);
+    if (!validation.isValid) return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
+    const slug = generateProjectSlug(input.name);
+    if (!slug) return res.status(400).json({ error: 'Project slug cannot be empty' });
 
-    if (projectData.githubUrl) {
-      const dupeSnap = await db.collection("projects")
-        .where("githubUrl", "==", projectData.githubUrl)
-        .limit(1)
-        .get();
-      if (!dupeSnap.empty) {
-        const dupe = dupeSnap.docs[0].data();
-        return res.status(409).json({
-          error: "A project with this GitHub URL already exists",
-          slug: dupe.slug,
-          existingProject: {
-            name: dupe.name,
-            slug: dupe.slug,
-            ecosystem: dupe.ecosystem,
-            isOwner: dupe.owners && dupe.owners.includes(userId),
-            owners: dupe.owners,
-            submittedBy: dupe.submittedBy
-          }
-        });
-      }
-    }
-
-    const slug = generateProjectSlug(projectData.name);
-    console.log("Checking project slug:", slug);
-
-    const existingProject = await db.collection("projects").doc(slug).get();
-    if (existingProject.exists) {
-      const existingData = existingProject.data();
-      const isOwner = existingData.owners && existingData.owners.includes(userId);
-      console.log("Existing project found at slug:", slug, "isOwner:", isOwner);
-      return res.status(409).json({
-        error: "Project with this name already exists",
-        slug,
-        existingProject: {
-          name: existingData.name,
-          slug: existingData.slug,
-          ecosystem: existingData.ecosystem,
-          isOwner,
-          owners: existingData.owners,
-          submittedBy: existingData.submittedBy
-        }
-      });
-    }
-
-    const githubMatch = projectData.githubUrl.match(
-      /github\.com\/([^\/]+)\/([^\/]+)/
-    );
-    if (!githubMatch) {
-      return res.status(400).json({
-        error: "Could not parse GitHub URL",
-      });
-    }
-
-    const [, owner, repo] = githubMatch;
-
-    let ownershipVerified = false;
-    let submitterGithub = null;
     let oauthVerified = false;
     try {
-      const userRef = db.collection("users").doc(userId);
-      const userSnap = await userRef.get();
-      if (userSnap.exists) {
-        const udata = userSnap.data();
-        submitterGithub = (udata.githubUsername || "").trim();
-        const token = (udata.githubAccessToken || "").trim();
-        if (token) {
-          try {
-            const gh = (await import("../../../services/RealGitHubService")).realGitHubService;
-            oauthVerified = await gh.hasRepoPushAccess(owner, repo, token);
-          } catch (_) { oauthVerified = false; }
-        }
-        ownershipVerified = oauthVerified || (submitterGithub && submitterGithub.toLowerCase() === owner.toLowerCase());
+      const userSnap = await db.collection('users').doc(req.developer.userId).get();
+      const token = userSnap.exists ? String(userSnap.data().githubAccessToken || '').trim() : '';
+      if (token) {
+        const { realGitHubService } = await import('../../../services/RealGitHubService');
+        oauthVerified = await realGitHubService.hasRepoPushAccess(input.owner, input.repo, token);
       }
-    } catch (e) {
-      ownershipVerified = false;
+    } catch (_) {
+      oauthVerified = false;
     }
 
-    if (projectData.accentColor) {
-      const { ACCENT_COLORS } = await import('../../../lib/projects/projectNormalize');
-      const valid = ACCENT_COLORS.some(c => c.value === projectData.accentColor);
-      if (!valid) projectData.accentColor = null;
-    }
-
-    const projectDoc = createProjectDocument(projectData, userId, {
-      slug,
-      status: ownershipVerified ? "submitted" : "pending_review"
+    const now = new Date();
+    const project = createProjectDocument(input, req.developer.userId, {
+      slug, now: now.toISOString(), status: oauthVerified ? 'submitted' : 'pending_review',
     });
+    const projectRef = db.collection('projects').doc(slug);
+    const repoRef = db.collection('project_repository_index').doc(repositoryId(input.owner, input.repo));
+    const prepared = prepareIdempotency(db, req.developer, 'POST', ROUTE, req.headers['idempotency-key'], req.body);
+    const responseBody = { success: true, projectSlug: slug, message: 'Project submitted successfully and is pending review' };
 
-    await db.runTransaction(async (transaction) => {
-      transaction.set(db.collection("projects").doc(slug), projectDoc);
-
-      if (userId) {
-        const userRef = db.collection("users").doc(userId);
-        const userSnap = await transaction.get(userRef);
-        const userData = userSnap.exists ? userSnap.data() : {};
-        const existingPermissions = Array.isArray(userData.permissions)
-          ? userData.permissions
-          : [];
-
-        const alreadyHas = existingPermissions.some((p) => p.projectSlug === slug);
-        if (!alreadyHas) {
-          transaction.set(
-            userRef,
-            {
-              permissions: [
-                ...existingPermissions,
-                {
-                  projectSlug: slug,
-                  projectName: projectData.name,
-                  role: "editor",
-                  grantedAt: new Date().toISOString(),
-                },
-              ],
-            },
-            { merge: true }
-          );
-        }
+    const result = await db.runTransaction(async (transaction) => {
+      const receipt = await readReceipt(transaction, prepared);
+      if (receipt) return { replay: true, ...receipt };
+      const [existingProject, existingRepo] = await Promise.all([
+        transaction.get(projectRef), transaction.get(repoRef),
+      ]);
+      if (existingProject.exists) {
+        const error = new Error('Project with this name already exists'); error.statusCode = 409; throw error;
       }
+      if (existingRepo.exists) {
+        const error = new Error('A project for this GitHub repository already exists'); error.statusCode = 409; throw error;
+      }
+      transaction.create(projectRef, project);
+      transaction.create(repoRef, { projectSlug: slug, owner: input.owner.toLowerCase(), repo: input.repo.toLowerCase(), createdAt: now });
+      completeReceipt(transaction, prepared, req.developer, 'POST', ROUTE, 201, responseBody, now);
+      recordMutationAudit(transaction, db, req.developer, 'project_created', `projects/${slug}`, now);
+      return { statusCode: 201, responseBody };
     });
+    if (result.replay) return res.status(result.statusCode).json({ ...result.responseBody, idempotentReplay: true });
 
-    await db.collection("admin_queue").add({
-      type: "project_submission",
-      projectSlug: slug,
-      ecosystem: projectData.ecosystem,
-      submittedBy: userId,
-      submittedAt: new Date().toISOString(),
-      status: ownershipVerified ? "info" : "pending",
-      priority: projectData.ecosystem === "base" ? "high" : "normal",
-      note: ownershipVerified ? "ownership_verified_via_github_username_match" : "ownership_unverified"
-    });
-
-    await notifyAdmins(projectDoc);
-
-    await logActivity({
-      type: "project_submitted",
-      projectSlug: slug,
-      projectName: projectData.name,
-      userHandle: userId,
-      description: `New project "${projectData.name}" was launched in the ${projectData.ecosystem} ecosystem!`,
-      ecosystem: projectData.ecosystem
-    });
-
-    // Broadcast the new project to Farcaster (top-of-funnel viral moment).
-    // Non-blocking — failure to cast must not affect project creation.
     try {
-      const { socialSharingService } = await import("../../../services/SocialSharingService");
-      socialSharingService.shareNewProject({
-        slug,
-        name: projectData.name,
-        description: projectData.description || "",
-        ecosystem: projectData.ecosystem,
+      await db.collection('admin_queue').add({
+        type: 'project_submission', projectSlug: slug, ecosystem: input.ecosystem,
+        submittedBy: req.developer.userId, submittedAt: now, status: oauthVerified ? 'info' : 'pending',
       });
-    } catch (e) {
-      console.warn("[Share] shareNewProject failed (non-blocking):", e.message);
+      await logActivity({ type: 'project_submitted', projectSlug: slug, projectName: input.name, userHandle: req.developer.userId, description: `New project "${input.name}" was launched!`, ecosystem: input.ecosystem });
+    } catch (error) {
+      console.warn('Post-commit project notification failed:', error.message);
     }
-
-    if (process.env.TORQUE_API_KEY) {
-      try {
-        await fetch("https://ingest.torque.so/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-api-key": process.env.TORQUE_API_KEY },
-          body: JSON.stringify({
-            eventName: "project_submitted",
-            userPubkey: userId,
-            timestamp: Date.now(),
-            data: { project_name: projectData.name, ecosystem: projectData.ecosystem, category: projectData.category, project_slug: slug },
-          }),
-        });
-      } catch (e) {
-        console.warn("[Torque] project_submitted event failed (non-blocking):", e.message);
-      }
-    }
-
-    res.status(201).json({
-      success: true,
-      projectSlug: slug,
-      message: "Project submitted successfully and is pending review",
-    });
+    return res.status(201).json(responseBody);
   } catch (error) {
-    console.error("Error submitting project:", error);
-    res.status(500).json({
-      error: "Internal server error",
-      message: error.message,
-    });
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
   }
 }
 
-async function notifyAdmins(projectData) {
-  try {
-  } catch (error) {
-    console.error("Error sending admin notification:", error);
-  }
-}
-
-export default withApiMiddleware(handler, { allowedMethods: ["POST"], rateLimit: 5, rateLimitKey: "PROJECT_SUBMIT" });
+export default withApiMiddleware(withDeveloperAuth(handler, { requiredScopes: ['projects:write'] }), {
+  allowedMethods: ['POST'], rateLimit: 5, rateLimitKey: 'PROJECT_SUBMIT',
+});

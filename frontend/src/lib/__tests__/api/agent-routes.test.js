@@ -276,3 +276,39 @@ describe('Agent Identity Response Shape', () => {
     expect(response.agentInfo).toHaveProperty('network');
   });
 });
+
+describe('Agent API authentication', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalApiKey = process.env.AGENT_API_KEY;
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+    if (originalApiKey === undefined) delete process.env.AGENT_API_KEY;
+    else process.env.AGENT_API_KEY = originalApiKey;
+  });
+
+  it('fails closed in production when AGENT_API_KEY is missing', async () => {
+    process.env.NODE_ENV = 'production';
+    delete process.env.AGENT_API_KEY;
+    const { withAgentAuth } = await import('@/lib/agentAuth');
+    const inner = vi.fn();
+    const res = { status: vi.fn(() => res), json: vi.fn() };
+
+    await withAgentAuth(inner)({ headers: {} }, res);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(inner).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid configured API key', async () => {
+    process.env.AGENT_API_KEY = 'correct-key';
+    const { withAgentAuth } = await import('@/lib/agentAuth');
+    const inner = vi.fn();
+    const res = { status: vi.fn(() => res), json: vi.fn() };
+
+    await withAgentAuth(inner)({ headers: { 'x-api-key': 'wrong-key' } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(inner).not.toHaveBeenCalled();
+  });
+});

@@ -6,7 +6,7 @@ import { LoadingSpinner } from "@/components/common/LoadingStates";
 import ProjectEditor from "@/components/projects";
 
 export default function EditProjectPage() {
-  const { currentUser, loading, hasProjectPermission } = useUser();
+  const { currentUser, loading } = useUser();
   const router = useRouter();
   const { ecosystem, slug } = router.query;
 
@@ -18,11 +18,7 @@ export default function EditProjectPage() {
       router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
       return;
     }
-
-    if (slug && !hasProjectPermission(slug)) {
-      router.push(`/dashboard`);
-    }
-  }, [currentUser, loading, router, ecosystem, slug, hasProjectPermission]);
+  }, [currentUser, loading, router, ecosystem, slug]);
 
   if (loading || !ecosystem || !slug) {
     return (
@@ -32,7 +28,7 @@ export default function EditProjectPage() {
     );
   }
 
-  if (!currentUser || !hasProjectPermission(slug)) {
+  if (!currentUser) {
     return null;
   }
 

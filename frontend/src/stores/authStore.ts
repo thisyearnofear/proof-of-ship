@@ -2,11 +2,8 @@
  * useAuthStore — Firebase auth, wallet linking, role, profile, credit data.
  *
  * Replaces the auth/reputation portion of the old UserContext.tsx.
- * Permissions live in `useProfileStore` (split per the migration plan).
- *
- * N+1 fix: `onAuthStateChanged` no longer issues per-project `getDoc` calls.
- * Instead it batches the project fetches via `getDocs(where(documentId(), 'in', slugs))`
- * and consolidates writes with `writeBatch`.
+ * Project authorization is derived from canonical `projects.owners` records
+ * and enforced by server APIs; it is intentionally not cached on user docs.
  */
 
 import {
@@ -21,12 +18,6 @@ import {
   doc,
   getDoc,
   setDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  writeBatch,
-  limit,
 } from "firebase/firestore";
 
 import { auth, db } from "@/lib/firebase/clientApp";
@@ -99,81 +90,6 @@ async function loadDecentralizedAuth() {
   }
 }
 
-/**
- * Replace the previous N+1 loop. Reads the matching pending-permissions once
- * (already scoped by `githubUsername`), then fetches all referenced projects
- * in a single `in` query (chunked at 30) and applies the owner/permission
- * writes inside a `writeBatch`.
- */
-async function checkPendingPermissions(user: User) {
-  try {
-    const githubUsername = (user as any).reloadUserInfo?.screenName
-      || user.providerData.find((p: any) => p.providerId === "github.com")?.displayName?.toLowerCase().replace(/\s/g, "")
-      || null;
-    if (!githubUsername) return;
-
-    const pendingSnap = await getDocs(
-      query(collection(db, "pendingPermissions"), where("githubUsername", "==", githubUsername)),
-    );
-    if (pendingSnap.empty) return;
-
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-    const userData = userDoc.exists() ? userDoc.data() : { permissions: [] };
-    const currentPermissions: any[] = userData.permissions || [];
-    const newPermissions = [...currentPermissions];
-
-    // Collect distinct project slugs to batch-fetch
-    const slugs: string[] = [];
-    const pendingBySlug = new Map<string, any>();
-    for (const permissionDoc of pendingSnap.docs) {
-      const data = permissionDoc.data();
-      if (newPermissions.some((p) => p.projectSlug === data.projectSlug)) continue;
-      if (!pendingBySlug.has(data.projectSlug)) pendingBySlug.set(data.projectSlug, { data, ref: permissionDoc.ref });
-      slugs.push(data.projectSlug);
-    }
-    if (slugs.length === 0) return;
-
-    // Batch-fetch projects in chunks of 30 (Firestore `in` limit).
-    // `__name__` is the reserved field name for document ID; equivalent to
-    // the `documentId()` sentinel which exists at runtime but is missing
-    // from firebase 9's .d.ts.
-    const projectDocs = new Map<string, any>();
-    for (let i = 0; i < slugs.length; i += 30) {
-      const chunk = slugs.slice(i, i + 30);
-      const snap = await getDocs(query(collection(db, "projects"), where("__name__", "in", chunk)));
-      snap.forEach((d: any) => projectDocs.set(d.id, d));
-    }
-
-    const batch = writeBatch(db);
-    let added = 0;
-    for (const [slug, { data, ref }] of pendingBySlug) {
-      newPermissions.push({
-        projectSlug: data.projectSlug,
-        projectName: data.projectName,
-        role: data.role,
-        grantedAt: data.grantedAt,
-      });
-      const projectDoc = projectDocs.get(slug);
-      if (projectDoc && projectDoc.exists()) {
-        const owners: string[] = projectDoc.data().owners || [];
-        if (!owners.includes(user.uid)) {
-          batch.set(doc(db, "projects", slug), { owners: [...owners, user.uid] }, { merge: true });
-        }
-      }
-      batch.delete(ref);
-      added += 1;
-    }
-    if (added > 0) {
-      batch.set(userDocRef, { permissions: newPermissions }, { merge: true });
-      await batch.commit();
-    }
-    profileActions.setUserPermissions(newPermissions);
-  } catch (err) {
-    console.error("Error checking pending permissions:", err);
-  }
-}
-
 async function loadUserProfile(user: User) {
   const userDocRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(userDocRef);
@@ -193,14 +109,12 @@ async function loadUserProfile(user: User) {
     userRole: data.userRole || (data.githubUsername ? "builder" : null),
     linkedWallets: wallets,
   });
-  profileActions.setUserPermissions(data.permissions || []);
 }
 
 function attachAuthListener() {
   return onAuthStateChanged(auth, async (user: User | null) => {
     authStore.setState({ currentUser: user, loading: true });
     if (user) {
-      await checkPendingPermissions(user);
       await loadUserProfile(user);
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
@@ -417,10 +331,6 @@ function getRecommendations(s: AuthState) {
   return s.creditData?.recommendations || [];
 }
 
-function hasProjectPermission(s: AuthState, projectSlug: string) {
-  return profileActions.hasProjectPermission(projectSlug);
-}
-
 // ============================================================================
 // Initialization (called once from AppProviders on mount)
 // ============================================================================
@@ -457,15 +367,12 @@ export const authActions = {
   isProfileComplete,
   hasMinimumProfile,
   getRecommendations,
-  hasProjectPermission,
 };
 
 // ============================================================================
 // Convenience hook — drop-in replacement for the old `useUser()` context.
 // Returns the combined state + actions that UserContext.tsx exposed.
 // ============================================================================
-
-import { profileStore } from "./profileStore";
 
 export function useUser() {
   const currentUser = useStore(authStore, (s) => s.currentUser);
@@ -476,7 +383,6 @@ export function useUser() {
   const onboardingComplete = useStore(authStore, (s) => s.onboardingComplete);
   const linkedWallets = useStore(authStore, (s) => s.linkedWallets);
   const decentralizedAuth = useStore(authStore, (s) => s.decentralizedAuth);
-  const userPermissions = useStore(profileStore, (s) => s.userPermissions);
 
   return {
     currentUser,
@@ -487,7 +393,6 @@ export function useUser() {
     onboardingComplete,
     linkedWallets,
     decentralizedAuth,
-    userPermissions,
     isAuthReady: !loading,
     signInWithGithub,
     signInWithWallet,
@@ -504,6 +409,5 @@ export function useUser() {
     isProfileComplete: () => isProfileComplete({ currentUser, loading, userRole, userProfile, creditData, onboardingComplete, linkedWallets, decentralizedAuth } as any),
     hasMinimumProfile: () => hasMinimumProfile({ currentUser, loading, userRole, userProfile, creditData, onboardingComplete, linkedWallets, decentralizedAuth } as any),
     getRecommendations: () => getRecommendations({ currentUser, loading, userRole, userProfile, creditData, onboardingComplete, linkedWallets, decentralizedAuth } as any),
-    hasProjectPermission: (slug: string) => userPermissions.some((p) => p.projectSlug === slug),
   };
 }

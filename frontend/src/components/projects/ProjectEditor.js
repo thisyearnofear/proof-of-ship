@@ -14,7 +14,6 @@ import { Card } from "@/components/common/Card";
 import Button from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingStates";
 import { getAllEcosystems, getEcosystemConfig } from "@/config/ecosystems";
-import { submitProject } from "@/services/DataService";
 import ProjectPreviewPanel from "@/components/projects/ProjectPreviewPanel";
 import WinnerGate from "@/components/projects/WinnerGate";
 import useWinnerStatus from "@/hooks/useWinnerStatus";
@@ -65,7 +64,7 @@ const EMPTY_HACKATHON = () => ({
 });
 
 export default function ProjectEditor({ projectSlug }) {
-  const { currentUser, hasProjectPermission } = useUser();
+  const { currentUser } = useUser();
   const { isVerified, pendingClaim, loading: winnerLoading, error: winnerError, submitClaim } = useWinnerStatus();
   const { requestFunding, connected, activeChainFamily } = useBuilderCredit();
 
@@ -87,6 +86,8 @@ export default function ProjectEditor({ projectSlug }) {
   const [improvingListing, setImprovingListing] = useState(false);
   const [listingSuggestions, setListingSuggestions] = useState([]);
   const [wizardStep, setWizardStep] = useState(1);
+  const [projectOwners, setProjectOwners] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [form, setForm] = useState(() => ({
     name: draft?.name || "",
@@ -143,6 +144,13 @@ export default function ProjectEditor({ projectSlug }) {
         }
         const project = await res.json();
         if (cancelled) return;
+        setProjectOwners(Array.isArray(project.owners) ? project.owners : []);
+        if (currentUser?.uid) {
+          const { db } = await import('@/lib/firebase/clientApp');
+          const { doc, getDoc } = await import('firebase/firestore');
+          const adminSnap = await getDoc(doc(db, 'admins', currentUser.uid));
+          if (!cancelled) setIsAdmin(adminSnap.exists());
+        }
         setForm({
           name: project.name || "",
           description: project.description || "",
@@ -189,8 +197,8 @@ export default function ProjectEditor({ projectSlug }) {
   const canEdit = useMemo(() => {
     if (!currentUser) return false;
     if (!isEditMode) return true;
-    return hasProjectPermission(projectSlug);
-  }, [currentUser, hasProjectPermission, isEditMode, projectSlug]);
+    return isAdmin || projectOwners.includes(currentUser.uid);
+  }, [currentUser, isAdmin, isEditMode, projectOwners]);
 
   const ecosystemOptions = useMemo(
     () => getAllEcosystems().filter((e) => e.dataSource !== "special"),
@@ -316,6 +324,9 @@ export default function ProjectEditor({ projectSlug }) {
     if (validationError) { setError(validationError); return; }
     setSaving(true);
     const cleaned = normalizeProjectInput({ ...form, imageUrl: image.imageUrl || null, media: image.galleryMedia });
+    const projectInput = { ...cleaned };
+    delete projectInput.owner;
+    delete projectInput.repo;
 
     try {
       if (isEditMode) {
@@ -323,7 +334,7 @@ export default function ProjectEditor({ projectSlug }) {
         const res = await fetch(`/api/projects/${projectSlug}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ ...cleaned, imageUrl: image.imageUrl || null }),
+          body: JSON.stringify({ ...projectInput, imageUrl: image.imageUrl || null }),
         });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
@@ -356,52 +367,28 @@ export default function ProjectEditor({ projectSlug }) {
         }
       }
 
-      let result;
-      let useClientSide = false;
-      try {
-        const token = await currentUser.getIdToken();
-        const res = await fetch("/api/projects", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            ...cleaned,
-            imageUrl: image.imageUrl || null,
-            launchOnBags: form.launchOnBags,
-            bagsTokenAddress: onChainResult?.projectData?.bagsTokenAddress || null,
-            solanaProjectPda: onChainResult?.projectPda || null,
-            builderSnsDomain: onChainResult?.projectData?.builderSnsDomain || cleaned.builderSnsDomain || null,
-            builderSnsNameAccount: onChainResult?.projectData?.builderSnsNameAccount || null,
-            submittedBy: currentUser.uid,
-            submittedAt: new Date().toISOString(),
-          }),
-        });
-        const contentType = res.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          useClientSide = true;
-        } else if (res.status === 409) {
-          const body = await res.json().catch(() => ({}));
-          setExistingProjectConflict(body.existingProject);
-          setError(null);
-          return;
-        } else if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || "Failed to submit project");
-        } else {
-          result = await res.json();
-        }
-      } catch (fetchError) {
-        if (fetchError.message?.includes("<!DOCTYPE") || fetchError.message?.includes("Unexpected token")) {
-          useClientSide = true;
-        } else {
-          throw fetchError;
-        }
+      const token = await currentUser.getIdToken();
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...projectInput,
+          imageUrl: image.imageUrl || null,
+          launchOnBags: form.launchOnBags,
+          bagsTokenAddress: onChainResult?.projectData?.bagsTokenAddress || null,
+          solanaProjectPda: onChainResult?.projectPda || null,
+          builderSnsDomain: onChainResult?.projectData?.builderSnsDomain || cleaned.builderSnsDomain || null,
+          builderSnsNameAccount: onChainResult?.projectData?.builderSnsNameAccount || null,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setExistingProjectConflict(body.existingProject || { name: cleaned.name });
+        setError(null);
+        return;
       }
-
-      if (useClientSide) {
-        const clientResult = await submitProject({ ...cleaned, imageUrl: image.imageUrl || null });
-        if (!clientResult.success) throw new Error(clientResult.error || "Failed to submit project");
-        result = clientResult;
-      }
+      if (!res.ok) throw new Error(body.error || "Failed to submit project");
+      const result = body;
 
       draftCtl.clearDraft();
       const createdSlug = result.projectSlug;

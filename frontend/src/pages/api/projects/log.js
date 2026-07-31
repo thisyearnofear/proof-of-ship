@@ -1,147 +1,64 @@
-/**
- * POST /api/projects/log
- *
- * Posts a structured update to a project's ShipsLog.
- *
- * Auth options:
- *   1. Firebase Auth token (via Authorization: Bearer header) — browser users
- *   2. User API key (via x-api-key header) — agents/programmatic access
- *
- * Body: {
- *   projectSlug: string (required),
- *   message: string (required),
- *   type: 'milestone' | 'revenue' | 'users' | ... (default: 'development'),
- *   metrics: { key: value } (optional),
- * }
- */
-
-import { db, auth } from '../../../lib/firebase/serverOnly';
+import { db } from '../../../lib/firebase/serverOnly';
 import { logActivity } from '../../../utils/activityLogger';
+import { authorizeProject, withDeveloperAuth } from '../../../lib/developerAuth/middleware';
+import { completeReceipt, prepareIdempotency, readReceipt, recordMutationAudit } from '../../../lib/developerAuth/idempotency';
 
-const VALID_UPDATE_TYPES = new Set([
-  'milestone', 'revenue', 'users', 'launch', 'partnership',
-  'funding', 'product', 'community', 'development', 'bugfix',
-]);
+const ROUTE = '/api/projects/log';
+const VALID_TYPES = new Set(['milestone', 'revenue', 'users', 'launch', 'partnership', 'funding', 'product', 'community', 'development', 'bugfix']);
 
-async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+function validMetrics(metrics) {
+  if (metrics == null) return {};
+  if (typeof metrics !== 'object' || Array.isArray(metrics) || Object.getPrototypeOf(metrics) !== Object.prototype) return null;
+  const entries = Object.entries(metrics);
+  if (entries.length > 20) return null;
+  const output = {};
+  for (const [key, value] of entries) {
+    if (!key || key.length > 64 || !['string', 'number', 'boolean'].includes(typeof value) || !Number.isFinite(typeof value === 'number' ? value : 0)) return null;
+    output[key] = value;
   }
-
-  let userId;
-  let userData;
-
-  try {
-    // Try Firebase Auth first (Authorization: Bearer)
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const idToken = authHeader.split('Bearer ')[1];
-      const decodedToken = await auth.verifyIdToken(idToken);
-      userId = decodedToken.uid;
-    }
-
-    // Fall back to API key auth (x-api-key) for agents
-    if (!userId) {
-      const apiKey = req.headers['x-api-key'];
-      if (!apiKey) {
-        return res.status(401).json({ error: 'Authorization required. Use Bearer token or x-api-key.' });
-      }
-
-      // Find user by API key
-      const userSnap = await db
-        .collection('users')
-        .where('apiKey', '==', apiKey)
-        .limit(1)
-        .get();
-
-      if (userSnap.empty) {
-        return res.status(403).json({ error: 'Invalid API key' });
-      }
-
-      userId = userSnap.docs[0].id;
-    }
-
-    // Load user data
-    const userDoc = await db.collection('users').doc(userId).get();
-    if (!userDoc.exists) {
-      return res.status(403).json({ error: 'User not found' });
-    }
-    userData = userDoc.data();
-  } catch (error) {
-    return res.status(401).json({ error: 'Authentication failed' });
-  }
-
-  const { projectSlug, message, type = 'development', metrics } = req.body;
-
-  if (!projectSlug || !message) {
-    return res.status(400).json({ error: 'Missing projectSlug or message' });
-  }
-
-  // Validate update type
-  const updateType = VALID_UPDATE_TYPES.has(type) ? type : 'development';
-
-  // Verify permission
-  const hasPermission = (userData.permissions || []).some(
-    (p) => p.projectSlug === projectSlug && p.role === 'editor'
-  );
-
-  if (!hasPermission) {
-    return res.status(403).json({ error: 'Permission denied' });
-  }
-
-  // Get project name
-  const projectSnap = await db.collection('projects').doc(projectSlug).get();
-  if (!projectSnap.exists) {
-    return res.status(404).json({ error: 'Project not found' });
-  }
-  const projectData = projectSnap.data();
-
-  // Clean metrics — only store truthy values
-  const cleanMetrics = {};
-  if (metrics && typeof metrics === 'object') {
-    for (const [key, val] of Object.entries(metrics)) {
-      if (val !== undefined && val !== null && val !== '') {
-        cleanMetrics[key] = typeof val === 'string' ? val : val;
-      }
-    }
-  }
-
-  const logEntry = {
-    projectSlug,
-    projectName: projectData.name,
-    message,
-    type: updateType,
-    metrics: Object.keys(cleanMetrics).length > 0 ? cleanMetrics : null,
-    timestamp: new Date().toISOString(),
-    userId,
-    userHandle: userData.githubUsername || userData.displayName || userId,
-  };
-
-  // Save log entry
-  await db.collection('ships_logs').add(logEntry);
-
-  // Log to engagement feed (only for non-low-signal updates)
-  const HIGH_SIGNAL_TYPES = new Set(['milestone', 'revenue', 'users', 'launch', 'partnership', 'funding']);
-  const isHighSignal = HIGH_SIGNAL_TYPES.has(updateType);
-
-  await logActivity({
-    type: 'ships_log_update',
-    projectSlug,
-    projectName: projectData.name,
-    userHandle: logEntry.userHandle,
-    description: isHighSignal
-      ? `🚢 ${updateType}: ${projectData.name} - ${message}`
-      : `🚢 Ship's Log: ${projectData.name} - ${message}`,
-    ecosystem: projectData.ecosystem,
-    metadata: {
-      message,
-      type: updateType,
-      metrics: cleanMetrics,
-      isHighSignal,
-    },
-  });
-
-  res.status(201).json({ success: true, logEntry });
+  return output;
 }
 
-export default handler;
+async function handler(req, res) {
+  try {
+    const { projectSlug, message, type = 'development', metrics } = req.body || {};
+    if (typeof projectSlug !== 'string' || !projectSlug.trim()) return res.status(400).json({ error: 'projectSlug is required' });
+    if (typeof message !== 'string' || message.trim().length < 1 || message.length > 2000) return res.status(400).json({ error: 'message must be 1 to 2000 characters' });
+    const cleanMetrics = validMetrics(metrics);
+    if (cleanMetrics === null) return res.status(400).json({ error: 'Invalid metrics' });
+    const updateType = VALID_TYPES.has(type) ? type : 'development';
+    const projectRef = db.collection('projects').doc(projectSlug);
+    const userRef = db.collection('users').doc(req.developer.userId);
+    const logRef = db.collection('ships_logs').doc();
+    const prepared = prepareIdempotency(db, req.developer, 'POST', ROUTE, req.headers['idempotency-key'], req.body);
+    const now = new Date();
+    const result = await db.runTransaction(async (transaction) => {
+      const receipt = await readReceipt(transaction, prepared);
+      if (receipt) return { replay: true, ...receipt };
+      const [projectSnap, userSnap] = await Promise.all([transaction.get(projectRef), transaction.get(userRef)]);
+      if (!projectSnap.exists) { const error = new Error('Project not found'); error.statusCode = 404; throw error; }
+      const project = projectSnap.data();
+      if (!await authorizeProject(db, req.developer.userId, project, transaction)) { const error = new Error('Forbidden'); error.statusCode = 403; throw error; }
+      const user = userSnap.exists ? userSnap.data() : {};
+      const logEntry = {
+        projectSlug, projectName: project.name, message: message.trim(), type: updateType,
+        metrics: Object.keys(cleanMetrics).length ? cleanMetrics : null, timestamp: now,
+        userId: req.developer.userId, userHandle: user.githubUsername || user.displayName || req.developer.userId,
+      };
+      const responseBody = { success: true, logEntry: { id: logRef.id, ...logEntry } };
+      transaction.create(logRef, logEntry);
+      completeReceipt(transaction, prepared, req.developer, 'POST', ROUTE, 201, responseBody, now);
+      recordMutationAudit(transaction, db, req.developer, 'proof_created', `ships_logs/${logRef.id}`, now);
+      return { statusCode: 201, responseBody, project };
+    });
+    if (result.replay) return res.status(result.statusCode).json({ ...result.responseBody, idempotentReplay: true });
+    try {
+      await logActivity({ type: 'ships_log_update', projectSlug, projectName: result.project.name, userHandle: result.responseBody.logEntry.userHandle, description: `🚢 Ship's Log: ${result.project.name} - ${message}`, ecosystem: result.project.ecosystem });
+    } catch (error) { console.warn('Post-commit activity failed:', error.message); }
+    return res.status(201).json(result.responseBody);
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
+  }
+}
+
+export default withDeveloperAuth(handler, { requiredScopes: ['proofs:write'] });

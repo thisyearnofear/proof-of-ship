@@ -35,20 +35,27 @@ service cloud.firestore {
       return isAuthenticated() && isProjectOwner('projects', campaign.projectId);
     }
 
-    // Projects — single collection with ecosystem field
-    // Public read for hackathon demo; owner/admin write
+    // Projects are public, but all writes go through trusted server APIs.
     match /projects/{projectId} {
       allow read: if true;
-      allow update: if isProjectOwner('projects', projectId) || isAdminUser();
-      allow create: if isAuthenticated() && request.resource.data.owners.hasAny([request.auth.uid]) && request.resource.data.submittedBy == request.auth.uid;
-      allow delete: if isAdminUser();
+      allow write: if false;
     }
 
-    // User profiles — public read for portfolio pages, self-write only
+    // User profiles are private. Security-sensitive fields are server-managed.
     match /users/{userId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdminUser());
+      allow create: if isAuthenticated() && request.auth.uid == userId &&
+        !request.resource.data.keys().hasAny(['permissions', 'role', 'isAdmin', 'apiKey', 'verifiedWinner', 'winnerData']);
+      allow update: if isAuthenticated() && request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['permissions', 'role', 'isAdmin', 'apiKey', 'verifiedWinner', 'winnerData']);
+      allow delete: if false;
     }
+
+    match /developer_api_keys/{id} { allow read, write: if false; }
+    match /api_key_idempotency/{id} { allow read, write: if false; }
+    match /developer_api_audit/{id} { allow read, write: if false; }
+    match /project_repository_index/{id} { allow read, write: if false; }
 
     // Drafts — per-user project drafts for auto-save persistence
     match /drafts/{userId} {

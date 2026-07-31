@@ -2,7 +2,7 @@
  * DataService — reduced to caching + GitHub proxy layer.
  *
  * Project loading, search, stats, and ecosystem aggregation have been extracted
- * to ProjectDataService. Project submission has moved to SubmissionService.
+ * to ProjectDataService. Project mutations go through the authenticated API.
  *
  * This file retains the singleton pattern and re-exports for backward
  * compatibility. Consumers should migrate to the new services.
@@ -25,9 +25,6 @@ export { useDataService } from './DataServiceCore';
 
 // Re-exported methods (backward compat with project loading consumers)
 export { loadAllProjects, getProject, searchProjects, getEcosystemStats, clearProjectCache } from './ProjectDataService';
-
-// Re-exported submission method (backward compat)
-export { submitProject } from './SubmissionService';
 
 // Re-exported caching utilities (via dataService singleton)
 const { fetchWithCache, clearCache, cancelAllRequests } = dataService;

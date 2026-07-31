@@ -184,16 +184,6 @@ export async function isAdmin(req, authLib, db) {
       return { isAdmin: true, userId };
     }
 
-    // Check users collection for role
-    const userSnap = await db.collection('users').doc(userId).get();
-    if (userSnap.exists) {
-      const user = userSnap.data();
-      return {
-        isAdmin: user.role === 'admin' || user.isAdmin === true,
-        userId
-      };
-    }
-
     return { isAdmin: false, userId };
   } catch (e) {
     return { isAdmin: false };
@@ -213,12 +203,10 @@ export async function requireProjectPermission(db, userId, projectSlug, allowedR
   if (!userId || !projectSlug) return false;
 
   try {
-    // 1. First check if user is a global admin
-    const userSnap = await db.collection('users').doc(userId).get();
-    if (userSnap.exists) {
-      const user = userSnap.data();
-      if (user.role === 'admin' || user.isAdmin === true) return true;
-    }
+    // allowedRoles is retained for caller compatibility; ownership is canonical.
+    void allowedRoles;
+    const adminSnap = await db.collection('admins').doc(userId).get();
+    if (adminSnap.exists) return true;
 
     // 2. Check the project's own permissions
     const projectSnap = await db.collection('projects').doc(projectSlug).get();
@@ -226,21 +214,7 @@ export async function requireProjectPermission(db, userId, projectSlug, allowedR
 
     const project = projectSnap.data();
 
-    // Creator always has permission
-    if (project.creatorId === userId) return true;
-
-    // Check team members
-    const team = project.teamMembers || [];
-    const userRole = team.find(m => m.userId === userId || m.id === userId)?.role;
-
-    if (userRole && allowedRoles.includes(userRole)) {
-      return true;
-    }
-
-    // Check if specifically in allowedRoles or is editor
-    if (userRole === 'editor' && allowedRoles.includes('editor')) return true;
-
-    return false;
+    return Array.isArray(project.owners) && project.owners.includes(userId);
   } catch (error) {
     console.error('Permission check failed:', error);
     return false;

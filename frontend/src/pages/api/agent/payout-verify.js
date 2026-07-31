@@ -37,8 +37,9 @@
 
 import { logActivity } from '../../../utils/activityLogger';
 import { payoutVerifierService } from '../../../services/PayoutVerifierService';
+import { withAgentAuth } from '../../../lib/agentAuth';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -148,6 +149,8 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default withAgentAuth(handler);
 
 /**
  * Update a project's hackathon claim in Firestore with verification status.

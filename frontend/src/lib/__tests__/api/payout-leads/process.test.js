@@ -1,7 +1,9 @@
 /**
  * Payout Leads Process API — GET /api/payout-leads/process
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+const originalNodeEnv = process.env.NODE_ENV;
 
 const fakeDoc = (overrides = {}) => ({
   id: 'lead-abc123',
@@ -39,6 +41,11 @@ describe('/api/payout-leads/process', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+    delete process.env.CRON_SECRET;
+  });
+
   it('returns 405 for non-GET methods', async () => {
     const handler = (await import('../../../../pages/api/payout-leads/process')).default;
     const req = { method: 'POST' };
@@ -60,7 +67,6 @@ describe('/api/payout-leads/process', () => {
     };
     await handler(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
-    delete process.env.CRON_SECRET;
   });
 
   it('returns 401 when CRON_SECRET is set and auth is wrong', async () => {
@@ -73,7 +79,21 @@ describe('/api/payout-leads/process', () => {
     };
     await handler(req, res);
     expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('fails closed in production when CRON_SECRET is missing', async () => {
+    process.env.NODE_ENV = 'production';
     delete process.env.CRON_SECRET;
+    const handler = (await import('../../../../pages/api/payout-leads/process')).default;
+    const req = { method: 'GET', headers: {} };
+    const res = {
+      status: vi.fn(() => res),
+      json: vi.fn(),
+    };
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(503);
   });
 
   it('processes leads when CRON_SECRET matches', async () => {
@@ -102,6 +122,5 @@ describe('/api/payout-leads/process', () => {
     expect(payload.processed).toBe(1);
     expect(payload.total).toBe(1);
 
-    delete process.env.CRON_SECRET;
   });
 });

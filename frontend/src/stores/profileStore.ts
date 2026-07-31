@@ -1,8 +1,8 @@
 /**
- * useProfileStore — user preferences, theme, behavior tracking, permissions.
+ * useProfileStore — user preferences, theme, and behavior tracking.
  *
  * Replaces AppContext.tsx (theme + preferences + behavior) and the
- * permission portion of the old UserContext.tsx.
+ * preference portion of the old UserContext.tsx.
  *
  * SSR safety: localStorage is read in an effect below; the initial
  * state uses safe defaults. The store is gated by `NoSSR` in the
@@ -17,13 +17,6 @@ import { createStore, useStore, type Store } from "./createStore";
 // ============================================================================
 
 export type Theme = "light" | "dark" | "high-contrast";
-
-export interface Permission {
-  projectSlug: string;
-  projectName: string;
-  role: string;
-  grantedAt: any;
-}
 
 interface UserPreferences {
   theme?: Theme;
@@ -71,8 +64,6 @@ interface ProfileState {
   // Preferences
   preferences: UserPreferences;
   isLoaded: boolean;
-  // Permissions (set by authStore after sign-in / checkPendingPermissions)
-  userPermissions: Permission[];
 }
 
 const initialState: ProfileState = {
@@ -80,7 +71,6 @@ const initialState: ProfileState = {
   themeMounted: false,
   preferences: {},
   isLoaded: false,
-  userPermissions: [],
 };
 
 export const profileStore: Store<ProfileState> = createStore<ProfileState>(initialState);
@@ -276,14 +266,6 @@ function applySmartDefaults() {
   }
 }
 
-function setUserPermissions(perms: Permission[]) {
-  profileStore.setState({ userPermissions: perms });
-}
-
-function hasProjectPermission(slug: string) {
-  return profileStore.getState().userPermissions.some((p) => p.projectSlug === slug);
-}
-
 function usageStats() {
   const { preferences } = profileStore.getState();
   return { totalInteractions: preferences.totalInteractions || 0, featureUsage: preferences.featureUsage || {} };
@@ -351,8 +333,6 @@ export const profileActions = {
   getAdaptiveSettings,
   getPersonalizedRecommendations,
   applySmartDefaults,
-  setUserPermissions,
-  hasProjectPermission,
   usageStats,
   smartDefaults,
   refreshDerived,
@@ -407,7 +387,6 @@ export function useApp() {
   const themeMounted = useStore(profileStore, (s) => s.themeMounted);
   const preferences = useStore(profileStore, (s) => s.preferences);
   const isLoaded = useStore(profileStore, (s) => s.isLoaded);
-  const userPermissions = useStore(profileStore, (s) => s.userPermissions);
   return {
     theme,
     themeMounted,
@@ -433,7 +412,5 @@ export function useApp() {
     applySmartDefaults,
     smartDefaults,
     usageStats,
-    userPermissions,
-    hasProjectPermission,
   };
 }

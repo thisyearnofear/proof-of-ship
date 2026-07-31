@@ -41,7 +41,7 @@ import {
 export default function ProjectDetailPage() {
   const router = useRouter();
   const { ecosystem, slug } = router.query;
-  const { currentUser, hasProjectPermission } = useUser();
+  const { currentUser } = useUser();
   const { getProject, loadProjectDetails } = useEnhancedGithub();
 
   const [project, setProject] = useState(null);
@@ -146,8 +146,8 @@ export default function ProjectDetailPage() {
     async function checkAdmin() {
       try {
         if (!currentUser?.uid) { setIsAdminClient(false); return; }
-        const snap = await getDoc(doc(clientDb, 'users', currentUser.uid));
-        const admin = snap.exists && (snap.data().isAdmin === true || snap.data().role === 'admin');
+        const snap = await getDoc(doc(clientDb, 'admins', currentUser.uid));
+        const admin = snap.exists();
         if (!cancelled) setIsAdminClient(Boolean(admin));
       } catch {
         if (!cancelled) setIsAdminClient(false);
@@ -167,9 +167,8 @@ export default function ProjectDetailPage() {
   ]);
 
   const canEdit = useMemo(() => {
-    if (!slug) return false;
-    return Boolean(currentUser && hasProjectPermission(slug));
-  }, [currentUser, hasProjectPermission, slug]);
+    return Boolean(currentUser && (isAdminClient || project?.owners?.includes(currentUser.uid)));
+  }, [currentUser, isAdminClient, project?.owners]);
 
   if (loading) {
     return (

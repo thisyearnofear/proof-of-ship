@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useUser } from '@/stores/authStore';
 import { useNanopayment, useWallet } from '@/stores/walletStore';
 import UserProfile from '@/components/Auth/UserProfile';
+import DeveloperApiKeys from '@/components/Auth/DeveloperApiKeys';
 import TransactionFeed from '@/components/common/TransactionFeed';
 import BuilderXpCard from '@/components/gamification/BuilderXpCard';
 import useBuilderXp from '@/hooks/useBuilderXp';
@@ -40,7 +41,7 @@ export default function ProfilePage() {
       try {
         const { db } = await import('@/lib/firebase/clientApp');
         const { collection, query, where, getDocs } = await import('firebase/firestore');
-        const q = query(collection(db, 'projects'), where('submittedBy', '==', currentUser.uid));
+        const q = query(collection(db, 'projects'), where('owners', 'array-contains', currentUser.uid));
         const snap = await getDocs(q);
         if (!cancelled) {
           setMyProjects(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -91,6 +92,8 @@ export default function ProfilePage() {
         {/* Left column: profile + stats */}
         <div className="lg:col-span-2 space-y-6">
           <UserProfile />
+
+          {!isBacker && <DeveloperApiKeys />}
 
           {/* My Projects - Builders only */}
           {!isBacker && (

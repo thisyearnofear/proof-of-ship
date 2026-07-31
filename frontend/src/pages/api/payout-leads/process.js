@@ -24,6 +24,9 @@ export default async function handler(req, res) {
   }
 
   const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret && process.env.NODE_ENV === "production") {
+    return res.status(503).json({ error: "Cron authentication is not configured" });
+  }
   if (cronSecret) {
     const auth = req.headers.authorization;
     if (!auth || auth !== `Bearer ${cronSecret}`) {

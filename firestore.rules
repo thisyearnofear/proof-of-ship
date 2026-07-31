@@ -18,18 +18,6 @@ service cloud.firestore {
              get(/databases/$(database)/documents/$(col)/$(projectId)).data.owners.hasAny([userId]);
     }
 
-    function isProjectPublic(col, projectId) {
-      return exists(/databases/$(database)/documents/$(col)/$(projectId)) &&
-             'isPublic' in get(/databases/$(database)/documents/$(col)/$(projectId)).data &&
-             get(/databases/$(database)/documents/$(col)/$(projectId)).data.isPublic == true;
-    }
-    
-    function isProjectApproved(col, projectId) {
-      return exists(/databases/$(database)/documents/$(col)/$(projectId)) &&
-             'status' in get(/databases/$(database)/documents/$(col)/$(projectId)).data &&
-             get(/databases/$(database)/documents/$(col)/$(projectId)).data.status == 'approved';
-    }
-
     function isCampaignOwner(campaignId) {
       let campaign = get(/databases/$(database)/documents/TestingCampaigns/$(campaignId)).data;
       return isAuthenticated() && isProjectOwner('projects', campaign.projectId);

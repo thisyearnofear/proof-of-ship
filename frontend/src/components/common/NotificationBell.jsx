@@ -14,8 +14,10 @@ const ICON_MAP = {
   milestone: "✅",
   payout: "💰",
   new_follower: "👥",
-  badge_earned: "🏅",
+  badge_earned: "🏆",
   rank_change: "📈",
+  winner_verified: "🏆",
+  backing_received: "💰",
 };
 
 function timeAgo(timestamp) {

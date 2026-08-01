@@ -16,6 +16,7 @@ import useNotificationFeed from "@/hooks/useNotificationFeed";
 
 const OnboardingBanner = dynamic(() => import("@/components/common/OnboardingBanner"), { ssr: false });
 const AIChatWidget = dynamic(() => import("@/components/common/AIChatWidget"), { ssr: false });
+const VerificationMomentOverlay = dynamic(() => import("@/components/winner/VerificationMomentOverlay"), { ssr: false });
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -107,6 +108,7 @@ export default function App({ Component, pageProps }) {
         )}
         <Footer />
         <AIChatWidget />
+        <VerificationMomentOverlay />
       </div>
       </OnboardingCoordinator>
     </AppProviders>

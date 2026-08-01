@@ -8,6 +8,7 @@
  */
 
 import { db, auth } from '../../../lib/firebase/serverOnly';
+import { logActivity } from '../../../utils/activityLogger';
 
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization;
@@ -157,6 +158,20 @@ export default async function handler(req, res) {
           reviewedAt: now,
           updatedAt: now,
           ...(notes ? { reviewNotes: notes } : {}),
+        });
+
+        // Write a winner_verified activity so the user gets a real-time
+        // notification + the Verification Moment overlay fires on next session.
+        await logActivity({
+          type: 'winner_verified',
+          userId: claimData.uid,
+          userHandle: claimData.uid,
+          description: `Verified as a winner of ${claimData.hackathonName}!`,
+          metadata: {
+            hackathonName: claimData.hackathonName,
+            outcome: claimData.outcome || 'winner',
+            verifiedAt: now,
+          },
         });
 
         return res.status(200).json({

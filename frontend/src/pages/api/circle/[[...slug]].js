@@ -3,6 +3,49 @@ import { withApiMiddleware, validateRequiredFields, parseQueryParams } from "../
 import { serviceRegistry } from "../../../services/ServiceRegistry";
 import { ApiResponse } from "../../../utils/apiResponse";
 
+/**
+ * Verify the Firebase ID token from the Authorization header.
+ * Returns { uid } on success, or null on failure.
+ * Used to gate money-movement endpoints (wallet creation, transaction creation, transfers).
+ */
+async function verifyAuthToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    const { auth } = await import('@/lib/firebase/serverOnly');
+    const decodedToken = await auth.verifyIdToken(idToken);
+    return { uid: decodedToken.uid };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if the authenticated user is an admin.
+ * Returns { uid, isAdmin } on success, or null on failure.
+ */
+async function verifyAdmin(req) {
+  const decoded = await verifyAuthToken(req);
+  if (!decoded) return null;
+  try {
+    const { db } = await import('@/lib/firebase/serverOnly');
+    const adminDoc = await db.collection('admins').doc(decoded.uid).get();
+    return { uid: decoded.uid, isAdmin: adminDoc.exists };
+  } catch {
+    return { uid: decoded.uid, isAdmin: false };
+  }
+}
+
+/**
+ * Send a 401 response for unauthenticated requests.
+ */
+function unauthorized(res) {
+  return res.status(401).json({ success: false, error: 'Authentication required' });
+}
+
 const handler = withApiMiddleware(async (req, res) => {
   const slug = req.query.slug || [];
   const parts = Array.isArray(slug) ? slug : [];
@@ -133,6 +176,10 @@ async function handleTransactions(req, res) {
   }
 
   if (req.method === 'POST') {
+    // Authenticate: only logged-in users can create transactions
+    const decoded = await verifyAuthToken(req);
+    if (!decoded) return unauthorized(res);
+
     try {
       validateRequiredFields(req.body, ['walletId', 'destinationAddress', 'amount']);
 
@@ -277,6 +324,10 @@ async function handleListCreateWallets(req, res) {
         data: result.data,
       });
     } else if (req.method === "POST") {
+      // Authenticate: only logged-in users can create wallets
+      const decoded = await verifyAuthToken(req);
+      if (!decoded) return unauthorized(res);
+
       const { metadata } = req.body;
       const config = {
         name: metadata?.name || "Developer Wallet",

@@ -24,7 +24,41 @@ import {
 } from '@heroicons/react/24/outline';
 import { PrivacyInline, PrivacyBadge } from './common/PrivacyShield';
 
-export default function BackingPanel({ projectId, developerAddress, builderSnsDomain }) {
+/**
+ * Fire-and-forget: notify the builder that they just got backed.
+ * Calls the server-side activity logger which writes to the `activities`
+ * collection. The builder sees it in their notification bell within 60s
+ * (the polling interval of useNotificationFeed).
+ */
+function notifyBuilderBacked(developerAddress, amount, multiplier) {
+  if (!developerAddress) return;
+  try {
+    const { auth } = require('@/lib/firebase/clientApp');
+    const user = auth?.currentUser;
+    if (!user) return;
+    user.getIdToken().then((token) => {
+      fetch('/api/activity/log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: 'backing_received',
+          walletAddress: developerAddress,
+          amount,
+          multiplier,
+          projectSlug: undefined,
+          ecosystem: undefined,
+        }),
+      }).catch(() => {});
+    }).catch(() => {});
+  } catch {
+    // non-fatal — notification is best-effort
+  }
+}
+
+export default function BackingPanel({ projectId, developerAddress, builderSnsDomain, projectName }) {
   const wallet = useWallet();
   const { getUSDCBalanceAsync } = useBuilderCredit();
   const { incentives } = useTorqueIncentives();
@@ -160,12 +194,38 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
           amountLamports,
           recipient,
         );
-        setSuccess(`Private stake sent! Amount shielded via Cloak.`);
+        setSuccess(`🎉 Private stake sent! ${amount} USDC shielded via Cloak at ${(multiplier / 100).toFixed(1)}x.`);
+        notifyBuilderBacked(developerAddress, amount, multiplier);
+      } else if (wallet.activeChainFamily === 'solana' && wallet.solanaWallet) {
+        // Solana public staking via Anchor program
+        if (!projectName) {
+          throw new Error('Project name is required to back a Solana project');
+        }
+        const { solanaCreditService } = await import('@/services/SolanaCreditService');
+        const { getSolanaConnection } = await import('@/lib/chains/solanaConnection');
+        const { PublicKey } = await import('@solana/web3.js');
+
+        const developerPubkey = new PublicKey(
+          isValidSolanaAddress(developerAddress) ? developerAddress : wallet.solanaAddress
+        );
+        const projectPda = solanaCreditService.deriveProjectPda(developerPubkey, projectName);
+        const amountBase = BigInt(Math.round(parseFloat(amount) * 1_000_000));
+
+        const result = await solanaCreditService.backProject(
+          getSolanaConnection({ commitment: 'processed' }),
+          wallet.solanaWallet,
+          projectPda,
+          amountBase.toString(),
+          multiplier,
+        );
+        setSuccess(`🎉 Backed! ${amount} USDC at ${(multiplier / 100).toFixed(1)}x — repaid when ${projectName || 'this builder'} wins.`);
+        notifyBuilderBacked(developerAddress, amount, multiplier);
       } else {
-        // Standard public staking
+        // Standard EVM public staking
         const { creditService } = await import('@/services/creditService');
         const receipt = await creditService.backProject(wallet.chainId, wallet.publicClient, wallet.walletClient, projectId, multiplier, amount);
-        setSuccess(`Successfully backed project! Transaction: ${receipt.transactionHash ? receipt.transactionHash.slice(0, 10) : 'sent'}...`);
+        setSuccess(`🎉 Backed! ${amount} USDC at ${(multiplier / 100).toFixed(1)}x — repaid when ${projectName || 'this builder'} wins.`);
+        notifyBuilderBacked(developerAddress, amount, multiplier);
       }
 
       setStage('form');
@@ -441,17 +501,17 @@ export default function BackingPanel({ projectId, developerAddress, builderSnsDo
             <div className="flex justify-between items-center">
               <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <ShieldCheckIcon className="w-4 h-4 mr-1 text-green-500 dark:text-green-400" />
-                Backer Confidence
+                Community Backing
               </div>
               <div className="text-sm font-bold text-primary">
                 ${parseFloat(totalBacking || 0).toFixed(2)} USDC
               </div>
             </div>
             <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
-              <div 
-                className="bg-indigo-500 h-2 rounded-full transition-all duration-500" 
-                style={{ width: `${Math.min(100, (parseFloat(totalBacking || 0) / 5000) * 100)}%` }}
-              ></div>
+              <div
+                className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(5, (parseFloat(totalBacking || 0) / Math.max(1000, parseFloat(totalBacking || 0) * 2)) * 100))}%` }}
+              />
             </div>
             {backerCount > 0 && (
               <div className="mt-3 flex items-center text-xs text-gray-500 dark:text-gray-400">

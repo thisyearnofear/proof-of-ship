@@ -105,6 +105,7 @@ describe('/api/payout-leads/process', () => {
         hackathonName: 'Test Hacks',
         email: 'dev@test.com',
         prizeAmount: 10000,
+        announcementUrl: 'https://example.com/winners',
       }),
     ];
     db.collection = vi.fn(() => fakeQuery(docs));
@@ -122,5 +123,33 @@ describe('/api/payout-leads/process', () => {
     expect(payload.processed).toBe(1);
     expect(payload.total).toBe(1);
 
+  });
+
+  it('skips leads without evidence URL (trust gate)', async () => {
+    process.env.CRON_SECRET = 'my-secret';
+
+    const { db } = await import('@/lib/firebase/serverOnly');
+    const docs = [
+      fakeDoc({
+        hackathonName: 'No Evidence Hack',
+        email: 'dev@test.com',
+        prizeAmount: 5000,
+        // no announcementUrl or evidenceUrl
+      }),
+    ];
+    db.collection = vi.fn(() => fakeQuery(docs));
+
+    const handler = (await import('../../../../pages/api/payout-leads/process')).default;
+    const req = { method: 'GET', headers: { authorization: 'Bearer my-secret' } };
+    const res = {
+      status: vi.fn(() => res),
+      json: vi.fn(),
+    };
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.processed).toBe(0);
+    expect(payload.skipped).toBe(1);
   });
 });

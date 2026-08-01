@@ -85,6 +85,18 @@ export default async function handler(req, res) {
       for (const claim of hackathons) {
         if (!claim.name) continue;
 
+        // Trust gate: only surface verified claims on the public leaderboard.
+        // Claims must either be payout_verified, or have evidence attached
+        // with a real evidenceUrl. "pending" claims are excluded entirely
+        // so unverified self-attested wins never appear publicly.
+        const status = claim.verificationStatus;
+        if (status === "pending" || (!status && !claim.evidenceUrl)) {
+          continue;
+        }
+        if (status === "evidence_attached" && !claim.evidenceUrl) {
+          continue;
+        }
+
         const proof = summarizeClaimProof(claim);
         const key = claim.name.trim().toLowerCase();
 

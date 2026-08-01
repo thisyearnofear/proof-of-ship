@@ -70,7 +70,7 @@ export default function PayoutSimulationPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <Head>
-        <title>Admin Payout Simulation | Builder Credit</title>
+        <title>Admin Payout Simulation | Proof of Ship</title>
       </Head>
 
       <div className="max-w-6xl mx-auto">

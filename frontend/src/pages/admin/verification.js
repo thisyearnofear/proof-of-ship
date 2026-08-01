@@ -74,7 +74,7 @@ export default function VerificationDashboardPage() {
   return (
     <div className="min-h-screen bg-[#f1f5f9]">
       <Head>
-        <title>Verification Dashboard | Builder Credit</title>
+        <title>Verification Dashboard | Proof of Ship</title>
       </Head>
 
       {/* Verification Header */}

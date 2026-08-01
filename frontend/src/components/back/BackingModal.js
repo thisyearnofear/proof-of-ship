@@ -10,6 +10,36 @@ import SnsIdentityBadge from "@/components/common/SnsIdentityBadge";
 import { isValidSolanaAddress } from "@/utils/common";
 
 /**
+ * Fire-and-forget: notify the builder that they just got backed.
+ * Best-effort — never blocks the UI.
+ */
+function notifyBuilderBacked(developerAddress, amount, multiplier) {
+  if (!developerAddress) return;
+  try {
+    const { auth } = require("@/lib/firebase/clientApp");
+    const user = auth?.currentUser;
+    if (!user) return;
+    user.getIdToken().then((token) => {
+      fetch("/api/activity/log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: "backing_received",
+          walletAddress: developerAddress,
+          amount,
+          multiplier,
+        }),
+      }).catch(() => {});
+    }).catch(() => {});
+  } catch {
+    // non-fatal
+  }
+}
+
+/**
  * @param {{
  *   project: object,
  *   wallet: object,
@@ -43,6 +73,9 @@ export default function BackingModal({ project, wallet, onClose, onSuccess }) {
       );
       setBackingStatus("success");
       onSuccess?.();
+
+      // Fire-and-forget: notify the builder they got backed
+      notifyBuilderBacked(project.developer, backingAmount, parseInt(backingMultiplier, 10));
     } catch (err) {
       setBackingStatus("error");
       setBackingError(err.message || "Transaction failed");

@@ -7,11 +7,11 @@ export default function Document() {
         <meta charSet="utf-8" />
         <meta name="description" content="Proof of Ship — On-chain builder credit backed by reputation. AI agents analyze, backers stake, builders ship." />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Proof of Ship — Builder Credit Platform" />
+        <meta property="og:title" content="Proof of Ship — Builder Credit for Hackathon Winners" />
         <meta property="og:description" content="On-chain builder credit backed by reputation. AI agents analyze, backers stake, builders ship." />
         <meta property="og:site_name" content="Proof of Ship" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Proof of Ship — Builder Credit Platform" />
+        <meta name="twitter:title" content="Proof of Ship — Builder Credit for Hackathon Winners" />
         <meta name="twitter:description" content="On-chain builder credit backed by reputation. AI agents analyze, backers stake, builders ship." />
         <link rel="icon" href="/favicon.ico" />
         

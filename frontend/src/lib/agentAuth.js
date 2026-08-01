@@ -9,6 +9,8 @@
  * In production, consider adding session-based auth or JWT.
  */
 
+import { timingSafeEqual } from "crypto";
+
 export function withAgentAuth(handler) {
   return async (req, res) => {
     const apiKey = process.env.AGENT_API_KEY;
@@ -36,16 +38,13 @@ export function withAgentAuth(handler) {
       });
     }
 
-    // Constant-time comparison to prevent timing attacks
-    let valid = true;
-    if (providedKey.length !== apiKey.length) {
-      valid = false;
-    }
-    for (let i = 0; i < (providedKey.length < apiKey.length ? providedKey.length : apiKey.length); i++) {
-      if (providedKey.charCodeAt(i) !== apiKey.charCodeAt(i)) {
-        valid = false;
-      }
-    }
+    // Constant-time comparison using Node's crypto.timingSafeEqual.
+    // Buffers must be the same length; we compare length first (this is
+    // acceptable since the key length is not secret), then compare contents
+    // in constant time to prevent timing attacks on the key itself.
+    const a = Buffer.from(providedKey);
+    const b = Buffer.from(apiKey);
+    const valid = a.length === b.length && timingSafeEqual(a, b);
 
     if (!valid) {
       return res.status(403).json({

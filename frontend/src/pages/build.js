@@ -91,7 +91,7 @@ export default function BuildPage() {
   if (!isActuallyConnected) {
     return (
       <>
-        <Head><title>Build | Builder Credit</title></Head>
+        <Head><title>Build | Proof of Ship</title></Head>
         <div className="py-12 max-w-xl mx-auto px-4 text-center space-y-8">
           <PageHeader
             align="center"

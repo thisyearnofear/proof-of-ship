@@ -64,6 +64,10 @@ export default function useNotificationFeed() {
 }
 
 function isRelevantToUser(activity, userId) {
+  // Winner verification — always show to the verified user
+  if (activity.type === "winner_verified" && activity.userId === userId) return true;
+  // Backing received — show to the builder who was backed
+  if (activity.type === "backing_received" && activity.userId === userId) return true;
   // Show activities related to the user's projects or direct actions
   if (activity.userHandle === userId || activity.userId === userId) return true;
   if (activity.type === "follow" && activity.followedId === userId) return true;
@@ -123,6 +127,30 @@ function transformActivity(activity) {
         timestamp,
         read: false,
         href: null,
+      };
+
+    case "winner_verified":
+      return {
+        id,
+        type: "badge_earned",
+        title: "🏆 You're a Verified Winner!",
+        description: activity.description || `Verified as a hackathon winner`,
+        timestamp,
+        read: false,
+        href: "/profile",
+      };
+
+    case "backing_received":
+      return {
+        id,
+        type: "payout",
+        title: "💰 You just got backed!",
+        description: activity.description || "A backer staked on your project",
+        timestamp,
+        read: false,
+        href: activity.metadata?.projectSlug
+          ? `/projects/${activity.metadata.ecosystem || "base"}/${activity.metadata.projectSlug}`
+          : null,
       };
 
     default:

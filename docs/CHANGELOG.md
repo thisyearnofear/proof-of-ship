@@ -1,5 +1,75 @@
 # Changelog
 
+## 2026-08-01 — 6★ Winner Experience: Security Hardening + Winner Moments + Polish
+
+A full-stack pass to close trust gaps, build celebratory moments for verified hackathon winners, and fix UX inconsistencies — all oriented around the north star of treating winners as the hero user. 3 tracks, 17 changes, 465/465 tests pass (+1 new), build clean.
+
+### Track A: Security & Trust Fixes
+
+**A1 — Circle wallet/transaction endpoints locked down** (`api/circle/[[...slug]].js`)
+`handleTransactions` POST and `handleListCreateWallets` POST now require a Firebase ID token, mirroring the existing `handleTransfer` auth pattern. Previously these money-movement endpoints had no auth check at all — only a 60/min in-memory rate limit. Added `verifyAuthToken()` and `verifyAdmin()` helpers. GET routes remain public.
+
+**A2 — Winner claim trust gate** (`api/payout-leads/process.js`)
+The daily cron no longer auto-mints claims with `verificationStatus: "evidence_attached"` and `evidenceUrl: null`. Leads without an evidence URL (announcement link) are now marked `pending_evidence` and skipped. Claims start as `"pending"` until verified via `PayoutVerifierService` or admin review. Idempotency check added — already-verified leads are skipped.
+
+**A3 — Payout-leads verify idempotency + slug unification** (`api/payout-leads/verify.js`)
+Slug scheme unified to `name-lead-{leadId[:8]}` (was `name-lead` — diverged from process.js). 409 returned if lead is already verified. Duplicate-claim check before appending to `projects.hackathons[]` — existing claim for the same `leadId` is updated, not duplicated.
+
+**A4 — Public leaderboard trust gate** (`api/hackathons/leaderboard.js`)
+Claims with `verificationStatus: "pending"` or missing `evidenceUrl` are excluded from the public leaderboard. Unverified self-attested wins can no longer appear publicly — the trust contract that the entire value proposition rests on.
+
+**A5 — Snapshot cron URL + auth fix** (`api/leaderboard/snapshot.js`)
+Fixed broken self-fetch URL — `VERCEL_URL` has no scheme, so `fetch("vercel-xxx.vercel.app/api/...")` threw "Failed to parse URL". Prefixed `https://`. Auth guard now hard-fails in production when `CRON_SECRET` is unset (was conditional on `VERCEL && CRON_SECRET`, weaker than process.js's posture).
+
+**A6 — Referrals Firestore rule** (`firestore.rules`)
+Added `referrals/{userId}` rule — `allow create: if isAuthenticated() && request.auth.uid == userId`. The client-side write in `authStore.ts:120` was being silently denied (no rule existed) and swallowed by a catch block. Referral attribution now works.
+
+**A7 — Timing-safe comparison** (`lib/agentAuth.js`)
+Replaced hand-rolled char-by-char comparison with `crypto.timingSafeEqual` (Node `crypto` module). The old code leaked key length before comparison and was hand-rolled crypto.
+
+### Track B: Winner Moments
+
+**B1 — Verification event trigger** (`api/admin/winner-claims.js`)
+When admin approves a winner claim, a `winner_verified` activity is written to the `activities` collection via `logActivity()`. This feeds the existing `useNotificationFeed` polling loop (60s interval) — no new infrastructure needed.
+
+**B2 — Notification transform** (`hooks/useNotificationFeed.js`, `NotificationBell.jsx`)
+Added `winner_verified` and `backing_received` activity types. Winners see "🏆 You're a Verified Winner!" in their notification bell within 60s of admin approval. Builders see "💰 You just got backed!" when someone stakes on their project.
+
+**B3 — Verification Moment overlay** (`components/winner/VerificationMomentOverlay.jsx`, new)
+Full-screen celebratory takeover shown on the next session open after verification. Dark gradient, gold shimmer, badge rising in center, hackathon name displayed, "You're now part of an exclusive group of proven builders" copy, dual CTAs ("View My Profile" / "Explore First"). Respects `prefers-reduced-motion`. Shows once per verification (localStorage-gated by notification ID).
+
+**B4 — Overlay wired into app root** (`pages/_app.js`)
+`VerificationMomentOverlay` dynamically imported (SSR disabled) and rendered at app root after `AIChatWidget`.
+
+**B5 — "You got backed" builder notification** (`api/activity/log.js` new, `BackingPanel.js`, `back/BackingModal.js`)
+New authenticated activity-logging endpoint — allowlisted types only, resolves builder uid from wallet address via `wallet_index` lookup. Both backing surfaces (BackingPanel, BackingModal) now fire a `backing_received` activity after success. BackingPanel success messages replaced from transactional `Transaction: 0x1234...` to celebratory `🎉 Backed! {amount} USDC at {mult}x — repaid when {builder} wins.`
+
+**B6 — $5k phantom bar fix** (`BackingPanel.js`)
+Replaced hardcoded `/ 5000` denominator (which made every low-volume project's bar look perpetually empty) with a dynamic scale: `max(1000, totalBacking * 2)` with a 5% floor. Renamed "Backer Confidence" to "Community Backing".
+
+### Track C: Product Design Polish
+
+**C1 — Brand unification** (`build.js`, `back.js`, `signup.js`, `admin/verification.js`, `admin/payout-simulation.js`, `_document.js`)
+All "Builder Credit" page titles replaced with "Proof of Ship". One brand, one trust cue.
+
+**C2 — Dead redirect routes verified** (`compare.js`, `scout.js`, `analyze.js`)
+Audited these as proper `useRouteRedirect` redirects with meta-refresh fallbacks and loading spinners — not dead stubs. Kept as-is.
+
+**C3 — Hackathon CTAs wired** (`hackathons/[id].js`)
+"Register" / "Join Hackathon" buttons now link to `hackathon.registrationUrl` (new tab, `noopener noreferrer`). Hidden entirely when no registration URL exists (was showing dead buttons). "Submit Project" links to `/projects/new`. "View on Explorer" links to Etherscan. All use `min-h-touch` for mobile.
+
+### Docs
+
+**AGENTS.md** — Fixed stale references: `SubmissionService` removed (no longer exists), "hourly" cron corrected to "daily", payout-lead pipeline description updated to reflect the evidence-URL trust gate and leaderboard verification gate.
+
+### Validation
+
+- TypeScript: clean (`npx tsc --noEmit`)
+- Vitest: 465/465 pass (was 464 at HEAD; +1 new test for the evidence-URL trust gate)
+- Production build: all routes built successfully (Turbopack)
+
+---
+
 ## 2026-06-02 — Code Quality: Test Coverage Wave, Vercel Build Leak, Hydrator Split, Dark-Mode Pass
 
 A focused day of compounding quality work — 7 atomic commits covering test coverage, real production bugs surfaced and fixed, a Vercel build leak caught early, a single-concern refactor, and a dark-mode contrast pass driven by user feedback. Test count grew from 149 → 315 (+166 tests, +111%).

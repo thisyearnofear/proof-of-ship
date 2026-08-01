@@ -11,10 +11,14 @@
 import { db } from "../../../lib/firebase/serverOnly";
 
 export default async function handler(_req, res) {
-  // Verify Vercel cron signature (production only)
-  if (process.env.VERCEL && process.env.CRON_SECRET) {
+  // Verify Vercel cron signature — hard-fail in production when unset
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret && process.env.NODE_ENV === "production") {
+    return res.status(503).json({ error: "Cron authentication is not configured" });
+  }
+  if (cronSecret) {
     const authHeader = _req.headers.authorization;
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: "Unauthorized" });
     }
   }
@@ -24,7 +28,11 @@ export default async function handler(_req, res) {
     const seasonId = getSeasonId(now);
 
     // Fetch current leaderboard rankings
-    const leaderboardRes = await fetch(`${process.env.VERCEL_URL || "http://localhost:3000"}/api/hackathons/leaderboard`);
+    // VERCEL_URL has no scheme — prefix https:// (or fall back to localhost for dev)
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const leaderboardRes = await fetch(`${baseUrl}/api/hackathons/leaderboard`);
     if (!leaderboardRes.ok) {
       throw new Error(`Leaderboard fetch failed: ${leaderboardRes.status}`);
     }

@@ -56,6 +56,28 @@ export default async function handler(req, res) {
           continue;
         }
 
+        // Idempotency: skip leads already verified
+        if (lead.status === "verified") {
+          skipped++;
+          details.push({ leadId, status: "skipped", reason: "already verified" });
+          continue;
+        }
+
+        // Trust gate: require evidence URL (announcement link) before creating
+        // a public-facing claim. Without evidence, the claim stays pending
+        // and is not surfaced on the leaderboard.
+        const evidenceUrl = lead.announcementUrl || lead.evidenceUrl || null;
+        if (!evidenceUrl) {
+          // Mark as pending — admin can add evidence and re-process
+          await db.collection("payoutLeads").doc(leadId).update({
+            status: "pending_evidence",
+            updatedAt: new Date().toISOString(),
+          });
+          skipped++;
+          details.push({ leadId, status: "skipped", reason: "missing evidence URL" });
+          continue;
+        }
+
         const slug = lead.hackathonName
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
@@ -68,7 +90,8 @@ export default async function handler(req, res) {
           hackathonEndDate: new Date().toISOString(),
           payoutAt: null,
           payoutVerifiedAt: null,
-          verificationStatus: "evidence_attached",
+          verificationStatus: "pending",
+          evidenceUrl,
           source: "payout-lead",
           leadId,
           submittedAt: lead.createdAt || new Date().toISOString(),

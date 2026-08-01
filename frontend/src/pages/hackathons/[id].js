@@ -217,17 +217,27 @@ export default function HackathonDetailPage() {
                   </div>
                 )}
 
-                {/* Action buttons */}
-                {!participationStatus && isUpcoming && (
-                  <Button variant="primary" size="sm">
+                {/* Action buttons — only show if registration URL is available */}
+                {!participationStatus && isUpcoming && hackathon.registrationUrl && (
+                  <a
+                    href={hackathon.registrationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors min-h-touch"
+                  >
                     Register
-                  </Button>
+                  </a>
                 )}
 
-                {!participationStatus && isActive && (
-                  <Button variant="primary" size="sm">
+                {!participationStatus && isActive && hackathon.registrationUrl && (
+                  <a
+                    href={hackathon.registrationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors min-h-touch"
+                  >
                     Join Hackathon
-                  </Button>
+                  </a>
                 )}
               </div>
             </div>
@@ -309,9 +319,14 @@ export default function HackathonDetailPage() {
                         <span className="text-sm text-gray-600 dark:text-gray-400 break-all">
                           {hackathon.verificationContract}
                         </span>
-                        <Button variant="secondary" size="xs">
+                        <a
+                          href={`https://etherscan.io/address/${hackathon.verificationContract}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center px-3 py-1 text-xs font-medium border border-border-primary bg-surface-primary text-text-secondary rounded hover:bg-surface-hover hover:text-blue-500 transition-colors min-h-touch"
+                        >
                           View on Explorer
-                        </Button>
+                        </a>
                       </div>
                     </div>
                   )}
@@ -433,10 +448,13 @@ export default function HackathonDetailPage() {
                     </div>
 
                     {isActive && (
-                      <Button variant="primary" size="sm" className="w-full justify-start">
+                      <a
+                        href="/projects/new"
+                        className="inline-flex items-center justify-center w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors min-h-touch"
+                      >
                         <PlusIcon className="h-4 w-4 mr-2" />
                         Submit Project
-                      </Button>
+                      </a>
                     )}
                   </div>
                 </div>

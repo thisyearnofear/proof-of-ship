@@ -237,5 +237,16 @@ service cloud.firestore {
       allow read: if isAdminUser();
       allow write: if false;
     }
+
+    // Referrals — tracks referral attribution for new users.
+    // Each doc: { referralCode, referredUid, referredAt, bonusXp, status }
+    // Read: only the referred user can read their own referral record.
+    // Write: only server-side via admin SDK, except the initial create
+    // which a user can write for their own uid during sign-up.
+    match /referrals/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update, delete: if false;
+    }
   }
 }

@@ -74,7 +74,7 @@ export default function BackPage() {
 
   return (
     <ErrorBoundary name="BackPage" errorMessage="Failed to load. Please refresh.">
-      <Head><title>Back | Builder Credit</title></Head>
+      <Head><title>Back | Proof of Ship</title></Head>
       <div className="min-h-screen bg-surface-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Modal

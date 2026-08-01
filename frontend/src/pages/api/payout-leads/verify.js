@@ -39,12 +39,19 @@ async function handler(req, res) {
     }
     const lead = leadDoc.data();
 
-    // 2. Determine project slug
-    const slug = projectSlug || lead.hackathonName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-lead";
+    // Idempotency: if lead is already verified, don't duplicate the claim
+    if (lead.status === "verified") {
+      return res.status(409).json({ error: "This lead has already been verified", projectSlug: lead.projectSlug || null });
+    }
+
+    // 2. Determine project slug (unified scheme: name-lead-{leadId[:8]})
+    const slug = projectSlug || lead.hackathonName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + `-lead-${leadId.slice(0, 8)}`;
 
     // 3. Update or create the project document with a hackathon claim
     const projectRef = db.collection("projects").doc(slug);
     const projectSnap = await projectRef.get();
+
+    const evidenceUrl = lead.announcementUrl || lead.evidenceUrl || null;
 
     const claim = {
       name: lead.hackathonName,
@@ -53,8 +60,11 @@ async function handler(req, res) {
       hackathonEndDate: new Date().toISOString(),
       payoutAt: null,
       payoutVerifiedAt: null,
-      verificationStatus: "evidence_attached",
-      evidenceUrl: null,
+      // Claims start as "pending" until verified via PayoutVerifierService
+      // or admin review. "evidence_attached" is only set when evidenceUrl exists
+      // AND an on-chain attestation has been recorded.
+      verificationStatus: evidenceUrl ? "evidence_attached" : "pending",
+      evidenceUrl,
       source: "payout-lead",
       leadId: leadId,
       submittedAt: lead.createdAt,
@@ -74,7 +84,13 @@ async function handler(req, res) {
     } else {
       const existing = projectSnap.data();
       const hackathons = Array.isArray(existing.hackathons) ? [...existing.hackathons] : [];
-      hackathons.push(claim);
+      // Idempotency: don't append a duplicate claim for the same lead
+      const existingIdx = hackathons.findIndex(h => h.leadId === leadId);
+      if (existingIdx >= 0) {
+        hackathons[existingIdx] = claim;
+      } else {
+        hackathons.push(claim);
+      }
       await projectRef.update({
         hackathons,
         updatedAt: new Date().toISOString(),

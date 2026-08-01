@@ -2,6 +2,8 @@
 
 Decentralized platform where backers fund builders and hackathon prizes collateralize credit.
 
+> **6★ Winner Experience:** See [SIX_STAR_ROADMAP.md](./SIX_STAR_ROADMAP.md) for the full initiative tracking — what's done (security hardening, winner moments, dark-mode migration) and what remains (scale, lifecycle, organizer tools).
+>
 > **New:** See [VISION.md](./VISION.md) for the unified capital-stack narrative (Bags Token → x402 Credit → Prize Routing) and how the agentic layer prices, scouts, and verifies across all three rails.
 >
 > **Arc update:** See [HACKATHON_ARC.md](./HACKATHON_ARC.md) for the current Arc agent integration, including the simplified `setup → analyze → review` flow, explicit demo/live payment states, and result-source metadata.
@@ -97,6 +99,38 @@ Payout speed color coding: ≤7d lightning, ≤30d fast, ≤90d moderate, >90d s
 ### Leaderboard Trust Gate
 
 Claims with `verificationStatus: "pending"` or missing `evidenceUrl` are excluded from the public leaderboard. Only claims with `verificationStatus` of `payout_verified` or `evidence_attached` (with a real `evidenceUrl`) surface publicly. This ensures unverified self-attested wins never appear on leaderboards that winners' peers and backers read.
+
+### Payout Verification Flow (End-to-End)
+
+1. Payout lead submitted via `PayoutLeadForm` → `payoutLeads` collection
+2. Daily cron (`/api/payout-leads/process`) processes leads with evidence URLs → creates project claims with `verificationStatus: "pending"`
+3. Cron's second pass calls `PayoutVerifierService.verify()` on claims with `payoutTxHash` or `circleTransferId`
+4. Verified payouts upgrade to `verificationStatus: "payout_verified"` with `payoutVerifiedAt` + `payoutActualAmount`
+5. Builder receives "🎉 Payout verified!" notification with amount and project link
+6. Only verified claims surface on the public leaderboard
+
+### Notification System
+
+Activities written to the `activities` collection are polled by `useNotificationFeed` (60s interval) and transformed into in-app notifications:
+
+| Activity type | Notification | Recipient | Trigger |
+|---|---|---|---|
+| `winner_verified` | 🏆 You're a Verified Winner! | Builder | Admin approves claim |
+| `backing_received` | 💰 You just got backed! | Builder | Backer stakes on project |
+| `payout_verified` | 🎉 Payout verified! | Builder | Cron confirms payout on-chain |
+| `rank_change` | 📈 You moved up! | Builder | Weekly snapshot detects upward rank movement |
+| `project_submitted` | 🚢 Project shipped! | Builder | Project submission |
+| `milestone_verified` | ✅ Milestone verified | Builder/Backer | Milestone verification |
+| `payout_processed` | 💰 Payout secured! | Builder/Backer | Funding processed |
+| `follow` | 👥 New follower | Builder | Follow event |
+
+### On-Chain Self-Verification Guard
+
+The Anchor program enforces `require!(verifier != developer.key(), ErrorCode::SelfVerificationNotAllowed)` in `request_funding`. The client-side `SolanaCreditService.requestFunding` adds a parallel guard. Developers cannot set themselves as their own milestone verifier at either layer.
+
+### Activity Logging
+
+`POST /api/activity/log` — authenticated, allowlisted-types-only endpoint for client-initiated activity logging. Currently supports `backing_received` (resolves builder uid from wallet address via `wallet_index` lookup). Recipient must differ from the actor.
 
 ### Badge System
 

@@ -209,16 +209,16 @@ export default function UserPortfolioPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-surface-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           {/* Hero skeleton */}
           <Card className="p-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-pulse">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-gray-200" />
+                <div className="w-14 h-14 rounded-full bg-surface-hover" />
                 <div className="space-y-2">
-                  <div className="h-6 w-40 bg-gray-200 rounded" />
-                  <div className="h-4 w-60 bg-gray-200 rounded" />
+                  <div className="h-6 w-40 bg-surface-hover rounded" />
+                  <div className="h-4 w-60 bg-surface-hover rounded" />
                 </div>
               </div>
             </div>
@@ -228,22 +228,22 @@ export default function UserPortfolioPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <Card key={i} className="p-4 animate-pulse">
-                <div className="h-4 w-16 bg-gray-200 rounded mb-2" />
-                <div className="h-7 w-24 bg-gray-200 rounded" />
+                <div className="h-4 w-16 bg-surface-hover rounded mb-2" />
+                <div className="h-7 w-24 bg-surface-hover rounded" />
               </Card>
             ))}
           </div>
 
           {/* Activity skeleton */}
           <Card className="p-6 animate-pulse">
-            <div className="h-6 w-40 bg-gray-200 rounded mb-6" />
+            <div className="h-6 w-40 bg-surface-hover rounded mb-6" />
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex gap-4">
-                  <div className="w-8 h-8 rounded-full bg-gray-200" />
+                  <div className="w-8 h-8 rounded-full bg-surface-hover" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-48 bg-gray-200 rounded" />
-                    <div className="h-3 w-full bg-gray-100 rounded" />
+                    <div className="h-4 w-48 bg-surface-hover rounded" />
+                    <div className="h-3 w-full bg-surface-secondary rounded" />
                   </div>
                 </div>
               ))}
@@ -254,12 +254,12 @@ export default function UserPortfolioPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-6">
-                <div className="h-4 w-3/4 bg-gray-200 rounded mb-3" />
-                <div className="h-3 w-full bg-gray-100 rounded mb-2" />
-                <div className="h-3 w-2/3 bg-gray-100 rounded mb-4" />
+                <div className="h-4 w-3/4 bg-surface-hover rounded mb-3" />
+                <div className="h-3 w-full bg-surface-secondary rounded mb-2" />
+                <div className="h-3 w-2/3 bg-surface-secondary rounded mb-4" />
                 <div className="flex gap-2">
-                  <div className="h-6 w-16 bg-gray-200 rounded-full" />
-                  <div className="h-6 w-20 bg-gray-200 rounded-full" />
+                  <div className="h-6 w-16 bg-surface-hover rounded-full" />
+                  <div className="h-6 w-20 bg-surface-hover rounded-full" />
                 </div>
               </Card>
             ))}
@@ -272,7 +272,7 @@ export default function UserPortfolioPage() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-surface-primary">
         <div className="max-w-3xl mx-auto py-20 px-4">
           <Card className="p-12 text-center">
             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
@@ -281,7 +281,7 @@ export default function UserPortfolioPage() {
             <h1 className="text-2xl font-bold text-primary mb-2">
               Builder not found
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+            <p className="text-secondary mb-8 max-w-md mx-auto">
               {error}
             </p>
             <div className="flex items-center justify-center gap-3">
@@ -355,7 +355,7 @@ export default function UserPortfolioPage() {
         name="UserPortfolio"
         errorMessage="Failed to load portfolio. Please refresh the page."
       >
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-surface-primary">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             {/* ── Hero Section ── */}
             <Card className="p-6 border-0 shadow-lg rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
@@ -547,7 +547,7 @@ export default function UserPortfolioPage() {
                     <span className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
                       <TrophyIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </span>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-200">
+                    <span className="text-sm font-semibold text-primary">
                       Leaderboard rank
                     </span>
                   </div>
@@ -574,13 +574,13 @@ export default function UserPortfolioPage() {
 
             {/* ── Badges ── */}
             {builderBadges.length > 0 && (
-              <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
+              <Card className="p-5 border-0 shadow-lg rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/20">
                 <div className="flex flex-wrap items-center gap-y-3">
                   <div className="flex items-center gap-2 mb-2 w-full sm:mb-0 sm:w-auto sm:mr-6">
                     <span className="w-8 h-8 bg-amber-200 rounded-xl flex items-center justify-center">
                       <StarIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     </span>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-200">
+                    <span className="text-sm font-semibold text-primary">
                       Badges
                     </span>
                   </div>
@@ -605,7 +605,7 @@ export default function UserPortfolioPage() {
                 <h2 className="text-xl font-bold text-primary">
                   Projects
                   {hasAnyFilter && (
-                    <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
+                    <span className="text-sm font-normal text-tertiary ml-2">
                       ({filteredProjects.length} of {portfolio?.projects?.length || 0})
                     </span>
                   )}
@@ -614,20 +614,20 @@ export default function UserPortfolioPage() {
                 <div className="flex items-center gap-2">
                   {/* Search */}
                   <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search projects..."
-                      className="pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none w-48"
+                      className="pl-9 pr-3 py-2 text-sm border border-default rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none w-48"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
                         className="absolute right-2 top-1/2 -translate-y-1/2"
                       >
-                        <XMarkIcon className="w-4 h-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:text-gray-400" />
+                        <XMarkIcon className="w-4 h-4 text-tertiary hover:text-secondary" />
                       </button>
                     )}
                   </div>
@@ -640,7 +640,7 @@ export default function UserPortfolioPage() {
                         className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border transition-colors ${
                           showFilters || selectedEcosystem
                             ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-                            : "border-gray-200 text-gray-600 dark:text-gray-400 hover:border-gray-300"
+                            : "border-default text-secondary hover:border-default"
                         }`}
                       >
                         <AdjustmentsHorizontalIcon className="w-4 h-4" />
@@ -653,8 +653,8 @@ export default function UserPortfolioPage() {
                             className="fixed inset-0 z-10"
                             onClick={() => setShowFilters(false)}
                           />
-                          <div className="absolute right-0 top-full mt-2 z-20 bg-white border border-gray-200 rounded-xl shadow-xl p-3 min-w-[200px]">
-                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
+                          <div className="absolute right-0 top-full mt-2 z-20 bg-surface border border-default rounded-xl shadow-xl p-3 min-w-[200px]">
+                            <p className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-2 px-2">
                               Ecosystem
                             </p>
                             <div className="space-y-1">
@@ -666,7 +666,7 @@ export default function UserPortfolioPage() {
                                 className={`w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors ${
                                   !selectedEcosystem
                                     ? "bg-indigo-50 text-indigo-700 font-medium"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50"
+                                    : "text-secondary hover:bg-surface-primary"
                                 }`}
                               >
                                 All ecosystems
@@ -681,7 +681,7 @@ export default function UserPortfolioPage() {
                                   className={`w-full text-left px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-2 ${
                                     selectedEcosystem === eco
                                       ? "bg-indigo-50 text-indigo-700 font-medium"
-                                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50"
+                                      : "text-secondary hover:bg-surface-primary"
                                   }`}
                                 >
                                   <span>{ECOSYSTEM_ICONS[eco] || "🌐"}</span>
@@ -692,7 +692,7 @@ export default function UserPortfolioPage() {
                             {hasAnyFilter && (
                               <button
                                 onClick={clearFilters}
-                                className="mt-3 w-full text-center text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium py-2 border-t border-gray-100"
+                                className="mt-3 w-full text-center text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium py-2 border-t border-default"
                               >
                                 Clear all filters
                               </button>
@@ -722,7 +722,7 @@ export default function UserPortfolioPage() {
                   )}
                   <button
                     onClick={clearFilters}
-                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 font-medium"
+                    className="text-xs text-tertiary hover:text-primary font-medium"
                   >
                     Clear all
                   </button>
@@ -732,13 +732,13 @@ export default function UserPortfolioPage() {
               {/* Projects content */}
               {Object.keys(projectsByEcosystem).length === 0 ? (
                 <Card className="p-12 text-center">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                    <CodeBracketIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                  <div className="w-16 h-16 rounded-full bg-surface-secondary flex items-center justify-center mx-auto mb-4">
+                    <CodeBracketIcon className="w-8 h-8 text-tertiary" />
                   </div>
                   <h2 className="text-xl font-semibold text-primary mb-2">
                     {hasAnyFilter ? "No matching projects" : "No projects yet"}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                  <p className="text-secondary mb-6 max-w-md mx-auto">
                     {hasAnyFilter
                       ? "Try adjusting your search or clearing filters."
                       : isOwner
@@ -794,7 +794,7 @@ function StatCard({ icon, label, value, color = "indigo" }) {
   };
 
   return (
-    <Card className={`p-4 border-0 shadow-sm rounded-xl bg-gradient-to-br ${colorMap[color]} bg-white`}>
+    <Card className={`p-4 border-0 shadow-sm rounded-xl bg-gradient-to-br ${colorMap[color]} bg-surface`}>
       <div className="flex items-center gap-3">
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-br ${colorMap[color].split(" ")[0]} ${colorMap[color].split(" ")[1]}`}
@@ -802,7 +802,7 @@ function StatCard({ icon, label, value, color = "indigo" }) {
           {icon}
         </div>
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{label}</p>
+          <p className="text-xs text-tertiary font-medium">{label}</p>
           <p className="text-xl font-bold text-primary">{value}</p>
         </div>
       </div>

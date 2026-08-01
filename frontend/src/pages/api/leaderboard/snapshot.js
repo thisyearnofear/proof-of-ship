@@ -9,6 +9,7 @@
  */
 
 import { db } from "../../../lib/firebase/serverOnly";
+import { logActivity } from "../../../utils/activityLogger";
 
 export default async function handler(_req, res) {
   // Verify Vercel cron signature — hard-fail in production when unset
@@ -37,6 +38,50 @@ export default async function handler(_req, res) {
       throw new Error(`Leaderboard fetch failed: ${leaderboardRes.status}`);
     }
     const data = await leaderboardRes.json();
+
+    // ── Rank-change detection ──────────────────────────────────────
+    // Compare new builder rankings against the previous snapshot.
+    // Fire rank_change activities for builders who moved up — this is the
+    // "You moved up N spots" celebration moment for the hero user.
+    try {
+      const prevSnap = await db.collection("leaderboardSnapshots").doc("hackathons").get();
+      if (prevSnap.exists) {
+        const prev = prevSnap.data();
+        const prevBuilders = prev.builders || {};
+        const newBuilders = data.builders || [];
+
+        for (const builder of newBuilders) {
+          const builderId = builder.id || builder.name;
+          if (!builderId) continue;
+          const prevRank = prevBuilders[builderId];
+          const newRank = newBuilders.indexOf(builder);
+
+          // Only celebrate upward movement (rank number decreased)
+          if (prevRank !== undefined && newRank < prevRank) {
+            const spotsMoved = prevRank - newRank;
+            // builder.id is the Firestore user key (submittedBy/owner)
+            // Only log if it looks like a uid (not an email or handle)
+            const uid = builderId.length > 20 && !builderId.includes("@") ? builderId : null;
+            if (uid) {
+              await logActivity({
+                type: "rank_change",
+                userId: uid,
+                userHandle: uid,
+                description: `You moved up ${spotsMoved} spot${spotsMoved !== 1 ? "s" : ""} on the Proof Builders leaderboard — now #${newRank + 1}!`,
+                metadata: {
+                  category: "builders",
+                  newRank: newRank + 1,
+                  prevRank: prevRank + 1,
+                  spotsMoved,
+                },
+              }).catch(() => {});
+            }
+          }
+        }
+      }
+    } catch (rankErr) {
+      console.warn("Rank-change detection failed (non-blocking):", rankErr.message);
+    }
 
     // Save as a season snapshot
     await db.collection("leaderboardSeasons").doc(seasonId).set({

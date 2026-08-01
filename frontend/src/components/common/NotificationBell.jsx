@@ -18,6 +18,7 @@ const ICON_MAP = {
   rank_change: "📈",
   winner_verified: "🏆",
   backing_received: "💰",
+  payout_verified: "🎉",
 };
 
 function timeAgo(timestamp) {

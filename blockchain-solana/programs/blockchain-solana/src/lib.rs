@@ -164,6 +164,13 @@ pub mod blockchain_solana {
             builder_identity_signature.len() == SNS_IDENTITY_SIGNATURE_LEN,
             ErrorCode::InvalidIdentitySignature
         );
+        // Prevent self-verification: the verifier must be a different party
+        // than the developer. Otherwise the developer could mark their own
+        // milestones as complete without independent review.
+        require!(
+            verifier != developer.key(),
+            ErrorCode::SelfVerificationNotAllowed
+        );
         for desc in &milestone_descriptions {
             require!(
                 desc.len() <= MAX_MILESTONE_DESC_LEN,
@@ -839,6 +846,8 @@ pub struct ClaimReward<'info> {
 pub enum ErrorCode {
     #[msg("The signer is not the authorized verifier for this project.")]
     UnauthorizedVerifier,
+    #[msg("Self-verification is not allowed. The verifier must be a different party than the developer.")]
+    SelfVerificationNotAllowed,
     #[msg("The milestone has already been completed.")]
     MilestoneAlreadyCompleted,
     #[msg("The milestone index is out of bounds.")]

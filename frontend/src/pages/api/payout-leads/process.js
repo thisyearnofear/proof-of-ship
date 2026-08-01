@@ -17,6 +17,8 @@
  */
 
 import { db } from "../../../lib/firebase/serverOnly";
+import { payoutVerifierService } from "../../../services/PayoutVerifierService";
+import { logActivity } from "../../../utils/activityLogger";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -120,6 +122,85 @@ export default async function handler(req, res) {
         errors++;
         details.push({ leadId, status: "error", error: err.message });
       }
+    }
+
+    // ── Pass 2: On-chain payout verification ──────────────────────────
+    // For each project with claims that have a payoutTxHash or circleTransferId
+    // but haven't been verified yet, run PayoutVerifierService and upgrade
+    // the verificationStatus to "payout_verified" when confirmed.
+    try {
+      const projectsSnap = await db.collection("projects")
+        .where("hackathons", "!=", null)
+        .get();
+
+      let totalVerified = 0;
+
+      for (const projectDoc of projectsSnap.docs) {
+        const project = projectDoc.data();
+        if (!Array.isArray(project.hackathons)) continue;
+
+        let projectModified = false;
+        const updatedHackathons = await Promise.all(project.hackathons.map(async (claim) => {
+          // Only verify claims that haven't been verified yet but have evidence
+          if (claim.verificationStatus === "payout_verified") return claim;
+          if (!claim.payoutTxHash && !claim.circleTransferId) return claim;
+
+          try {
+            const result = await payoutVerifierService.verify({
+              hackathonName: claim.name,
+              winnerAddress: claim.payoutWallet || claim.winnerAddress || "0x0",
+              expectedAmount: claim.prizeAmount || 0,
+              payoutTxHash: claim.payoutTxHash,
+              circleTransferId: claim.circleTransferId,
+              chainId: claim.chainId,
+            });
+
+            if (result.result?.verified) {
+              totalVerified++;
+              projectModified = true;
+              const verifiedClaim = {
+                ...claim,
+                verificationStatus: "payout_verified",
+                payoutVerifiedAt: result.result.payoutTimestamp || new Date().toISOString(),
+                payoutActualAmount: result.result.actualAmount,
+              };
+
+              // Fire "Payout Arrived" notification to the builder
+              const builderUid = project.submittedBy || project.owner;
+              if (builderUid) {
+                logActivity({
+                  type: "payout_verified",
+                  userId: builderUid,
+                  userHandle: builderUid,
+                  description: `Payout verified for ${claim.name} — ${result.result.actualAmount || claim.prizeAmount || 0} USDC confirmed on-chain.`,
+                  metadata: {
+                    hackathonName: claim.name,
+                    amount: result.result.actualAmount || claim.prizeAmount || 0,
+                    projectSlug: projectDoc.id,
+                    ecosystem: project.ecosystem,
+                    txHash: result.result.payoutTxHash,
+                  },
+                }).catch(() => {});
+              }
+
+              return verifiedClaim;
+            }
+          } catch {
+            // Verification failed — leave claim as-is, will retry next run
+          }
+          return claim;
+        }));
+
+        if (projectModified) {
+          await db.collection("projects").doc(projectDoc.id).update({
+            hackathons: updatedHackathons,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
+    } catch (verifyErr) {
+      console.error("Payout verification pass error:", verifyErr);
+      // Non-fatal — the leads were processed, verification can retry next run
     }
 
     return res.status(200).json({

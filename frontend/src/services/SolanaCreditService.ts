@@ -97,7 +97,7 @@ class SolanaCreditService {
 
     // ── PDA helpers ──────────────────────────────────────────────────
 
-    private getProjectPda(developer: PublicKey, projectName: string): PublicKey {
+    public deriveProjectPda(developer: PublicKey, projectName: string): PublicKey {
         const [pda] = PublicKey.findProgramAddressSync(
             [Buffer.from("project"), developer.toBuffer(), Buffer.from(projectName)],
             this.PROGRAM_ID,
@@ -251,7 +251,7 @@ class SolanaCreditService {
             }
 
             // Derive PDAs
-            const projectPda = this.getProjectPda(publicKey, projectData.projectName);
+            const projectPda = this.deriveProjectPda(publicKey, projectData.projectName);
             const creditLinePda = this.getCreditLinePda(publicKey);
             const milestoneVaultAuthority = this.getMilestoneVaultAuthorityPda(projectPda);
             const backerVaultAuthority = this.getBackerVaultAuthorityPda(projectPda);
@@ -259,7 +259,16 @@ class SolanaCreditService {
             const milestoneVault = this.getVaultTokenAccount(usdcMint, milestoneVaultAuthority);
             const backerEscrowVault = this.getVaultTokenAccount(usdcMint, backerVaultAuthority);
 
+            // Prevent self-verification: the verifier must not be the developer.
+            // The on-chain program accepts any signer as verifier, so this guard
+            // is enforced client-side. A self-verifier could mark their own
+            // milestones as complete without independent review.
             const verifier = new PublicKey(projectData.verifier || publicKey.toBase58());
+            if (verifier.equals(publicKey)) {
+                throw new Error(
+                    'Self-verification is not allowed. Specify a different verifier address for milestone review.'
+                );
+            }
             if (!wallet.signMessage) {
                 throw new Error('Connected Solana wallet must support message signing for SNS identity proof.');
             }
@@ -295,8 +304,7 @@ class SolanaCreditService {
                 projectData.milestoneAmounts.map(amt => new BN(amt)),
                 verifier,
                 builderSnsDomain,
-                Array.from(identitySignature),
-                new BN(projectData.creditScore || 400)
+                Array.from(identitySignature)
             ).accounts({
                 project: projectPda,
                 creditLine: creditLinePda,

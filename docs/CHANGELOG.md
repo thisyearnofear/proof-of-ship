@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-08-01 — 6★ Winner Experience (Round 2): On-Chain Guard, Payout Verification, More Moments
+
+A second pass focused on remaining trust gaps, the Payout Arrived moment, rank-change celebration, and dark-mode migration of the winner's public portfolio. 6 items, 465/465 tests pass, build clean.
+
+### Trust & Integrity
+
+**Self-verification guard (on-chain + client)**
+- `blockchain-solana/programs/.../lib.rs` — Added `require!(verifier != developer.key(), ErrorCode::SelfVerificationNotAllowed)` in `request_funding`. The on-chain program now rejects any attempt to set the developer as their own milestone verifier. Previously the program accepted any signer, allowing developers to self-verify milestones.
+- `frontend/src/services/SolanaCreditService.ts` — Client-side guard: throws if `verifier.equals(publicKey)` before constructing the transaction. Defense-in-depth alongside the on-chain check.
+- New error code: `SelfVerificationNotAllowed`.
+
+**PayoutVerifierService in the cron path** (`api/payout-leads/process.js`)
+- The daily cron now runs a second pass after processing leads: for each project with claims that have a `payoutTxHash` or `circleTransferId` but aren't yet `payout_verified`, it calls `PayoutVerifierService.verify()` (Circle API, EVM RPC, or Solana RPC depending on evidence). When verification confirms, the claim's `verificationStatus` is upgraded to `payout_verified` with `payoutVerifiedAt` and `payoutActualAmount` set. Previously `PayoutVerifierService` existed but was never called in any automated path — claims stayed as `evidence_attached` indefinitely.
+
+**snap-server/.env audit**
+- Confirmed the file is NOT tracked in git (untracked on disk only). The `.gitignore` patterns are working correctly. No action needed. If the Firebase private key was ever committed in history, it should be rotated — but it was never in the repo.
+
+### Winner Moments
+
+**Payout Arrived moment** (`api/payout-leads/process.js`, `hooks/useNotificationFeed.js`, `NotificationBell.jsx`)
+- When the cron's verification pass confirms a payout, a `payout_verified` activity is written to the `activities` collection. The builder receives a "🎉 Payout verified!" notification in their bell within 60s, with the hackathon name, amount, and a link to the project. Previously the payout promise ("Get Paid Today, Not in 67 Days") had no in-product payoff moment — now it does.
+
+**Rank change celebration** (`api/leaderboard/snapshot.js`, `hooks/useNotificationFeed.js`)
+- The weekly leaderboard snapshot cron now compares new builder rankings against the previous snapshot. When a builder moves up, a `rank_change` activity is written: "You moved up N spots on the Proof Builders leaderboard — now #X!" The builder sees an "📈 You moved up!" notification with a link to `/leaderboard`. Only upward movement triggers a celebration (downward is silent). Previously the `MovementIndicator` was just a 3px chevron with no notification.
+
+### Dark-Mode Migration
+
+**`u/[username].js` — winner's public portfolio migrated to semantic tokens**
+- Replaced all raw `bg-gray-50` → `bg-surface-primary`, `bg-gray-100` → `bg-surface-secondary`, `bg-gray-200` → `bg-surface-hover`, `text-gray-600 dark:text-gray-400` → `text-secondary`, `text-gray-500 dark:text-gray-400` → `text-tertiary`, `text-gray-400 dark:text-gray-500` → `text-tertiary`, `border-gray-200` → `border-default`, `bg-white` (dropdown/cards) → `bg-surface`. Added `dark:from-amber-950/30 dark:to-yellow-950/20` to the badges gradient card. Zero `gray-` references remain. The winner's most-shared page is now the dark-mode exemplar, not the exception.
+
+### Validation
+
+- TypeScript: clean
+- Vitest: 465/465 pass
+- Production build: all routes built successfully
+
+---
+
 ## 2026-08-01 — 6★ Winner Experience: Security Hardening + Winner Moments + Polish
 
 A full-stack pass to close trust gaps, build celebratory moments for verified hackathon winners, and fix UX inconsistencies — all oriented around the north star of treating winners as the hero user. 3 tracks, 17 changes, 465/465 tests pass (+1 new), build clean.

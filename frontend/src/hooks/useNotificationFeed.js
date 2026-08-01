@@ -68,6 +68,10 @@ function isRelevantToUser(activity, userId) {
   if (activity.type === "winner_verified" && activity.userId === userId) return true;
   // Backing received — show to the builder who was backed
   if (activity.type === "backing_received" && activity.userId === userId) return true;
+  // Payout verified — show to the builder whose payout was confirmed
+  if (activity.type === "payout_verified" && activity.userId === userId) return true;
+  // Rank change — show to the builder who moved up
+  if (activity.type === "rank_change" && activity.userId === userId) return true;
   // Show activities related to the user's projects or direct actions
   if (activity.userHandle === userId || activity.userId === userId) return true;
   if (activity.type === "follow" && activity.followedId === userId) return true;
@@ -151,6 +155,30 @@ function transformActivity(activity) {
         href: activity.metadata?.projectSlug
           ? `/projects/${activity.metadata.ecosystem || "base"}/${activity.metadata.projectSlug}`
           : null,
+      };
+
+    case "payout_verified":
+      return {
+        id,
+        type: "payout",
+        title: "🎉 Payout verified!",
+        description: activity.description || "Your hackathon payout was verified on-chain",
+        timestamp,
+        read: false,
+        href: activity.metadata?.projectSlug
+          ? `/projects/${activity.metadata.ecosystem || "base"}/${activity.metadata.projectSlug}`
+          : null,
+      };
+
+    case "rank_change":
+      return {
+        id,
+        type: "rank_change",
+        title: "📈 You moved up!",
+        description: activity.description || "Your leaderboard rank improved",
+        timestamp,
+        read: false,
+        href: "/leaderboard",
       };
 
     default:

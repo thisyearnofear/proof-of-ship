@@ -57,12 +57,22 @@ This document tracks the full initiative to elevate PledgeBond from a functional
 
 | # | Item | Description |
 |---|---|---|
-| R1 | Create `pledgebond` Firebase / GCP project | `.env.local`, `.firebaserc`, and Firebase fallback values are set to `pledgebond`; the project must exist before deploys work. |
+| R1 | Create `pledgebond` Firebase / GCP project | `.env.local`, `.firebaserc`, and Firebase fallback values are set to `pledgebond`; the project must exist before deploys work. Use Blaze plan so Storage works; see Firebase strategy below. |
 | R2 | Rebuild and redeploy Solana program | The SNS identity message namespace changed to `pledgebond:sns-identity:v1`; the on-chain program and IDL must be rebuilt and redeployed to match. |
 | R3 | Register `.sol` agent domains | `pledgebond-scout.sol`, `pledgebond-underwriter.sol`, `pledgebond-verifier.sol`, `pledgebond-rebalance.sol` need Solana Name Service registration. |
 | R4 | Regenerate Farcaster signature | `public/.well-known/farcaster.json` frame values are updated, but the `accountAssociation` signature is still for the old domain and must be regenerated. |
 | R5 | GitHub / Vercel / DNS migration | Rename the GitHub repo to `thisyearnofear/pledgebond`, point Vercel project to `pledgebond.vercel.app`, and configure `pledgebond.com` DNS. |
 | R6 | Verify social / support URLs | Any remaining placeholder links (Calendly, Discord, etc.) were removed; replace with real support channels when ready. |
+
+### Firebase Strategy (Updated)
+
+**Decision: keep Firebase, but move the new `pledgebond` project to the Blaze plan.**
+
+- Firebase project IDs cannot be renamed. The old project can have its display name changed, but the codebase already points to a project ID of `pledgebond` in `.firebaserc`, `frontend/src/config/publicConfig.js`, and `.env.example`, so a new project is the clean option.
+- Spark (no-cost) is not viable for this app because Cloud Storage for Firebase requires Blaze as of September 2024. On Spark, Storage calls return 402/403 errors.
+- Blaze still provides the same no-cost Firestore and Auth quotas; you only pay for overages. For early-stage usage, the bill will likely be $0 while removing the Spark restrictions.
+- No-cost limits on Blaze: 1 GiB Firestore storage, 50k reads/day, 20k writes/day, 20k deletes/day, 10 GiB egress/month; 50k MAU for Auth; 5 GB Storage stored, 1 GB downloaded/day.
+- Long-term migration off Firebase is possible but should be staged: Storage first (small surface), then Auth, then Firestore last (large surface). For launch, the integration is pragmatic and cost-effective.
 
 ### Medium Priority — Scale & Reliability
 

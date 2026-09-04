@@ -26,9 +26,11 @@ Total pool: $15,000
 
 ## 30-Second Pitch
 
-PledgeBond on Creditcoin — verified cross-chain credit data via Attestcoin, no centralized oracles.
+PledgeBond on Creditcoin — an AI credit underwriter that reads Attestcoin, no centralized oracles.
 
-Backers fund builders across 7 chains; Attestcoin verifies milestone completion, backer commitments, and creditworthiness trustlessly. AI agents price the work, scout the best projects, and underwrite risk — all using verified cross-chain data instead of bridge receipts or centralized verifiers.
+A builder submits a milestone. The Verifier agent writes an Attestcoin attestation. The Underwriter reads that attestation and prices a cross-chain credit line. Backers fund the line, trustlessly.
+
+The value is not the agent — it is the trustless credit decision.
 
 ---
 
@@ -40,8 +42,9 @@ PledgeBond is the only project in the catalog that is genuinely a credit platfor
 
 - Backers fund builders with USDC on-chain.
 - Hackathon prizes collateralize credit lines.
-- Underwriter, Scout, and Verifier AI agents price and verify work.
-- Core thesis: "Capital infrastructure for builders, powered by on-chain credit, AI agents, and community staking."
+- **Verifier** writes Attestcoin attestations for milestones and backer commitments.
+- **Underwriter** consumes those attestations to price credit.
+- Core thesis: "Capital infrastructure for builders, powered by on-chain credit, Attestcoin verification, and AI underwriting."
 
 ### Cross-chain by default
 
@@ -62,7 +65,7 @@ Instead of relying on LI.FI bridge receipts plus centralized verification, Pledg
 ### Track alignment
 
 - **DeFi** — credit / lending / staking is the primary mechanism.
-- **AI** — Underwriter / Scout / Verifier agents run via x402 nanopayments and consume Attestcoin-verified data.
+- **AI** — Verifier and Underwriter agents consume Attestcoin-verified data; x402 nanopayments are the execution rail.
 
 ---
 
@@ -79,16 +82,29 @@ PledgeBond is submission-ready without a ground-up rebuild:
 | Public reputation | Verified winner badges, leaderboards, portfolio pages |
 | Docs | HackathonArc, SixStarRoadmap, Colosseum submission, Monetization strategy |
 
-The Attestcoin layer is the new integration: replace or augment LI.FI bridge verification with Attestcoin-verified cross-chain credit data, and have the agents query Attestcoin for verified project data before scoring and backing.
+The Attestcoin layer is the new integration: have the Verifier write milestones and commitments as Attestcoin attestations, and have the Underwriter read those attestations to price credit.
+
+## Demo Scope
+
+For the Sept 13 deadline, build one vertical slice:
+
+1. Builder marks a milestone complete.
+2. Verifier writes the milestone to Attestcoin.
+3. Underwriter queries Attestcoin and returns a credit score.
+4. UI shows the Attestcoin-backed score on the project page.
+
+Scout and Rebalance stay in the code but are out of demo scope.
 
 ---
 
 ## Attestcoin Integration Plan
 
-1. **Milestone attestation** — when a builder marks a milestone complete, submit an Attestcoin attestation from the verifier agent. The attestation becomes the canonical proof that work was delivered.
-2. **Backer commitment attestation** — record cross-chain backer stakes on Creditcoin/Attestcoin so credit lines and repayment logic can be verified without centralized state.
-3. **Creditworthiness feed** — Scout and Underwriter agents query Attestcoin for builder history, repayment, and cross-chain activity before generating scores and backings.
-4. **Replace bridge-oracle path** — where the app currently trusts LI.FI + manual verification, use Attestcoin attestations as the trustless replacement.
+1. **Milestone attestation (Verifier)** — when a builder marks a milestone complete, the Verifier agent writes an Attestcoin attestation. The attestation becomes the canonical proof that work was delivered.
+2. **Credit scoring (Underwriter)** — the Underwriter agent reads the milestone attestation from Attestcoin and includes it in the credit score for the project.
+3. **Backer commitment attestation (stretch)** — record cross-chain backer stakes on Creditcoin/Attestcoin so the Underwriter can price the credit line with verified backing data.
+4. **UI signal** — project pages and the Underwriter report surface that the score is Attestcoin-backed.
+
+Out of scope for the hackathon: full replacement of the LI.FI bridge path, Scout integration, and Rebalance.
 
 ---
 

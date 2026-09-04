@@ -14,6 +14,7 @@ import { getGitHubUrl, calculateScoutingFlags, calculateProjectBoost } from '../
 import ChainBadges from '../showcase/ChainBadges';
 import SectorBadges from '../showcase/SectorBadges';
 import AgentVerifiedBadge from '../common/AgentVerifiedBadge';
+import AttestcoinBadge from '../common/AttestcoinBadge';
 import { ProofBadgeGroup } from "../common/ProofBadge";
 import { computeProjectBadges } from "../../lib/badges/computeBadges";
 import {
@@ -145,6 +146,9 @@ export const ProjectDetailCard = ({ project, showEcosystem = true, onClick }) =>
             </span>
             {(project.stats?.healthScore > 80 || project.verifiedByAgent) && (
               <AgentVerifiedBadge size="sm" agentName={project.stats?.healthScore > 90 ? 'Underwriter' : 'Verifier'} />
+            )}
+            {project.attestcoin && (
+              <AttestcoinBadge attestation={project.attestcoin.attestations?.[0]} size="sm" />
             )}
           </div>
           {showEcosystem && ecosystemConfig && (

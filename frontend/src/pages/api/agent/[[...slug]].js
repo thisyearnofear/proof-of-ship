@@ -258,6 +258,16 @@ async function underwriteHandler(req, res) {
     } catch (logErr) { console.warn("Failed to log underwrite run:", logErr.message); }
 
     await setCachedResult("underwrite", { projectId }, result);
+
+    if (result.attestcoin) {
+      try {
+        await db.collection("projects").doc(projectId).set(
+          { attestcoin: result.attestcoin, attestedAt: result.timestamp },
+          { merge: true }
+        );
+      } catch (attestWriteErr) { console.warn("Failed to write attestcoin to project:", attestWriteErr.message); }
+    }
+
     return res.status(200).json(result);
   } catch (error) {
     console.error("Underwriter agent error:", error);

@@ -1,6 +1,6 @@
-# Builder Credit Frontend
+# PledgeBond Frontend
 
-This directory contains the frontend code for the Builder Credit platform, built with Next.js.
+This directory contains the frontend code for the PledgeBond platform, built with Next.js.
 
 ## Directory Structure
 
@@ -26,7 +26,7 @@ The `components/` directory contains React components organized by feature:
 The `contexts/` directory contains React context providers:
 
 - **AuthContext.js** - Authentication context
-- **BuilderCreditContext.js** - Builder Credit contract context
+- **BuilderCreditContext.js** - PledgeBond contract context
 - **CircleWalletContext.js** - Circle wallet integration
 - **LiFiContext.js** - Li.Fi cross-chain integration
 - **MetaMaskContext.js** - MetaMask wallet integration
@@ -75,7 +75,7 @@ The `lib/` directory contains library code:
 1. **Web3 Integration** - Connects to Ethereum and other chains via MetaMask
 2. **Circle Wallet Integration** - Integrates with Circle for programmable wallets
 3. **Cross-Chain Functionality** - Uses Li.Fi for cross-chain transfers
-4. **Smart Contract Interaction** - Interfaces with Builder Credit contracts
+4. **Smart Contract Interaction** - Interfaces with PledgeBond contracts
 5. **GitHub Integration** - Links GitHub repositories and activity
 6. **Dashboard** - User dashboard for managing projects and funding
 

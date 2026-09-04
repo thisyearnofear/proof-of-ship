@@ -74,7 +74,7 @@ export default function VerificationDashboardPage() {
   return (
     <div className="min-h-screen bg-[#f1f5f9]">
       <Head>
-        <title>Verification Dashboard | Proof of Ship</title>
+        <title>Verification Dashboard | PledgeBond</title>
       </Head>
 
       {/* Verification Header */}
@@ -212,7 +212,7 @@ export default function VerificationDashboardPage() {
             </Card>
 
             <Card className="p-4 bg-blue-600 text-white border-none shadow-xl shadow-blue-500/20">
-              <h4 className="font-black text-sm uppercase mb-2">Proof of Ship</h4>
+              <h4 className="font-black text-sm uppercase mb-2">PledgeBond</h4>
               <p className="text-blue-100 text-xs leading-relaxed mb-4">
                 Verification requires analyzing both GitHub activity and on-chain contract events. Ensure the milestone description matches the submitted evidence.
               </p>

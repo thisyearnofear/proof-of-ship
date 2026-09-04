@@ -1,5 +1,5 @@
 {
-  "name": "builder-credit-platform-frontend",
+  "name": "pledgebond-frontend",
   "version": "1.0.0",
   "description": "Frontend for decentralized platform for hackathon funding",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "next start",
     "clean": "rm -rf node_modules .next",
     "export": "EXPORT_MODE=true next build",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
@@ -27,6 +27,7 @@
     "@lifi/sdk": "^2.2.3",
     "@sentry/nextjs": "^10.49.0",
     "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-backpack": "^0.1.13",
     "@solana/wallet-adapter-base": "^0.9.27",
     "@solana/wallet-adapter-phantom": "^0.9.29",
     "@solana/wallet-adapter-react": "^0.15.39",

@@ -28,7 +28,7 @@ export default function BuilderXpCard({ xp, username }) {
   const embedUrl = typeof window !== "undefined" && username
     ? `${window.location.origin}/api/badge?builder=${encodeURIComponent(username)}&type=proof`
     : "";
-  const embedMarkdown = `[![Proof of Ship](${embedUrl})](https://proof-of-ship.vercel.app/u/${username || ""})`;
+  const embedMarkdown = `[![PledgeBond](${embedUrl})](https://pledgebond.vercel.app/u/${username || ""})`;
 
   const handleCopyEmbed = () => {
     navigator.clipboard.writeText(embedMarkdown).then(() => {
@@ -139,7 +139,7 @@ export default function BuilderXpCard({ xp, username }) {
           {showEmbed && (
             <div className="mt-2 space-y-2">
               <div className="flex items-center gap-2">
-                <img src={embedUrl} alt="Proof of Ship badge" className="h-5" />
+                <img src={embedUrl} alt="PledgeBond badge" className="h-5" />
               </div>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-[10px] text-secondary bg-gray-50 dark:bg-gray-800 rounded px-2 py-1.5 truncate font-mono">

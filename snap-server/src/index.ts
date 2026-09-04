@@ -11,14 +11,14 @@ if (!admin.apps.length) {
     if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID || 'proofofship',
+          projectId: process.env.FIREBASE_PROJECT_ID || 'pledgebond',
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         }),
       });
     } else {
       admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'proofofship',
+        projectId: process.env.FIREBASE_PROJECT_ID || 'pledgebond',
       });
     }
   } catch (error: any) {
@@ -30,7 +30,7 @@ export const db = admin.firestore();
 
 // Manifest route for Farcaster Snap — includes SNS agent identities
 app.get('/.well-known/farcaster.json', (c) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-ship.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pledgebond.vercel.app';
   return c.json({
     accountAssociation: {
       header: "eyJmaWQiOiA4ODcyLCAidHlwZSI6ICJjdXN0b2RpYWwiLCAia2V5IjogIjB4N0U0M0Y0RDVFNjU0OEY0RTZFNDVFNjU0OEY0RTZFNDUifQ",
@@ -39,22 +39,22 @@ app.get('/.well-known/farcaster.json', (c) => {
     },
     frame: {
       version: "1",
-      name: "Proof of Ship",
+      name: "PledgeBond",
       iconUrl: `${baseUrl}/icon.png`,
       homeUrl: baseUrl,
       imageUrl: `${baseUrl}/og-image.png`,
-      buttonTitle: "Open Proof of Ship",
+      buttonTitle: "Open PledgeBond",
       splashImageUrl: `${baseUrl}/splash.png`,
       splashBackgroundColor: "#000000",
       webhookUrl: `${baseUrl}/api/webhook`
     },
-    // SNS identities for Proof of Ship AI agents
+    // SNS identities for PledgeBond AI agents
     // Each agent has a .sol domain providing human-readable on-chain identity
     agentIdentities: {
-      scout: { snsDomain: "pos-scout.sol", displayName: "Scout Agent" },
-      underwriter: { snsDomain: "pos-underwriter.sol", displayName: "Underwriter Agent" },
-      verifier: { snsDomain: "pos-verifier.sol", displayName: "Verifier Agent" },
-      rebalance: { snsDomain: "pos-rebalance.sol", displayName: "Rebalance Agent" },
+      scout: { snsDomain: "pledgebond-scout.sol", displayName: "Scout Agent" },
+      underwriter: { snsDomain: "pledgebond-underwriter.sol", displayName: "Underwriter Agent" },
+      verifier: { snsDomain: "pledgebond-verifier.sol", displayName: "Verifier Agent" },
+      rebalance: { snsDomain: "pledgebond-rebalance.sol", displayName: "Rebalance Agent" },
     }
   });
 });

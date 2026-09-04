@@ -162,7 +162,7 @@ class SolanaCreditService {
         githubUrl: string
     ): Uint8Array {
         return new TextEncoder().encode(
-            `proof-of-ship:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`
+            `pledgebond:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`
         );
     }
 

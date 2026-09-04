@@ -1,10 +1,10 @@
-# Proof of Ship — Setup Guide
+# PledgeBond — Setup Guide
 
 Get started with the platform in minutes.
 
 ## Quick Start
 
-1. **Visit** [proofofship.com](https://proofofship.com)
+1. **Visit** [pledgebond.com](https://pledgebond.com)
 2. **Connect** your wallet (MetaMask, Phantom, or Solflare)
 3. **Explore** projects on the **Explore** page
 4. **Back** projects on the **Back** page
@@ -16,7 +16,7 @@ To use AI agents (Scout, Underwriter, Verifier), you need a payment wallet with 
 ### Get USDC on Arc Testnet
 
 1. Visit the [Arc Faucet](https://www.circle.com/en/USDC)
-2. Or ask in the Proof of Ship Discord
+2. Or ask in the PledgeBond Discord
 
 ### Set Up Your Wallet
 
@@ -92,6 +92,5 @@ Each agent returns:
 
 ## Need Help?
 
-- Join our [Discord](https://discord.gg/proofofship)
-- Ask in the #support channel
-- Or use the in-app chat assistant (free guide mode)
+- Use the in-app chat assistant (free guide mode)
+- Open an issue on GitHub

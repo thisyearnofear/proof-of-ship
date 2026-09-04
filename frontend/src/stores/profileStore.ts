@@ -79,8 +79,8 @@ export const profileStore: Store<ProfileState> = createStore<ProfileState>(initi
 // Persistence
 // ============================================================================
 
-const PREF_KEY = "pos-user-preferences";
-const THEME_KEY = "pos-dashboard-theme";
+const PREF_KEY = "pledgebond-user-preferences";
+const THEME_KEY = "pledgebond-dashboard-theme";
 
 function loadFromStorage() {
   if (typeof window === "undefined") return;
@@ -249,7 +249,7 @@ function getPersonalizedRecommendations(): PersonalizedRecommendation[] {
     recs.push({ type: "discover", title: "Pick your ecosystems", description: "Tell us which chains interest you for tailored results.", action: "/profile/settings", priority: "high" });
   }
   if ((preferences.totalInteractions || 0) < 10) {
-    recs.push({ type: "tutorial", title: "Take the 2-minute tour", description: "See what Proof of Ship can do for you.", action: "/explore", priority: "medium" });
+    recs.push({ type: "tutorial", title: "Take the 2-minute tour", description: "See what PledgeBond can do for you.", action: "/explore", priority: "medium" });
   }
   return recs;
 }

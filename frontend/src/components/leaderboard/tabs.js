@@ -34,10 +34,10 @@ export function truncateAddress(addr) {
 
 export function generateShareText(entry, rank, type) {
   if (type === "builders") {
-    return `#${rank} ${entry.name || truncateAddress(entry.address)} — ${entry.velocity || entry.score || 0} shipping velocity on @proofofship`;
+    return `#${rank} ${entry.name || truncateAddress(entry.address)} — ${entry.velocity || entry.score || 0} shipping velocity on @pledgebond`;
   }
   if (type === "backers") {
-    return `#${rank} ${entry.name || truncateAddress(entry.address)} — ${entry.velocity || entry.score || 0} backing score on @proofofship`;
+    return `#${rank} ${entry.name || truncateAddress(entry.address)} — ${entry.velocity || entry.score || 0} backing score on @pledgebond`;
   }
-  return `#${rank} ${entry.name || truncateAddress(entry.address)} on @proofofship`;
+  return `#${rank} ${entry.name || truncateAddress(entry.address)} on @pledgebond`;
 }

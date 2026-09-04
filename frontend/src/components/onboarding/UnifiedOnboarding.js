@@ -17,7 +17,7 @@ const TOUR_STEPS = [
   {
     id: 'welcome',
     title: 'Welcome Aboard, Captain!',
-    description: 'Ready to turn your code into credit? Let us show you around the deck of Proof of Ship.',
+    description: 'Ready to turn your code into credit? Let us show you around the deck of PledgeBond.',
     icon: SparklesIcon,
     color: 'bg-blue-500'
   },

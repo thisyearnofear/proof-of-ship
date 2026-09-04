@@ -82,11 +82,11 @@ describe('ShareButton', () => {
     expect(url).toContain('url=https%3A%2F%2Fcustom.example.com%2Fx');
   });
 
-  it('Farcaster share strips @proofofship from the text', () => {
-    render(<ShareButton text="hello @proofofship" entry={{ name: 'a' }} rank={1} entryType="builder" />);
+  it('Farcaster share strips @pledgebond from the text', () => {
+    render(<ShareButton text="hello @pledgebond" entry={{ name: 'a' }} rank={1} entryType="builder" />);
     fireEvent.click(screen.getByTitle('Share on Farcaster'));
     const url = openSpy.mock.calls[0][0];
-    expect(url).not.toContain('%40proofofship');
+    expect(url).not.toContain('%40pledgebond');
     expect(url).toContain('hello');
   });
 });

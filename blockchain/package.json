@@ -1,5 +1,5 @@
 {
-  "name": "builder-credit-platform-blockchain",
+  "name": "pledgebond-blockchain",
   "version": "1.0.0",
   "description": "Smart contracts for decentralized platform for hackathon funding",
   "scripts": {

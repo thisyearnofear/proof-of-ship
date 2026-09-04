@@ -99,7 +99,7 @@ export default function BackingModal({ project, wallet, onClose, onSuccess }) {
             <div className="mt-4 flex flex-col gap-2 items-center">
               <a
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                  `Just backed ${project.name} on Proof of Ship! Stake USDC, earn when builders win prizes. 🚢`
+                  `Just backed ${project.name} on PledgeBond! Stake USDC, earn when builders win prizes. 🚢`
                 )}&url=${encodeURIComponent(
                   typeof window !== "undefined" ? `${window.location.origin}/projects/${project.ecosystem || "base"}/${project.slug || project.id}` : ""
                 )}`}

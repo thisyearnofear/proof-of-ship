@@ -9,7 +9,7 @@ export const ECOSYSTEM_CONFIGS = {
     name: 'Celo Ecosystem',
     shortName: 'Celo',
     description: 'Mobile-first blockchain projects focused on financial inclusion',
-    longDescription: 'Projects built during Celo\'s Proof of Ship program across three seasons, focusing on mobile-first blockchain solutions and financial inclusion.',
+    longDescription: 'Projects built during Celo\'s PledgeBond program across three seasons, focusing on mobile-first blockchain solutions and financial inclusion.',
     chainFamily: 'evm',
     
     // Visual identity
@@ -31,7 +31,7 @@ export const ECOSYSTEM_CONFIGS = {
       'Include clear onchain contract references (address or explorer)',
       'Provide a GitHub repo for reviewers and users'
     ],
-    category: 'Proof of Ship Program',
+    category: 'PledgeBond Program',
     
     // Data source configuration
     dataSource: 'static', // static (repos.json) or dynamic (firestore)

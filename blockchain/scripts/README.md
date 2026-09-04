@@ -1,6 +1,6 @@
-# Builder Credit Scripts
+# PledgeBond Scripts
 
-This directory contains utility scripts for the Builder Credit platform.
+This directory contains utility scripts for the PledgeBond platform.
 
 ## Deployment Scripts
 

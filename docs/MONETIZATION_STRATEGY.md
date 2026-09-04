@@ -1,8 +1,8 @@
-# 🎯 Monetization Strategy for Proof of Ship
+# 🎯 Monetization Strategy for PledgeBond
 
 ## Executive Summary
 
-Proof of Ship monetizes AI analysis as small, explicit USDC actions. The product now emphasizes a clear workflow — setup, run analysis, review outcome — so users understand exactly what they are paying for and whether a result is live, cached, demo, or fallback.
+PledgeBond monetizes AI analysis as small, explicit USDC actions. The product now emphasizes a clear workflow — setup, run analysis, review outcome — so users understand exactly what they are paying for and whether a result is live, cached, demo, or fallback.
 
 ---
 

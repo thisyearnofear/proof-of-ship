@@ -102,7 +102,7 @@ export default function VerificationMomentOverlay() {
           style={{
             background:
               "conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(251,191,36,0.15) 90deg, transparent 180deg, rgba(251,191,36,0.1) 270deg, transparent 360deg)",
-            animation: "pos-verification-shimmer 4s linear infinite",
+            animation: "pledgebond-verification-shimmer 4s linear infinite",
           }}
         />
       )}
@@ -116,7 +116,7 @@ export default function VerificationMomentOverlay() {
       <div className="relative z-10 flex flex-col items-center px-6 max-w-lg text-center">
         {/* Trophy / Badge */}
         <div
-          className={reducedMotion ? "" : "pos-verification-badge-rise"}
+          className={reducedMotion ? "" : "pledgebond-verification-badge-rise"}
           style={{ marginBottom: "2rem" }}
         >
           <div
@@ -184,11 +184,11 @@ export default function VerificationMomentOverlay() {
 
       {/* Inline keyframes (scoped to avoid depending on global CSS) */}
       <style jsx>{`
-        @keyframes pos-verification-shimmer {
+        @keyframes pledgebond-verification-shimmer {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        @keyframes pos-verification-badge-rise {
+        @keyframes pledgebond-verification-badge-rise {
           0% {
             opacity: 0;
             transform: translateY(40px) scale(0.8);
@@ -202,8 +202,8 @@ export default function VerificationMomentOverlay() {
             transform: translateY(0) scale(1);
           }
         }
-        .pos-verification-badge-rise {
-          animation: pos-verification-badge-rise 0.8s ease-out forwards;
+        .pledgebond-verification-badge-rise {
+          animation: pledgebond-verification-badge-rise 0.8s ease-out forwards;
         }
       `}</style>
     </div>

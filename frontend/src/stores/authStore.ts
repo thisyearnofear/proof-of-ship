@@ -290,7 +290,7 @@ function clearProfile() {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem("pos_user_profile");
     try {
-      const req = indexedDB.deleteDatabase("ProofOfShipDB");
+      const req = indexedDB.deleteDatabase("PledgeBondDB");
       req.onsuccess = () => {};
       req.onerror = () => {};
     } catch {}

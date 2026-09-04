@@ -13,7 +13,7 @@ celebrationSnap.get('/:slug', async (c) => {
   }
 
   const project = projectDoc.data();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-ship.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pledgebond.vercel.app';
 
   // Social celebration frame
   return c.html(`

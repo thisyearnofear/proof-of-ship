@@ -50,7 +50,7 @@ async function handler(req, res) {
 async function githubFetch(path) {
   const headers = {
     Accept: 'application/vnd.github.v3+json',
-    'User-Agent': 'ProofOfShip-ProjectImport'
+    'User-Agent': 'PledgeBond-ProjectImport'
   };
 
   if (process.env.GITHUB_TOKEN) {

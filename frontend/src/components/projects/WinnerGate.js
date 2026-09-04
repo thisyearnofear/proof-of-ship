@@ -20,7 +20,6 @@ import {
   TrophyIcon,
   CheckCircleIcon,
   ClockIcon,
-  ArrowRightIcon,
   SparklesIcon,
   XCircleIcon,
   UserGroupIcon,
@@ -119,7 +118,7 @@ export default function WinnerGate({ onSubmitClaim, loading, pendingClaim, error
           This Platform Is for Past Hackathon Winners
         </h2>
         <p className="text-secondary max-w-lg mx-auto">
-          Proof of Ship is exclusive to builders who have won a hackathon and are continuing
+          PledgeBond is exclusive to builders who have won a hackathon and are continuing
           that project. Show us your win and we&apos;ll verify you ASAP.
         </p>
       </div>
@@ -382,15 +381,9 @@ function PendingLeadMagnet({ pendingClaim, platformStats }) {
               I'd love to hear about your project, test your product, and give feedback.
               Every builder who wants a call gets one.
             </p>
-            <a
-              href="https://calendly.com/proofofship/15min"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-800 underline"
-            >
-              Book a 15-min call
-              <ArrowRightIcon className="w-3.5 h-3.5" />
-            </a>
+            <span className="text-sm text-secondary">
+              Reach out to schedule a call.
+            </span>
           </div>
         </div>
       </Card>

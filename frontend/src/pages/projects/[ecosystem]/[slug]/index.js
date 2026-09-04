@@ -207,17 +207,17 @@ export default function ProjectDetailPage() {
         </title>
         <meta
           name="description"
-          content={project.description || `${title} — a ${ecosystemConfig?.shortName || ecosystem} project on Proof of Ship.`}
+          content={project.description || `${title} — a ${ecosystemConfig?.shortName || ecosystem} project on PledgeBond.`}
         />
-        <meta property="og:title" content={`${title}${ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""} — Proof of Ship`} />
+        <meta property="og:title" content={`${title}${ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""} — PledgeBond`} />
         <meta
           property="og:description"
           content={project.description ? `${project.description.slice(0, 200)}${project.description.length > 200 ? "..." : ""}` : `${title} on ${ecosystemConfig?.shortName || ecosystem}`}
         />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://proofofship.app/projects/${ecosystem}/${slug}`} />
+        <meta property="og:url" content={`https://pledgebond.com/projects/${ecosystem}/${slug}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${title}${ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""} — Proof of Ship`} />
+        <meta name="twitter:title" content={`${title}${ecosystemConfig?.shortName ? ` • ${ecosystemConfig.shortName}` : ""} — PledgeBond`} />
         <meta
           name="twitter:description"
           content={project.description?.slice(0, 200) || `${title} on ${ecosystemConfig?.shortName || ecosystem}`}

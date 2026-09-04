@@ -111,7 +111,7 @@ export const CustomIconRegistry = {
   'lens': 'Lens',
   
   // POS Dashboard Specific
-  'proof-of-ship': 'ProofOfShip',
+  'pledgebond': 'PledgeBond',
   'developer-badge': 'DeveloperBadge'
 };
 

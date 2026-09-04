@@ -1053,7 +1053,7 @@ fn build_identity_claim_message(
     github_url: &str,
 ) -> Vec<u8> {
     format!(
-        "proof-of-ship:sns-identity:v1:{}:{}:{}:{}:{}",
+        "pledgebond:sns-identity:v1:{}:{}:{}:{}:{}",
         developer,
         sns_name_account,
         builder_sns_domain,

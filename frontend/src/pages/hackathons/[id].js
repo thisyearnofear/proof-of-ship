@@ -137,7 +137,7 @@ export default function HackathonDetailPage() {
     >
       <div className="min-h-screen bg-gray-50">
         <Head>
-          <title>{hackathon.name} Payout Report • Proof of Ship</title>
+          <title>{hackathon.name} Payout Report • PledgeBond</title>
           <meta
             name="description"
             content={`How fast does ${hackathon.name} pay winners? Track real payout speeds, completion rates, and verified winner data for the ${hackathon.ecosystem} hackathon.`}
@@ -145,7 +145,7 @@ export default function HackathonDetailPage() {
           <meta property="og:title" content={`${hackathon.name} — Payout Speed & Winner Report`} />
           <meta property="og:description" content={`Track how fast ${hackathon.name} pays its winners. Real payout data, verified on-chain.${hackathon.prizePool > 0 ? ` Prize pool: $${hackathon.prizePool.toLocaleString()}.` : ''}`} />
           <meta property="og:type" content="article" />
-          <meta property="og:url" content={`https://proofofship.app/hackathons/${id}`} />
+          <meta property="og:url" content={`https://pledgebond.com/hackathons/${id}`} />
           {(() => {
             const ogParams = new URLSearchParams({
               type: "hackathon",
@@ -414,9 +414,9 @@ export default function HackathonDetailPage() {
                             hackathon_id: id,
                           });
                           const text = hackathon.prizePool > 0
-                            ? `How fast does ${hackathon.name} pay winners? Track real payout data on @proofofship` + (hackathon.prizePool ? ` Prize pool: $${hackathon.prizePool.toLocaleString()}.` : "")
-                            : `Track payout speed for ${hackathon.name} on @proofofship`;
-                          const url = `https://proofofship.app/hackathons/${id}`;
+                            ? `How fast does ${hackathon.name} pay winners? Track real payout data on @pledgebond` + (hackathon.prizePool ? ` Prize pool: $${hackathon.prizePool.toLocaleString()}.` : "")
+                            : `Track payout speed for ${hackathon.name} on @pledgebond`;
+                          const url = `https://pledgebond.com/hackathons/${id}`;
                           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
                         }}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-border-primary bg-surface-primary text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-blue-500 transition-colors"
@@ -435,7 +435,7 @@ export default function HackathonDetailPage() {
                             hackathon_id: id,
                           });
                           const text = `Track payout speed for ${hackathon.name}`;
-                          const url = `https://proofofship.app/hackathons/${id}`;
+                          const url = `https://pledgebond.com/hackathons/${id}`;
                           window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}%20${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
                         }}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-border-primary bg-surface-primary text-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-purple-500 transition-colors"

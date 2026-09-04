@@ -3,7 +3,7 @@ import { LiFi } from "@lifi/sdk";
 
 // Configure LI.FI SDK
 const lifi = new LiFi({
-  integrator: "proof-of-ship-dashboard",
+  integrator: "pledgebond-dashboard",
   // Add any additional configuration options here
 });
 

@@ -102,8 +102,8 @@ export default function LeaderboardPage() {
         <meta property="og:title" content={ogTitle} />
         <meta property="og:description" content={ogDescription} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Proof of Ship" />
-        <meta property="og:url" content={`https://proofofship.app${router.asPath}`} />
+        <meta property="og:site_name" content="PledgeBond" />
+        <meta property="og:url" content={`https://pledgebond.com${router.asPath}`} />
         {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
         {ogImageUrl && <meta property="og:image:width" content="1200" />}
         {ogImageUrl && <meta property="og:image:height" content="630" />}

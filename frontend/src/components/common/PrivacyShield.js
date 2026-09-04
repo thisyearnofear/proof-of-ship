@@ -1,7 +1,7 @@
 /**
  * PrivacyShield
  *
- * Platform-level privacy messaging. Privacy is a feature of Proof of Ship,
+ * Platform-level privacy messaging. Privacy is a feature of PledgeBond,
  * not a user toggle. Shows at key moments:
  * - First time on /back page (onboarding)
  * - Before first stake (in BackingPanel)
@@ -64,7 +64,7 @@ export function PrivacyOnboarding({ onDismiss, className = '' }) {
     {
       icon: '🛡️',
       title: 'How We Protect You',
-      body: 'When you stake on Proof of Ship, your position goes through Cloak\'s shielded pool using Groth16 zero-knowledge proofs. The blockchain records a valid transaction — but the amount, sender, and recipient are encrypted.',
+      body: 'When you stake on PledgeBond, your position goes through Cloak\'s shielded pool using Groth16 zero-knowledge proofs. The blockchain records a valid transaction — but the amount, sender, and recipient are encrypted.',
       visual: (
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs font-mono text-green-700 dark:text-green-300">
           <div className="text-[10px] text-green-500 dark:text-green-400 uppercase mb-1">Solana Explorer — Shielded</div>

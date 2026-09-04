@@ -5,7 +5,7 @@
 
 class SocialSharingService {
   constructor() {
-    this.snapServerUrl = process.env.NEXT_PUBLIC_SNAP_SERVER_URL || 'https://proof-of-ship.vercel.app';
+    this.snapServerUrl = process.env.NEXT_PUBLIC_SNAP_SERVER_URL || 'https://pledgebond.vercel.app';
     this.neynarApiKey = process.env.NEYNAR_API_KEY;
   }
 
@@ -17,7 +17,7 @@ class SocialSharingService {
     try {
       const { slug, name, description } = projectData;
       const snapUrl = `${this.snapServerUrl}/snaps/scout/${slug}`;
-      const castText = `🚢 New project on Proof of Ship: ${name}!\n\n${description}\n\nScout this project and back its milestones:`;
+      const castText = `🚢 New project on PledgeBond: ${name}!\n\n${description}\n\nScout this project and back its milestones:`;
 
       await this.castToFarcaster(castText, [snapUrl]);
     } catch (error) {
@@ -59,7 +59,7 @@ class SocialSharingService {
       
       let castText = '';
       if (type === 'payout') {
-        castText = `💰 PROOF OF SHIP: ${name} just received a ${details.amount || ''} USDC payout! Builders are shipping. 🚢`;
+        castText = `💰 PLEDGEBOND: ${name} just received a ${details.amount || ''} USDC payout! Builders are shipping. 🚢`;
       } else {
         castText = `🎉 CELEBRATION: ${name} just hit a major milestone: "${details.title || 'Incredible progress'}"! 🚢`;
       }

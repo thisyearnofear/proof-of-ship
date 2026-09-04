@@ -13,7 +13,7 @@ export default function ScoutRedirectPage() {
   return (
     <>
       <Head>
-        <title>Proof Scout | Proof of Ship</title>
+        <title>Proof Scout | PledgeBond</title>
         <meta httpEquiv="refresh" content={`0;url=${agentsHref("scout")}`} />
       </Head>
       <div className="flex justify-center py-20">

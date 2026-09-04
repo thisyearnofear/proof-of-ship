@@ -223,7 +223,7 @@ export default async function handler(req) {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 28 }}>⚓</span>
               <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px", opacity: 0.9 }}>
-                Proof of Ship
+                PledgeBond
               </span>
             </div>
             <div
@@ -349,7 +349,7 @@ export default async function handler(req) {
         >
           <span style={{ fontSize: 64, marginBottom: 24 }}>⚓</span>
           <span style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-1px" }}>
-            Proof of Ship
+            PledgeBond
           </span>
           <span style={{ fontSize: 22, opacity: 0.75, marginTop: 12 }}>
             Leaderboard — Build. Ship. Get Backed.

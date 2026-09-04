@@ -1,8 +1,8 @@
-# Proof of Ship — Bags Hackathon Implementation Plan
+# PledgeBond — Bags Hackathon Implementation Plan
 
 > Read [VISION.md](./VISION.md) first for the unified capital-stack narrative. This doc is the implementation plan for **Rail 1 (Bags Token)** of that stack.
 
-This document outlines the strategic integration of the **Bags SDK** into the Proof of Ship platform for "The Bags Hackathon". We adhere strictly to our core engineering principles to ensure a performant, maintainable, and high-impact submission.
+This document outlines the strategic integration of the **Bags SDK** into the PledgeBond platform for "The Bags Hackathon". We adhere strictly to our core engineering principles to ensure a performant, maintainable, and high-impact submission.
 
 ## Core Principles
 
@@ -17,9 +17,9 @@ This document outlines the strategic integration of the **Bags SDK** into the Pr
 
 ---
 
-## Strategy: The "Bags-Powered" Builder Credit
+## Strategy: The "Bags-Powered" PledgeBond
 
-The Proof of Ship platform will leverage Bags to transform builder credit from a debt instrument into a community-backed asset.
+The PledgeBond platform will leverage Bags to transform PledgeBond from a debt instrument into a community-backed asset.
 
 ### 1. The "Ship" Mechanism (Token Launch)
 When a builder requests funding on the Solana ecosystem, the platform will offer an integrated **"Bags Boost"**:
@@ -28,7 +28,7 @@ When a builder requests funding on the Solana ecosystem, the platform will offer
 - **Liquidity**: The token provides immediate community-driven liquidity while the builder works toward milestones.
 
 ### 2. Fee-Sharing Backing
-Backers who fund projects on Proof of Ship can earn rewards through Bags' fee-sharing protocol:
+Backers who fund projects on PledgeBond can earn rewards through Bags' fee-sharing protocol:
 - **Mechanism**: Integrate `sdk.feeShare` to distribute protocol fees or a portion of project repayments to holders of the project token or direct backers.
 - **Incentive**: Creates a sustainable yield for backers beyond simple loan repayment.
 
@@ -42,7 +42,7 @@ Our AI agents (Underwriter, Scout, Verifier) will provide the "Alpha" for the Ba
 
 ## Ecosystem-Agnostic, Preference-Aware UX
 
-Proof of Ship supports many ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism, Solana). We do not hide non-Solana features for the Bags submission — instead we let **the user's expressed preference** shape what gets accentuated.
+PledgeBond supports many ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism, Solana). We do not hide non-Solana features for the Bags submission — instead we let **the user's expressed preference** shape what gets accentuated.
 
 ### Signals we infer preference from
 1. **Connected wallet type** — a Phantom/Backpack (Solana) connection biases Solana/Bags surfaces; a MetaMask (EVM) connection biases x402/Linea/Celo surfaces.
@@ -80,7 +80,7 @@ Proof of Ship supports many ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethere
 ### Phase 2: Feature Integration
 - [ ] **Bags Boost UI**: Add a "Launch on Bags" path in the "Submit Project" flow, available to all users, defaulted-on for Solana-preferring users.
 - [ ] **Token Launch Logic**: Wire `launchBagsToken()` to the submit flow; persist `bagsTokenAddress` on project record.
-- [ ] **Fee Sharing**: Map Proof of Ship backing events to Bags fee-sharing claims; surface claimable fees on profile/portfolio.
+- [ ] **Fee Sharing**: Map PledgeBond backing events to Bags fee-sharing claims; surface claimable fees on profile/portfolio.
 - [ ] **Wallet-aware preference inference**: Detect connected wallet (Phantom/Backpack vs MetaMask/Rabby) and update preference weights.
 - [ ] **Onboarding "Pick your ecosystems" step**: Multi-select, dismissible, editable from profile.
 
@@ -90,7 +90,7 @@ Proof of Ship supports many ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethere
 - [ ] Personalize agent output ordering by `EcosystemPreferenceContext`.
 
 ### Phase 4: Submission Polish
-- [ ] Launch the Proof of Ship project token on Bags (satisfies hackathon token requirement + dogfood).
+- [ ] Launch the PledgeBond project token on Bags (satisfies hackathon token requirement + dogfood).
 - [ ] Record 3–5 minute demo video covering the dual-rail story (Bags Boost → x402 credit → milestone verify → fee-share claim).
 - [ ] App icon, X handle, GitHub link, and category selection for DoraHacks submission.
 
@@ -100,7 +100,7 @@ Proof of Ship supports many ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethere
 
 ```mermaid
 graph TD
-    A[Builder] -->|Submit Project| B[Proof of Ship Platform]
+    A[Builder] -->|Submit Project| B[PledgeBond Platform]
     B -->|AI Analysis| C[AI Underwriter]
     C -->|Recommendation| D{Bags Boost?}
     D -->|Yes| E[Bags SDK: Token Launch]

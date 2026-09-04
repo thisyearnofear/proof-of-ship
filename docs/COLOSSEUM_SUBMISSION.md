@@ -1,4 +1,4 @@
-# Proof of Ship — Colosseum Frontier Hackathon Submission
+# PledgeBond — Colosseum Frontier Hackathon Submission
 
 > **Public Goods track** — Capital infrastructure for builders, powered by on-chain credit, AI agents, and community staking.
 
@@ -6,13 +6,13 @@
 
 ## One-liner
 
-Proof of Ship is the capital stack for software builders: on-chain credit collateralized by hackathon prizes, community-backed staking with privacy, and AI agents that price, scout, and verify work — all as an open, composable public good.
+PledgeBond is the capital stack for software builders: on-chain credit collateralized by hackathon prizes, community-backed staking with privacy, and AI agents that price, scout, and verify work — all as an open, composable public good.
 
 ---
 
 ## Why This Is a Public Good
 
-Every component of Proof of Ship benefits the Solana ecosystem beyond any single user:
+Every component of PledgeBond benefits the Solana ecosystem beyond any single user:
 
 1. **On-chain reputation is infrastructure.** Builder credit scores, backer track records, and project verification signals are anchored on-chain and composable by anyone. No API key, no walled garden.
 
@@ -20,7 +20,7 @@ Every component of Proof of Ship benefits the Solana ecosystem beyond any single
 
 3. **Staking is permissionless.** Any wallet can back any builder. There's no gatekeeper, no whitelist, no minimum. Cloak integration means even the amounts are optional to reveal.
 
-4. **The reputation compounds externally.** A builder's Proof of Ship credit score is a portable signal for any Solana protocol — grants programs, hackathon organizers, DAOs, other DeFi protocols.
+4. **The reputation compounds externally.** A builder's PledgeBond credit score is a portable signal for any Solana protocol — grants programs, hackathon organizers, DAOs, other DeFi protocols.
 
 ---
 
@@ -38,10 +38,10 @@ Every component of Proof of Ship benefits the Solana ecosystem beyond any single
 
 | Agent | Price | Capability |
 |-------|-------|-----------|
-| **Scout** (`pos-scout.sol`) | $0.01 | Ecosystem scanning, project discovery, portfolio recommendations |
-| **Underwriter** (`pos-underwriter.sol`) | $0.05 | Project health scoring, credit line sizing, risk analysis |
-| **Verifier** (`pos-verifier.sol`) | $0.001/10 LOC | PR code review, milestone verification, on-chain confirmation |
-| **Rebalance** (`pos-rebalance.sol`) | $0.01 | Portfolio optimization across hackathon groups |
+| **Scout** (`pledgebond-scout.sol`) | $0.01 | Ecosystem scanning, project discovery, portfolio recommendations |
+| **Underwriter** (`pledgebond-underwriter.sol`) | $0.05 | Project health scoring, credit line sizing, risk analysis |
+| **Verifier** (`pledgebond-verifier.sol`) | $0.001/10 LOC | PR code review, milestone verification, on-chain confirmation |
+| **Rebalance** (`pledgebond-rebalance.sol`) | $0.01 | Portfolio optimization across hackathon groups |
 
 Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second settlement.
 
@@ -49,7 +49,7 @@ Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second 
 
 - **SNS (.sol domains)** — Builders and agents use human-readable on-chain identities via Solana Name Service integration. A builder named `alice.sol` is more legible than `7xKX...4pQr`.
 - **Anchored builder identity proof** — In the latest Solana project-creation flow, the builder signs an SNS identity-claim message, the transaction prepends an `Ed25519Program` verification instruction, and the Anchor program stores the claimed `.sol` domain, SNS name-account reference, and proof signature on the `Project` account.
-- **Agent identities** — Each AI agent has a registered .sol domain on devnet (`pos-scout.sol`, `pos-underwriter.sol`, `pos-verifier.sol`, `pos-rebalance.sol`) providing verifiable on-chain identity for machine-to-machine transactions. All 4 registered by the project wallet.
+- **Agent identities** — Each AI agent has a registered .sol domain on devnet (`pledgebond-scout.sol`, `pledgebond-underwriter.sol`, `pledgebond-verifier.sol`, `pledgebond-rebalance.sol`) providing verifiable on-chain identity for machine-to-machine transactions. All 4 registered by the project wallet.
 
 ### Privacy Layer
 
@@ -68,7 +68,7 @@ Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second 
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Proof of Ship                         │
+│                    PledgeBond                         │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
 │  │ Frontend  │  │  Agent   │  │  Snap    │              │
@@ -99,7 +99,7 @@ Each agent earns per-call via x402 nanopayments on Arc — zero gas, sub-second 
 ## Judge Alignment
 
 ### Lily Liu (Solana Foundation President)
-Proof of Ship is ecosystem infrastructure. The on-chain credit scores and reputation data are open, composable, and benefit every Solana protocol. This is what Solana needs more of — infrastructure that makes builders legible without gatekeepers.
+PledgeBond is ecosystem infrastructure. The on-chain credit scores and reputation data are open, composable, and benefit every Solana protocol. This is what Solana needs more of — infrastructure that makes builders legible without gatekeepers.
 
 ### Anatoly Yakovenko (Solana Cofounder)
 Zero-gas nanopayments for AI agents. x402 on Arc enables per-call pricing at $0.001 — impossible on any chain with non-zero gas. The agent layer is the kind of high-frequency, low-value transaction pattern that only Solana's throughput can support at scale.
@@ -143,10 +143,10 @@ All 4 AI agents have registered .sol domains on Solana devnet, owned by the proj
 
 | Agent | Domain | Registration TX |
 |-------|--------|----------------|
-| Scout | `pos-scout.sol` | [`3jaZHfX...`](https://explorer.solana.com/tx/3jaZHfXVkhsqths28JiHsVbzY1kSo1ZjFSwDF58vAQDrt2AF83Ty5PCav1CWVHaMSposVhAjtkz3RdFZNeVDhfGD?cluster=devnet) |
-| Underwriter | `pos-underwriter.sol` | [`395H3j1...`](https://explorer.solana.com/tx/395H3j1BSFD5vk55Jcf43jqrjmYKfj9qeSrVf68WLVqAUL1gptyewwBXubtq5X6j3HXWj849cv332SaJDNSDYbkH?cluster=devnet) |
-| Verifier | `pos-verifier.sol` | [`4Fa3cmL...`](https://explorer.solana.com/tx/4Fa3cmLRNznWUXPLDgvQkaQx6bAMFf4ruz9e6ZaiqHnQ8FPm4AXMzFDAdLUsBeNcan6kp8AktnLkgSWihFg2RxtL?cluster=devnet) |
-| Rebalance | `pos-rebalance.sol` | [`5JYxfPs...`](https://explorer.solana.com/tx/5JYxfPsavQhdHrMkXWW4RiVJPeF2xGQm6WahQMYwva8THvhdjo8A5igqAbPdzf3Ro9YdAY9LtQsFfjTSZHHc1FSx?cluster=devnet) |
+| Scout | `pledgebond-scout.sol` | [`3jaZHfX...`](https://explorer.solana.com/tx/3jaZHfXVkhsqths28JiHsVbzY1kSo1ZjFSwDF58vAQDrt2AF83Ty5PCav1CWVHaMSposVhAjtkz3RdFZNeVDhfGD?cluster=devnet) |
+| Underwriter | `pledgebond-underwriter.sol` | [`395H3j1...`](https://explorer.solana.com/tx/395H3j1BSFD5vk55Jcf43jqrjmYKfj9qeSrVf68WLVqAUL1gptyewwBXubtq5X6j3HXWj849cv332SaJDNSDYbkH?cluster=devnet) |
+| Verifier | `pledgebond-verifier.sol` | [`4Fa3cmL...`](https://explorer.solana.com/tx/4Fa3cmLRNznWUXPLDgvQkaQx6bAMFf4ruz9e6ZaiqHnQ8FPm4AXMzFDAdLUsBeNcan6kp8AktnLkgSWihFg2RxtL?cluster=devnet) |
+| Rebalance | `pledgebond-rebalance.sol` | [`5JYxfPs...`](https://explorer.solana.com/tx/5JYxfPsavQhdHrMkXWW4RiVJPeF2xGQm6WahQMYwva8THvhdjo8A5igqAbPdzf3Ro9YdAY9LtQsFfjTSZHHc1FSx?cluster=devnet) |
 
 **Cloak Demo Mode**
 
@@ -177,9 +177,9 @@ SNS_NAME_ACCOUNT=your_sns_name_account_pubkey
 
 ## Files & Links
 
-- **Live:** [proofofship.web.app](https://proofofship.web.app)
-- **Mirror:** [proof-of-ship.vercel.app](https://proof-of-ship.vercel.app)
-- **GitHub:** [github.com/thisyearnofear/proof-of-ship](https://github.com/thisyearnofear/proof-of-ship)
+- **Live:** [pledgebond.com](https://pledgebond.com)
+- **Mirror:** [pledgebond.vercel.app](https://pledgebond.vercel.app)
+- **GitHub:** [github.com/thisyearnofear/pledgebond](https://github.com/thisyearnofear/pledgebond)
 - **Docs:** [docs/](./README.md)
 
 ---

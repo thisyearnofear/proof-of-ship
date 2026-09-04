@@ -187,7 +187,7 @@ export default function ProjectEditorProof({
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-lg bg-white/70 border border-emerald-100">
                         <Input
                           label="Token Name"
-                          placeholder="e.g. Proof of Ship Token"
+                          placeholder="e.g. PledgeBond Token"
                           value={form.bagsTokenMetadata.name}
                           onChange={(e) => setField("bagsTokenMetadata", { ...form.bagsTokenMetadata, name: e.target.value })}
                         />
@@ -373,7 +373,7 @@ function HackathonClaims({ hackathons, addHackathon, updateHackathon, removeHack
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Hackathon proof</h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            This is a core Proof of Ship signal. Add structured evidence that ties your repo, wallet, and public win/submission history together.
+            This is a core PledgeBond signal. Add structured evidence that ties your repo, wallet, and public win/submission history together.
           </p>
         </div>
         <Button type="button" variant="outline" onClick={addHackathon} leftIcon={<PlusIcon className="w-4 h-4" />}>

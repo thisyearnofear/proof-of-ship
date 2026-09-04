@@ -1,8 +1,8 @@
 /**
  * SNS Agent Domain Registration Script
  *
- * Registers Proof of Ship agent .sol domains on Solana devnet:
- *   pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol
+ * Registers PledgeBond agent .sol domains on Solana devnet:
+ *   pledgebond-scout.sol, pledgebond-underwriter.sol, pledgebond-verifier.sol, pledgebond-rebalance.sol
  *
  * Usage:
  *   node scripts/register-agent-domains.js
@@ -19,7 +19,7 @@ const frontendModules = path.join(__dirname, '..', 'frontend', 'node_modules');
 const { Connection, Keypair, Transaction } = require(path.join(frontendModules, '@solana', 'web3.js'));
 const { getDomainKeySync, createNameRegistry, NameRegistryState } = require(path.join(frontendModules, '@bonfida', 'spl-name-service', 'dist', 'cjs'));
 
-const AGENT_DOMAINS = ['pos-scout', 'pos-underwriter', 'pos-verifier', 'pos-rebalance'];
+const AGENT_DOMAINS = ['pledgebond-scout', 'pledgebond-underwriter', 'pledgebond-verifier', 'pledgebond-rebalance'];
 
 const connection = new Connection(
   process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
@@ -91,7 +91,7 @@ async function registerDomain(wallet, domainName) {
 }
 
 async function main() {
-  console.log('=== Proof of Ship — SNS Agent Domain Registration ===\n');
+  console.log('=== PledgeBond — SNS Agent Domain Registration ===\n');
 
   const wallet = loadWallet();
   console.log(`Wallet: ${wallet.publicKey.toBase58()}`);

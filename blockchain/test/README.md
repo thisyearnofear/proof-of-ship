@@ -1,6 +1,6 @@
-# Builder Credit Test Suite
+# PledgeBond Test Suite
 
-This directory contains tests for the Builder Credit platform's smart contracts and frontend integrations.
+This directory contains tests for the PledgeBond platform's smart contracts and frontend integrations.
 
 ## Smart Contract Tests
 

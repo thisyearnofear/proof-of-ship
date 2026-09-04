@@ -27,28 +27,28 @@ const STATUS_CONFIG = {
 
 const TYPE_CONFIG = {
   "underwrite": {
-    label: "pos-underwriter.sol",
+    label: "pledgebond-underwriter.sol",
     humanName: "Underwriter Agent",
     description: "Project health score analysis",
     icon: "🤖",
     color: "indigo",
   },
   "scout": {
-    label: "pos-scout.sol",
+    label: "pledgebond-scout.sol",
     humanName: "Scout Agent",
     description: "Portfolio recommendations",
     icon: "🔭",
     color: "blue",
   },
   "verify": {
-    label: "pos-verifier.sol",
+    label: "pledgebond-verifier.sol",
     humanName: "Verifier Agent",
     description: "Code verification",
     icon: "✅",
     color: "green",
   },
   "rebalance": {
-    label: "pos-rebalance.sol",
+    label: "pledgebond-rebalance.sol",
     humanName: "Rebalance Agent",
     description: "Auto-rebalancing",
     icon: "⚖️",

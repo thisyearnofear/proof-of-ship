@@ -20,7 +20,7 @@ export default function CompareRedirectPage() {
   return (
     <>
       <Head>
-        <title>Compare Projects | Proof of Ship</title>
+        <title>Compare Projects | PledgeBond</title>
         <meta httpEquiv="refresh" content={`0;url=${fallbackTarget}`} />
       </Head>
       <div className="flex justify-center py-20">

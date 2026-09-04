@@ -23,7 +23,7 @@ export default function ProjectEditorCelebration({ slug, ecosystem, name, curren
   };
 
   const handleShare = () => {
-    const text = `Just shipped ${name.trim()} on Proof of Ship! Check it out:`;
+    const text = `Just shipped ${name.trim()} on PledgeBond! Check it out:`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(projectUrl)}`, "_blank");
   };
 

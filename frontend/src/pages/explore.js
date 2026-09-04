@@ -87,7 +87,7 @@ export default function ExplorePage() {
 
   return (
     <ErrorBoundary name="ExplorePage" errorMessage="Failed to load. Please refresh.">
-      <Head><title>Explore — Proof of Ship</title></Head>
+      <Head><title>Explore — PledgeBond</title></Head>
       <div className="min-h-screen bg-surface-secondary">
         <LiveAgentTicker />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

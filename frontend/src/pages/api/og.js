@@ -147,7 +147,7 @@ function renderProfileOG(params, fontRegular, fontBold) {
                 opacity: 0.9,
               }}
             >
-              Proof of Ship
+              PledgeBond
             </span>
           </div>
           <div
@@ -358,7 +358,7 @@ function renderProjectOG(params, fontRegular, fontBold) {
             <span
               style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px", opacity: 0.9 }}
             >
-              Proof of Ship
+              PledgeBond
             </span>
           </div>
           <div
@@ -527,7 +527,7 @@ function renderHackathonOG(params, fontRegular, fontBold) {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: 28 }}>⚓</span>
             <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px", opacity: 0.9 }}>
-              Proof of Ship
+              PledgeBond
             </span>
           </div>
           <div
@@ -656,7 +656,7 @@ function renderFallbackOG(fontRegular, fontBold) {
       >
         <span style={{ fontSize: 64, marginBottom: 24 }}>⚓</span>
         <span style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-1px" }}>
-          Proof of Ship
+          PledgeBond
         </span>
         <span style={{ fontSize: 22, opacity: 0.75, marginTop: 12 }}>
           Build. Ship. Get Backed.

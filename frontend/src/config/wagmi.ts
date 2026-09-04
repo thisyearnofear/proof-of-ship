@@ -14,8 +14,8 @@ export const wagmiConfig = createConfig(
       [celo.id]: http('https://forno.celo.org'),
     },
     walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '',
-    appName: 'Proof of Ship',
-    appDescription: 'On-chain builder credit backed by reputation',
-    appUrl: 'https://proof-of-ship.vercel.app',
+    appName: 'PledgeBond',
+    appDescription: 'On-chain PledgeBond backed by reputation',
+    appUrl: 'https://pledgebond.vercel.app',
   })
 );

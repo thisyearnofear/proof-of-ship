@@ -1,7 +1,7 @@
 # Torque MCP Integration — Friction Log
 
 ## Integration Overview
-Proof of Ship integrates Torque to track builder shipping velocity and backer engagement across the platform. Events are fired on project submissions, milestone completions, project backing, and AI agent usage.
+PledgeBond integrates Torque to track builder shipping velocity and backer engagement across the platform. Events are fired on project submissions, milestone completions, project backing, and AI agent usage.
 
 ## Setup Experience
 
@@ -30,7 +30,7 @@ The `TORQUE_API_KEY` is kept server-side only. Client code calls `/api/torque/ev
 All Torque tracking is fire-and-forget. If the API key is missing or the request fails, the core app flow is never blocked. This is critical for a hackathon demo where we might not have credentials configured.
 
 ### Event Mapping
-| Proof of Ship Action | Torque Event | User Identifier |
+| PledgeBond Action | Torque Event | User Identifier |
 |---------------------|--------------|-----------------|
 | Project submitted | `project_submitted` | Firebase UID / wallet address |
 | Project backed | `project_backed` | Wallet address |

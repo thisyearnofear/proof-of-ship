@@ -57,7 +57,7 @@ export default function ProofBuildersList({ entries }) {
               </div>
             </div>
             <ShareButton
-              text={`#${rank} Proof Builder: ${entry.name || "Builder"} — ${entry.score || 0} proof score · ${entry.evidenceCoverage || 0}% evidence coverage on @proofofship`}
+              text={`#${rank} Proof Builder: ${entry.name || "Builder"} — ${entry.score || 0} proof score · ${entry.evidenceCoverage || 0}% evidence coverage on @pledgebond`}
               entryType="proof-builder"
               entry={entry}
               rank={rank}

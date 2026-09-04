@@ -82,7 +82,7 @@ export const NoProjectsEmptyState = ({
       size={size}
       icon={icon}
       title="No Projects Found"
-      description="You haven't created any projects yet. Start building your proof of ship portfolio by creating your first project."
+      description="You haven't created any projects yet. Start building your pledgebond portfolio by creating your first project."
       action={
         onCreateProject && (
           <Button onClick={onCreateProject} variant="primary">

@@ -37,7 +37,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
 const GOOGLE_MODEL = "gemini-2.0-flash";
 const GOOGLE_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 
-const SYSTEM_PROMPT = `You are the Proof of Ship AI Assistant — a helpful guide for a platform that tracks and funds blockchain projects using x402 nanopayments on Circle's Arc network.
+const SYSTEM_PROMPT = `You are the PledgeBond AI Assistant — a helpful guide for a platform that tracks and funds blockchain projects using x402 nanopayments on Circle's Arc network.
 
 Key platform features you should help users with:
 - **Explore**: Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism)
@@ -158,13 +158,13 @@ async function handleChat(req, res) {
       : resultSource === "fallback" ? "0.005 USDC (fallback)" : "0.005 USDC";
 
     return res.status(200).json({
-      agent: { type: "assistant", snsDomain: "pos-scout.sol", displayName: "pos-scout.sol", humanName: "Platform Assistant", icon: "🔭", description: "Platform helper assistant" },
+      agent: { type: "assistant", snsDomain: "pledgebond-scout.sol", displayName: "pledgebond-scout.sol", humanName: "Platform Assistant", icon: "🔭", description: "Platform helper assistant" },
       success: true,
       status,
       resultSource,
       nextAction: "Use one of the AI agent actions on the Back page when you're ready to analyze a project.",
       reply,
-      agentInfo: { name: "pos-scout.sol", humanName: "Platform Assistant", cost, txHash: req.nanopayment?.txHash, network: "arc", paymentStatus: req.nanopayment?.testMode ? "test_mode" : (req.nanopayment?.verificationStatus || "unverified"), ...(aiPayment && { aiPayment }) },
+      agentInfo: { name: "pledgebond-scout.sol", humanName: "Platform Assistant", cost, txHash: req.nanopayment?.txHash, network: "arc", paymentStatus: req.nanopayment?.testMode ? "test_mode" : (req.nanopayment?.verificationStatus || "unverified"), ...(aiPayment && { aiPayment }) },
     });
   } catch (error) {
     console.error("Chat agent error:", error);
@@ -174,14 +174,14 @@ async function handleChat(req, res) {
 
 function getContextualReply(message) {
   const lower = message.toLowerCase();
-  if (lower.match(/hello|hi|hey|sup|what's up/)) return "Hey! 👋 I'm the Proof of Ship assistant. I can help you explore projects, understand AI agents, or submit your own project. What would you like to do?";
+  if (lower.match(/hello|hi|hey|sup|what's up/)) return "Hey! 👋 I'm the PledgeBond assistant. I can help you explore projects, understand AI agents, or submit your own project. What would you like to do?";
   if (lower.match(/submit|add|create|new project/)) return "To submit a project, click **Submit Project** in the nav or go to /projects/new. You'll need a project name, description, GitHub URL, ecosystem, and category. Contract address is optional!";
   if (lower.match(/agent|underwrite|scout|verify|ai/)) return "We have 3 AI agents: **Underwriter** ($0.05) scores project health, **Scout** ($0.01) finds top projects across ecosystems, and **Verifier** ($0.01) checks code quality. Try them on the **Back** page → Economy tab!";
   if (lower.match(/x402|nanopay|payment|usdc|cost|price/)) return "x402 nanopayments let you pay small USDC amounts for AI analysis. Set up your payment wallet on the **Back** page to unlock agent flows.";
   if (lower.match(/explore|browse|find|search|project/)) return "Head to the **Explore** page to browse projects across 7 ecosystems. Use the search bar to filter by name or category. Click any project for details and AI analysis!";
   if (lower.match(/arc|circle|ecosystem/)) return "Arc is Circle's USDC-native EVM network for fast stablecoin settlement. We use it so small AI analysis payments can settle cleanly in USDC.";
   if (lower.match(/back|fund|invest|support/)) return "The **Back** page lets you discover and support projects. Use AI agents to analyze projects before backing them. Your payment balance is shown there when you set it up.";
-  if (lower.match(/how|work|explain|what is/)) return "Proof of Ship helps you explore projects, run AI analysis, and decide what to back. The core flow is: pick a project → run analysis → review the result → back with confidence.";
+  if (lower.match(/how|work|explain|what is/)) return "PledgeBond helps you explore projects, run AI analysis, and decide what to back. The core flow is: pick a project → run analysis → review the result → back with confidence.";
   return "I can help you explore projects, use AI agents, submit your own project, or understand AI analysis payments. What would you like to do next?";
 }
 

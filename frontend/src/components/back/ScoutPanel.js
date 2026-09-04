@@ -31,7 +31,7 @@ export default function ScoutPanel() {
     const text = SHARE_TEXT(stats);
     const url = typeof window !== "undefined"
       ? `${window.location.origin}${agentsHref("scout")}`
-      : "https://proofofship.app/back?tab=agents&mode=scout";
+      : "https://pledgebond.com/back?tab=agents&mode=scout";
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       "_blank",

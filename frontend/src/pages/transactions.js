@@ -56,7 +56,7 @@ export default function TransactionsPage() {
   return (
     <>
       <Head>
-        <title>Transaction Explorer | Proof of Ship</title>
+        <title>Transaction Explorer | PledgeBond</title>
       </Head>
 
       <Breadcrumbs items={[{ label: "Transactions" }]} />

@@ -1,5 +1,5 @@
 {
-  "name": "builder-credit-platform",
+  "name": "pledgebond",
   "version": "1.0.0",
   "description": "Decentralized platform for hackathon funding and milestone verification",
   "main": "index.js",

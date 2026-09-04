@@ -1,6 +1,6 @@
 # Frontend
 
-This directory contains the Next.js frontend application for the Builder Credit Platform.
+This directory contains the Next.js frontend application for the PledgeBond.
 
 ## Structure
 

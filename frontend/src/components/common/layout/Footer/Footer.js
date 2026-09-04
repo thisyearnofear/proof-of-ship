@@ -33,7 +33,7 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-primary mb-3">Resources</h4>
             <ul className="space-y-2">
-              <li><a href="https://github.com/thisyearnofear/proof-of-ship" target="_blank" rel="noopener noreferrer" className="text-sm text-secondary hover:text-primary transition-colors">GitHub</a></li>
+              <li><a href="https://github.com/thisyearnofear/pledgebond" target="_blank" rel="noopener noreferrer" className="text-sm text-secondary hover:text-primary transition-colors">GitHub</a></li>
               <li><Link href="/" className="text-sm text-secondary hover:text-primary transition-colors">Home</Link></li>
             </ul>
           </div>
@@ -51,7 +51,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-default text-center">            <p className="text-sm text-tertiary">
-              © {new Date().getFullYear()} Proof of Ship — The reputation layer for crypto builders.
+              © {new Date().getFullYear()} PledgeBond — The reputation layer for crypto builders.
             </p>
         </div>
       </div>

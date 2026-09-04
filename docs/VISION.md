@@ -1,8 +1,8 @@
-# Proof of Ship — Product Vision
+# PledgeBond — Product Vision
 
 > **Capital infrastructure for builders — from idea to milestone to ship.**
 
-Proof of Ship is a chain-agnostic capital stack for software builders. It pairs **on-chain credit** with **community-backed tokens** and an **AI agent layer** that prices, scouts, and verifies work. Backers earn from successful shipping; builders get capital matched to their stage; agents earn margin per call.
+PledgeBond is a chain-agnostic capital stack for software builders. It pairs **on-chain credit** with **community-backed tokens** and an **AI agent layer** that prices, scouts, and verifies work. Backers earn from successful shipping; builders get capital matched to their stage; agents earn margin per call.
 
 ---
 
@@ -49,7 +49,7 @@ For builders winning prizes through registered hackathons.
 
 ## The Agentic Layer (cross-rail)
 
-Three AI agents price, scout, and verify across all three rails. Each charges via x402 nanopayments on Arc. Each agent has a `.sol` domain identity (e.g., `pos-scout.sol`) via Solana Name Service, providing human-readable on-chain identity that makes the system legible to users and ecosystem participants.
+Three AI agents price, scout, and verify across all three rails. Each charges via x402 nanopayments on Arc. Each agent has a `.sol` domain identity (e.g., `pledgebond-scout.sol`) via Solana Name Service, providing human-readable on-chain identity that makes the system legible to users and ecosystem participants.
 
 When QVAC (Tether's local-first AI SDK) is available, agent inference runs on-device — project data never leaves the user's machine. This aligns with the platform's decentralization philosophy: no central point of failure, no third-party data exposure. When QVAC is not installed, the existing cloud provider chain (Featherless AI -> AIsa Perplexity Sonar) handles inference.
 
@@ -71,13 +71,13 @@ The agents are the same product across rails; their output is the dual-instrumen
 | **Backer choice** | Backers pick risk profile: yield-style (Bags fee-share) or repayment-style (x402 credit). Same dashboard, different positions. |
 | **Reputation** | A builder's track record across rails compounds — token holder graph + repayment history + verified milestones = stronger than any single signal. |
 | **Agent leverage** | The same Underwriter/Scout/Verifier sells more SKUs without more model work. Margin scales with rail count. |
-| **Switching cost** | A builder using two rails has 2x the data anchored to Proof of Ship — switching means rebuilding both. |
+| **Switching cost** | A builder using two rails has 2x the data anchored to PledgeBond — switching means rebuilding both. |
 
 ---
 
 ## Multi-Ecosystem, Preference-Aware
 
-Proof of Ship is **chain-agnostic**. Rail 1 (Bags) is Solana-native today; Rail 2 (x402 credit) runs on Arc; Rail 3 (prize routing) supports 7 EVM ecosystems plus Solana.
+PledgeBond is **chain-agnostic**. Rail 1 (Bags) is Solana-native today; Rail 2 (x402 credit) runs on Arc; Rail 3 (prize routing) supports 7 EVM ecosystems plus Solana.
 
 We never hide ecosystems a user hasn't picked. Instead, we **infer preference** from connected wallet, onboarding choice, and recent activity, then **accentuate** matching rails:
 

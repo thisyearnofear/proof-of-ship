@@ -1,5 +1,5 @@
 /**
- * Agent Identity — SNS-based identities for Proof of Ship AI agents.
+ * Agent Identity — SNS-based identities for PledgeBond AI agents.
  *
  * Each agent (Scout, Underwriter, Verifier, Portfolio Manager) has a .sol domain
  * identity that provides human-readable on-chain identity, satisfying the SNS
@@ -10,25 +10,25 @@
 
 export const AGENT_IDENTITIES = {
   scout: {
-    domain: 'pos-scout.sol',
+    domain: 'pledgebond-scout.sol',
     displayName: 'Scout Agent',
     description: 'Evaluates projects and recommends micro-backings',
     icon: '🔭',
   },
   underwrite: {
-    domain: 'pos-underwriter.sol',
+    domain: 'pledgebond-underwriter.sol',
     displayName: 'Underwriter Agent',
     description: 'Analyzes project health and creditworthiness',
     icon: '🤖',
   },
   verify: {
-    domain: 'pos-verifier.sol',
+    domain: 'pledgebond-verifier.sol',
     displayName: 'Verifier Agent',
     description: 'Reviews and verifies milestone PR code',
     icon: '✅',
   },
   rebalance: {
-    domain: 'pos-rebalance.sol',
+    domain: 'pledgebond-rebalance.sol',
     displayName: 'Rebalance Agent',
     description: 'Manages portfolio allocation across hackathon groups',
     icon: '⚖️',

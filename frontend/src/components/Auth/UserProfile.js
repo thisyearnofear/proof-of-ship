@@ -125,7 +125,7 @@ export default function UserProfile() {
 
       // Use the primary wallet to sign the handshake message
       const wallet = linkedWallets[0];
-      const message = `Link Weft Identity for Proof-of-Ship: ${currentUser.uid}`;
+      const message = `Link Weft Identity for PledgeBond: ${currentUser.uid}`;
 
       let signature;
       if (wallet.chainFamily === 'solana') {

@@ -35,7 +35,7 @@ export default async function handler(req) {
             fontWeight: 'bold',
             letterSpacing: '2px'
           }}>
-            PROOF OF SHIP CELEBRATION
+            PLEDGEBOND CELEBRATION
           </div>
           
           <div style={{ 
@@ -91,7 +91,7 @@ export default async function handler(req) {
             fontSize: '20px',
             color: '#475569'
           }}>
-            proof-of-ship.vercel.app/fleet
+            pledgebond.vercel.app/fleet
           </div>
         </div>
       ),

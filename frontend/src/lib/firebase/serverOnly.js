@@ -28,7 +28,7 @@ if (!admin.apps.length) {
     if (privateKey && process.env.FIREBASE_CLIENT_EMAIL) {
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID || 'proofofship',
+          projectId: process.env.FIREBASE_PROJECT_ID || 'pledgebond',
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey,
         }),
@@ -37,7 +37,7 @@ if (!admin.apps.length) {
       // Development / Firebase Hosting edge cases
       // Uses Application Default Credentials
       admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID || 'proofofship',
+        projectId: process.env.FIREBASE_PROJECT_ID || 'pledgebond',
       });
     }
   } catch (error) {

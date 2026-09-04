@@ -6,11 +6,11 @@
   },
   "frame": {
     "version": "1",
-    "name": "Proof of Ship",
-    "iconUrl": "https://proof-of-ship.vercel.app/icon.png",
-    "homeUrl": "https://proof-of-ship.vercel.app",
-    "imageUrl": "https://proof-of-ship.vercel.app/og-image.png",
-    "splashImageUrl": "https://proof-of-ship.vercel.app/splash.png",
-    "webhookUrl": "https://proof-of-ship.vercel.app/api/webhook"
+    "name": "PledgeBond",
+    "iconUrl": "https://pledgebond.vercel.app/icon.png",
+    "homeUrl": "https://pledgebond.vercel.app",
+    "imageUrl": "https://pledgebond.vercel.app/og-image.png",
+    "splashImageUrl": "https://pledgebond.vercel.app/splash.png",
+    "webhookUrl": "https://pledgebond.vercel.app/api/webhook"
   }
 }

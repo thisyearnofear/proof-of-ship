@@ -109,10 +109,10 @@ export default function LoginPage() {
     const nonce = typeof crypto !== 'undefined' && /** @type {any} */ (crypto).randomUUID
       ? /** @type {any} */ (crypto).randomUUID()
       : Math.random().toString(36).slice(2) + Date.now().toString(36);
-    const domain = typeof window !== 'undefined' ? window.location.host : 'proof-of-ship.xyz';
+    const domain = typeof window !== 'undefined' ? window.location.host : 'pledgebond.com';
     const timestamp = new Date().toISOString();
     const message = [
-      'Proof of Ship - Verify Identity',
+      'PledgeBond - Verify Identity',
       '',
       `Identifier: ${identifier}`,
       `Wallet: ${activeWalletAddress}`,
@@ -208,10 +208,10 @@ export default function LoginPage() {
   if (!role) {
     return (
       <div className="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-background">
-        <Head><title>Sign In - Proof of Ship</title></Head>
+        <Head><title>Sign In - PledgeBond</title></Head>
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <img className="mx-auto h-16 w-16 rounded shadow-lg" src="/POS.png" alt="Proof of Ship" />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-primary">Welcome to Proof of Ship</h2>
+          <img className="mx-auto h-16 w-16 rounded shadow-lg" src="/pledgebond.png" alt="PledgeBond" />
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-primary">Welcome to PledgeBond</h2>
           <p className="mt-2 text-center text-sm text-secondary">Choose how you want to participate.</p>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
@@ -241,11 +241,11 @@ export default function LoginPage() {
   if (role === 'backer') {
     return (
       <div className="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-background">
-        <Head><title>Sign In - Proof of Ship</title></Head>
+        <Head><title>Sign In - PledgeBond</title></Head>
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <img className="mx-auto h-16 w-16 rounded shadow-lg" src="/POS.png" alt="Proof of Ship" />
+          <img className="mx-auto h-16 w-16 rounded shadow-lg" src="/pledgebond.png" alt="PledgeBond" />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-primary">Connect Your Wallet</h2>
-          <p className="mt-2 text-center text-sm text-secondary">This is your identity on Proof of Ship. You&apos;ll sign a message to prove you own it.</p>
+          <p className="mt-2 text-center text-sm text-secondary">This is your identity on PledgeBond. You&apos;ll sign a message to prove you own it.</p>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
           <SetupChecklist steps={setupSteps} />
@@ -309,9 +309,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-background">
-      <Head><title>Sign In - Proof of Ship</title></Head>
+      <Head><title>Sign In - PledgeBond</title></Head>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <img className="mx-auto h-16 w-16 rounded shadow-lg" src="/POS.png" alt="Proof of Ship" />
+        <img className="mx-auto h-16 w-16 rounded shadow-lg" src="/pledgebond.png" alt="PledgeBond" />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-primary">Set Up Your Builder Profile</h2>
         <p className="mt-2 text-center text-sm text-secondary">Two quick steps to verify your identity and start shipping.</p>
       </div>

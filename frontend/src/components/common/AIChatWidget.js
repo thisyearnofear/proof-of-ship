@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
-import { agentsHref } from "@/config/navigation";
 import {
   ChatBubbleLeftRightIcon,
   XMarkIcon,
@@ -9,10 +8,10 @@ import {
 } from "@heroicons/react/24/outline";
 
 const QUICK_ACTIONS = [
-  { label: "Analyze a project", href: agentsHref("analyze") },
-  { label: "Run Scout", href: agentsHref("scout") },
-  { label: "Compare projects", href: agentsHref("compare") },
-  { label: "How do payments work?", message: "How do AI analysis payments work?" },
+  { label: "Claim my win", href: "/projects/new" },
+  { label: "Check payout speeds", href: "/leaderboard" },
+  { label: "Generate winner packet", href: "/build?tab=wins" },
+  { label: "How does underwriting work?", message: "How do Verifier and Underwriter help hackathon winners get paid and unlock credit?" },
 ];
 
 function describeSource(source) {
@@ -98,14 +97,14 @@ export default function AIChatWidget() {
           const result = await qvacService.complete({
             prompt: trimmed,
             systemPrompt:
-              "You are the Proof of Ship navigation assistant. Be concise. Direct users to Back → Agents for paid analysis (Scout, Underwriter, Verifier).",
+              "You are the PledgeBond assistant for hackathon winners. Be concise. Direct users to claim a win (/projects/new), check payout speeds (/leaderboard), or generate an Underwriter packet (/build?tab=wins). Verifier confirms payouts; Underwriter scores the win.",
           });
           if (result.text) {
             reply = result.text;
             source = "local";
             meta = {
               status: "ok",
-              nextAction: "Open Back → Agents when you are ready to run Scout or analyze a project.",
+              nextAction: "Claim your win, check payout speeds, or open Build → Wins to generate a packet.",
             };
           }
         }
@@ -277,7 +276,7 @@ export default function AIChatWidget() {
         {messages.length === 0 && (
           <div className="space-y-3">
             <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-xl p-3 text-sm text-gray-700 dark:text-gray-300">
-              <p className="font-medium mb-1">Ask how to navigate Proof of Ship.</p>
+              <p className="font-medium mb-1">Ask how to navigate PledgeBond.</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 For paid Scout, Underwriter, and Verifier runs, open{" "}
                 <button

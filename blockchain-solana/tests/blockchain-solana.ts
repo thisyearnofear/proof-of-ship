@@ -47,7 +47,7 @@ describe("blockchain-solana", () => {
     githubUrl: string,
   ) =>
     Buffer.from(
-      `proof-of-ship:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`,
+      `pledgebond:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`,
       "utf8",
     );
 
@@ -149,7 +149,6 @@ describe("blockchain-solana", () => {
         provider.wallet.publicKey,
         builderSnsDomain,
         signature,
-        new anchor.BN(500),
       )
       .accounts({
         project,
@@ -386,7 +385,6 @@ describe("blockchain-solana", () => {
         provider.wallet.publicKey,
         builderSnsDomain,
         signature,
-        new anchor.BN(400),
       )
       .accounts({
         project,

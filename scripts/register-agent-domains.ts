@@ -1,8 +1,8 @@
 /**
  * SNS Agent Domain Registration Script
  *
- * Registers Proof of Ship agent .sol domains on Solana devnet:
- *   pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol
+ * Registers PledgeBond agent .sol domains on Solana devnet:
+ *   pledgebond-scout.sol, pledgebond-underwriter.sol, pledgebond-verifier.sol, pledgebond-rebalance.sol
  *
  * These domains give each AI agent a human-readable on-chain identity,
  * satisfying the SNS Identity Track requirement for "AI agents with distinct
@@ -29,10 +29,10 @@ import * as path from 'path';
 import * as os from 'os';
 
 const AGENT_DOMAINS = [
-  'pos-scout',
-  'pos-underwriter',
-  'pos-verifier',
-  'pos-rebalance',
+  'pledgebond-scout',
+  'pledgebond-underwriter',
+  'pledgebond-verifier',
+  'pledgebond-rebalance',
 ];
 
 const CONNECTION = new Connection(
@@ -109,7 +109,7 @@ async function registerDomain(
 }
 
 async function main() {
-  console.log('=== Proof of Ship — SNS Agent Domain Registration ===\n');
+  console.log('=== PledgeBond — SNS Agent Domain Registration ===\n');
 
   const wallet = loadWallet();
   console.log(`Wallet: ${wallet.publicKey.toBase58()}`);

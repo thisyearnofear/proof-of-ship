@@ -34,7 +34,7 @@ export function generateReferralCode(identifier) {
 export function buildReferralUrl(identifier, baseUrl = "") {
   const code = generateReferralCode(identifier);
   if (!code) return null;
-  const origin = baseUrl || (typeof window !== "undefined" ? window.location.origin : "https://proof-of-ship.vercel.app");
+  const origin = baseUrl || (typeof window !== "undefined" ? window.location.origin : "https://pledgebond.vercel.app");
   return `${origin}/ref/${code}`;
 }
 

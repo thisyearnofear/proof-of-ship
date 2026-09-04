@@ -10,7 +10,7 @@ import { trackEvent } from "@/lib/analytics";
 import { generateShareText } from "./tabs";
 
 export default function ShareButton({ text, url, entryType, entry, rank }) {
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://proofofship.app";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://pledgebond.com";
   const ogRef = entryType && entry && rank ? `${entryType}-${rank}` : null;
   const shareUrl = url || (ogRef ? `${baseUrl}/leaderboard?ref=${ogRef}` : `${baseUrl}/leaderboard`);
 
@@ -42,7 +42,7 @@ export default function ShareButton({ text, url, entryType, entry, rank }) {
         onClick={(e) => {
           e.stopPropagation();
           handleShare("farcaster");
-          const fcText = (text || generateShareText(entry, rank, entryType)).replace(/@proofofship/g, "").trim();
+          const fcText = (text || generateShareText(entry, rank, entryType)).replace(/@pledgebond/g, "").trim();
           window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(fcText)}%20${encodeURIComponent(shareUrl)}`, "_blank", "noopener,noreferrer");
         }}
         className="p-1.5 rounded-lg hover:bg-surface-hover text-text-tertiary hover:text-purple-500 dark:text-purple-400 transition-colors"

@@ -1,4 +1,4 @@
-# Proof of Ship × Agora Agents Hackathon Submission
+# PledgeBond × Agora Agents Hackathon Submission
 
 ## Hackathon: Agora Agents (Canteen × Circle × Arc)
 ## Submission Deadline: May 25, 2026
@@ -8,7 +8,7 @@
 
 ## 30-Second Pitch
 
-Proof of Ship is a builder discovery platform powered by **autonomous AI agents** that evaluate, score, and back blockchain projects on **Arc** using **Circle USDC nanopayments**. Every agent decision produces a **transparent reasoning trace**. Users can **copy-trade the Scout agent's portfolio** — when the agent finds a project worth backing, subscriber wallets auto-execute the same backing on-chain.
+PledgeBond is a builder discovery platform powered by **autonomous AI agents** that evaluate, score, and back blockchain projects on **Arc** using **Circle USDC nanopayments**. Every agent decision produces a **transparent reasoning trace**. Users can **copy-trade the Scout agent's portfolio** — when the agent finds a project worth backing, subscriber wallets auto-execute the same backing on-chain.
 
 The value is the reasoning trace, not just the trade.
 
@@ -46,10 +46,10 @@ The value is the reasoning trace, not just the trade.
 ## Agent Identities
 
 Every agent has an SNS `.sol` domain:
-- `pos-scout.sol` — Portfolio evaluation & recommendations
-- `pos-underwriter.sol` — Project health scoring
-- `pos-verifier.sol` — Payout attestation
-- `pos-rebalance.sol` — Portfolio rebalancing (future)
+- `pledgebond-scout.sol` — Portfolio evaluation & recommendations
+- `pledgebond-underwriter.sol` — Project health scoring
+- `pledgebond-verifier.sol` — Payout attestation
+- `pledgebond-rebalance.sol` — Portfolio rebalancing (future)
 
 ---
 
@@ -157,4 +157,4 @@ These traces are:
 
 ---
 
-*Built for Agora Agents Hackathon by the Proof of Ship team.*
+*Built for Agora Agents Hackathon by the PledgeBond team.*

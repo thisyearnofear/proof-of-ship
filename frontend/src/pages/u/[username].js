@@ -304,7 +304,7 @@ export default function UserPortfolioPage() {
   return (
     <>
       <Head>
-        <title>{displayName} • Builder Profile — Proof of Ship</title>
+        <title>{displayName} • Builder Profile — PledgeBond</title>
         <meta
           name="description"
           content={
@@ -313,15 +313,15 @@ export default function UserPortfolioPage() {
               : `Onchain projects by ${displayName} — ${stats?.totalProjects || 0} projects across ${stats?.ecosystems || 0} ecosystems.`
           }
         />
-        <meta property="og:title" content={`${displayName} — Proof of Ship`} />
+        <meta property="og:title" content={`${displayName} — PledgeBond`} />
         <meta
           property="og:description"
           content={`${stats?.totalProjects || 0} projects · ${stats?.totalStars || 0} stars · ${stats?.avgHealth || 0}% avg health`}
         />
         <meta property="og:type" content="profile" />
-        <meta property="og:url" content={`https://proofofship.app/u/${encodeURIComponent(username || "")}`} />
+        <meta property="og:url" content={`https://pledgebond.com/u/${encodeURIComponent(username || "")}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${displayName} — Proof of Ship`} />
+        <meta name="twitter:title" content={`${displayName} — PledgeBond`} />
         <meta
           name="twitter:description"
           content={`${stats?.totalProjects || 0} projects · ${stats?.totalStars || 0} stars · ${stats?.avgHealth || 0}% avg health`}

@@ -15,7 +15,7 @@ export default function SignUpRedirect() {
 
   return (
     <Head>
-      <title>Sign Up | Proof of Ship</title>
+      <title>Sign Up | PledgeBond</title>
       <meta httpEquiv="refresh" content="0;url=/login?mode=signup" />
     </Head>
   );

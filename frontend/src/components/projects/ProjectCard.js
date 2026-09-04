@@ -311,7 +311,7 @@ SCOUT&apos;S CHOICE
       {Array.isArray(project.hackathons) && project.hackathons.length > 0 && (
         <div className="mb-4 p-3 bg-pink-50 rounded-lg border border-pink-100">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-pink-800 dark:text-pink-300 uppercase tracking-wider">Proof of Ship</span>
+            <span className="text-xs font-bold text-pink-800 dark:text-pink-300 uppercase tracking-wider">PledgeBond</span>
             <span className="text-xs text-pink-700 dark:text-pink-300 font-medium">{project.hackathons.length} claim{project.hackathons.length === 1 ? '' : 's'}</span>
           </div>
           <div className="space-y-1.5">

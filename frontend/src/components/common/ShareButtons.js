@@ -5,8 +5,8 @@ import React from 'react';
 
 export default function ShareButtons({ title, url, score, className = '' }) {
   const shareText = score
-    ? `${title} scored ${score}/100 on Proof of Ship 🚀`
-    : `Check out ${title} on Proof of Ship 🚀`;
+    ? `${title} scored ${score}/100 on PledgeBond 🚀`
+    : `Check out ${title} on PledgeBond 🚀`;
 
   const encodedText = encodeURIComponent(shareText);
   const encodedUrl = encodeURIComponent(url || (typeof window !== 'undefined' ? window.location.href : ''));

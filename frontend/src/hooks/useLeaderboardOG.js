@@ -53,16 +53,16 @@ function buildOgImageUrl(highlightedEntry) {
   if (entry.projectCount) params.set("projectCount", String(entry.projectCount));
   if (entry.totalBacked) params.set("totalBacked", String(Math.round(entry.totalBacked)));
   if (entry.projectsBacked) params.set("projectsBacked", String(entry.projectsBacked));
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://proofofship.app";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://pledgebond.com";
   return `${origin}/api/og/leaderboard?${params.toString()}`;
 }
 
 function buildOgTitle(highlightedEntry) {
-  if (!highlightedEntry) return "Payout Leaderboard | Proof of Ship";
+  if (!highlightedEntry) return "Payout Leaderboard | PledgeBond";
   const { entry, rank, ogType } = highlightedEntry;
   const label = LABELS[ogType] || ogType;
   const name = entry.name || entry.address || "Builder";
-  return `#${rank} ${label}: ${name} | Proof of Ship`;
+  return `#${rank} ${label}: ${name} | PledgeBond`;
 }
 
 function buildOgDescription(highlightedEntry) {
@@ -72,7 +72,7 @@ function buildOgDescription(highlightedEntry) {
   const scoreStr = entry.score ? `Score: ${entry.score}` : "";
   const evidenceStr = entry.evidenceCoverage ? ` · ${entry.evidenceCoverage}% evidence coverage` : "";
   const movementStr = entry.movement === "up" ? " · Moving up!" : entry.movement === "new" ? " · New entry!" : "";
-  return `#${rank} ${name}${scoreStr}${evidenceStr}${movementStr} — Proof of Ship leaderboard`;
+  return `#${rank} ${name}${scoreStr}${evidenceStr}${movementStr} — PledgeBond leaderboard`;
 }
 
 export function useLeaderboardOG(ref, entries) {

@@ -1,6 +1,6 @@
-# Builder Credit Smart Contracts
+# PledgeBond Smart Contracts
 
-This directory contains the smart contracts for the Builder Credit platform.
+This directory contains the smart contracts for the PledgeBond platform.
 
 ## Current Implementation
 
@@ -14,7 +14,7 @@ These contracts work together to provide a complete solution for hackathon fundi
 ### Interfaces
 
 - `IHackathonRegistry.sol` - Interface for the HackathonRegistry contract
-- `IBuilderCredit.sol` - Interface definitions for the Builder Credit system
+- `IBuilderCredit.sol` - Interface definitions for the PledgeBond system
 
 ### Mock Contracts
 
@@ -24,10 +24,10 @@ These contracts work together to provide a complete solution for hackathon fundi
 
 The following contracts are from a previous implementation that used a more modular approach:
 
-- `BuilderCreditFactory.sol` - Factory contract for deploying the Builder Credit system
+- `BuilderCreditFactory.sol` - Factory contract for deploying the PledgeBond system
 - `BuilderCreditScoring.sol` - Handles credit scoring and reputation
 - `BuilderCreditSecurity.sol` - Manages access control and security
-- `BuilderCreditStorage.sol` - Handles data storage for the Builder Credit system
+- `BuilderCreditStorage.sol` - Handles data storage for the PledgeBond system
 
 ## Testing
 

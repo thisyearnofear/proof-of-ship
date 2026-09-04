@@ -200,8 +200,8 @@ export const CustomIcons = {
     </svg>
   ),
 
-  // Proof of Ship
-  ProofOfShip: ({ className = '', ...props }) => (
+  // PledgeBond
+  PledgeBond: ({ className = '', ...props }) => (
     <svg
       className={className}
       fill="none"

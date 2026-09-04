@@ -4,7 +4,7 @@
  * This is the ONLY middleware file for the app. It runs at the edge
  * (Vercel/Next.js) and rewrites subdomain root paths to user profiles.
  *
- * Example: alice.proofofship.web.app/ → /u/alice
+ * Example: alice.pledgebond.com/ → /u/alice
  *
  * Note: src/middleware/errorHandler.js is NOT edge middleware — it's a
  * server-side error handler used by API routes. Different purpose.

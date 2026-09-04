@@ -12,7 +12,7 @@ scoutSnap.get('/:slug', async (c) => {
   }
 
   const project = projectDoc.data();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-ship.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pledgebond.vercel.app';
 
   // For Project Scout Snap, we show the project and multiplier options
   return c.html(`
@@ -36,7 +36,7 @@ scoutSnap.get('/:slug', async (c) => {
 
 scoutSnap.post('/:slug/select', async (c) => {
   const slug = c.req.param('slug');
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://proof-of-ship.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://pledgebond.vercel.app';
   
   // In a real implementation, we'd parse the frame message
   // For now we'll assume the button index corresponds to the multiplier

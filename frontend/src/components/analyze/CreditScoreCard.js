@@ -13,7 +13,7 @@ export default function CreditScoreCard({ userScore, result, loading, onExplain 
       <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-lg font-bold text-text-primary">Your Credit Profile</h2>
-          <p className="text-sm text-text-secondary">AI explanation of your builder credit score</p>
+          <p className="text-sm text-text-secondary">AI explanation of your PledgeBond score</p>
         </div>
         <Button
           variant="outline"

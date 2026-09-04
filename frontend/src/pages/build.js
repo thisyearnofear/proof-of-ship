@@ -25,6 +25,7 @@ import TabBar from "@/components/common/TabBar";
 import PageHeader from "@/components/common/PageHeader";
 import Card from "@/components/common/Card";
 import CapitalStack from "@/components/sections/CapitalStack";
+import WinnerHome from "@/components/winner/WinnerHome";
 import {
   CAPITAL_RAILS,
   getRailById,
@@ -33,15 +34,33 @@ import {
   RAIL_STATUS_STYLES,
 } from "@/config/capitalStack";
 
+const BUILD_TABS = ["wins", "credit", "projects", "funding", "crosschain"];
+
 export default function BuildPage() {
-  const { userRole } = useUser();
+  const { userRole, currentUser } = useUser();
   const router = useRouter();
   const wallet = useWallet();
   const builderCredit = useBuilderCredit();
-  const [activeTab, setActiveTab] = useState("credit");
+  const [activeTab, setActiveTab] = useState("wins");
   const ref = router.query.ref;
 
   const isPayoutReferral = ref === "payouts";
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const raw = Array.isArray(router.query.tab) ? router.query.tab[0] : router.query.tab;
+    if (raw && BUILD_TABS.includes(raw) && raw !== activeTab) {
+      setActiveTab(raw);
+    }
+  }, [router.isReady, router.query.tab, activeTab]);
+
+  const setTab = (t) => {
+    setActiveTab(t);
+    const query = { ...router.query };
+    if (t === "wins") delete query.tab;
+    else query.tab = t;
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
+  };
 
   const {
     connected,
@@ -91,15 +110,24 @@ export default function BuildPage() {
   if (!isActuallyConnected) {
     return (
       <>
-        <Head><title>Build | Proof of Ship</title></Head>
-        <div className="py-12 max-w-xl mx-auto px-4 text-center space-y-8">
+        <Head><title>Build | PledgeBond</title></Head>
+        <div className="py-12 max-w-3xl mx-auto px-4 space-y-8">
+          {currentUser && (
+            <ErrorBoundary name="WinnerHome" errorMessage="Failed to load winner desk.">
+              <WinnerHome />
+            </ErrorBoundary>
+          )}
+
+          <div className="text-center space-y-6">
           <PageHeader
             align="center"
-            title={isPayoutReferral ? "Get Paid Today, Not in 67 Days" : "Builder Hub"}
+            title={isPayoutReferral ? "Get Paid Today, Not in 67 Days" : "Connect wallet for credit tools"}
             subtitle={
               isPayoutReferral
-                ? "Proof of Ship advances you USDC against your hackathon prize — so you can keep building while the organizers take their time. No interest, no collateral."
-                : `Connect your ${activeChainFamily === "solana" ? "Solana" : "EVM"} wallet to view your credit score, request funding, and manage projects.`
+                ? "PledgeBond advances you USDC against your hackathon prize — so you can keep building while the organizers take their time. No interest, no collateral."
+                : currentUser
+                  ? "Your win desk above works without a wallet. Connect to manage credit, funding, and cross-chain tools."
+                  : `Connect your ${activeChainFamily === "solana" ? "Solana" : "EVM"} wallet to view your credit score, request funding, and manage projects.`
             }
             icon={
               isPayoutReferral ? (
@@ -164,19 +192,21 @@ export default function BuildPage() {
             <ScorePreviewCard />
           </div>
 
-          {!isPayoutReferral && (
+          {!isPayoutReferral && !currentUser && (
             <CapitalStack variant="compact" showHeader className="text-left" />
           )}
+          </div>
         </div>
       </>
     );
   }
 
   if (loading) {
-    return <div className="flex justify-center py-20"><LoadingSpinner size="lg" /></div>;
+    return <div className="flex justify-center py-20"><LoadingSpinner size="large" /></div>;
   }
 
   const tabs = [
+    { id: "wins", label: "Wins" },
     { id: "credit", label: "Credit" },
     { id: "projects", label: "Projects" },
     { id: "funding", label: "Get Funded" },
@@ -185,13 +215,14 @@ export default function BuildPage() {
 
   return (
     <>
-      <Head><title>Build | Builder Credit</title></Head>
+      <Head><title>Build | PledgeBond</title></Head>
       <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <PageHeader
           title="Builder Hub"
-          subtitle="Credit, projects, funding, and cross-chain tools for verified builders."
+          subtitle="Claim status, payout clock, and Underwriter packets — then credit tools."
         />
-        {/* Rail progression indicator */}
+        {/* Rail progression indicator — demoted visually; still available for funding context */}
+        {activeTab !== "wins" && (
         <div className="mb-6">
           <div className="flex items-center gap-3 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
             <div className="hidden sm:flex items-center gap-2 text-xs font-medium flex-wrap">
@@ -239,6 +270,7 @@ export default function BuildPage() {
             </div>
           </div>
         </div>
+        )}
 
         {activeChainFamily === 'solana' && solanaConnected && solanaAddress && (
           <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-4 py-3 text-sm text-purple-900 dark:text-purple-200">
@@ -252,7 +284,13 @@ export default function BuildPage() {
             />
           </div>
         )}
-        <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
+        <TabBar tabs={tabs} activeTab={activeTab} onChange={setTab} className="mb-6" />
+
+        {activeTab === "wins" && (
+          <ErrorBoundary name="WinsTab" errorMessage="Failed to load winner desk.">
+            <WinnerHome />
+          </ErrorBoundary>
+        )}
 
         {activeTab === "credit" && (
           <ErrorBoundary name="CreditTab" errorMessage="Failed to load credit data.">

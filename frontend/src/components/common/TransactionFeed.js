@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useNanopayment } from "@/stores/walletStore";
 
 const AGENT_LABELS = {
-  underwrite: { icon: "🤖", name: "pos-underwriter.sol", humanName: "Underwriter Agent", snsDomain: "pos-underwriter.sol", color: "text-blue-600" },
-  scout: { icon: "🔍", name: "pos-scout.sol", humanName: "Scout Agent", snsDomain: "pos-scout.sol", color: "text-teal-600" },
-  verify: { icon: "✅", name: "pos-verifier.sol", humanName: "Verifier Agent", snsDomain: "pos-verifier.sol", color: "text-purple-600" },
-  rebalance: { icon: "🔄", name: "pos-rebalance.sol", humanName: "Rebalance Agent", snsDomain: "pos-rebalance.sol", color: "text-orange-600" },
+  underwrite: { icon: "🤖", name: "pledgebond-underwriter.sol", humanName: "Underwriter Agent", snsDomain: "pledgebond-underwriter.sol", color: "text-blue-600" },
+  scout: { icon: "🔍", name: "pledgebond-scout.sol", humanName: "Scout Agent", snsDomain: "pledgebond-scout.sol", color: "text-teal-600" },
+  verify: { icon: "✅", name: "pledgebond-verifier.sol", humanName: "Verifier Agent", snsDomain: "pledgebond-verifier.sol", color: "text-purple-600" },
+  rebalance: { icon: "🔄", name: "pledgebond-rebalance.sol", humanName: "Rebalance Agent", snsDomain: "pledgebond-rebalance.sol", color: "text-orange-600" },
 };
 
 function timeAgo(dateStr) {

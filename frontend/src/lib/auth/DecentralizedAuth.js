@@ -255,7 +255,7 @@ export class DecentralizedAuthService {
   // Helper Methods
   generateVerificationMessage(address) {
     const timestamp = Date.now();
-    return `Proof of Ship - Verify Identity\n\nAddress: ${address}\nTimestamp: ${timestamp}\n\nBy signing this message, you verify ownership of this wallet address.`;
+    return `PledgeBond - Verify Identity\n\nAddress: ${address}\nTimestamp: ${timestamp}\n\nBy signing this message, you verify ownership of this wallet address.`;
   }
 
   async fetchGitHubProfile() {
@@ -415,7 +415,7 @@ export class DecentralizedAuthService {
   // IndexedDB Storage
   async storeInIndexedDB(key, data) {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open('ProofOfShipDB', 1);
+      const request = indexedDB.open('PledgeBondDB', 1);
       
       request.onerror = () => reject(request.error);
       

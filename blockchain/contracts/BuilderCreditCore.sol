@@ -13,7 +13,7 @@ import "./interfaces/IHackathonRegistry.sol";
 
 /**
  * @title BuilderCreditCore
- * @dev Core contract for the Builder Credit platform
+ * @dev Core contract for the PledgeBond platform
  * Manages credit lines, projects, milestones, and funding
  *
  * UUPS upgradeable — deploy via hardhat-upgrades deployProxy.

@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # sync-secrets.sh — Pull secrets from GCP Secret Manager and set them as
-# Vercel environment variables for the proof-of-ship project.
+# Vercel environment variables for the pledgebond project.
 #
 # Prerequisites:
-#   - gcloud CLI authenticated with access to proofofship project
+#   - gcloud CLI authenticated with access to pledgebond project
 #   - Vercel CLI installed and linked to the project
 #   - GCP Secret Manager API enabled
 #
@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-GCP_PROJECT="proofofship"
+GCP_PROJECT="pledgebond"
 DRY_RUN=false
 
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -68,10 +68,10 @@ CONFIG_NAMES=(
 )
 
 CONFIG_VALUES=(
-  "proofofship"
+  "pledgebond"
   "sandbox"
-  "proofofship"
-  "proofofship.firebaseapp.com"
+  "pledgebond"
+  "pledgebond.firebaseapp.com"
   "devnet"
   "DVzV16mVG9vHdrum9Fx9kGhzRv2GJa2mNnmTWUnKa6st"
   "0x26272b687df2c3607aCa3B6116c24B7400c3fC94"

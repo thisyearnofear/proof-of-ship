@@ -172,7 +172,7 @@ export default function AdminWinnerClaimsPage() {
   return (
     <>
       <Head>
-        <title>Winner Claims — Admin | Proof of Ship</title>
+        <title>Winner Claims — Admin | PledgeBond</title>
       </Head>
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">

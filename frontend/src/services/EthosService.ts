@@ -4,7 +4,7 @@
  */
 
 const ETHOS_API_BASE = 'https://api.ethos.network/api/v2';
-const ETHOS_CLIENT_HEADER = 'proof-of-ship@1.0.0';
+const ETHOS_CLIENT_HEADER = 'pledgebond@1.0.0';
 
 // In-memory cache for Ethos scores to minimize API calls
 const scoreCache = new Map<string, { data: any; timestamp: number }>();

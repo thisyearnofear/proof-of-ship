@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://proof-of-ship.vercel.app/sitemap.xml
+Sitemap: https://pledgebond.vercel.app/sitemap.xml

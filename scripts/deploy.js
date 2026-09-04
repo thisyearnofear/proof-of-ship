@@ -1,8 +1,8 @@
-// Deployment script for Builder Credit contracts
+// Deployment script for PledgeBond contracts
 const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying Builder Credit contracts...");
+  console.log("Deploying PledgeBond contracts...");
 
   // Get signers
   const [deployer] = await hre.ethers.getSigners();

@@ -398,7 +398,7 @@ function generateRuleBasedAnalysis(prompt) {
   if (description.length > 100) strengths.push('Detailed project description');
   if (prompt.includes('GitHub:')) strengths.push('Open source with public repository');
   if (prompt.includes('Ecosystem:')) strengths.push('Clear ecosystem alignment');
-  strengths.push('Submitted to Proof of Ship platform');
+  strengths.push('Submitted to PledgeBond platform');
 
   const risks = ['Early-stage project with limited track record'];
   if (description.length < 50) risks.push('Sparse project documentation');

@@ -64,7 +64,7 @@ export function computeBuilderBadges(portfolio) {
     badges.push({
       id: "prolific",
       label: `${projectCount} Projects`,
-      description: `Published ${projectCount} projects on Proof of Ship`,
+      description: `Published ${projectCount} projects on PledgeBond`,
       tier: projectCount >= 10 ? "gold" : projectCount >= 5 ? "silver" : "bronze",
       category: "achievement",
     });
@@ -101,7 +101,7 @@ export function computeBuilderBadges(portfolio) {
       id: "community-trusted",
       label: "Community Trusted",
       description: followerCount >= 3
-        ? `${followerCount} followers on Proof of Ship`
+        ? `${followerCount} followers on PledgeBond`
         : "Runs tester tasks — trusted by the community",
       tier: followerCount >= 10 ? "gold" : followerCount >= 5 ? "silver" : "bronze",
       category: "social",
@@ -134,7 +134,7 @@ export function computeBuilderBadges(portfolio) {
     badges.push({
       id: "early-builder",
       label: "Early Builder",
-      description: "One of the first builders on Proof of Ship",
+      description: "One of the first builders on PledgeBond",
       tier: "gold",
       category: "special",
     });

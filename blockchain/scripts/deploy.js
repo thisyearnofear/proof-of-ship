@@ -1,8 +1,8 @@
-// Deployment script for Builder Credit contracts (UUPS upgradeable via ERC1967 proxy)
+// Deployment script for PledgeBond contracts (UUPS upgradeable via ERC1967 proxy)
 const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying Builder Credit contracts (UUPS)...");
+  console.log("Deploying PledgeBond contracts (UUPS)...");
 
   const [deployer] = await hre.ethers.getSigners();
   console.log(`Deploying contracts with the account: ${deployer.address}`);

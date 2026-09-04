@@ -81,14 +81,14 @@ export default function Navbar() {
                   <div className="flex shrink-0 items-center">
                     <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
                       <img
-                        src="/POS.png"
+                        src="/pledgebond.png"
                         alt="Proof Of Ship Logo"
                         width={32}
                         height={32}
                         className="rounded w-8 h-8 sm:w-10 sm:h-10"
                       />
                       <div className="hidden sm:block">
-                        <div className="text-base sm:text-lg font-bold text-primary">Proof of Ship</div>
+                        <div className="text-base sm:text-lg font-bold text-primary">PledgeBond</div>
                       </div>
                     </Link>
                   </div>

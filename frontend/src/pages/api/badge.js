@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   const { builder, project, type = "proof" } = req.query;
 
   try {
-    let label = "Proof of Ship";
+    let label = "PledgeBond";
     let value = "—";
     let color = "#6B7280";
 
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("Badge generation error:", err);
     // Return a neutral badge instead of an error image
-    const svg = renderBadge("Proof of Ship", "error", "#EF4444");
+    const svg = renderBadge("PledgeBond", "error", "#EF4444");
     res.setHeader("Content-Type", "image/svg+xml");
     res.status(200).send(svg);
   }
@@ -69,7 +69,7 @@ async function computeBuilderBadge(username, type) {
   }
 
   if (!userId) {
-    return { label: "Proof of Ship", value: "not found", color: "#6B7280" };
+    return { label: "PledgeBond", value: "not found", color: "#6B7280" };
   }
 
   const projectsSnap = await db.collection("projects")
@@ -127,7 +127,7 @@ async function computeBuilderBadge(username, type) {
 async function computeProjectBadge(slug, type) {
   const docSnap = await db.collection("projects").doc(String(slug)).get();
   if (!docSnap.exists) {
-    return { label: "Proof of Ship", value: "not found", color: "#6B7280" };
+    return { label: "PledgeBond", value: "not found", color: "#6B7280" };
   }
   const project = { id: docSnap.id, ...docSnap.data() };
 

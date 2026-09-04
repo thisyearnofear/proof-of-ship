@@ -1,7 +1,7 @@
 /**
  * Cloak Private Payment Service
  *
- * Integrates Cloak SDK into Proof of Ship to enable shielded transfers for:
+ * Integrates Cloak SDK into PledgeBond to enable shielded transfers for:
  * - Backer staking (hide position amounts to prevent copy-staking)
  * - Builder payouts (privacy for earnings/redemptions)
  * - Treasury flows (shielded payout reward distributions)
@@ -164,7 +164,7 @@ class CloakPaymentService {
   /**
    * Make a private partial withdrawal (payout with change kept private).
    *
-   * Used for builder credit redemption:
+   * Used for PledgeBond redemption:
    * - Builder draws part of their credit line
    * - Remaining balance stays in the shielded pool
    * - Payout amount is hidden from public ledger

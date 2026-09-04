@@ -13,7 +13,7 @@ export default function AnalyzeRedirectPage() {
   return (
     <>
       <Head>
-        <title>Analyze Projects | Proof of Ship</title>
+        <title>Analyze Projects | PledgeBond</title>
         <meta httpEquiv="refresh" content={`0;url=${agentsHref("analyze")}`} />
       </Head>
       <div className="flex justify-center py-20">

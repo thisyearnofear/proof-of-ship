@@ -1,7 +1,7 @@
 /**
  * SNS Agent Domain Verification Script
  *
- * Verifies that Proof of Ship agent .sol domains are registered and resolves
+ * Verifies that PledgeBond agent .sol domains are registered and resolves
  * their on-chain owner addresses. Used after registration and in submission docs.
  *
  * Usage:
@@ -18,10 +18,10 @@ import {
 } from '@bonfida/spl-name-service';
 
 const AGENT_DOMAINS = [
-  'pos-scout',
-  'pos-underwriter',
-  'pos-verifier',
-  'pos-rebalance',
+  'pledgebond-scout',
+  'pledgebond-underwriter',
+  'pledgebond-verifier',
+  'pledgebond-rebalance',
 ];
 
 const CONNECTION = new Connection(
@@ -53,7 +53,7 @@ async function verifyDomain(domainName: string) {
 }
 
 async function main() {
-  console.log('=== Proof of Ship — SNS Agent Domain Verification ===\n');
+  console.log('=== PledgeBond — SNS Agent Domain Verification ===\n');
 
   const results = await Promise.all(AGENT_DOMAINS.map(verifyDomain));
 

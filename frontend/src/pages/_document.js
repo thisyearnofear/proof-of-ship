@@ -5,14 +5,14 @@ export default function Document() {
     <Html lang="en">
       <Head>
         <meta charSet="utf-8" />
-        <meta name="description" content="Proof of Ship — On-chain builder credit backed by reputation. AI agents analyze, backers stake, builders ship." />
+        <meta name="description" content="PledgeBond — the post-win layer for hackathon builders. Public payout truth, verified wins, and Underwriter packets that unlock credit." />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Proof of Ship — Builder Credit for Hackathon Winners" />
-        <meta property="og:description" content="On-chain builder credit backed by reputation. AI agents analyze, backers stake, builders ship." />
-        <meta property="og:site_name" content="Proof of Ship" />
+        <meta property="og:title" content="PledgeBond — Post-Win Layer for Hackathon Builders" />
+        <meta property="og:description" content="You won. Now get paid — and keep building. Public payout speeds, verified wins, and underwriting packets for ecosystems and angels." />
+        <meta property="og:site_name" content="PledgeBond" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Proof of Ship — Builder Credit for Hackathon Winners" />
-        <meta name="twitter:description" content="On-chain builder credit backed by reputation. AI agents analyze, backers stake, builders ship." />
+        <meta name="twitter:title" content="PledgeBond — Post-Win Layer for Hackathon Builders" />
+        <meta name="twitter:description" content="You won. Now get paid — and keep building. Public payout speeds, verified wins, and underwriting packets for ecosystems and angels." />
         <link rel="icon" href="/favicon.ico" />
         
         {/* Google Fonts: Plus Jakarta Sans for display, Inter for body */}
@@ -25,17 +25,17 @@ export default function Document() {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              name: "Proof of Ship",
-              description: "On-chain builder credit backed by reputation. AI agents analyze projects, backers stake USDC, and hackathon payout speed is public data.",
-              url: "https://proof-of-ship.vercel.app",
+              name: "PledgeBond",
+              description: "Post-win layer for hackathon builders: public payout truth, verified wins, and Underwriter packets that unlock credit.",
+              url: "https://pledgebond.vercel.app",
               applicationCategory: "FinanceApplication",
               operatingSystem: "Web",
               offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
               featureList: [
-                "Hackathon payout leaderboards",
-                "AI agent project analysis via x402 nanopayments",
-                "USDC backing with multiplier returns",
-                "Proof-based builder credit scoring",
+                "Hackathon payout speed leaderboards",
+                "Winner verification and claim flow",
+                "Underwriter packets via AI agents",
+                "Credit against verified wins",
               ],
             }),
           }}

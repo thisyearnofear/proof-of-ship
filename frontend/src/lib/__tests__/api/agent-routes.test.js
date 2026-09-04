@@ -43,13 +43,13 @@ vi.mock('@/lib/scoringEngine', () => ({
 // Mock agent identity
 vi.mock('@/lib/agentIdentity', () => ({
   getAgentIdentity: vi.fn((type) => ({
-    domain: `pos-${type}.sol`,
+    domain: `pledgebond-${type}.sol`,
     displayName: `${type} Agent`,
     icon: '🔭',
     description: `The ${type} agent`,
   })),
   agentIdentityResponse: vi.fn((type) => ({
-    agent: { type, snsDomain: `pos-${type}.sol`, displayName: `pos-${type}.sol`, humanName: `${type} Agent`, icon: '🔭', description: `The ${type} agent` },
+    agent: { type, snsDomain: `pledgebond-${type}.sol`, displayName: `pledgebond-${type}.sol`, humanName: `${type} Agent`, icon: '🔭', description: `The ${type} agent` },
   })),
   AGENT_IDENTITIES: { scout: {}, underwrite: {}, verify: {}, rebalance: {} },
 }));

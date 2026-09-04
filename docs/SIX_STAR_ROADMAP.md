@@ -2,7 +2,7 @@
 
 > North star: hackathon winners treated as the hero user — a Brian Chesky-style, extraordinarily loved product.
 
-This document tracks the full initiative to elevate Proof of Ship from a functional platform to a 6-star experience for hackathon winners, backers, and organizers. It is the source of truth for what's been done and what remains.
+This document tracks the full initiative to elevate PledgeBond from a functional platform to a 6-star experience for hackathon winners, backers, and organizers. It is the source of truth for what's been done and what remains.
 
 ---
 
@@ -38,7 +38,7 @@ This document tracks the full initiative to elevate Proof of Ship from a functio
 
 | # | Fix | Status | Commit |
 |---|---|---|---|
-| C1 | Brand unification ("Builder Credit" → "Proof of Ship" across all titles) | ✅ Done | `0293af8` |
+| C1 | Brand rename from "Proof of Ship" / "Builder Credit" to "PledgeBond" across all titles, metadata, and code | ✅ Done | TBD |
 | C2 | Dead redirect routes verified (proper `useRouteRedirect`, kept) | ✅ Done | `0293af8` |
 | C3 | Hackathon CTAs wired (Register/Join/Submit/Explorer → real links) | ✅ Done | `0293af8` |
 | C4 | `u/[username].js` migrated to semantic tokens (zero `gray-` refs, dark-mode exemplar) | ✅ Done | `a91f008` |
@@ -52,6 +52,17 @@ This document tracks the full initiative to elevate Proof of Ship from a functio
 ---
 
 ## What's Left
+
+### Rebrand Follow-ups (PledgeBond)
+
+| # | Item | Description |
+|---|---|---|
+| R1 | Create `pledgebond` Firebase / GCP project | `.env.local`, `.firebaserc`, and Firebase fallback values are set to `pledgebond`; the project must exist before deploys work. |
+| R2 | Rebuild and redeploy Solana program | The SNS identity message namespace changed to `pledgebond:sns-identity:v1`; the on-chain program and IDL must be rebuilt and redeployed to match. |
+| R3 | Register `.sol` agent domains | `pledgebond-scout.sol`, `pledgebond-underwriter.sol`, `pledgebond-verifier.sol`, `pledgebond-rebalance.sol` need Solana Name Service registration. |
+| R4 | Regenerate Farcaster signature | `public/.well-known/farcaster.json` frame values are updated, but the `accountAssociation` signature is still for the old domain and must be regenerated. |
+| R5 | GitHub / Vercel / DNS migration | Rename the GitHub repo to `thisyearnofear/pledgebond`, point Vercel project to `pledgebond.vercel.app`, and configure `pledgebond.com` DNS. |
+| R6 | Verify social / support URLs | Any remaining placeholder links (Calendly, Discord, etc.) were removed; replace with real support channels when ready. |
 
 ### Medium Priority — Scale & Reliability
 

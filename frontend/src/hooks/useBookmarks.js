@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 
-const STORAGE_KEY = 'pos-project-bookmarks';
+const STORAGE_KEY = 'pledgebond-project-bookmarks';
 
 function loadBookmarks() {
   try {

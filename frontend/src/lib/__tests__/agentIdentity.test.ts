@@ -8,7 +8,7 @@ import { getAgentIdentity, agentIdentityResponse, AGENT_IDENTITIES } from '../ag
 describe('getAgentIdentity', () => {
   it('returns correct identity for known agent types', () => {
     const scout = getAgentIdentity('scout');
-    expect(scout.domain).toBe('pos-scout.sol');
+    expect(scout.domain).toBe('pledgebond-scout.sol');
     expect(scout.displayName).toBe('Scout Agent');
     expect(scout.icon).toBe('🔭');
   });
@@ -16,7 +16,7 @@ describe('getAgentIdentity', () => {
   it('returns identity for all 4 agent types', () => {
     for (const key of ['scout', 'underwrite', 'verify', 'rebalance'] as const) {
       const identity = getAgentIdentity(key);
-      expect(identity.domain).toMatch(/^pos-.*\.sol$/);
+      expect(identity.domain).toMatch(/^pledgebond-.*\.sol$/);
       expect(identity.displayName).toBeTruthy();
       expect(identity.description).toBeTruthy();
     }
@@ -34,8 +34,8 @@ describe('agentIdentityResponse', () => {
     const response = agentIdentityResponse('scout');
     expect(response).toHaveProperty('agent');
     expect(response.agent).toHaveProperty('type', 'scout');
-    expect(response.agent).toHaveProperty('snsDomain', 'pos-scout.sol');
-    expect(response.agent).toHaveProperty('displayName', 'pos-scout.sol');
+    expect(response.agent).toHaveProperty('snsDomain', 'pledgebond-scout.sol');
+    expect(response.agent).toHaveProperty('displayName', 'pledgebond-scout.sol');
     expect(response.agent).toHaveProperty('humanName', 'Scout Agent');
     expect(response.agent).toHaveProperty('icon');
     expect(response.agent).toHaveProperty('description');

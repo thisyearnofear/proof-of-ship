@@ -1,4 +1,4 @@
-# Proof of Ship — Builder Credit Platform
+# PledgeBond
 
 Decentralized platform where backers fund builders and hackathon prizes collateralize credit. AI agents analyze projects via x402 nanopayments on Circle's Arc network.
 
@@ -6,7 +6,7 @@ Decentralized platform where backers fund builders and hackathon prizes collater
 
 - **Explore** — Browse projects across 7 ecosystems (Arc, Celo, Base, Linea, Arbitrum, Ethereum, Optimism) with search & filtering. *Note: Multi-chain backing is achieved via seamless cross-chain bridging to Solana using LI.FI, rather than relying on native smart contracts deployed to each respective chain.*
 - **AI Agents** — Underwriter ($0.05), Scout ($0.01), Verifier ($0.01) analyze projects via x402 micropayments
-- **SNS Identity** — Builders and AI agents use .sol domain names (pos-scout.sol, pos-underwriter.sol, etc.) via Solana Name Service integration, and Solana project creation can anchor a signed SNS ownership proof on-chain
+- **SNS Identity** — Builders and AI agents use .sol domain names (pledgebond-scout.sol, pledgebond-underwriter.sol, etc.) via Solana Name Service integration, and Solana project creation can anchor a signed SNS ownership proof on-chain
 - **Private Staking** — Backers can shield stake amounts from public explorers via Cloak (UTXO shielded pool on Solana)
 - **AI Chat Assistant** — Floating helper widget powered by Featherless AI (DeepSeek-V3) with AIsa fallback, collapsible/dismissable
 - **Local-First AI** — QVAC (Tether) on-device inference option keeps project data private; falls back to cloud providers when unavailable
@@ -114,13 +114,13 @@ Secrets are managed via **GCP Secret Manager** and synced to Vercel:
 GCP Secret Manager → scripts/sync-secrets.sh → Vercel env vars
 ```
 
-- **GCP Project:** `proofofship` — 11 secrets stored in Secret Manager
+- **GCP Project:** `pledgebond` — 11 secrets stored in Secret Manager
 - **Vercel Project:** `prj_vWDYON8jEftKOX7mcbE1OVCqDZIc` — env vars synced from GCP
 - **Sync script:** `./scripts/sync-secrets.sh` (supports `--dry-run`)
 
 To add or update a secret:
 ```bash
-echo -n "your-value" | gcloud secrets versions add <secret-name> --project=proofofship --data-file=-
+echo -n "your-value" | gcloud secrets versions add <secret-name> --project=pledgebond --data-file=-
 ./scripts/sync-secrets.sh  # push to Vercel
 vercel --prod              # redeploy
 ```
@@ -129,7 +129,7 @@ vercel --prod              # redeploy
 
 - **Payments API:** `LIVE_API_KEY` for transfers and webhooks
 - **W3S Wallets API:** Entity secret + `LIVE_API_KEY` for developer-controlled wallets
-- **Webhook:** `https://proof-of-ship.vercel.app/api/circle/webhook` — signed with HMAC-SHA256
+- **Webhook:** `https://pledgebond.vercel.app/api/circle/webhook` — signed with HMAC-SHA256
 - **Test environment:** Separate `TEST_API_KEY` + test wallet set for sandbox
 
 ### Firestore
@@ -141,8 +141,8 @@ vercel --prod              # redeploy
 
 - **Firebase:** `firebase deploy --only hosting`
 - **Vercel:** `vercel --prod` (auto-deploys from main branch)
-- **Indexes:** `firebase deploy --only firestore:indexes --project=proofofship`
-- **Rules:** `firebase deploy --only firestore:rules --project=proofofship`
+- **Indexes:** `firebase deploy --only firestore:indexes --project=pledgebond`
+- **Rules:** `firebase deploy --only firestore:rules --project=pledgebond`
 
 After updating secrets:
 ```bash
@@ -159,8 +159,8 @@ vercel --prod              # redeploy
 
 ## Links
 
-- **Live:** [proofofship.web.app](https://proofofship.web.app)
-- **Mirror:** [proof-of-ship.vercel.app](https://proof-of-ship.vercel.app)
+- **Live:** [pledgebond.com](https://pledgebond.com)
+- **Mirror:** [pledgebond.vercel.app](https://pledgebond.vercel.app)
 
 ## License
 

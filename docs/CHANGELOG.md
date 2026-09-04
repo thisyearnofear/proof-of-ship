@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-04 — Rebrand to PledgeBond
+
+Full codebase rename from "Proof of Ship" / "Builder Credit" to "PledgeBond". ~140 tracked files updated plus the logo asset; 466/466 Vitest tests pass, TypeScript clean, production build clean.
+
+### Brand & Metadata
+- All user-facing copy, page titles, OG/Twitter meta tags, and social share text now use "PledgeBond".
+- Package names updated: root `pledgebond`, frontend `pledgebond-frontend`, blockchain `pledgebond-blockchain`.
+- Logo asset renamed from `frontend/public/POS.png` to `frontend/public/pledgebond.png`.
+
+### Domains & Integrations
+- Default URLs and config fallbacks point to `pledgebond.com` / `pledgebond.vercel.app`.
+- SNS agent identities moved to `pledgebond-scout.sol`, `pledgebond-underwriter.sol`, `pledgebond-verifier.sol`, `pledgebond-rebalance.sol`.
+- Solana SNS identity protocol namespace changed from `proof-of-ship:sns-identity:v1` to `pledgebond:sns-identity:v1`.
+- Removed placeholder Calendly and Discord links that pointed to non-existent accounts.
+
+### Docs
+- Updated README, SETUP_GUIDE, HACKATHON_ARC, COLOSSEUM_SUBMISSION, BAGS_SOLANA, VISION, and others.
+- Added rebrand progress and follow-ups to `docs/SIX_STAR_ROADMAP.md`.
+- `.env.example` updated with the new project name.
+
+### Follow-ups Required
+- Create the `pledgebond` Firebase / GCP project and populate `.env.local`.
+- Rebuild and redeploy the Anchor program so the new `pledgebond:sns-identity:v1` namespace matches clients.
+- Register the new `.sol` agent domains.
+- Regenerate the Farcaster `accountAssociation` signature for `pledgebond.com`.
+- Rename the GitHub repo to `thisyearnofear/pledgebond` and configure Vercel / DNS for `pledgebond.com`.
+
 ## 2026-08-01 — 6★ Winner Experience (Round 2): On-Chain Guard, Payout Verification, More Moments
 
 A second pass focused on remaining trust gaps, the Payout Arrived moment, rank-change celebration, and dark-mode migration of the winner's public portfolio. 6 items, 465/465 tests pass, build clean.
@@ -88,7 +115,7 @@ Replaced hardcoded `/ 5000` denominator (which made every low-volume project's b
 ### Track C: Product Design Polish
 
 **C1 — Brand unification** (`build.js`, `back.js`, `signup.js`, `admin/verification.js`, `admin/payout-simulation.js`, `_document.js`)
-All "Builder Credit" page titles replaced with "Proof of Ship". One brand, one trust cue.
+All "PledgeBond" page titles replaced with "PledgeBond". One brand, one trust cue.
 
 **C2 — Dead redirect routes verified** (`compare.js`, `scout.js`, `analyze.js`)
 Audited these as proper `useRouteRedirect` redirects with meta-refresh fallbacks and loading spinners — not dead stubs. Kept as-is.
@@ -342,7 +369,7 @@ Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Fir
 
 ### Circle Webhook Registration
 - Created webhook subscription via Circle Payments API (`POST /v1/notifications/subscriptions`).
-- Endpoint: `https://proofofship.com/api/circle/webhook`.
+- Endpoint: `https://pledgebond.com/api/circle/webhook`.
 - Status is "pending" — requires endpoint to be live for Circle verification.
 - SDK used: `@circle-fin/circle-sdk` with `LIVE_API_KEY`.
 
@@ -361,7 +388,7 @@ Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Fir
 - Updated eslint from `^8.57.0` to `^9.0.0`
 - Created `eslint.config.mjs` with flat config for ESLint v9
 - Removed deprecated `.eslintrc.json`
-- Successfully deployed to production: `https://proof-of-ship.vercel.app`
+- Successfully deployed to production: `https://pledgebond.vercel.app`
 
 ---
 
@@ -370,7 +397,7 @@ Infrastructure completion: populated GCP secrets, synced to Vercel, deployed Fir
 Infrastructure hardening for the Circle API consolidation and demo flow sunset.
 
 ### GCP Secret Manager
-- Enabled `secretmanager.googleapis.com` on the `proofofship` GCP project.
+- Enabled `secretmanager.googleapis.com` on the `pledgebond` GCP project.
 - Created 11 secrets: `circle-api-key`, `circle-entity-secret`, `circle-wallet-set-id`, `circle-webhook-secret`, `circle-platform-wallet-id`, `circle-agent-wallet-id`, `firebase-private-key`, `firebase-client-email`, `github-token`, `agent-api-key`, `featherless-api-key`.
 - Created `scripts/sync-secrets.sh` — pulls secrets from GCP Secret Manager and sets them as Vercel environment variables. Supports `--dry-run`.
 
@@ -509,7 +536,7 @@ and UI consistency.
 **3.2 — WalletContext split (1,167 → 502 lines):**
 - **NanopaymentContext.tsx** (273 lines) — extracted nanopayment state, payForAgent, deposit, and useNanopayment hook
 - **CircleContext.tsx** (138 lines) — extracted Circle wallet creation, USDC transfer, useCircleWallet hook
-- **CreditContext.tsx** (251 lines) — extracted builder credit, backProject, chain balance management
+- **CreditContext.tsx** (251 lines) — extracted PledgeBond, backProject, chain balance management
 - **WalletContext.tsx** (502 lines) — stripped down to pure connection-only logic (MetaMask SDK + Solana adapter + network switching + token balances)
 - All existing consumers continue to work via re-exports from WalletContext
 - New context tree: WalletProvider → CircleProvider → CreditProvider → NanopaymentProvider
@@ -682,7 +709,7 @@ and UI consistency.
 
 ## 2026-05-04 — SNS Agent Domain Registration on Devnet
 
-- Registered 4 agent .sol domains on Solana devnet: pos-scout.sol, pos-underwriter.sol, pos-verifier.sol, pos-rebalance.sol
+- Registered 4 agent .sol domains on Solana devnet: pledgebond-scout.sol, pledgebond-underwriter.sol, pledgebond-verifier.sol, pledgebond-rebalance.sol
 - All domains owned by project wallet (G33naaudTAyEWFnfLET51aWGNLry5BwUtZt6KwcniFoj)
 - Created `scripts/register-agent-domains.js` — registers all 4 domains via `createNameRegistry`, idempotent (skips existing)
 - Created `scripts/verify-agent-domains.ts` — verifies domain ownership and prints explorer links

@@ -1,6 +1,6 @@
 # Blockchain
 
-This directory contains the smart contracts and blockchain-related code for the Builder Credit Platform.
+This directory contains the smart contracts and blockchain-related code for the PledgeBond.
 
 ## Structure
 

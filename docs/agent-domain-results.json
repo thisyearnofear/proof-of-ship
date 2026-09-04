@@ -1,21 +1,21 @@
 [
   {
-    "domain": "pos-scout.sol",
+    "domain": "pledgebond-scout.sol",
     "success": true,
     "signature": "3jaZHfXVkhsqths28JiHsVbzY1kSo1ZjFSwDF58vAQDrt2AF83Ty5PCav1CWVHaMSposVhAjtkz3RdFZNeVDhfGD"
   },
   {
-    "domain": "pos-underwriter.sol",
+    "domain": "pledgebond-underwriter.sol",
     "success": true,
     "signature": "395H3j1BSFD5vk55Jcf43jqrjmYKfj9qeSrVf68WLVqAUL1gptyewwBXubtq5X6j3HXWj849cv332SaJDNSDYbkH"
   },
   {
-    "domain": "pos-verifier.sol",
+    "domain": "pledgebond-verifier.sol",
     "success": true,
     "signature": "4Fa3cmLRNznWUXPLDgvQkaQx6bAMFf4ruz9e6ZaiqHnQ8FPm4AXMzFDAdLUsBeNcan6kp8AktnLkgSWihFg2RxtL"
   },
   {
-    "domain": "pos-rebalance.sol",
+    "domain": "pledgebond-rebalance.sol",
     "success": true,
     "signature": "5JYxfPsavQhdHrMkXWW4RiVJPeF2xGQm6WahQMYwva8THvhdjo8A5igqAbPdzf3Ro9YdAY9LtQsFfjTSZHHc1FSx"
   }

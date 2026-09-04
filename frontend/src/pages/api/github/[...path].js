@@ -70,7 +70,7 @@ async function handler(req, res) {
       headers: {
         Authorization: `token ${token}`,
         Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'ProofOfShip-BFF',
+        'User-Agent': 'PledgeBond-BFF',
       },
     });
 

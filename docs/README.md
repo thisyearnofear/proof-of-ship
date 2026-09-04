@@ -1,4 +1,4 @@
-# Builder Credit Platform
+# PledgeBond
 
 Decentralized platform where backers fund builders and hackathon prizes collateralize credit.
 

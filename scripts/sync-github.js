@@ -51,7 +51,7 @@ function githubFetch(endpoint) {
       path: endpoint,
       method: 'GET',
       headers: {
-        'User-Agent': 'ProofOfShip-Sync',
+        'User-Agent': 'PledgeBond-Sync',
         'Accept': 'application/vnd.github.v3+json',
         ...(GITHUB_TOKEN && { 'Authorization': `token ${GITHUB_TOKEN}` })
       }

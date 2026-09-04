@@ -1,7 +1,7 @@
 /**
  * Devnet Transaction Runner
  *
- * Generates real on-chain transactions against the deployed Proof of Ship
+ * Generates real on-chain transactions against the deployed PledgeBond
  * Anchor program on Solana devnet. Produces verifiable transaction signatures
  * for the Colosseum hackathon submission.
  *
@@ -50,7 +50,7 @@ function buildIdentityClaimMessage(
   githubUrl: string
 ) {
   return new TextEncoder().encode(
-    `proof-of-ship:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`
+    `pledgebond:sns-identity:v1:${developer.toBase58()}:${snsNameAccount.toBase58()}:${builderSnsDomain}:${projectName}:${githubUrl}`
   );
 }
 
@@ -74,7 +74,7 @@ async function main() {
   }
   const { pubkey: snsNameAccount } = getDomainKeySync(builderSnsDomain);
 
-  console.log("=== Proof of Ship — Devnet Transaction Runner ===");
+  console.log("=== PledgeBond — Devnet Transaction Runner ===");
   console.log(`Program ID: ${program.programId.toBase58()}`);
   console.log(`Developer:  ${dev.toBase58()}`);
   console.log(`RPC:        ${provider.connection.rpcEndpoint}\n`);
@@ -109,7 +109,7 @@ async function main() {
 
   // ── 3. Create Project with milestones ──
   console.log("\n--- Creating project with milestones ---");
-  const projectName = `pos-demo-${Date.now()}`;
+  const projectName = `pledgebond-demo-${Date.now()}`;
   const [project] = PublicKey.findProgramAddressSync(
     [Buffer.from("project"), dev.toBuffer(), Buffer.from(projectName)],
     program.programId
@@ -133,7 +133,7 @@ async function main() {
     snsNameAccount,
     builderSnsDomain,
     projectName,
-    "https://github.com/thisyearnofear/proof-of-ship"
+    "https://github.com/thisyearnofear/pledgebond"
   );
   const identityProofIx1 = Ed25519Program.createInstructionWithPrivateKey({
     privateKey: payer.secretKey,
@@ -144,7 +144,7 @@ async function main() {
   const tx2 = await program.methods
     .requestFunding(
       [new anchor.BN(1), new anchor.BN(2)],
-      "https://github.com/thisyearnofear/proof-of-ship",
+      "https://github.com/thisyearnofear/pledgebond",
       projectName,
       ["Deploy on-chain program", "Run 50+ transactions"],
       [new anchor.BN(5_000_000), new anchor.BN(3_000_000)],
@@ -248,7 +248,7 @@ async function main() {
 
   // ── 7. Second project + backing ──
   console.log("\n--- Creating second project ---");
-  const projectName2 = "pos-expedition";
+  const projectName2 = "pledgebond-expedition";
   const [project2] = PublicKey.findProgramAddressSync(
     [Buffer.from("project"), dev.toBuffer(), Buffer.from(projectName2)],
     program.programId
@@ -268,7 +268,7 @@ async function main() {
     snsNameAccount,
     builderSnsDomain,
     projectName2,
-    "https://github.com/thisyearnofear/proof-of-ship"
+    "https://github.com/thisyearnofear/pledgebond"
   );
   const identityProofIx2 = Ed25519Program.createInstructionWithPrivateKey({
     privateKey: payer.secretKey,
@@ -279,7 +279,7 @@ async function main() {
   const tx6 = await program.methods
     .requestFunding(
       [new anchor.BN(3)],
-      "https://github.com/thisyearnofear/proof-of-ship",
+      "https://github.com/thisyearnofear/pledgebond",
       projectName2,
       ["Build expedition marketplace", "Integrate Cloak privacy", "Launch SNS identity"],
       [new anchor.BN(3_000_000), new anchor.BN(2_000_000), new anchor.BN(2_000_000)],

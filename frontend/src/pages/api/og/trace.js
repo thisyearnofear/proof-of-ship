@@ -109,7 +109,7 @@ export default async function handler(req) {
             Transparent AI reasoning traces on Arc
           </span>
           <span style={{ fontSize: '14px', color: '#06b6d4', fontWeight: 'bold' }}>
-            proofofship.app/scout
+            pledgebond.com/scout
           </span>
         </div>
       </div>

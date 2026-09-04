@@ -2,7 +2,7 @@
  * SNS (Solana Name Service) Service
  *
  * Resolves .sol domain names for Solana wallet addresses and vice versa.
- * Used throughout Proof of Ship to display human-readable builder and backer
+ * Used throughout PledgeBond to display human-readable builder and backer
  * identities instead of raw Base58 addresses.
  *
  * Tracks: Superteam SNS Identity Track
@@ -16,12 +16,12 @@ import { getSolanaConnection } from '@/lib/wallet/constants';
 const nameCache: Map<string, { name: string | null; ts: number }> = new Map();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-// Well-known agent identity mappings for Proof of Ship snap-server agents
+// Well-known agent identity mappings for PledgeBond snap-server agents
 const AGENT_SOL_NAMES: Record<string, string> = {
-  scout: 'pos-scout.sol',
-  underwrite: 'pos-underwrite.sol',
-  verify: 'pos-verify.sol',
-  rebalance: 'pos-rebalance.sol',
+  scout: 'pledgebond-scout.sol',
+  underwrite: 'pledgebond-underwriter.sol',
+  verify: 'pledgebond-verifier.sol',
+  rebalance: 'pledgebond-rebalance.sol',
 };
 
 class SnsService {

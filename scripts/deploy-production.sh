@@ -37,4 +37,4 @@ echo "🚀 Deploying to Firebase..."
 firebase deploy --only hosting
 
 echo "✅ Deployment completed successfully!"
-echo "🌐 Your app should be live at: https://proofofship.web.app"
+echo "🌐 Your app should be live at: https://pledgebond.com"

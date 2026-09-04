@@ -5,6 +5,7 @@ import { agentIdentityResponse, getAgentIdentity } from "@/lib/agentIdentity";
 import { withAgentAuth } from "@/lib/agentAuth";
 import { db } from "@/lib/firebase/serverOnly";
 import { computeScore, getRecommendation, MIN_SCORE_TO_BACK } from "@/lib/scoringEngine";
+import { getAttestcoinClient } from "@/lib/attestcoin";
 
 export default async function handler(req, res) {
   const { slug } = req.query;
@@ -210,6 +211,14 @@ async function underwriteHandler(req, res) {
     if (!snapshot.exists) return res.status(404).json({ error: "Project not found", status: "error" });
 
     const project = { id: snapshot.id, ...snapshot.data() };
+
+    let attestcoin = null;
+    try {
+      const attestcoinClient = getAttestcoinClient();
+      const attestations = await attestcoinClient.getMilestoneAttestations(project.id, 0);
+      attestcoin = { attestations, verified: attestations.some((a) => a.status === "verified") };
+    } catch (attestErr) { console.warn("Attestcoin read skipped:", attestErr.message); }
+
     const { total, breakdown } = computeScore(project);
     const recommendation = getRecommendation(total);
     const { computeStrategicAdvice } = await import("@/lib/scoringEngine");
@@ -236,7 +245,7 @@ async function underwriteHandler(req, res) {
       } catch (aisaErr) { console.error("AIsa enrichment error:", aisaErr.message); }
     }
 
-    const result = { ...agentIdentityResponse('underwrite'), success: true, status: "ok", resultSource, nextAction: "Review the health score and decide whether to back this project.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment.amount, txHash: req.nanopayment.txHash, network: "arc", paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"), aisaPayment }, project: { id: project.id, name: project.name }, healthScore: total, breakdown, recommendation, strategicAdvice, aiAnalysis, timestamp: new Date().toISOString() };
+    const result = { ...agentIdentityResponse('underwrite'), success: true, status: "ok", resultSource, nextAction: "Review the health score and decide whether to back this project.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment.amount, txHash: req.nanopayment.txHash, network: "arc", paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"), aisaPayment }, project: { id: project.id, name: project.name }, healthScore: total, breakdown, recommendation, strategicAdvice, aiAnalysis, attestcoin, timestamp: new Date().toISOString() };
 
     try {
       await db.collection("agent_runs").doc(`underwrite_${Date.now()}`).set({
@@ -333,7 +342,18 @@ async function verifyHandler(req, res) {
       }
     }
 
-    const result = { ...agentIdentityResponse('verify'), success: status === "ok", status, resultSource, nextAction: verification.approved === true ? "Review the verification summary before releasing any milestone funds." : "Review the verification summary and retry later if you need an automated approval decision.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment.amount, txHash: req.nanopayment.txHash, network: network || "arc", paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"), ...(aisaPayment && { aisaPayment }) }, verification, onChainContext, timestamp: new Date().toISOString() };
+    let attestcoin = null;
+    try {
+      const attestcoinClient = getAttestcoinClient();
+      const projectId = projectPda || prId;
+      attestcoin = await attestcoinClient.attestMilestone(
+        projectId,
+        parseInt(milestoneIndex || "0", 10),
+        { prId, approved: verification.approved, sourceChain: network || "unknown", confidence: verification.confidence }
+      );
+    } catch (attestErr) { console.warn("Attestcoin attestation skipped:", attestErr.message); }
+
+    const result = { ...agentIdentityResponse('verify'), success: status === "ok", status, resultSource, nextAction: verification.approved === true ? "Review the verification summary before releasing any milestone funds." : "Review the verification summary and retry later if you need an automated approval decision.", agentInfo: { name: identity.domain, humanName: identity.displayName, feePaid: req.nanopayment.amount, txHash: req.nanopayment.txHash, network: network || "arc", paymentStatus: req.nanopayment.testMode ? "test_mode" : (req.nanopayment.verificationStatus || "unverified"), ...(aisaPayment && { aisaPayment }) }, verification, onChainContext, attestcoin, timestamp: new Date().toISOString() };
 
     await setCachedResult("verify", { prId }, result);
     return res.status(200).json(result);

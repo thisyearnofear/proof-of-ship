@@ -69,6 +69,10 @@ describe("getPostLoginDestination", () => {
     expect(getPostLoginDestination("backer")).toBe("/back?tab=discover");
   });
 
+  it("routes builders to the wins desk", () => {
+    expect(getPostLoginDestination("builder")).toBe("/build?tab=wins");
+  });
+
   it("respects explicit redirect", () => {
     expect(getPostLoginDestination("builder", "/projects/new")).toBe("/projects/new");
   });

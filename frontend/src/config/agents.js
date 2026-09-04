@@ -43,4 +43,4 @@ export const AGENTS = [
 ];
 
 export const AGENTS_INTRO =
-  "Scout finds projects. Underwriter scores them. Verifier checks milestones. All paid via x402 on Arc.";
+  "For winners: Verifier confirms payouts. Underwriter scores the win into a shareable packet. Scout is optional for backers scanning the wider market.";

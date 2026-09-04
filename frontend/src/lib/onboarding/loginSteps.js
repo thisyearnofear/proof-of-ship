@@ -99,5 +99,5 @@ export function getNavbarSetupLabel(state) {
  */
 export function getPostLoginDestination(role, redirect) {
   if (redirect && typeof redirect === "string") return redirect;
-  return role === "backer" ? "/back?tab=discover" : "/build";
+  return role === "backer" ? "/back?tab=discover" : "/build?tab=wins";
 }

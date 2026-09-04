@@ -789,7 +789,11 @@ export default function DeveloperDashboard() {
                 ✕
               </button>
             </div>
-            <BackingPanel projectId={selectedProjectId} />
+            <BackingPanel
+              projectId={selectedProjectId}
+              projectName={projectDetails[selectedProjectId]?.name}
+              developerAddress={account}
+            />
             <p className="mt-4 text-center text-xs text-white/60">
               Self-staking increases your reputation score and boosts your credit limit 2x.
             </p>

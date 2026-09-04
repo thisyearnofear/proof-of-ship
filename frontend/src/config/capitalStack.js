@@ -156,4 +156,4 @@ export const CAPITAL_STACK_FOOTNOTE =
 export const CAPITAL_STACK_ANCHOR_ID = "capital-stack";
 export const CAPITAL_STACK_HREF = `/#${CAPITAL_STACK_ANCHOR_ID}`;
 export const AGENTS_CAPITAL_HINT =
-  "Agents recommend which rail fits your stage.";
+  "Start with payout truth and an Underwriter packet — credit rails come after the win is verified.";

@@ -89,7 +89,6 @@ export default function LeaderboardRankBadge({
   const mountedRef = useRef(true);
 
   const config = CATEGORIES[type];
-  if (!config) return null;
 
   useEffect(() => {
     return () => {
@@ -98,6 +97,7 @@ export default function LeaderboardRankBadge({
   }, []);
 
   useEffect(() => {
+    if (!config) return;
     if (!identifier) {
       setLoading(false);
       return;
@@ -133,7 +133,9 @@ export default function LeaderboardRankBadge({
     return () => {
       cancelled = true;
     };
-  }, [identifier, type]);
+  }, [identifier, type, config]);
+
+  if (!config) return null;
 
   /* ── Loading skeleton ── */
   if (loading) {

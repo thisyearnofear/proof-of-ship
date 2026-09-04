@@ -64,8 +64,12 @@ export default function LiveAgentTicker() {
     return () => clearInterval(interval);
   }, [runs.length]);
 
-  const activeRun = runs[index];
-  const displayText = activeRun ? formatAgentRun(activeRun) : 'Waiting for agent activity...';
+  // Empty live systems destroy trust — stay invisible until there is real activity.
+  if (runs.length === 0) return null;
+
+  const activeRun = runs[index % runs.length];
+  const displayText = activeRun ? formatAgentRun(activeRun) : null;
+  if (!displayText) return null;
 
   // Compute live stats from real data
   const totalRuns = runs.length;

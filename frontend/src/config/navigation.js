@@ -16,7 +16,7 @@
 /** @type {NavItem[]} */
 export const PRIMARY_NAV = [
   { id: "explore", label: "Explore", href: "/explore" },
-  { id: "leaderboard", label: "Leaderboard", href: "/leaderboard" },
+  { id: "leaderboard", label: "Payouts", href: "/leaderboard" },
   { id: "build", label: "Build", href: "/build", auth: true, builderOnly: true },
   { id: "back", label: "Back", href: "/back" },
 ];
